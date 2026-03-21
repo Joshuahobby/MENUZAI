@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>MENUZA AI - Business Analytics</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#FF6B00",
+                        "primary-container": "#FF6B00",
+                        "on-primary": "#ffffff",
+                        "secondary": "#5f5e5e",
+                        "background": "#fcf9f8",
+                        "surface": "#fcf9f8",
+                        "surface-container": "#f0eded",
+                        "surface-container-low": "#f6f3f2",
+                        "surface-container-lowest": "#ffffff",
+                        "on-surface": "#1b1b1c",
+                        "outline": "#8e7164",
+                        "tertiary": "#006e2a",
+                        "tertiary-container": "#00b149"
+                    },
+                    fontFamily: {
+                        "headline": ["Plus Jakarta Sans"],
+                        "body": ["Inter"],
+                        "label": ["Inter"]
+                    },
+                    borderRadius: {"DEFAULT": "0.5rem", "lg": "0.75rem", "xl": "1rem", "2xl": "1.5rem", "3xl": "2rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #fcf9f8;
+        }
+        h1, h2, h3, h4 {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+        .bento-grid {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            gap: 1.5rem;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface">
+<!-- SideNavBar -->
+<aside class="fixed left-0 top-0 h-full flex flex-col py-6 z-50 bg-[#fcf9f8] w-64 border-r border-surface-container font-['Plus_Jakarta_Sans'] text-sm font-medium">
+<div class="px-8 mb-10">
+<span class="text-xl font-extrabold text-primary">Le Bistro</span>
+<p class="text-xs text-secondary opacity-70">Business Dashboard</p>
+</div>
+<nav class="space-y-1 px-4 flex-1">
+<a class="flex items-center gap-3 px-4 py-3 text-gray-600 hover:text-primary hover:bg-surface-container-low rounded-xl transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span>Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-gray-600 hover:text-primary hover:bg-surface-container-low rounded-xl transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="restaurant_menu">restaurant_menu</span>
+<span>My Menus</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 bg-primary/10 text-primary rounded-xl transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="analytics" style="font-variation-settings: 'FILL' 1;">analytics</span>
+<span>Analytics</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-gray-600 hover:text-primary hover:bg-surface-container-low rounded-xl transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="qr_code_2">qr_code_2</span>
+<span>QR Codes</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-gray-600 hover:text-primary hover:bg-surface-container-low rounded-xl transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span>Settings</span>
+</a>
+</nav>
+<div class="px-8 mt-auto pt-6 border-t border-surface-container">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+</div>
+<div>
+<p class="text-xs font-bold">Chef Marco</p>
+<p class="text-[10px] opacity-60">Sign Out</p>
+</div>
+</div>
+</div>
+</aside>
+<!-- Main Content -->
+<main class="ml-64 min-h-screen p-8 lg:p-12">
+<!-- Header -->
+<header class="flex justify-between items-end mb-10">
+<div>
+<h1 class="text-3xl font-extrabold tracking-tight text-on-surface mb-1">Performance Overview</h1>
+<p class="text-secondary font-medium">Growing your restaurant with data-driven insights.</p>
+</div>
+<div class="flex items-center gap-3">
+<div class="bg-surface-container-lowest px-4 py-2.5 rounded-xl border border-surface-container flex items-center gap-3 shadow-sm">
+<span class="material-symbols-outlined text-primary text-sm" data-icon="calendar_month">calendar_month</span>
+<span class="text-sm font-semibold">Last 30 Days</span>
+</div>
+<button class="bg-primary hover:opacity-90 text-white px-5 py-2.5 rounded-xl font-bold transition-all flex items-center gap-2 shadow-lg shadow-primary/20">
+<span class="material-symbols-outlined text-sm" data-icon="download">download</span>
+                    Report
+                </button>
+</div>
+</header>
+<!-- KPI Cards -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+<div class="bg-surface-container-lowest p-6 rounded-3xl shadow-sm border border-surface-container/50">
+<p class="text-secondary text-xs font-bold uppercase tracking-wider mb-2">Total Revenue</p>
+<div class="flex items-end justify-between">
+<h3 class="text-2xl font-extrabold">$24,850</h3>
+<span class="text-tertiary text-xs font-bold flex items-center gap-0.5 bg-tertiary/10 px-2 py-1 rounded-full">+12%</span>
+</div>
+</div>
+<div class="bg-surface-container-lowest p-6 rounded-3xl shadow-sm border border-surface-container/50">
+<p class="text-secondary text-xs font-bold uppercase tracking-wider mb-2">Total Orders</p>
+<div class="flex items-end justify-between">
+<h3 class="text-2xl font-extrabold">1,284</h3>
+<span class="text-tertiary text-xs font-bold flex items-center gap-0.5 bg-tertiary/10 px-2 py-1 rounded-full">+8%</span>
+</div>
+</div>
+<div class="bg-surface-container-lowest p-6 rounded-3xl shadow-sm border border-surface-container/50">
+<p class="text-secondary text-xs font-bold uppercase tracking-wider mb-2">Avg. Order Value</p>
+<div class="flex items-end justify-between">
+<h3 class="text-2xl font-extrabold">$19.35</h3>
+<span class="text-primary text-xs font-bold flex items-center gap-0.5 bg-primary/10 px-2 py-1 rounded-full">+4%</span>
+</div>
+</div>
+<div class="bg-surface-container-lowest p-6 rounded-3xl shadow-sm border border-surface-container/50">
+<p class="text-secondary text-xs font-bold uppercase tracking-wider mb-2">Conversion Rate</p>
+<div class="flex items-end justify-between">
+<h3 class="text-2xl font-extrabold">8.2%</h3>
+<span class="text-tertiary text-xs font-bold flex items-center gap-0.5 bg-tertiary/10 px-2 py-1 rounded-full">+1.4%</span>
+</div>
+</div>
+</div>
+<div class="bento-grid">
+<!-- AI Revenue Insight Card -->
+<div class="col-span-12 lg:col-span-8 bg-primary p-8 rounded-3xl shadow-xl shadow-primary/10 relative overflow-hidden flex flex-col md:flex-row items-center gap-8">
+<div class="absolute -top-12 -right-12 w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
+<div class="z-10 bg-white/20 backdrop-blur-md p-5 rounded-2xl">
+<span class="material-symbols-outlined text-white text-4xl" data-icon="auto_awesome" style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
+</div>
+<div class="z-10 text-white flex-1">
+<h3 class="text-xl font-bold mb-2">AI Revenue Insight</h3>
+<p class="text-lg opacity-90 leading-snug">Your <span class="font-black underline decoration-2 underline-offset-4">Classic Burger</span> is a top seller. Creating a combo with Soda could increase average ticket size by <span class="bg-white/20 px-2 py-0.5 rounded-lg font-bold">15%</span>.</p>
+</div>
+<button class="z-10 bg-white text-primary px-6 py-3 rounded-xl font-bold hover:shadow-lg transition-all active:scale-95 whitespace-nowrap">
+                    Launch Promo
+                </button>
+</div>
+<!-- Recent WhatsApp Orders Feed -->
+<div class="col-span-12 lg:col-span-4 bg-surface-container-lowest p-6 rounded-3xl border border-surface-container/50 shadow-sm flex flex-col">
+<div class="flex items-center justify-between mb-6">
+<h3 class="font-bold flex items-center gap-2">
+<span class="material-symbols-outlined text-green-500 text-xl" data-icon="chat">chat</span>
+                        Live Activity
+                    </h3>
+<span class="flex h-2 w-2 rounded-full bg-green-500 animate-pulse"></span>
+</div>
+<div class="space-y-4 flex-1">
+<div class="flex gap-3 items-start p-3 hover:bg-surface-container-low rounded-2xl transition-colors cursor-default">
+<div class="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center text-green-600 text-[10px] font-bold">JD</div>
+<div>
+<p class="text-sm font-bold">John D. ordered Burgers</p>
+<p class="text-[10px] text-secondary">2 mins ago via WhatsApp</p>
+</div>
+<span class="ml-auto text-xs font-bold text-primary">$42.50</span>
+</div>
+<div class="flex gap-3 items-start p-3 hover:bg-surface-container-low rounded-2xl transition-colors cursor-default">
+<div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 text-[10px] font-bold">SM</div>
+<div>
+<p class="text-sm font-bold">Sarah M. viewing menu</p>
+<p class="text-[10px] text-secondary">5 mins ago</p>
+</div>
+</div>
+<div class="flex gap-3 items-start p-3 hover:bg-surface-container-low rounded-2xl transition-colors cursor-default">
+<div class="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center text-green-600 text-[10px] font-bold">AK</div>
+<div>
+<p class="text-sm font-bold">Alex K. ordered Pizza</p>
+<p class="text-[10px] text-secondary">12 mins ago via WhatsApp</p>
+</div>
+<span class="ml-auto text-xs font-bold text-primary">$18.20</span>
+</div>
+</div>
+</div>
+<!-- Top Performing Dishes -->
+<div class="col-span-12 lg:col-span-7 bg-surface-container-lowest p-8 rounded-3xl border border-surface-container/50 shadow-sm">
+<div class="flex justify-between items-center mb-8">
+<h3 class="text-xl font-bold">Top Performing Dishes</h3>
+<div class="flex gap-2">
+<button class="text-xs font-bold px-3 py-1 bg-primary/10 text-primary rounded-lg">By Margin</button>
+<button class="text-xs font-bold px-3 py-1 hover:bg-surface-container-low rounded-lg transition-colors">By Volume</button>
+</div>
+</div>
+<div class="space-y-6">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-2xl bg-surface-container overflow-hidden shrink-0">
+<img alt="Burger" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBTJXl7RxBxafy1eWbDqrNSDRUjjbvd8npRikzD6GuipwXIfNGB8KCUbEFt-9_lbBNm34JwHN0C43zqhZ9s-VPdNQ4Vu9NS99rimOMTV24ArYO3ps9UYs8of30T276sJaI8NjY8a606GJWHYnlzPlrHMZalYCp4gVf50bPRrARnpKMxBB3eAPmPC_raHtKGLI8AlvECsNR8LGFC97fD0zRQko5GSelaMz1z9H2HMD3tSNIY0z6Rk9lakoHeIrICId6Tbzl3JE6sgvE"/>
+</div>
+<div class="flex-1">
+<div class="flex justify-between mb-1.5">
+<span class="font-bold text-sm">Classic Truffle Burger</span>
+<span class="text-xs font-bold text-tertiary">68% Margin</span>
+</div>
+<div class="h-2 w-full bg-surface-container-low rounded-full overflow-hidden">
+<div class="h-full bg-primary rounded-full" style="width: 85%"></div>
+</div>
+</div>
+<div class="text-right pl-4">
+<p class="font-bold text-sm">482</p>
+<p class="text-[10px] text-secondary">Orders</p>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-2xl bg-surface-container overflow-hidden shrink-0">
+<img alt="Pizza" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA1NvF0rGT_ktZfPl2BagJlQAqzWwo5R82X0vHCt93CLVWDS-8AOqicuhPmRci9PqaZvSF7nZjl03hNMDueb9hpO2Il5mg9D7gcLwfe4X8rvARp5wHr6HbRKJ1NiSnP6Xqge_vqbVJdLa8FFwavWjgPJgEgfE2nJArpTSzS1zqLms7kD2kZPspLV1dTSixunmQFUhk5gkb4C6MVKqRBfEnoQiigfMlwNe_pbRPeBO4vJ-WUPzc0xUBCBG3J1dwkZw1gaq8-zB1UlDY"/>
+</div>
+<div class="flex-1">
+<div class="flex justify-between mb-1.5">
+<span class="font-bold text-sm">Garden Margherita</span>
+<span class="text-xs font-bold text-tertiary">72% Margin</span>
+</div>
+<div class="h-2 w-full bg-surface-container-low rounded-full overflow-hidden">
+<div class="h-full bg-primary/70 rounded-full" style="width: 65%"></div>
+</div>
+</div>
+<div class="text-right pl-4">
+<p class="font-bold text-sm">315</p>
+<p class="text-[10px] text-secondary">Orders</p>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-2xl bg-surface-container overflow-hidden shrink-0">
+<img alt="Salad" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCAi4w8TYlD_ElaB9Y5TNrxtGDejclCjhO7pfiFzbmRiM0wsMm061sDvZ4abCAaimY1T2w8RgHygGto9w2etdJD9Qfm1y1GrB0-xFkFtG626tW5DIlU7scZI7-9FJyUACZkne2x3CDji9efEfvkdch3A-Yz6Imf5HEAcJy25cZqUPdUXB5Q-b6HZ_bN7rJ6YbH-E3ZVsL3jMLUtO0T2QYi_W3khW7-kQ9kUp8LIPUv4l4zBkF6ODGuMIJ9Aj141KDbxwxys5g0JjpI"/>
+</div>
+<div class="flex-1">
+<div class="flex justify-between mb-1.5">
+<span class="font-bold text-sm">Superfood Bowl</span>
+<span class="text-xs font-bold text-tertiary">55% Margin</span>
+</div>
+<div class="h-2 w-full bg-surface-container-low rounded-full overflow-hidden">
+<div class="h-full bg-primary/40 rounded-full" style="width: 45%"></div>
+</div>
+</div>
+<div class="text-right pl-4">
+<p class="font-bold text-sm">210</p>
+<p class="text-[10px] text-secondary">Orders</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Peak Ordering Hours -->
+<div class="col-span-12 lg:col-span-5 bg-surface-container-lowest p-8 rounded-3xl border border-surface-container/50 shadow-sm">
+<div class="flex justify-between items-center mb-10">
+<div>
+<h3 class="text-xl font-bold">Peak Ordering Hours</h3>
+<p class="text-secondary text-xs">Prepare staffing for peak traffic</p>
+</div>
+<span class="bg-primary/10 text-primary font-bold px-3 py-1 rounded-lg text-[10px]">7PM Peak</span>
+</div>
+<div class="h-48 w-full flex items-end justify-between gap-3 px-2">
+<div class="flex-1 flex flex-col items-center gap-3 group">
+<div class="w-full bg-surface-container-low hover:bg-primary/20 transition-all rounded-t-lg h-[25%]"></div>
+<span class="text-[9px] text-secondary font-bold">11A</span>
+</div>
+<div class="flex-1 flex flex-col items-center gap-3 group">
+<div class="w-full bg-surface-container-low hover:bg-primary/20 transition-all rounded-t-lg h-[65%]"></div>
+<span class="text-[9px] text-secondary font-bold">1P</span>
+</div>
+<div class="flex-1 flex flex-col items-center gap-3 group">
+<div class="w-full bg-surface-container-low hover:bg-primary/20 transition-all rounded-t-lg h-[40%]"></div>
+<span class="text-[9px] text-secondary font-bold">3P</span>
+</div>
+<div class="flex-1 flex flex-col items-center gap-3 group">
+<div class="w-full bg-surface-container-low hover:bg-primary/20 transition-all rounded-t-lg h-[75%]"></div>
+<span class="text-[9px] text-secondary font-bold">5P</span>
+</div>
+<div class="flex-1 flex flex-col items-center gap-3 group">
+<div class="w-full bg-primary rounded-t-lg h-[95%] relative">
+<div class="absolute -top-7 left-1/2 -translate-x-1/2 bg-on-surface text-white text-[9px] py-1 px-2 rounded font-bold shadow-sm whitespace-nowrap">Busy</div>
+</div>
+<span class="text-[9px] text-primary font-black">7P</span>
+</div>
+<div class="flex-1 flex flex-col items-center gap-3 group">
+<div class="w-full bg-surface-container-low hover:bg-primary/20 transition-all rounded-t-lg h-[80%]"></div>
+<span class="text-[9px] text-secondary font-bold">9P</span>
+</div>
+<div class="flex-1 flex flex-col items-center gap-3 group">
+<div class="w-full bg-surface-container-low hover:bg-primary/20 transition-all rounded-t-lg h-[30%]"></div>
+<span class="text-[9px] text-secondary font-bold">11P</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Footer -->
+<footer class="mt-16 flex flex-col md:flex-row justify-between items-center text-secondary text-xs border-t border-surface-container pt-8 gap-4">
+<p>© 2024 MENUZA AI. Last synced: Just now.</p>
+<div class="flex gap-8">
+<a class="hover:text-primary transition-colors font-medium" href="#">Business Intelligence Support</a>
+<a class="hover:text-primary transition-colors font-medium" href="#">Export Data Settings</a>
+</div>
+</footer>
+</main>
+</body></html>

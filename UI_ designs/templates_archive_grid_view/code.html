@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Menuza - Templates Archive</title>
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<!-- Icons -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "tertiary-fixed-dim": "#3ce36a",
+              "surface-tint": "#a04100",
+              "surface-dim": "#dcd9d9",
+              "on-primary-container": "#572000",
+              "on-primary-fixed": "#351000",
+              "on-tertiary-fixed": "#002108",
+              "background": "#fcf9f8",
+              "tertiary": "#006e2a",
+              "surface-bright": "#fcf9f8",
+              "secondary-fixed-dim": "#c8c6c5",
+              "surface-container-highest": "#e5e2e1",
+              "secondary-fixed": "#e5e2e1",
+              "outline": "#8e7164",
+              "on-tertiary": "#ffffff",
+              "error-container": "#ffdad6",
+              "error": "#ba1a1a",
+              "on-secondary-fixed": "#1b1b1c",
+              "primary-fixed-dim": "#ffb693",
+              "on-primary": "#ffffff",
+              "tertiary-fixed": "#69ff87",
+              "secondary": "#5f5e5e",
+              "on-surface": "#1b1b1c",
+              "surface-variant": "#e5e2e1",
+              "surface": "#fcf9f8",
+              "primary": "#a04100",
+              "on-secondary-fixed-variant": "#474746",
+              "on-surface-variant": "#5a4136",
+              "tertiary-container": "#00b149",
+              "surface-container-low": "#f6f3f2",
+              "on-tertiary-fixed-variant": "#00531e",
+              "on-secondary-container": "#636262",
+              "inverse-primary": "#ffb693",
+              "surface-container-lowest": "#ffffff",
+              "outline-variant": "#e2bfb0",
+              "secondary-container": "#e2dfde",
+              "on-tertiary-container": "#003a13",
+              "inverse-surface": "#303030",
+              "primary-fixed": "#ffdbcc",
+              "on-background": "#1b1b1c",
+              "primary-container": "#ff6b00",
+              "on-primary-fixed-variant": "#7a3000",
+              "inverse-on-surface": "#f3f0ef",
+              "surface-container-high": "#eae7e7",
+              "surface-container": "#f0eded",
+              "on-error-container": "#93000a",
+              "on-error": "#ffffff",
+              "on-secondary": "#ffffff"
+            },
+            fontFamily: {
+              "headline": ["Plus Jakarta Sans"],
+              "body": ["Inter"],
+              "label": ["Inter"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body { font-family: 'Inter', sans-serif; }
+        h1, h2, h3, .brand-font { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body class="bg-background text-on-background selection:bg-primary-container/30">
+<!-- TopNavBar -->
+<nav class="fixed top-0 w-full z-50 bg-[#fcf9f8]/60 backdrop-blur-xl flex justify-between items-center px-8 h-20 w-full shadow-[0_8px_32px_rgba(27,27,28,0.04)] font-['Plus_Jakarta_Sans'] tracking-tight">
+<div class="flex items-center gap-12">
+<span class="text-2xl font-black text-[#FF6B00] tracking-tighter">Menuza</span>
+<div class="hidden md:flex gap-8">
+<a class="text-[#5f5e5e] hover:text-[#FF6B00] transition-colors duration-300" href="#">Dashboard</a>
+<a class="text-[#a04100] font-bold border-b-2 border-[#FF6B00] pb-1" href="#">Menus</a>
+<a class="text-[#5f5e5e] hover:text-[#FF6B00] transition-colors duration-300" href="#">Inventory</a>
+<a class="text-[#5f5e5e] hover:text-[#FF6B00] transition-colors duration-300" href="#">Analytics</a>
+</div>
+</div>
+<div class="flex items-center gap-6">
+<div class="hidden md:flex gap-4">
+<button class="p-2 text-secondary hover:text-primary transition-colors">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="p-2 text-secondary hover:text-primary transition-colors">
+<span class="material-symbols-outlined">help</span>
+</button>
+</div>
+<button class="bg-primary-container text-white px-6 py-2.5 rounded-xl font-semibold shadow-lg shadow-primary-container/20 scale-95 active:scale-90 transition-transform">
+                Create Menu
+            </button>
+<img alt="Profile" class="w-10 h-10 rounded-full object-cover ring-2 ring-primary-container/10" data-alt="Close up of a professional male headshot" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA5CPnpKGjxj7mh96-TipNhg0W7N2n4UPbkHmS6jDdTRim3J9V86MVsVjn1ysKXMv6gFzqdrjTQ-zvEtkN7sQ4gatowtdOPPszexf-JukB-Jc504qZC6hVQB9ZMlsgoC1s-kO8EX07d0_Kr9Rhkw8QnxQLgnd0s3cCqn5vgiYzn_UVehDmo9_DOpeB2iREvuQaU3hpjIB57OeHFMGBwtaoDcNl7G2ocz927_M7xO1GGiouf71s9NqSeve33CG8NHPYGMX0a_YSb7zY"/>
+</div>
+</nav>
+<!-- Sidebar (Contextual) -->
+<aside class="fixed left-0 top-0 pt-24 pb-8 px-4 flex flex-col gap-2 h-screen w-72 bg-[#f6f3f2] no-border space-y-4 font-['Plus_Jakarta_Sans'] text-sm font-medium z-40 hidden lg:flex">
+<div class="px-4 py-6 mb-4 flex items-center gap-3 bg-surface-container-lowest rounded-2xl shadow-sm">
+<div class="w-10 h-10 bg-primary-container rounded-lg flex items-center justify-center text-white">
+<span class="material-symbols-outlined">restaurant</span>
+</div>
+<div>
+<p class="font-bold text-on-surface">Le Petit Bistro</p>
+<p class="text-xs text-secondary italic">Premium Plan</p>
+</div>
+</div>
+<div class="flex flex-col gap-1">
+<a class="flex items-center gap-3 px-4 py-3 text-[#5f5e5e] opacity-70 hover:bg-[#e5e2e1] hover:translate-x-1 transition-all rounded-xl" href="#">
+<span class="material-symbols-outlined">person</span>
+                Account Settings
+            </a>
+<a class="flex items-center gap-3 px-4 py-3 bg-white text-[#FF6B00] rounded-xl shadow-sm transition-transform" href="#">
+<span class="material-symbols-outlined">grid_view</span>
+                Templates Archive
+            </a>
+<a class="flex items-center gap-3 px-4 py-3 text-[#5f5e5e] opacity-70 hover:bg-[#e5e2e1] hover:translate-x-1 transition-all rounded-xl" href="#">
+<span class="material-symbols-outlined">payments</span>
+                Subscription
+            </a>
+<a class="flex items-center gap-3 px-4 py-3 text-[#5f5e5e] opacity-70 hover:bg-[#e5e2e1] hover:translate-x-1 transition-all rounded-xl" href="#">
+<span class="material-symbols-outlined">group</span>
+                Team Members
+            </a>
+</div>
+<div class="mt-auto pt-4 border-t border-outline-variant/20">
+<a class="flex items-center gap-3 px-4 py-3 text-error hover:bg-error-container/20 rounded-xl transition-all" href="#">
+<span class="material-symbols-outlined">logout</span>
+                Sign Out
+            </a>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="lg:pl-72 pt-20 min-h-screen">
+<div class="max-w-7xl mx-auto px-8 py-12">
+<!-- Header Section -->
+<header class="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6">
+<div class="max-w-2xl">
+<h1 class="text-5xl font-extrabold text-on-surface tracking-tighter mb-4">
+                        Find your <span class="text-primary">signature look</span>
+</h1>
+<p class="text-lg text-secondary leading-relaxed">
+                        Choose from our curated collection of editorial menu designs. From fine dining elegance to street-food grit, perfectly plated layouts await your brand.
+                    </p>
+</div>
+<div class="flex gap-3">
+<div class="bg-surface-container-low px-4 py-2 rounded-full flex items-center gap-2 border border-outline-variant/10">
+<span class="w-2 h-2 rounded-full bg-tertiary-container"></span>
+<span class="text-sm font-medium">128 Ready Templates</span>
+</div>
+</div>
+</header>
+<!-- Search & Filters -->
+<section class="mb-10 flex flex-col gap-6">
+<!-- Search Bar -->
+<div class="relative w-full">
+<span class="material-symbols-outlined absolute left-5 top-1/2 -translate-y-1/2 text-secondary/60">search</span>
+<input class="w-full bg-surface-container-low border-none rounded-2xl py-5 pl-14 pr-6 focus:ring-2 focus:ring-primary/20 text-on-surface placeholder:text-secondary/50 text-lg transition-all shadow-sm" placeholder="Search by name, cuisine, or style..." type="text"/>
+</div>
+<!-- Chips/Filters -->
+<div class="flex flex-wrap items-center gap-3">
+<div class="flex items-center gap-2 bg-surface-container-highest px-4 py-2.5 rounded-xl text-primary font-semibold cursor-pointer border border-primary/20">
+<span class="material-symbols-outlined text-xl">tune</span>
+<span>Filters</span>
+</div>
+<div class="h-6 w-px bg-outline-variant/30 mx-2"></div>
+<!-- Price Filter -->
+<button class="px-5 py-2.5 rounded-full bg-white border border-outline-variant/20 hover:border-primary/40 text-sm font-medium text-secondary transition-all">All</button>
+<button class="px-5 py-2.5 rounded-full bg-white border border-outline-variant/20 hover:border-primary/40 text-sm font-medium text-secondary transition-all">Free</button>
+<button class="px-5 py-2.5 rounded-full bg-white border border-outline-variant/20 hover:border-primary/40 text-sm font-medium text-secondary transition-all">Premium</button>
+<div class="h-6 w-px bg-outline-variant/30 mx-2"></div>
+<!-- Cuisine Filter -->
+<button class="px-5 py-2.5 rounded-full bg-primary-fixed text-on-primary-fixed-variant text-sm font-bold transition-all">Italian</button>
+<button class="px-5 py-2.5 rounded-full bg-white border border-outline-variant/20 hover:border-primary/40 text-sm font-medium text-secondary transition-all">Fast Food</button>
+<button class="px-5 py-2.5 rounded-full bg-white border border-outline-variant/20 hover:border-primary/40 text-sm font-medium text-secondary transition-all">Fine Dining</button>
+<button class="px-5 py-2.5 rounded-full bg-white border border-outline-variant/20 hover:border-primary/40 text-sm font-medium text-secondary transition-all">Cafe &amp; Bakery</button>
+<div class="ml-auto">
+<select class="bg-transparent border-none text-sm font-bold text-on-surface focus:ring-0 cursor-pointer">
+<option>Sort by: Popularity</option>
+<option>Sort by: Newest</option>
+<option>Sort by: Price</option>
+</select>
+</div>
+</div>
+</section>
+<!-- 3-Column Template Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-10">
+<!-- Card 1: Premium Italian -->
+<div class="group relative bg-surface-container-lowest rounded-[2rem] overflow-hidden transition-all duration-500 hover:-translate-y-2 hover:shadow-[0_20px_50px_rgba(160,65,0,0.1)]">
+<div class="relative aspect-[3/4] overflow-hidden">
+<img alt="Elegant Italian Menu Template" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" data-alt="Sophisticated italian restaurant menu on cream paper" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDL2l7GNY8hBvXXgJUyYuAy00IUTGWVDjrnRglYGKbyBuUY5woMakg1_9Z8pooVgJWjz2xFYho8fTvR-U2TiGDSGWEfNLmgRLBnh4_rg-s15YaavtkNoud8TdTmU9K4bbipvgjgnGXqVzsDlD21Q0BupanP1D5HGCpE72rQy5Yj1zlhfM5oe9Rt8s1kDLq-CEQUzDQGHrnbxRkTLDyWKobJZh4g3eiOhKLAhiID_RT7pfEVdlwaXTzbsT0YX6XKOUEjGziDssuFfU8"/>
+<div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-8">
+<button class="w-full bg-white text-on-surface py-4 rounded-xl font-bold translate-y-4 group-hover:translate-y-0 transition-transform duration-500">
+                                Live Preview
+                            </button>
+</div>
+<div class="absolute top-6 left-6 flex flex-col gap-2">
+<span class="bg-[#FF6B00] text-white px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-widest shadow-lg">Premium</span>
+<span class="bg-white/90 backdrop-blur-md text-on-surface px-4 py-1.5 rounded-full text-xs font-bold shadow-sm">Italian</span>
+</div>
+</div>
+<div class="p-8">
+<div class="flex justify-between items-start mb-2">
+<h3 class="text-2xl font-bold tracking-tight">Tuscany Gold</h3>
+<p class="text-primary font-black text-xl tracking-tighter">$29</p>
+</div>
+<p class="text-secondary text-sm mb-6 leading-relaxed">Classic serif typography paired with minimal grid layouts for high-end dining.</p>
+<div class="flex items-center gap-4">
+<div class="flex -space-x-2">
+<div class="w-6 h-6 rounded-full bg-surface-container-highest border-2 border-white flex items-center justify-center text-[8px] font-bold">PT</div>
+<div class="w-6 h-6 rounded-full bg-secondary-container border-2 border-white flex items-center justify-center text-[8px] font-bold">IA</div>
+</div>
+<span class="text-[10px] text-secondary/60 font-medium uppercase tracking-widest">Multi-Page Support</span>
+</div>
+</div>
+</div>
+<!-- Card 2: Free Fast Food -->
+<div class="group relative bg-surface-container-lowest rounded-[2rem] overflow-hidden transition-all duration-500 hover:-translate-y-2 hover:shadow-[0_20px_50px_rgba(160,65,0,0.1)]">
+<div class="relative aspect-[3/4] overflow-hidden">
+<img alt="Bold Fast Food Template" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" data-alt="Colorful modern burger shop menu with bold fonts" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBFI1KD5vEWhrqjE3bST3kIxz-1wDUp9kEzKpHb8fa__tpAncAJwxTPyHU3x8bDIhKlFYEcKSeBTGBIjaaWWC4louq_Tk-4xqPvMt6nEDnK7MpOsPq7gKcgLKw_96CFuTcFyoUD6GzJK1jPngBMqFEXPlyvMSUeZABHIA6OuzjboKkEDkyRj3hpCa_djLA8NL-ZY0vVPxf6iJbUBX6UNlaPKyihyYEbw6S92sgYm7XzRTdGHU4U51CQGoWWXXBmeoHP_2CixQ8sDDA"/>
+<div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-8">
+<button class="w-full bg-white text-on-surface py-4 rounded-xl font-bold translate-y-4 group-hover:translate-y-0 transition-transform duration-500">
+                                Live Preview
+                            </button>
+</div>
+<div class="absolute top-6 left-6 flex flex-col gap-2">
+<span class="bg-tertiary-container text-white px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-widest shadow-lg">Free</span>
+<span class="bg-white/90 backdrop-blur-md text-on-surface px-4 py-1.5 rounded-full text-xs font-bold shadow-sm">Fast Food</span>
+</div>
+</div>
+<div class="p-8">
+<div class="flex justify-between items-start mb-2">
+<h3 class="text-2xl font-bold tracking-tight">Neon Diner</h3>
+<p class="text-tertiary font-black text-xl tracking-tighter">FREE</p>
+</div>
+<p class="text-secondary text-sm mb-6 leading-relaxed">High-energy layouts with rounded containers and punchy action-colors.</p>
+<div class="flex items-center gap-4">
+<div class="flex -space-x-2">
+<div class="w-6 h-6 rounded-full bg-surface-container-highest border-2 border-white flex items-center justify-center text-[8px] font-bold">QR</div>
+</div>
+<span class="text-[10px] text-secondary/60 font-medium uppercase tracking-widest">Digital-Ready</span>
+</div>
+</div>
+</div>
+<!-- Card 3: Premium Fine Dining -->
+<div class="group relative bg-surface-container-lowest rounded-[2rem] overflow-hidden transition-all duration-500 hover:-translate-y-2 hover:shadow-[0_20px_50px_rgba(160,65,0,0.1)]">
+<div class="relative aspect-[3/4] overflow-hidden">
+<img alt="Minimal Fine Dining Template" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" data-alt="Minimalist dark themed fine dining menu with gold leaf accents" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAH0uYmykY5S8cqE7bJRrSCwQ_w8ThiZO5Tz12w2CrYE2j-thIktV3U612XqT8DnyeTXhKy2NjXe8LdLn_Nq59cTPVoiKa0uwQdg0b-oTtc3SHZeA7CLPdWNVWcmMu4IDImi2_YfTpD1WtnNMbCbHsPN9Brv4tj2R5ympzDELskf20B6d0fsmcf5QO7J2fGRyDFvuKzliV9DNDe075gqYVrxggMduMEN8KSZVTj9QUpCCbK1Pvp-mXsFemzdmQzzsMaVU9O2o3-pNQ"/>
+<div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-8">
+<button class="w-full bg-white text-on-surface py-4 rounded-xl font-bold translate-y-4 group-hover:translate-y-0 transition-transform duration-500">
+                                Live Preview
+                            </button>
+</div>
+<div class="absolute top-6 left-6 flex flex-col gap-2">
+<span class="bg-[#FF6B00] text-white px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-widest shadow-lg">Premium</span>
+<span class="bg-white/90 backdrop-blur-md text-on-surface px-4 py-1.5 rounded-full text-xs font-bold shadow-sm">Fine Dining</span>
+</div>
+</div>
+<div class="p-8">
+<div class="flex justify-between items-start mb-2">
+<h3 class="text-2xl font-bold tracking-tight">Midnight Velvet</h3>
+<p class="text-primary font-black text-xl tracking-tighter">$45</p>
+</div>
+<p class="text-secondary text-sm mb-6 leading-relaxed">Ultra-minimalist aesthetic for Michelin-starred experiences and tasting rooms.</p>
+<div class="flex items-center gap-4">
+<div class="flex -space-x-2">
+<div class="w-6 h-6 rounded-full bg-surface-container-highest border-2 border-white flex items-center justify-center text-[8px] font-bold">HD</div>
+<div class="w-6 h-6 rounded-full bg-secondary-container border-2 border-white flex items-center justify-center text-[8px] font-bold">PR</div>
+</div>
+<span class="text-[10px] text-secondary/60 font-medium uppercase tracking-widest">300 DPI Print Export</span>
+</div>
+</div>
+</div>
+<!-- Card 4: New / Cafe -->
+<div class="group relative bg-surface-container-lowest rounded-[2rem] overflow-hidden transition-all duration-500 hover:-translate-y-2 hover:shadow-[0_20px_50px_rgba(160,65,0,0.1)]">
+<div class="relative aspect-[3/4] overflow-hidden">
+<img alt="Cafe Template" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" data-alt="Light wood aesthetic cafe menu with latte art images" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD2esoD-opL9p48KDUfdaIC7I0iMCkBuU6oVqFoIvUBWMT7kekV-hyWOmijiDaP-qVun5pJLrfxzI65FIsVkl3oM0DL2Ar8-MCkj6oGrfH7kpyOssZ6b-sotS2db3wk32Ncdc4f2g55Ni5dkJnzDJzgAZXJfMuX5S3c2e92TfghUAk49bYIPWO4IU61PGLgt6QhkDzCfTFPTYPdJYy7URZ7poqvL13BvS2zgS8Oef3QiU3ZntJd8wi-f7srsUtepVb90LwWKOx_9aM"/>
+<div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-8">
+<button class="w-full bg-white text-on-surface py-4 rounded-xl font-bold translate-y-4 group-hover:translate-y-0 transition-transform duration-500">
+                                Live Preview
+                            </button>
+</div>
+<div class="absolute top-6 left-6 flex flex-col gap-2">
+<span class="bg-tertiary-container text-white px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-widest shadow-lg">New</span>
+<span class="bg-white/90 backdrop-blur-md text-on-surface px-4 py-1.5 rounded-full text-xs font-bold shadow-sm">Cafe</span>
+</div>
+</div>
+<div class="p-8">
+<div class="flex justify-between items-start mb-2">
+<h3 class="text-2xl font-bold tracking-tight">Morning Brew</h3>
+<p class="text-primary font-black text-xl tracking-tighter">$19</p>
+</div>
+<p class="text-secondary text-sm mb-6 leading-relaxed">Warm, organic layouts perfect for bakeries and coffee specialty shops.</p>
+<div class="flex items-center gap-4">
+<div class="flex -space-x-2">
+<div class="w-6 h-6 rounded-full bg-secondary-container border-2 border-white flex items-center justify-center text-[8px] font-bold">SC</div>
+</div>
+<span class="text-[10px] text-secondary/60 font-medium uppercase tracking-widest">Self-Ordering Ready</span>
+</div>
+</div>
+</div>
+<!-- Empty "Create Custom" Bento Slot -->
+<div class="group relative bg-primary/5 rounded-[2rem] border-2 border-dashed border-primary/20 flex flex-col items-center justify-center p-12 text-center transition-all hover:bg-primary/10 hover:border-primary/40">
+<div class="w-20 h-20 bg-primary-container rounded-full flex items-center justify-center text-white mb-6 shadow-xl shadow-primary-container/20 group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-4xl">add</span>
+</div>
+<h3 class="text-2xl font-bold text-on-surface mb-2 tracking-tight">Start from scratch</h3>
+<p class="text-secondary text-sm leading-relaxed">Have a unique vision? Use our Pro Builder to design a custom template from zero.</p>
+</div>
+<!-- Card 5: Sustainable/Organic -->
+<div class="group relative bg-surface-container-lowest rounded-[2rem] overflow-hidden transition-all duration-500 hover:-translate-y-2 hover:shadow-[0_20px_50px_rgba(160,65,0,0.1)]">
+<div class="relative aspect-[3/4] overflow-hidden">
+<img alt="Sustainable Menu" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" data-alt="Eco-friendly recycled paper menu with green accents" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCImbLRNpSIjD_UpV2EmxW3o93-0N3xV3e5nCCK2rRZl5RtHU1KU_32YDgiuSO-r-iTAmXmGfISggRhxrEXMJf6TVnRScqYcN3epphsXNvh1ZPGEgVrDRA8Z_cqXobUEHXVzSKvuFFhxHFrmiQZPE34dL-ZYxWZqieUWrm7dFURb_5nlosWU-HIO4ZuofKE8Rwh3FzuPGl0VqDDqKoPJ-_1SLnNUvxsAbFOi2Q7KZhi0ZrLdResMozH0n7JkMr4zjQccEAqgTH5R4c"/>
+<div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-8">
+<button class="w-full bg-white text-on-surface py-4 rounded-xl font-bold translate-y-4 group-hover:translate-y-0 transition-transform duration-500">
+                                Live Preview
+                            </button>
+</div>
+<div class="absolute top-6 left-6 flex flex-col gap-2">
+<span class="bg-[#FF6B00] text-white px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-widest shadow-lg">Premium</span>
+<span class="bg-white/90 backdrop-blur-md text-on-surface px-4 py-1.5 rounded-full text-xs font-bold shadow-sm">Organic</span>
+</div>
+</div>
+<div class="p-8">
+<div class="flex justify-between items-start mb-2">
+<h3 class="text-2xl font-bold tracking-tight">Garden Fresh</h3>
+<p class="text-primary font-black text-xl tracking-tighter">$24</p>
+</div>
+<p class="text-secondary text-sm mb-6 leading-relaxed">Sustainable, clean design focused on farm-to-table imagery and textures.</p>
+<div class="flex items-center gap-4">
+<span class="text-[10px] text-secondary/60 font-medium uppercase tracking-widest">Dynamic Inventory Sync</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Load More / Pagination -->
+<div class="mt-20 flex flex-col items-center">
+<p class="text-sm font-medium text-secondary/60 mb-6 uppercase tracking-[0.2em]">Viewing 6 of 128 templates</p>
+<div class="w-64 h-1.5 bg-surface-container rounded-full overflow-hidden mb-8">
+<div class="w-1/12 h-full bg-primary-container transition-all duration-1000"></div>
+</div>
+<button class="px-12 py-5 bg-surface-container-highest text-on-surface font-bold rounded-2xl hover:bg-surface-container transition-colors shadow-sm">
+                    Load More Designs
+                </button>
+</div>
+</div>
+</main>
+<!-- Contextual FAB (Only on Mobile Viewport if needed) -->
+<button class="fixed bottom-8 right-8 w-16 h-16 bg-primary-container text-white rounded-full shadow-2xl shadow-primary-container/40 flex items-center justify-center lg:hidden z-50">
+<span class="material-symbols-outlined text-3xl">add</span>
+</button>
+</body></html>

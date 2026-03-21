@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Menu Editor | MENUZA AI</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Inter:wght@400;500;600&amp;family=Poppins:wght@400;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "on-tertiary": "#ffffff",
+                        "on-primary-fixed-variant": "#7a3000",
+                        "on-secondary-container": "#636262",
+                        "outline-variant": "#e2bfb0",
+                        "secondary": "#5f5e5e",
+                        "surface-container": "#f0eded",
+                        "secondary-container": "#e2dfde",
+                        "surface-container-low": "#f6f3f2",
+                        "surface-container-high": "#eae7e7",
+                        "on-tertiary-fixed": "#002108",
+                        "tertiary-container": "#00b149",
+                        "on-secondary": "#ffffff",
+                        "error-container": "#ffdad6",
+                        "on-error-container": "#93000a",
+                        "surface-container-lowest": "#ffffff",
+                        "on-surface": "#1b1b1c",
+                        "on-secondary-fixed": "#1b1b1c",
+                        "on-tertiary-container": "#003a13",
+                        "on-surface-variant": "#5a4136",
+                        "surface-dim": "#dcd9d9",
+                        "inverse-surface": "#303030",
+                        "primary-fixed-dim": "#ffb693",
+                        "tertiary-fixed-dim": "#3ce36a",
+                        "surface": "#fcf9f8",
+                        "background": "#fcf9f8",
+                        "surface-tint": "#a04100",
+                        "error": "#ba1a1a",
+                        "primary-container": "#ff6b00",
+                        "inverse-primary": "#ffb693",
+                        "outline": "#8e7164",
+                        "on-primary": "#ffffff",
+                        "on-tertiary-fixed-variant": "#00531e",
+                        "on-background": "#1b1b1c",
+                        "on-error": "#ffffff",
+                        "on-primary-container": "#572000",
+                        "primary": "#a04100",
+                        "secondary-fixed-dim": "#c8c6c5",
+                        "primary-fixed": "#ffdbcc",
+                        "surface-container-highest": "#e5e2e1",
+                        "tertiary": "#006e2a",
+                        "on-secondary-fixed-variant": "#474746",
+                        "inverse-on-surface": "#f3f0ef",
+                        "surface-variant": "#e5e2e1",
+                        "secondary-fixed": "#e5e2e1",
+                        "tertiary-fixed": "#69ff87",
+                        "on-primary-fixed": "#351000",
+                        "surface-bright": "#fcf9f8"
+                    },
+                    fontFamily: {
+                        "headline": ["Plus Jakarta Sans"],
+                        "body": ["Inter"],
+                        "label": ["Inter"],
+                        "poppins": ["Poppins"]
+                    },
+                    borderRadius: { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "2xl": "1rem", "3xl": "1.5rem", "full": "9999px" },
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #e5e2e1; border-radius: 10px; }
+        .editor-canvas { background-image: radial-gradient(#e5e2e1 1px, transparent 1px); background-size: 24px 24px; }
+    </style>
+</head>
+<body class="bg-surface font-body text-on-surface selection:bg-primary-fixed selection:text-on-primary-fixed overflow-hidden">
+<!-- Top Navigation Bar -->
+<header class="w-full sticky top-0 z-50 bg-[#fcf9f8] dark:bg-stone-950/60 backdrop-blur-xl flex justify-between items-center px-8 h-20 w-full no-border bg-stone-100/50 dark:bg-stone-900/50">
+<div class="flex items-center gap-8">
+<span class="text-2xl font-black tracking-tighter text-[#FF6B00] dark:text-[#ff8533]">MENUZA AI</span>
+<div class="hidden md:flex gap-6 items-center font-['Plus_Jakarta_Sans'] font-medium text-sm tracking-tight">
+<a class="text-[#FF6B00] font-bold border-b-2 border-[#FF6B00] py-2" href="#">My Menus</a>
+<a class="text-stone-600 dark:text-stone-400 font-medium hover:bg-[#f6f3f2] dark:hover:bg-stone-800 transition-colors duration-200 px-3 py-2 rounded-lg" href="#">Templates</a>
+<a class="text-stone-600 dark:text-stone-400 font-medium hover:bg-[#f6f3f2] dark:hover:bg-stone-800 transition-colors duration-200 px-3 py-2 rounded-lg" href="#">Analytics</a>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<div class="flex items-center bg-surface-container-low px-4 py-2 rounded-full gap-2 group focus-within:ring-2 ring-primary/20 transition-all">
+<span class="material-symbols-outlined text-on-surface-variant text-lg">search</span>
+<input class="bg-transparent border-none focus:ring-0 text-sm w-48 font-medium" placeholder="Search menus..." type="text"/>
+</div>
+<button class="p-2 rounded-full hover:bg-[#f6f3f2] dark:hover:bg-stone-800 transition-all">
+<span class="material-symbols-outlined text-secondary">notifications</span>
+</button>
+<div class="flex items-center gap-3 pl-4 border-l border-outline-variant/30">
+<div class="w-10 h-10 rounded-full bg-primary-fixed flex items-center justify-center overflow-hidden">
+<img alt="User Profile Avatar" data-alt="Professional male user portrait avatar" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDBbUrc7_GvIPHIKQBaTHADZ0JYwI34gkDqIWzCQD7A8oONUk7KumH8CuGokxVxUArlvktSAAjn5I0CKdoqnBcb9rXlEVae31lyxkQYimQF6dlSFIBUAKI9P9TIlXX_qx_3n7HTHAOPuxI4yM0tT_qSQJWyPj4DPoTRnCiDod53W5yGcCh5kc35ByE_mp7bux9j9oNgiEu0rKhJXYykDC9u_q9_l-SMYzjdzxGnfqmDf_ANjvqvMja9-44AHPMqoEF3kHg8Qu0ZG80"/>
+</div>
+</div>
+</div>
+</header>
+<main class="flex h-[calc(100vh-5rem)] overflow-hidden">
+<!-- Left Panel: Menu Structure -->
+<aside class="w-80 bg-surface border-r-0 flex flex-col p-6 overflow-y-auto">
+<div class="mb-8">
+<h2 class="font-headline text-lg font-bold tracking-tight mb-2">Menu Sections</h2>
+<p class="text-xs text-on-surface-variant font-medium uppercase tracking-widest">Digital Menu Structure</p>
+</div>
+<div class="space-y-4 mb-10">
+<!-- Section Item -->
+<div class="group cursor-grab active:cursor-grabbing">
+<div class="flex items-center justify-between p-4 bg-surface-container-lowest rounded-2xl shadow-sm hover:shadow-md transition-all border border-transparent hover:border-primary/10">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-secondary-container">drag_indicator</span>
+<span class="font-bold text-sm">Appetizers</span>
+</div>
+<span class="text-xs font-bold text-primary bg-primary-fixed px-2 py-1 rounded-md">8 items</span>
+</div>
+</div>
+<!-- Section Item -->
+<div class="group cursor-grab active:cursor-grabbing">
+<div class="flex items-center justify-between p-4 bg-surface-container-lowest rounded-2xl shadow-sm hover:shadow-md transition-all border border-transparent hover:border-primary/10">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-secondary-container">drag_indicator</span>
+<span class="font-bold text-sm">Main Courses</span>
+</div>
+<span class="text-xs font-bold text-primary bg-primary-fixed px-2 py-1 rounded-md">12 items</span>
+</div>
+</div>
+<!-- Section Item Active -->
+<div class="group cursor-grab active:cursor-grabbing">
+<div class="flex items-center justify-between p-4 bg-surface-container-low rounded-2xl ring-2 ring-primary ring-offset-2 transition-all">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary">restaurant_menu</span>
+<span class="font-bold text-sm text-primary">Signature Desserts</span>
+</div>
+<span class="text-xs font-bold text-on-primary bg-primary-container px-2 py-1 rounded-md">5 items</span>
+</div>
+</div>
+<!-- Section Item -->
+<div class="group cursor-grab active:cursor-grabbing">
+<div class="flex items-center justify-between p-4 bg-surface-container-lowest rounded-2xl shadow-sm hover:shadow-md transition-all border border-transparent hover:border-primary/10">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-secondary-container">drag_indicator</span>
+<span class="font-bold text-sm">Wine List</span>
+</div>
+<span class="text-xs font-bold text-primary bg-primary-fixed px-2 py-1 rounded-md">24 items</span>
+</div>
+</div>
+</div>
+<button class="w-full flex items-center justify-center gap-2 py-4 bg-surface-container-high rounded-2xl text-on-surface font-bold text-sm hover:bg-surface-container-highest transition-all group active:scale-95">
+<span class="material-symbols-outlined group-hover:rotate-90 transition-transform">add</span>
+                Add New Section
+            </button>
+<div class="mt-auto pt-8 border-t border-outline-variant/20">
+<div class="bg-primary-container/5 rounded-3xl p-5 border border-primary/10">
+<div class="flex items-center gap-2 mb-3">
+<span class="material-symbols-outlined text-primary fill-current">auto_awesome</span>
+<span class="font-headline font-bold text-sm text-primary">AI Suggestions</span>
+</div>
+<p class="text-xs text-on-surface-variant leading-relaxed">Based on current trends, your 'Dessert' category could benefit from a seasonal pairing.</p>
+</div>
+</div>
+</aside>
+<!-- Center Panel: Live Preview -->
+<section class="flex-1 bg-surface-container-low p-10 flex flex-col items-center editor-canvas relative overflow-hidden">
+<!-- Smart Feature Floating Chips -->
+<div class="absolute top-6 left-1/2 -translate-x-1/2 flex gap-3 z-10">
+<div class="flex items-center gap-2 px-4 py-2 bg-white/90 backdrop-blur-md rounded-full shadow-lg border border-primary/10 hover:scale-105 transition-transform cursor-pointer">
+<span class="material-symbols-outlined text-primary text-lg" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="text-xs font-bold">Highlight Best Seller</span>
+</div>
+<div class="flex items-center gap-2 px-4 py-2 bg-white/90 backdrop-blur-md rounded-full shadow-lg border border-tertiary/10 hover:scale-105 transition-transform cursor-pointer">
+<span class="material-symbols-outlined text-tertiary text-lg">trending_up</span>
+<span class="text-xs font-bold text-tertiary">Price Optimization (+10%)</span>
+</div>
+<div class="flex items-center gap-2 px-4 py-2 bg-white/90 backdrop-blur-md rounded-full shadow-lg border border-error/10 hover:scale-105 transition-transform cursor-pointer">
+<span class="material-symbols-outlined text-error text-lg">error_outline</span>
+<span class="text-xs font-bold text-error">Low performing item alert</span>
+</div>
+</div>
+<!-- Preview Canvas (Phone Shell Style) -->
+<div class="w-[420px] h-full bg-white rounded-[3rem] shadow-2xl overflow-y-auto border-[12px] border-on-surface scrollbar-hide relative flex flex-col transform origin-top scale-[0.95]">
+<!-- Menu Header Image -->
+<div class="w-full h-56 relative overflow-hidden">
+<img alt="Menu Header" class="w-full h-full object-cover" data-alt="Delicious chocolate lava cake dessert photo" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC_iCshYdIKNpKrbLBwl2VXhg836RW1UEsKiH8vLMw4a1DR_9ZvR9KaF6EPGn0By3YPuUaC9pWIvuK4T4gcqCZDL4_sGxvVJtfomjYX5OP1ove2rsK7qT1jloXOKHlKFXmX3scAF_cI3Qoxdy9mQnoMHDzAHpbGszP9EBi-H-Z_c-wauWPsT4V24UeioIZsTfLYy2JqQL3_s7x0HOZflkNFLIovJ6hXvbRYMxqVKtMeVf1uDTjYMwMsIteuGKUufG6NbnE5IjIhM9A"/>
+<div class="absolute inset-0 bg-gradient-to-t from-white via-transparent to-black/20"></div>
+<div class="absolute bottom-6 left-6 right-6">
+<h1 class="text-white font-headline text-3xl font-black tracking-tight drop-shadow-lg">Signature Desserts</h1>
+</div>
+</div>
+<div class="p-6 space-y-8">
+<!-- Menu Item -->
+<div class="relative group cursor-pointer hover:bg-surface-container-low -mx-2 px-2 py-3 rounded-2xl transition-all">
+<div class="flex justify-between items-start mb-1">
+<h3 class="font-headline font-extrabold text-lg flex items-center gap-2">
+                                Molten Lava Cake
+                                <span class="bg-primary/10 text-primary text-[10px] font-black px-2 py-0.5 rounded uppercase tracking-tighter">Bestseller</span>
+</h3>
+<span class="font-headline font-bold text-primary text-lg">$14.00</span>
+</div>
+<p class="text-sm text-on-surface-variant font-medium leading-relaxed italic">70% Dark Chocolate core, tahitian vanilla bean gelato, salted caramel drizzle.</p>
+<div class="mt-3 flex gap-2">
+<span class="bg-tertiary/10 text-tertiary text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-widest">Organic</span>
+<span class="bg-secondary/10 text-secondary text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-widest">Gluten Free</span>
+</div>
+</div>
+<!-- Menu Item with Image -->
+<div class="relative flex gap-4 items-center group cursor-pointer hover:bg-surface-container-low -mx-2 px-2 py-3 rounded-2xl transition-all">
+<div class="flex-1">
+<div class="flex justify-between items-start mb-1">
+<h3 class="font-headline font-extrabold text-lg">Yuzu Cheesecake</h3>
+<span class="font-headline font-bold text-primary text-lg">$12.50</span>
+</div>
+<p class="text-sm text-on-surface-variant font-medium leading-relaxed italic">Creamy japanese citrus cheesecake, graham cracker crust.</p>
+</div>
+<div class="w-20 h-20 rounded-2xl overflow-hidden bg-surface-container">
+<img alt="Yuzu Cheesecake" class="w-full h-full object-cover" data-alt="Modern plated cheesecake with yellow garnish" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBtt9WuSnQcXXIb2A-VTZK8CTzHio8n9rAtCeXfwOD32GrKhRyekPBGEm6QxLYFgmUjhwhIXRxfJT7w-1XDkw30MhtxmC-g6dFv40azQIFo_NRkBKpLdrvBbyRYDK9zPWXr09qZMR-Rz00qWTHJI4iIfne4MGxzx9nHCH7-eO3meu72qlWDstLsFiHxZH_BKlPBIPY8P32duTDaUXTLrZba0O0f9pcvLDb-WjZKGQKAuGbdexMiHkhd9UiyFeanl1cQv54p-Yb2hIg"/>
+</div>
+</div>
+<!-- Menu Item -->
+<div class="relative group cursor-pointer hover:bg-surface-container-low -mx-2 px-2 py-3 rounded-2xl transition-all">
+<div class="flex justify-between items-start mb-1">
+<h3 class="font-headline font-extrabold text-lg">Matcha Crème Brûlée</h3>
+<span class="font-headline font-bold text-primary text-lg">$11.00</span>
+</div>
+<p class="text-sm text-on-surface-variant font-medium leading-relaxed italic">Ceremonial grade matcha, scorched turbinado sugar topping.</p>
+</div>
+<!-- Add Button Placeholder in Preview -->
+<div class="border-2 border-dashed border-outline-variant/40 rounded-3xl p-6 flex flex-col items-center justify-center gap-2 hover:border-primary/40 hover:bg-primary/5 transition-all cursor-pointer">
+<span class="material-symbols-outlined text-primary text-3xl">add_circle</span>
+<span class="text-sm font-bold text-on-surface-variant">Add item to this section</span>
+</div>
+</div>
+<!-- Preview Bottom Nav -->
+<div class="mt-auto p-6 bg-surface-container-highest flex justify-center gap-8">
+<span class="w-8 h-8 rounded-full bg-on-surface"></span>
+<span class="w-8 h-8 rounded-full bg-outline-variant"></span>
+<span class="w-8 h-8 rounded-full bg-outline-variant"></span>
+</div>
+</div>
+<!-- Viewport Controls -->
+<div class="absolute bottom-8 flex items-center gap-1 bg-surface-container-highest p-1 rounded-full shadow-lg">
+<button class="p-3 rounded-full bg-white shadow-sm text-primary">
+<span class="material-symbols-outlined">smartphone</span>
+</button>
+<button class="p-3 rounded-full text-on-surface-variant hover:bg-white/50 transition-all">
+<span class="material-symbols-outlined">tablet</span>
+</button>
+<button class="p-3 rounded-full text-on-surface-variant hover:bg-white/50 transition-all">
+<span class="material-symbols-outlined">desktop_windows</span>
+</button>
+</div>
+</section>
+<!-- Right Panel: Style Settings -->
+<aside class="w-80 bg-surface border-l-0 flex flex-col p-6 overflow-y-auto">
+<div class="mb-8">
+<h2 class="font-headline text-lg font-bold tracking-tight mb-2">Style Editor</h2>
+<p class="text-xs text-on-surface-variant font-medium uppercase tracking-widest">Global Brand Identity</p>
+</div>
+<div class="space-y-8">
+<!-- Typography Section -->
+<div>
+<label class="block text-[10px] font-bold text-secondary uppercase tracking-[0.2em] mb-4">Typography</label>
+<div class="space-y-4">
+<div class="group">
+<label class="text-xs font-bold text-on-surface-variant mb-2 block">Headlines</label>
+<div class="relative">
+<select class="w-full bg-surface-container-low border-none rounded-xl py-3 px-4 font-headline text-sm focus:ring-2 ring-primary/20 appearance-none">
+<option>Plus Jakarta Sans</option>
+<option>Poppins</option>
+<option>Playfair Display</option>
+<option>Cormorant Garamond</option>
+</select>
+<span class="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-secondary pointer-events-none">expand_more</span>
+</div>
+</div>
+<div class="group">
+<label class="text-xs font-bold text-on-surface-variant mb-2 block">Body Text</label>
+<div class="relative">
+<select class="w-full bg-surface-container-low border-none rounded-xl py-3 px-4 font-body text-sm focus:ring-2 ring-primary/20 appearance-none">
+<option>Inter</option>
+<option>Montserrat</option>
+<option>Open Sans</option>
+</select>
+<span class="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-secondary pointer-events-none">expand_more</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Colors Section -->
+<div>
+<label class="block text-[10px] font-bold text-secondary uppercase tracking-[0.2em] mb-4">Color Palette</label>
+<div class="grid grid-cols-5 gap-3">
+<button class="w-full aspect-square rounded-full bg-primary ring-4 ring-primary/20 ring-offset-2 transition-all"></button>
+<button class="w-full aspect-square rounded-full bg-on-surface hover:scale-110 transition-transform"></button>
+<button class="w-full aspect-square rounded-full bg-tertiary hover:scale-110 transition-transform"></button>
+<button class="w-full aspect-square rounded-full bg-[#351000] hover:scale-110 transition-transform"></button>
+<button class="w-full aspect-square rounded-full border-2 border-dashed border-outline-variant flex items-center justify-center">
+<span class="material-symbols-outlined text-xs">add</span>
+</button>
+</div>
+</div>
+<!-- Layout Options -->
+<div>
+<label class="block text-[10px] font-bold text-secondary uppercase tracking-[0.2em] mb-4">Layout Grid</label>
+<div class="grid grid-cols-2 gap-3">
+<div class="p-3 bg-surface-container-high rounded-xl flex flex-col items-center gap-2 cursor-pointer border-2 border-primary">
+<span class="material-symbols-outlined text-primary">view_stream</span>
+<span class="text-[10px] font-bold uppercase tracking-tighter">Single Column</span>
+</div>
+<div class="p-3 bg-surface-container-low rounded-xl flex flex-col items-center gap-2 cursor-pointer hover:bg-surface-container-high transition-all">
+<span class="material-symbols-outlined text-secondary">view_module</span>
+<span class="text-[10px] font-bold uppercase tracking-tighter">Two Column Grid</span>
+</div>
+</div>
+</div>
+<!-- Spacing Control -->
+<div>
+<div class="flex justify-between items-center mb-4">
+<label class="block text-[10px] font-bold text-secondary uppercase tracking-[0.2em]">Density</label>
+<span class="text-xs font-bold text-primary">Relaxed</span>
+</div>
+<input class="w-full h-1.5 bg-secondary-container rounded-lg appearance-none cursor-pointer accent-primary" type="range"/>
+</div>
+</div>
+<div class="mt-auto flex gap-3">
+<button class="flex-1 py-4 bg-surface-container-highest rounded-2xl font-bold text-sm text-on-surface hover:bg-secondary-container transition-all">
+                    Discard
+                </button>
+<button class="flex-[2] py-4 bg-gradient-to-br from-primary to-primary-container rounded-2xl font-bold text-sm text-white shadow-lg shadow-primary/20 hover:opacity-90 transition-all active:scale-95">
+                    Publish Menu
+                </button>
+</div>
+</aside>
+</main>
+</body></html>

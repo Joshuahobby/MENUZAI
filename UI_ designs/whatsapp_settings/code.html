@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>WhatsApp Order Settings - Digital Maître d’</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "tertiary-container": "#00b149",
+              "on-primary-fixed-variant": "#7a3000",
+              "tertiary-fixed-dim": "#3ce36a",
+              "primary": "#a04100",
+              "on-tertiary-fixed": "#002108",
+              "outline-variant": "#e2bfb0",
+              "on-secondary-fixed": "#1b1b1c",
+              "primary-container": "#ff6b00",
+              "secondary": "#5f5e5e",
+              "primary-fixed-dim": "#ffb693",
+              "on-tertiary-fixed-variant": "#00531e",
+              "on-secondary": "#ffffff",
+              "inverse-primary": "#ffb693",
+              "on-error-container": "#93000a",
+              "secondary-fixed-dim": "#c8c6c5",
+              "tertiary-fixed": "#69ff87",
+              "surface-variant": "#e5e2e1",
+              "on-tertiary-container": "#003a13",
+              "on-primary-fixed": "#351000",
+              "on-background": "#1b1b1c",
+              "on-secondary-fixed-variant": "#474746",
+              "outline": "#8e7164",
+              "on-surface-variant": "#5a4136",
+              "surface-container-highest": "#e5e2e1",
+              "on-primary": "#ffffff",
+              "surface-container-low": "#f6f3f2",
+              "secondary-container": "#e2dfde",
+              "primary-fixed": "#ffdbcc",
+              "background": "#fcf9f8",
+              "surface-bright": "#fcf9f8",
+              "on-secondary-container": "#636262",
+              "surface-container": "#f0eded",
+              "on-tertiary": "#ffffff",
+              "on-surface": "#1b1b1c",
+              "surface-dim": "#dcd9d9",
+              "on-error": "#ffffff",
+              "error-container": "#ffdad6",
+              "surface": "#fcf9f8",
+              "surface-container-high": "#eae7e7",
+              "inverse-on-surface": "#f3f0ef",
+              "error": "#ba1a1a",
+              "tertiary": "#006e2a",
+              "surface-container-lowest": "#ffffff",
+              "on-primary-container": "#572000",
+              "surface-tint": "#a04100",
+              "secondary-fixed": "#e5e2e1",
+              "inverse-surface": "#303030"
+            },
+            fontFamily: {
+              "headline": ["Plus Jakarta Sans"],
+              "body": ["Inter"],
+              "label": ["Inter"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+      .material-symbols-outlined {
+        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      }
+      body { font-family: 'Inter', sans-serif; }
+      h1, h2, h3 { font-family: 'Plus Jakarta Sans', sans-serif; }
+    </style>
+</head>
+<body class="bg-background text-on-background min-h-screen">
+<!-- SideNavBar (Execution from JSON) -->
+<aside class="fixed left-0 top-0 h-full flex flex-col py-6 z-50 bg-[#fcf9f8] dark:bg-[#1b1b1c] h-screen w-64 border-r-0 font-['Plus_Jakarta_Sans'] text-sm font-medium">
+<div class="px-8 mb-10">
+<h2 class="text-xl font-extrabold text-[#a04100]">Le Bistro</h2>
+<p class="text-xs text-secondary">Premium Plan</p>
+</div>
+<nav class="flex-1 space-y-1 px-4">
+<a class="flex items-center gap-3 px-4 py-3 text-gray-600 dark:text-gray-400 hover:text-orange-500 hover:bg-[#f6f3f2] dark:hover:bg-[#2a2a2b] rounded-lg transition-all duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+                Dashboard
+            </a>
+<a class="flex items-center gap-3 px-4 py-3 text-gray-600 dark:text-gray-400 hover:text-orange-500 hover:bg-[#f6f3f2] dark:hover:bg-[#2a2a2b] rounded-lg transition-all duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined">restaurant_menu</span>
+                My Menus
+            </a>
+<a class="flex items-center gap-3 px-4 py-3 text-gray-600 dark:text-gray-400 hover:text-orange-500 hover:bg-[#f6f3f2] dark:hover:bg-[#2a2a2b] rounded-lg transition-all duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined">analytics</span>
+                Analytics
+            </a>
+<a class="flex items-center gap-3 px-4 py-3 text-gray-600 dark:text-gray-400 hover:text-orange-500 hover:bg-[#f6f3f2] dark:hover:bg-[#2a2a2b] rounded-lg transition-all duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined">layers</span>
+                Templates
+            </a>
+<a class="flex items-center gap-3 px-4 py-3 text-gray-600 dark:text-gray-400 hover:text-orange-500 hover:bg-[#f6f3f2] dark:hover:bg-[#2a2a2b] rounded-lg transition-all duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined">qr_code_2</span>
+                QR Codes
+            </a>
+<!-- Active State: Settings -->
+<a class="flex items-center gap-3 px-4 py-3 bg-orange-50 dark:bg-orange-950/20 text-orange-600 dark:text-orange-400 rounded-lg transition-all duration-200 ease-in-out font-semibold" href="#">
+<span class="material-symbols-outlined">settings</span>
+                Settings
+            </a>
+</nav>
+<div class="mt-auto px-8 pt-6 border-t border-surface-container">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-primary-fixed flex items-center justify-center text-primary font-bold">LB</div>
+<div>
+<p class="text-xs font-bold">Admin Panel</p>
+<p class="text-[10px] text-secondary">v2.4.0-stable</p>
+</div>
+</div>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="ml-64 min-h-screen p-12">
+<!-- Top Header Navigation (JSON Integrated) -->
+<header class="flex justify-between items-center px-0 w-full mb-12">
+<div>
+<h1 class="text-4xl font-extrabold tracking-tight text-on-surface">WhatsApp Ordering Configuration</h1>
+<p class="text-on-surface-variant mt-2 max-w-2xl font-body">Manage how your customers place orders directly through WhatsApp. All messages will be sent to your configured business number.</p>
+</div>
+<div class="flex gap-4">
+<button class="p-2 text-secondary hover:bg-surface-container-low rounded-full transition-colors active:scale-95 duration-200">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="p-2 text-secondary hover:bg-surface-container-low rounded-full transition-colors active:scale-95 duration-200">
+<span class="material-symbols-outlined">help_outline</span>
+</button>
+</div>
+</header>
+<!-- Settings Grid (Asymmetric Bento Style) -->
+<div class="grid grid-cols-12 gap-8">
+<!-- Primary Configuration Card -->
+<div class="col-span-12 lg:col-span-7 space-y-8">
+<section class="bg-surface-container-lowest p-8 rounded-xl shadow-none">
+<div class="flex items-center justify-between mb-10">
+<div>
+<h3 class="text-xl font-bold font-headline text-on-surface">Enable WhatsApp Ordering</h3>
+<p class="text-sm text-on-surface-variant font-body">Activate the direct-to-chat ordering feature for your digital menu.</p>
+</div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox" value=""/>
+<div class="w-14 h-7 bg-surface-container-highest peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:start-[4px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-primary"></div>
+</label>
+</div>
+<div class="space-y-6">
+<div>
+<label class="block text-sm font-semibold text-on-surface-variant mb-2 font-label">WhatsApp Phone Number</label>
+<div class="relative">
+<span class="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant">
+<span class="material-symbols-outlined text-lg">call</span>
+</span>
+<input class="w-full bg-surface-container-low border-none rounded-lg py-4 pl-12 pr-4 text-on-surface focus:ring-1 focus:ring-primary/20 focus:bg-surface-container-lowest transition-all font-body" type="text" value="+250 788 000 000"/>
+</div>
+<p class="mt-2 text-[11px] text-secondary">Include country code (e.g., +250). This number will receive all incoming orders.</p>
+</div>
+</div>
+</section>
+<section class="bg-surface-container-lowest p-8 rounded-xl shadow-none">
+<h3 class="text-xl font-bold font-headline text-on-surface mb-6">Regional Settings</h3>
+<div class="grid grid-cols-2 gap-4">
+<div class="bg-surface-container-low p-4 rounded-lg">
+<p class="text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">Currency</p>
+<p class="text-lg font-semibold text-on-surface">RWF (Rwandan Franc)</p>
+</div>
+<div class="bg-surface-container-low p-4 rounded-lg">
+<p class="text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">Language</p>
+<p class="text-lg font-semibold text-on-surface">English (United States)</p>
+</div>
+</div>
+</section>
+</div>
+<!-- Preview & Logic Card -->
+<div class="col-span-12 lg:col-span-5">
+<div class="bg-surface-container p-8 rounded-xl sticky top-24">
+<div class="flex items-center gap-2 mb-6 text-tertiary">
+<span class="material-symbols-outlined">visibility</span>
+<h3 class="text-lg font-bold font-headline">Message Preview</h3>
+</div>
+<div class="bg-[#e7f3ef] rounded-xl p-6 relative overflow-hidden">
+<!-- Abstract chat background pattern -->
+<div class="absolute inset-0 opacity-5 pointer-events-none" style="background-image: radial-gradient(#006e2a 1px, transparent 1px); background-size: 20px 20px;"></div>
+<div class="relative z-10 flex flex-col gap-4">
+<!-- Incoming Message Bubble -->
+<div class="bg-white p-4 rounded-xl rounded-tl-none shadow-sm max-w-[90%]">
+<p class="text-xs font-bold text-tertiary mb-1">Customer Order</p>
+<div class="text-sm font-body text-on-surface leading-relaxed">
+                                    Hello, I’d like to order:<br/>
+                                    - [Item Name] x [Qty]<br/>
+                                    - [Item Name] x [Qty]<br/><br/>
+                                    Total: [Amount]<br/>
+                                    Payment: [Method]<br/>
+                                    Address: [Details]
+                                </div>
+<p class="text-[10px] text-right text-secondary mt-2">12:45 PM</p>
+</div>
+</div>
+</div>
+<div class="mt-8 space-y-4">
+<div class="flex gap-3 items-start">
+<span class="material-symbols-outlined text-primary-container">info</span>
+<p class="text-xs text-on-surface-variant leading-relaxed">
+                                The message format is automatically optimized for readability. Customers will be able to click a single "Order via WhatsApp" button on your menu.
+                            </p>
+</div>
+<div class="pt-6">
+<button class="w-full bg-gradient-to-r from-primary to-primary-container text-white font-bold py-4 px-6 rounded-xl flex items-center justify-center gap-2 shadow-sm active:scale-[0.98] transition-all">
+<span class="material-symbols-outlined">save</span>
+                                Save Changes
+                            </button>
+<button class="w-full mt-3 bg-transparent text-primary font-semibold py-3 px-6 rounded-xl hover:bg-surface-container-highest transition-colors">
+                                Reset to Default
+                            </button>
+</div>
+</div>
+</div>
+</div>
+<!-- Contextual Settings Bento Section -->
+<div class="col-span-12 grid grid-cols-1 md:grid-cols-3 gap-8 mt-4">
+<div class="bg-surface-container-lowest p-6 rounded-xl">
+<div class="w-10 h-10 bg-primary-fixed rounded-full flex items-center justify-center text-primary mb-4">
+<span class="material-symbols-outlined">auto_awesome</span>
+</div>
+<h4 class="font-bold mb-2">Auto-Reply</h4>
+<p class="text-sm text-secondary">Set up an automatic confirmation message when an order is received.</p>
+</div>
+<div class="bg-surface-container-lowest p-6 rounded-xl">
+<div class="w-10 h-10 bg-tertiary-fixed rounded-full flex items-center justify-center text-tertiary mb-4">
+<span class="material-symbols-outlined">analytics</span>
+</div>
+<h4 class="font-bold mb-2">Click Tracking</h4>
+<p class="text-sm text-secondary">Monitor how many customers start a chat from your digital menu.</p>
+</div>
+<div class="bg-surface-container-lowest p-6 rounded-xl">
+<div class="w-10 h-10 bg-secondary-container rounded-full flex items-center justify-center text-on-secondary-container mb-4">
+<span class="material-symbols-outlined">qr_code_2</span>
+</div>
+<h4 class="font-bold mb-2">Table IDs</h4>
+<p class="text-sm text-secondary">Include Table/Seat numbers automatically in the WhatsApp message text.</p>
+</div>
+</div>
+</div>
+</main>
+<!-- Visual Polish: Content Overlap Image -->
+<div class="fixed bottom-0 right-0 w-64 h-64 -mb-20 -mr-10 opacity-10 pointer-events-none">
+<img alt="Abstract background" class="w-full h-full object-cover rounded-full" data-alt="Subtle abstract gradient shapes and patterns" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBeTdhtXHc72rBHoMj8bR4XMhWbVh9QMGENWRx8o5rTpg7bEbB17aNZO8_s_ZFxBVn9jVz-8V-RhruZQNDTsmt2GGs9av2PJ03Fmi0PI1RN5dU-kRMqpVu2GYoHUzYem_1Kdvy6_OxQFN9UPIqUPcDs50uZ0AbHVHzWgu07lCN-0MlOuSQwi83HLo01OQQHvSpt3ACGkIjqYh4KozDV2BgCtpIG-HjCkHoBxzQ1QxTp7Tmt2CeltuoEANlzSvuU4sg3GY_P0nMPn9w"/>
+</div>
+</body></html>

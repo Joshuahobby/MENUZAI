@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "outline-variant": "#e2bfb0",
+              "primary-container": "#ff6b00",
+              "on-surface": "#1b1b1c",
+              "background": "#fcf9f8",
+              "on-primary": "#ffffff",
+              "on-secondary-fixed": "#1b1b1c",
+              "secondary-container": "#e2dfde",
+              "surface-container-low": "#f6f3f2",
+              "on-error": "#ffffff",
+              "on-tertiary": "#ffffff",
+              "on-secondary-fixed-variant": "#474746",
+              "on-primary-fixed-variant": "#7a3000",
+              "primary": "#a04100",
+              "outline": "#8e7164",
+              "inverse-on-surface": "#f3f0ef",
+              "inverse-surface": "#303030",
+              "on-primary-container": "#572000",
+              "tertiary-fixed-dim": "#3ce36a",
+              "on-tertiary-fixed": "#002108",
+              "on-tertiary-container": "#003a13",
+              "tertiary-fixed": "#69ff87",
+              "on-tertiary-fixed-variant": "#00531e",
+              "primary-fixed-dim": "#ffb693",
+              "on-background": "#1b1b1c",
+              "tertiary-container": "#00b149",
+              "on-primary-fixed": "#351000",
+              "secondary-fixed-dim": "#c8c6c5",
+              "secondary-fixed": "#e5e2e1",
+              "surface-container-lowest": "#ffffff",
+              "tertiary": "#006e2a",
+              "primary-fixed": "#ffdbcc",
+              "on-secondary": "#ffffff",
+              "surface-tint": "#a04100",
+              "surface-container-highest": "#e5e2e1",
+              "on-surface-variant": "#5a4136",
+              "secondary": "#5f5e5e",
+              "inverse-primary": "#ffb693",
+              "error-container": "#ffdad6",
+              "surface-container": "#f0eded",
+              "surface-variant": "#e5e2e1",
+              "error": "#ba1a1a",
+              "on-secondary-container": "#636262",
+              "surface-dim": "#dcd9d9",
+              "surface": "#fcf9f8",
+              "on-error-container": "#93000a",
+              "surface-bright": "#fcf9f8",
+              "surface-container-high": "#eae7e7"
+            },
+            fontFamily: {
+              "headline": ["Plus Jakarta Sans"],
+              "body": ["Inter"],
+              "label": ["Inter"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body { font-family: 'Inter', sans-serif; }
+        h1, h2, h3 { font-family: 'Plus Jakarta Sans', sans-serif; }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-surface min-h-screen flex flex-col">
+<!-- TopAppBar -->
+<header class="sticky top-0 w-full z-50 bg-[#fcf9f8]/80 dark:bg-zinc-950/80 backdrop-blur-xl shadow-sm shadow-zinc-200/50 dark:shadow-none flex items-center justify-between px-6 py-4 w-full">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-orange-600 dark:text-orange-500" data-icon="restaurant_menu">restaurant_menu</span>
+<span class="text-xl font-bold text-zinc-900 dark:text-zinc-50 font-['Plus_Jakarta_Sans'] tracking-tight">MENUZA AI</span>
+</div>
+<button class="bg-orange-50/50 dark:hover:bg-zinc-900/50 transition-colors px-4 py-2 rounded-xl text-orange-600 dark:text-orange-500 font-semibold text-sm">Open</button>
+</header>
+<main class="flex-1 max-w-2xl mx-auto w-full px-6 py-8 pb-32">
+<!-- Order Header Section (Editorial Fluidity) -->
+<section class="mb-12">
+<span class="text-primary font-bold tracking-widest text-[10px] uppercase mb-2 block">Checkout</span>
+<h1 class="text-4xl font-extrabold tracking-tighter text-on-surface mb-4">Confirm your order</h1>
+<p class="text-on-surface-variant body-md leading-relaxed">Your selection is ready for the kitchen. Please provide your table details below.</p>
+</section>
+<!-- Bento-style Order Summary -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-12">
+<!-- Item List Card -->
+<div class="md:col-span-2 bg-surface-container-low rounded-xl p-6 flex flex-col gap-6">
+<div class="flex items-center justify-between">
+<h2 class="text-lg font-bold tracking-tight">Your Items</h2>
+<span class="text-xs bg-tertiary-container text-on-tertiary-container px-3 py-1 rounded-full font-semibold">2 Items</span>
+</div>
+<div class="space-y-4">
+<div class="flex items-center justify-between group">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-lg bg-surface-container-highest flex items-center justify-center overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="Juicy gourmet burger on a bun" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA0AacezRKYtQC14hnKlphbHlJZ62UzIZqAPZHU48-2xcJUb4tyUm5PHZN-Kh5gOFaW6sWaUvuyW5TjJyjd9xYuIFTkgBXRwYTDYr3XuA1NbLy85wNzxXbbFMRlWUCm-ZfnqKbxuz22PmosqQRJTAR7kH0sFaJULSO3IbHA9AfUBrEJiWqZ1bPiYMwHuUVM6uDdnaBPYtLsQmdDELecqtRXjC15a0voBMa2zbsbsa59wfWeogIYPh5dBLLHaxX8e0vKLjFWxtkuNsk"/>
+</div>
+<div>
+<p class="font-bold text-on-surface">Burger x2</p>
+<p class="text-xs text-on-surface-variant">Classic Beef Patty</p>
+</div>
+</div>
+<p class="font-bold text-primary">10,000 RWF</p>
+</div>
+<div class="flex items-center justify-between group">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-lg bg-surface-container-highest flex items-center justify-center overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="Glass of fresh orange juice" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDte72_ibHvAge0OCwETebQ0KZF6Mv2NXdFPe4pxEVcG6JROJWXp_E0yOc-xNa1ijFNbHPZ4x2IiCH8Q7UOhpt8EcK4PZV_XGdEFbVMaFN9Eea_qR77_BDnQ5TJ2nGl8ybp2klXf6vcCYdcfZQ0bMz1SYgltXvkaI8r2jqRy0D59iwFoTMXKvZpdmWmGtIuou3_Se98EBllhl3j_C4D4jdHeT8vGKbj0Uix7FISbHnvi9hW1F2nW7I4lZxqP5t7-yDiuJDec6JvmOQ"/>
+</div>
+<div>
+<p class="font-bold text-on-surface">Juice x1</p>
+<p class="text-xs text-on-surface-variant">Freshly Squeezed</p>
+</div>
+</div>
+<p class="font-bold text-primary">3,000 RWF</p>
+</div>
+</div>
+<div class="pt-6 border-t border-outline-variant/10 flex items-end justify-between">
+<span class="text-sm font-medium text-on-surface-variant">Total Amount</span>
+<span class="text-2xl font-extrabold text-on-surface tracking-tight">13,000 RWF</span>
+</div>
+</div>
+</div>
+<!-- Form Section -->
+<section class="space-y-6">
+<h2 class="text-xl font-bold tracking-tight px-1">Service Details</h2>
+<div class="space-y-4">
+<div class="group">
+<label class="block text-xs font-bold text-on-surface-variant mb-2 ml-1">Name</label>
+<input class="w-full bg-surface-container-low border-none rounded-xl px-4 py-4 text-on-surface placeholder:text-outline/50 focus:ring-1 focus:ring-primary/20 transition-all outline-none" placeholder="e.g. John Doe" type="text"/>
+</div>
+<div class="group">
+<label class="block text-xs font-bold text-on-surface-variant mb-2 ml-1">Table Number (e.g., Table 5)</label>
+<input class="w-full bg-surface-container-low border-none rounded-xl px-4 py-4 text-on-surface placeholder:text-outline/50 focus:ring-1 focus:ring-primary/20 transition-all outline-none" placeholder="Table 5" type="text"/>
+</div>
+</div>
+</section>
+<!-- Primary Actions -->
+<section class="mt-12 space-y-4">
+<button class="w-full bg-gradient-to-r from-primary to-primary-container text-white py-5 rounded-xl font-bold flex items-center justify-center gap-3 shadow-lg shadow-primary/10 active:scale-95 transition-all">
+<span class="material-symbols-outlined" data-icon="chat">chat</span>
+                Order via WhatsApp
+            </button>
+<button class="w-full bg-surface-container-highest text-primary py-5 rounded-xl font-bold flex items-center justify-center gap-3 active:scale-95 transition-all">
+<span class="material-symbols-outlined" data-icon="call">call</span>
+                Call Waiter
+            </button>
+</section>
+</main>
+<!-- BottomNavBar (Filtered for context) -->
+<nav class="fixed bottom-0 left-0 w-full flex justify-around items-center px-4 pb-6 pt-3 bg-white/90 dark:bg-zinc-900/90 backdrop-blur-md shadow-[0_-4px_24px_rgba(0,0,0,0.04)] rounded-t-[2rem] z-50">
+<a class="flex flex-col items-center justify-center text-zinc-400 dark:text-zinc-500 px-5 py-2 hover:text-orange-500 dark:hover:text-orange-300 transition-all duration-300 ease-out scale-90" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="lunch_dining">lunch_dining</span>
+<span class="text-[11px] font-semibold font-['Plus_Jakarta_Sans']">Menu</span>
+</a>
+<a class="flex flex-col items-center justify-center text-zinc-400 dark:text-zinc-500 px-5 py-2 hover:text-orange-500 dark:hover:text-orange-300 transition-all duration-300 ease-out scale-90" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="search">search</span>
+<span class="text-[11px] font-semibold font-['Plus_Jakarta_Sans']">Search</span>
+</a>
+<a class="flex flex-col items-center justify-center bg-orange-100 dark:bg-orange-950/30 text-orange-700 dark:text-orange-400 rounded-2xl px-5 py-2 transition-all duration-300 ease-out scale-90" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="shopping_bag" style="font-variation-settings: 'FILL' 1;">shopping_bag</span>
+<span class="text-[11px] font-semibold font-['Plus_Jakarta_Sans']">Orders</span>
+</a>
+<a class="flex flex-col items-center justify-center text-zinc-400 dark:text-zinc-500 px-5 py-2 hover:text-orange-500 dark:hover:text-orange-300 transition-all duration-300 ease-out scale-90" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="person">person</span>
+<span class="text-[11px] font-semibold font-['Plus_Jakarta_Sans']">Profile</span>
+</a>
+</nav>
+</body></html>

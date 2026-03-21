@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>MENUZA AI | Turn your menu into a money-making machine</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "primary-fixed-dim": "#ffb693",
+              "on-primary": "#ffffff",
+              "on-secondary-fixed": "#1b1b1c",
+              "error": "#ba1a1a",
+              "on-secondary-fixed-variant": "#474746",
+              "primary": "#a04100",
+              "surface": "#fcf9f8",
+              "surface-variant": "#e5e2e1",
+              "on-surface": "#1b1b1c",
+              "secondary": "#5f5e5e",
+              "tertiary-fixed": "#69ff87",
+              "background": "#fcf9f8",
+              "on-tertiary-fixed": "#002108",
+              "on-primary-fixed": "#351000",
+              "surface-dim": "#dcd9d9",
+              "on-primary-container": "#572000",
+              "tertiary-fixed-dim": "#3ce36a",
+              "surface-tint": "#a04100",
+              "error-container": "#ffdad6",
+              "on-tertiary": "#ffffff",
+              "secondary-fixed": "#e5e2e1",
+              "surface-container-highest": "#e5e2e1",
+              "outline": "#8e7164",
+              "secondary-fixed-dim": "#c8c6c5",
+              "surface-bright": "#fcf9f8",
+              "tertiary": "#006e2a",
+              "on-error": "#ffffff",
+              "on-error-container": "#93000a",
+              "surface-container-high": "#eae7e7",
+              "surface-container": "#f0eded",
+              "primary-container": "#ff6b00",
+              "inverse-on-surface": "#f3f0ef",
+              "on-primary-fixed-variant": "#7a3000",
+              "primary-fixed": "#ffdbcc",
+              "on-background": "#1b1b1c",
+              "inverse-surface": "#303030",
+              "on-tertiary-container": "#003a13",
+              "on-secondary": "#ffffff",
+              "surface-container-lowest": "#ffffff",
+              "on-secondary-container": "#636262",
+              "inverse-primary": "#ffb693",
+              "surface-container-low": "#f6f3f2",
+              "on-tertiary-fixed-variant": "#00531e",
+              "tertiary-container": "#00b149",
+              "on-surface-variant": "#5a4136",
+              "outline-variant": "#e2bfb0"
+            },
+            fontFamily: {
+              "headline": ["Plus Jakarta Sans"],
+              "body": ["Inter"],
+              "label": ["Inter"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body { font-family: 'Inter', sans-serif; background-color: #fcf9f8; }
+        h1, h2, h3, h4 { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .glass-nav { backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
+    </style>
+</head>
+<body class="bg-surface text-on-surface">
+<!-- Top Navigation Bar -->
+<nav class="w-full sticky top-0 z-50 bg-[#fcf9f8]/80 backdrop-blur-md shadow-sm">
+<div class="flex justify-between items-center px-6 py-3 w-full">
+<div class="flex items-center gap-8">
+<span class="text-2xl font-black tracking-tight text-orange-600">MENUZA AI</span>
+<div class="hidden md:flex gap-6 items-center">
+<a class="text-orange-600 font-bold border-b-2 border-orange-600 font-['Plus_Jakarta_Sans'] font-medium text-sm" href="#">Home</a>
+<a class="text-gray-500 hover:bg-orange-50 transition-colors font-['Plus_Jakarta_Sans'] font-medium text-sm px-2 py-1 rounded" href="#features">Features</a>
+<a class="text-gray-500 hover:bg-orange-50 transition-colors font-['Plus_Jakarta_Sans'] font-medium text-sm px-2 py-1 rounded" href="#pricing">Pricing</a>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<button class="hidden md:block px-4 py-2 text-sm font-semibold text-orange-600 border border-outline-variant/30 rounded-xl hover:bg-orange-50 transition-all">Upgrade</button>
+<div class="flex gap-2 text-gray-500">
+<span class="material-symbols-outlined cursor-pointer p-2 hover:bg-orange-50 rounded-full">notifications</span>
+<span class="material-symbols-outlined cursor-pointer p-2 hover:bg-orange-50 rounded-full">help</span>
+</div>
+<div class="w-8 h-8 rounded-full bg-surface-container-highest overflow-hidden">
+<img alt="User profile avatar" data-alt="User profile avatar icon" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCX8M2uBlsbCiggObfAaCP7AmS7bzuTdi3iQsMIh66SMDnDFPRFC73SAkholFyUi_Nxm_4g02kelblC2qSIApT3fdtl5c5MZZJKfrq8aAHalBYIjp9fwbN_BJja1vSWC5DV7zOkPhcVqKbPniyKLsKvyByx23rSZlfYTz6IQmDfRBb3BI0N0lLJ4FwwFRo1nOHcWDsQc0DwtGK858A3lff7mzVOQrPUrdXlBNiTCLNU1qg3GxXiNMmRBPlnrmAZrjjVB6JT0Unvck4"/>
+</div>
+</div>
+</div>
+</nav>
+<!-- Hero Section -->
+<section class="relative pt-20 pb-32 overflow-hidden px-6">
+<div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+<div class="z-10">
+<span class="inline-block py-1 px-4 rounded-full bg-primary-container/10 text-primary font-bold text-xs tracking-widest uppercase mb-6">The Digital Maître d’</span>
+<h1 class="text-6xl md:text-7xl font-extrabold text-on-surface leading-[1.1] tracking-tighter mb-8">
+                    Turn your menu into a <span class="text-primary-container">money-making</span> machine
+                </h1>
+<p class="text-xl text-secondary max-w-lg mb-10 leading-relaxed">
+                    Create, optimize, and track your restaurant menu with AI. Stop guessing and start selling with data-driven design.
+                </p>
+<div class="flex flex-wrap gap-4">
+<button class="px-8 py-4 bg-gradient-to-tr from-primary to-primary-container text-white font-bold rounded-xl shadow-lg shadow-orange-500/20 active:scale-95 transition-all text-lg">Start Free</button>
+<button class="px-8 py-4 bg-surface-container-highest text-on-surface font-bold rounded-xl active:scale-95 transition-all text-lg">See Demo</button>
+</div>
+</div>
+<div class="relative">
+<div class="absolute -top-10 -right-10 w-64 h-64 bg-primary-container/20 rounded-full blur-3xl"></div>
+<div class="relative bg-surface-container-low rounded-[2rem] p-4 shadow-2xl border border-white/50 overflow-hidden">
+<img alt="Modern Restaurant Menu" class="rounded-[1.5rem] w-full h-[500px] object-cover" data-alt="High-end food photography on a digital menu interface" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBJUUEojWFjIhbPGorbstEhDuP0988t9uPxL2lcM5KATf32LdQzR2OmwVvsPTD4952u5PA4AioCg8j4iRGfkaS3ZKsDPC-jJOHhfK2oU5-SWm_jEk4JYIwOJROZDJDOqHpx7ieLJd4rq2YsXpxWVy5Uz387CRSaOVHz5S97WTDuPmVZNVBV0wSqOmwH4ruH_krXq0HsAXO0KLu_Li8sSQmbNPjMtOwB6qjVEBTXUaiwuM6432BwTsDVaS_UabXPbUJ8NOXnEKBc92c"/>
+<div class="absolute bottom-8 left-8 right-8 bg-white/90 backdrop-blur-md p-6 rounded-2xl shadow-xl flex items-center justify-between border border-orange-100/20">
+<div>
+<p class="text-xs font-bold text-primary uppercase tracking-tighter">Live Insight</p>
+<p class="text-lg font-bold text-on-surface">Spicy Ramen conversion up 24%</p>
+</div>
+<span class="material-symbols-outlined text-tertiary text-3xl" style="font-variation-settings: 'FILL' 1;">trending_up</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Problem & Solution Section (Bento Style) -->
+<section class="py-24 bg-surface-container-low px-6">
+<div class="max-w-7xl mx-auto">
+<div class="text-center mb-16">
+<h2 class="text-4xl md:text-5xl font-black text-on-surface tracking-tight mb-4">Most menus don't sell — they just list.</h2>
+<p class="text-secondary text-lg max-w-2xl mx-auto">Traditional menus are static, blind, and hard to update. MENUZA AI turns them into active sales tools.</p>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+<!-- Problem Card -->
+<div class="md:col-span-1 bg-surface-container-lowest p-8 rounded-[2rem] flex flex-col justify-between">
+<div>
+<div class="w-12 h-12 bg-error/10 text-error rounded-xl flex items-center justify-center mb-6">
+<span class="material-symbols-outlined">mobiledata_off</span>
+</div>
+<h3 class="text-2xl font-bold mb-4">Zero Data</h3>
+<p class="text-secondary leading-relaxed">You have no idea which items people look at but never order. You're flying blind.</p>
+</div>
+</div>
+<!-- Main Solution Card -->
+<div class="md:col-span-2 bg-gradient-to-br from-primary to-primary-container p-10 rounded-[2rem] text-white flex flex-col justify-center relative overflow-hidden">
+<div class="relative z-10">
+<h3 class="text-3xl md:text-4xl font-black mb-6">MENUZA AI turns your menu into a sales tool.</h3>
+<div class="grid grid-cols-2 gap-8">
+<div class="flex items-start gap-4">
+<span class="material-symbols-outlined text-white/50 text-3xl">psychology</span>
+<div>
+<p class="font-bold">AI Design</p>
+<p class="text-white/80 text-sm">Automatically plates your items for maximum profit.</p>
+</div>
+</div>
+<div class="flex items-start gap-4">
+<span class="material-symbols-outlined text-white/50 text-3xl">speed</span>
+<div>
+<p class="font-bold">Real-time</p>
+<p class="text-white/80 text-sm">Update prices or hide sold-out items instantly.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="absolute top-0 right-0 opacity-10 scale-150 rotate-12">
+<span class="material-symbols-outlined text-[300px]" style="font-variation-settings: 'FILL' 1;">restaurant_menu</span>
+</div>
+</div>
+<!-- Another Feature Card -->
+<div class="md:col-span-2 bg-surface-container-highest p-10 rounded-[2rem] flex items-center gap-10">
+<div class="w-1/3">
+<img alt="Analytics View" class="rounded-2xl aspect-square object-cover shadow-lg" data-alt="A smartphone showing a restaurant analytics dashboard" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC4lfgEQr7u6jhvWLD7s6gDcCVFRb6fLsru2fdnn5Luzx1PUfCJfoTw24P97znN0F6L5adry-1HtR8RDJPkyJ0E9vMCeVzYXS--APftw8WAJz_M7akLmLKw15-ubxXSw3hlm_J2tUQqri3d6cH3fZmPgGB23JY5h82vRprtm1pEk0mBO8VNbsEpye_DLfD3GGuuOmD2LlHXNcQcahjd9yYJfGOP8IXCb0s7mxcKBIFQFJk4kEQXCrJ6oxsIUx01WO_x81MeAsMB2ps"/>
+</div>
+<div class="w-2/3">
+<h3 class="text-2xl font-bold mb-4">Smart Insights</h3>
+<p class="text-secondary leading-relaxed mb-6">We track gaze patterns and click-through rates. Know exactly which photo drives the most orders.</p>
+<button class="text-primary font-bold flex items-center gap-2 hover:translate-x-1 transition-transform">
+                            Learn about tracking <span class="material-symbols-outlined">arrow_forward</span>
+</button>
+</div>
+</div>
+<div class="md:col-span-1 bg-surface-container-lowest p-8 rounded-[2rem] border border-outline-variant/10">
+<div class="w-12 h-12 bg-tertiary-container/10 text-tertiary rounded-xl flex items-center justify-center mb-6">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">qr_code_2</span>
+</div>
+<h3 class="text-2xl font-bold mb-4">Scan &amp; Order</h3>
+<p class="text-secondary leading-relaxed">No apps to download. Customers scan, browse, and order in seconds.</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Features Grid -->
+<section class="py-24 px-6 bg-surface" id="features">
+<div class="max-w-7xl mx-auto">
+<div class="flex flex-col md:flex-row justify-between items-end mb-16 gap-6">
+<div>
+<h2 class="text-4xl font-black tracking-tight mb-4">Powerful Features for Pro Restaurateurs</h2>
+<p class="text-secondary text-lg">Everything you need to run a high-performance digital menu.</p>
+</div>
+<button class="px-6 py-3 border border-primary text-primary font-bold rounded-xl hover:bg-primary/5 transition-colors">View all features</button>
+</div>
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+<!-- Feature 1 -->
+<div class="p-8 rounded-3xl bg-surface-container hover:bg-surface-container-low transition-colors group">
+<span class="material-symbols-outlined text-4xl text-primary mb-6 group-hover:scale-110 transition-transform">upload_file</span>
+<h3 class="text-xl font-bold mb-3">Upload &amp; Convert</h3>
+<p class="text-secondary text-sm leading-relaxed">Upload a photo of your paper menu. Our AI extracts every item, price, and description automatically.</p>
+</div>
+<!-- Feature 2 -->
+<div class="p-8 rounded-3xl bg-surface-container hover:bg-surface-container-low transition-colors group">
+<span class="material-symbols-outlined text-4xl text-primary mb-6 group-hover:scale-110 transition-transform">style</span>
+<h3 class="text-xl font-bold mb-3">Smart Templates</h3>
+<p class="text-secondary text-sm leading-relaxed">Designed by psychology experts to lead customers toward high-margin items. Editorial-grade layouts.</p>
+</div>
+<!-- Feature 3 -->
+<div class="p-8 rounded-3xl bg-surface-container hover:bg-surface-container-low transition-colors group">
+<span class="material-symbols-outlined text-4xl text-primary mb-6 group-hover:scale-110 transition-transform">qr_code_scanner</span>
+<h3 class="text-xl font-bold mb-3">Custom QR Codes</h3>
+<p class="text-secondary text-sm leading-relaxed">Design branded QR codes that match your restaurant's aesthetic. High-resolution for print.</p>
+</div>
+<!-- Feature 4 -->
+<div class="p-8 rounded-3xl bg-surface-container hover:bg-surface-container-low transition-colors group">
+<span class="material-symbols-outlined text-4xl text-primary mb-6 group-hover:scale-110 transition-transform">leaderboard</span>
+<h3 class="text-xl font-bold mb-3">Live Analytics</h3>
+<p class="text-secondary text-sm leading-relaxed">Heatmaps of customer attention. See what's hot and what's not in real-time.</p>
+</div>
+<!-- Feature 5 -->
+<div class="p-8 rounded-3xl bg-surface-container hover:bg-surface-container-low transition-colors group">
+<span class="material-symbols-outlined text-4xl text-primary mb-6 group-hover:scale-110 transition-transform">chat</span>
+<h3 class="text-xl font-bold mb-3">WhatsApp Orders</h3>
+<p class="text-secondary text-sm leading-relaxed">Direct connection to your kitchen. Orders land straight in your WhatsApp business account.</p>
+</div>
+<!-- Feature 6 -->
+<div class="p-8 rounded-3xl bg-surface-container hover:bg-surface-container-low transition-colors group">
+<span class="material-symbols-outlined text-4xl text-primary mb-6 group-hover:scale-110 transition-transform">language</span>
+<h3 class="text-xl font-bold mb-3">Auto-Translation</h3>
+<p class="text-secondary text-sm leading-relaxed">Detects customer language and translates your menu automatically. Perfect for tourist spots.</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Pricing Section -->
+<section class="py-24 px-6 bg-surface-container-low" id="pricing">
+<div class="max-w-7xl mx-auto">
+<div class="text-center mb-16">
+<h2 class="text-4xl font-black mb-4">Simple, transparent pricing</h2>
+<p class="text-secondary">Pick the plan that fits your restaurant size.</p>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+<!-- Free Plan -->
+<div class="bg-surface-container-lowest p-10 rounded-[2rem] flex flex-col border border-outline-variant/10">
+<h3 class="text-xl font-bold mb-2">Free</h3>
+<div class="mb-8">
+<span class="text-4xl font-black">$0</span>
+<span class="text-secondary text-sm">/ month</span>
+</div>
+<ul class="space-y-4 mb-10 flex-grow">
+<li class="flex items-center gap-3 text-sm text-secondary">
+<span class="material-symbols-outlined text-tertiary-container">check_circle</span>
+                            1 Digital Menu
+                        </li>
+<li class="flex items-center gap-3 text-sm text-secondary">
+<span class="material-symbols-outlined text-tertiary-container">check_circle</span>
+                            Standard QR Code
+                        </li>
+<li class="flex items-center gap-3 text-sm text-secondary">
+<span class="material-symbols-outlined text-tertiary-container">check_circle</span>
+                            Basic Analytics
+                        </li>
+</ul>
+<button class="w-full py-4 bg-surface-container-highest text-on-surface font-bold rounded-xl hover:bg-surface-variant transition-colors">Start Free</button>
+</div>
+<!-- Pro Plan -->
+<div class="bg-surface-container-lowest p-10 rounded-[2rem] flex flex-col border-2 border-primary-container relative scale-105 shadow-2xl">
+<div class="absolute -top-4 left-1/2 -translate-x-1/2 bg-primary-container text-white px-4 py-1 rounded-full text-xs font-bold uppercase tracking-widest">Most Popular</div>
+<h3 class="text-xl font-bold mb-2">Pro</h3>
+<div class="mb-8">
+<span class="text-4xl font-black">$29</span>
+<span class="text-secondary text-sm">/ month</span>
+</div>
+<ul class="space-y-4 mb-10 flex-grow">
+<li class="flex items-center gap-3 text-sm text-on-surface">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+                            Unlimited Menus
+                        </li>
+<li class="flex items-center gap-3 text-sm text-on-surface">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+                            Custom Branded QR
+                        </li>
+<li class="flex items-center gap-3 text-sm text-on-surface">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+                            AI Heatmaps &amp; Analytics
+                        </li>
+<li class="flex items-center gap-3 text-sm text-on-surface">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+                            WhatsApp Ordering
+                        </li>
+</ul>
+<button class="w-full py-4 bg-gradient-to-tr from-primary to-primary-container text-white font-bold rounded-xl shadow-lg shadow-orange-500/20 active:scale-95 transition-all">Go Pro</button>
+</div>
+<!-- Business Plan -->
+<div class="bg-surface-container-lowest p-10 rounded-[2rem] flex flex-col border border-outline-variant/10">
+<h3 class="text-xl font-bold mb-2">Business</h3>
+<div class="mb-8">
+<span class="text-4xl font-black">$79</span>
+<span class="text-secondary text-sm">/ month</span>
+</div>
+<ul class="space-y-4 mb-10 flex-grow">
+<li class="flex items-center gap-3 text-sm text-secondary">
+<span class="material-symbols-outlined text-tertiary-container">check_circle</span>
+                            Multi-location Admin
+                        </li>
+<li class="flex items-center gap-3 text-sm text-secondary">
+<span class="material-symbols-outlined text-tertiary-container">check_circle</span>
+                            POS Integration
+                        </li>
+<li class="flex items-center gap-3 text-sm text-secondary">
+<span class="material-symbols-outlined text-tertiary-container">check_circle</span>
+                            Priority Support
+                        </li>
+</ul>
+<button class="w-full py-4 bg-surface-container-highest text-on-surface font-bold rounded-xl hover:bg-surface-variant transition-colors">Contact Sales</button>
+</div>
+</div>
+</div>
+</section>
+<!-- Final CTA -->
+<section class="py-24 px-6 overflow-hidden">
+<div class="max-w-5xl mx-auto bg-[#1b1b1c] rounded-[3rem] p-12 md:p-20 text-center relative overflow-hidden">
+<div class="relative z-10">
+<h2 class="text-4xl md:text-6xl font-black text-white mb-8 leading-tight">Your menu is your #1 sales tool. <br/><span class="text-primary-container">Upgrade it.</span></h2>
+<div class="flex flex-wrap justify-center gap-6">
+<button class="px-10 py-5 bg-primary-container text-white font-black rounded-2xl text-xl shadow-2xl active:scale-95 transition-all">Get Started Now</button>
+<button class="px-10 py-5 bg-white/10 text-white font-bold rounded-2xl text-xl backdrop-blur-md hover:bg-white/20 transition-all">Book a Demo</button>
+</div>
+</div>
+<!-- Decorative circle -->
+<div class="absolute -bottom-20 -left-20 w-80 h-80 bg-primary/20 rounded-full blur-[100px]"></div>
+</div>
+</section>
+<!-- Footer -->
+<footer class="py-12 px-6 border-t border-outline-variant/10">
+<div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8">
+<div class="flex flex-col gap-2">
+<span class="text-xl font-black tracking-tight text-orange-600">MENUZA AI</span>
+<p class="text-sm text-secondary">© 2024 Menuza Systems Inc. All rights reserved.</p>
+</div>
+<div class="flex gap-8 text-sm font-semibold text-on-surface-variant">
+<a class="hover:text-primary transition-colors" href="#">Terms</a>
+<a class="hover:text-primary transition-colors" href="#">Privacy</a>
+<a class="hover:text-primary transition-colors" href="#">Contact</a>
+<a class="hover:text-primary transition-colors" href="#">Blog</a>
+</div>
+<div class="flex gap-4">
+<div class="w-10 h-10 rounded-full bg-surface-container flex items-center justify-center hover:bg-primary/10 transition-colors cursor-pointer">
+<span class="material-symbols-outlined text-xl">share</span>
+</div>
+<div class="w-10 h-10 rounded-full bg-surface-container flex items-center justify-center hover:bg-primary/10 transition-colors cursor-pointer">
+<span class="material-symbols-outlined text-xl">group</span>
+</div>
+</div>
+</div>
+</footer>
+<!-- Bottom Nav for Mobile -->
+<div class="md:hidden fixed bottom-0 left-0 w-full z-50 flex justify-around items-end px-4 pb-6 bg-[#fcf9f8]/90 backdrop-blur-xl border-t border-orange-100/10 shadow-[0_-4px_20px_rgba(0,0,0,0.04)] rounded-t-[2rem]">
+<div class="flex flex-col items-center justify-center bg-gradient-to-tr from-orange-600 to-orange-400 text-white rounded-2xl p-3 mb-2 scale-110 shadow-lg shadow-orange-500/20">
+<span class="material-symbols-outlined">home</span>
+<span class="text-[10px] font-bold font-['Plus_Jakarta_Sans'] uppercase">Home</span>
+</div>
+<div class="flex flex-col items-center justify-center text-gray-400 p-2">
+<span class="material-symbols-outlined">menu_book</span>
+<span class="text-[10px] font-bold font-['Plus_Jakarta_Sans'] uppercase">Menus</span>
+</div>
+<div class="flex flex-col items-center justify-center text-gray-400 p-2">
+<span class="material-symbols-outlined">qr_code_scanner</span>
+<span class="text-[10px] font-bold font-['Plus_Jakarta_Sans'] uppercase">Scan</span>
+</div>
+<div class="flex flex-col items-center justify-center text-gray-400 p-2">
+<span class="material-symbols-outlined">person</span>
+<span class="text-[10px] font-bold font-['Plus_Jakarta_Sans'] uppercase">Profile</span>
+</div>
+</div>
+</body></html>

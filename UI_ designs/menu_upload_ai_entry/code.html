@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "primary-fixed-dim": "#ffb693",
+              "on-primary": "#ffffff",
+              "on-secondary-fixed": "#1b1b1c",
+              "error": "#ba1a1a",
+              "on-secondary-fixed-variant": "#474746",
+              "primary": "#a04100",
+              "surface": "#fcf9f8",
+              "surface-variant": "#e5e2e1",
+              "on-surface": "#1b1b1c",
+              "secondary": "#5f5e5e",
+              "tertiary-fixed": "#69ff87",
+              "background": "#fcf9f8",
+              "on-tertiary-fixed": "#002108",
+              "on-primary-fixed": "#351000",
+              "surface-dim": "#dcd9d9",
+              "on-primary-container": "#572000",
+              "tertiary-fixed-dim": "#3ce36a",
+              "surface-tint": "#a04100",
+              "error-container": "#ffdad6",
+              "on-tertiary": "#ffffff",
+              "secondary-fixed": "#e5e2e1",
+              "surface-container-highest": "#e5e2e1",
+              "outline": "#8e7164",
+              "secondary-fixed-dim": "#c8c6c5",
+              "surface-bright": "#fcf9f8",
+              "tertiary": "#006e2a",
+              "on-error": "#ffffff",
+              "on-error-container": "#93000a",
+              "surface-container-high": "#eae7e7",
+              "surface-container": "#f0eded",
+              "primary-container": "#ff6b00",
+              "inverse-on-surface": "#f3f0ef",
+              "on-primary-fixed-variant": "#7a3000",
+              "primary-fixed": "#ffdbcc",
+              "on-background": "#1b1b1c",
+              "inverse-surface": "#303030",
+              "on-tertiary-container": "#003a13",
+              "on-secondary": "#ffffff",
+              "surface-container-lowest": "#ffffff",
+              "on-secondary-container": "#636262",
+              "inverse-primary": "#ffb693",
+              "surface-container-low": "#f6f3f2",
+              "on-tertiary-fixed-variant": "#00531e",
+              "tertiary-container": "#00b149",
+              "on-surface-variant": "#5a4136",
+              "secondary-container": "#e2dfde",
+              "outline-variant": "#e2bfb0"
+            },
+            fontFamily: {
+              "headline": ["Plus Jakarta Sans"],
+              "body": ["Inter"],
+              "label": ["Inter"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+      .material-symbols-outlined {
+        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      }
+      .glass-effect {
+        backdrop-filter: blur(12px);
+        background: rgba(252, 249, 248, 0.6);
+      }
+    </style>
+</head>
+<body class="bg-surface font-body text-on-surface antialiased">
+<!-- SideNavBar (The Anchor) -->
+<aside class="hidden md:flex flex-col h-screen w-64 fixed left-0 top-0 overflow-y-auto bg-[#fcf9f8] border-r border-orange-100/20 z-40">
+<div class="px-6 py-8">
+<h1 class="text-xl font-black text-orange-600 uppercase tracking-tighter">MENUZA ADMIN</h1>
+<p class="text-[10px] font-bold font-headline uppercase text-orange-400 tracking-widest mt-1">Digital Maître d’</p>
+</div>
+<nav class="flex-1 space-y-2 px-4">
+<a class="text-gray-600 hover:text-orange-600 px-4 py-3 flex items-center gap-3 hover:translate-x-1 transition-transform duration-200 cursor-pointer active:opacity-80 font-headline font-semibold tracking-tight" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+                Dashboard
+            </a>
+<a class="bg-orange-50 text-orange-700 rounded-xl px-4 py-3 flex items-center gap-3 hover:translate-x-1 transition-transform duration-200 cursor-pointer active:opacity-80 font-headline font-semibold tracking-tight" href="#">
+<span class="material-symbols-outlined" data-icon="restaurant_menu">restaurant_menu</span>
+                My Menus
+            </a>
+<a class="text-gray-600 hover:text-orange-600 px-4 py-3 flex items-center gap-3 hover:translate-x-1 transition-transform duration-200 cursor-pointer active:opacity-80 font-headline font-semibold tracking-tight" href="#">
+<span class="material-symbols-outlined" data-icon="leaderboard">leaderboard</span>
+                Analytics
+            </a>
+<a class="text-gray-600 hover:text-orange-600 px-4 py-3 flex items-center gap-3 hover:translate-x-1 transition-transform duration-200 cursor-pointer active:opacity-80 font-headline font-semibold tracking-tight" href="#">
+<span class="material-symbols-outlined" data-icon="style">style</span>
+                Templates
+            </a>
+<a class="text-gray-600 hover:text-orange-600 px-4 py-3 flex items-center gap-3 hover:translate-x-1 transition-transform duration-200 cursor-pointer active:opacity-80 font-headline font-semibold tracking-tight" href="#">
+<span class="material-symbols-outlined" data-icon="qr_code_2">qr_code_2</span>
+                QR Codes
+            </a>
+<a class="text-gray-600 hover:text-orange-600 px-4 py-3 flex items-center gap-3 hover:translate-x-1 transition-transform duration-200 cursor-pointer active:opacity-80 font-headline font-semibold tracking-tight" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+                Settings
+            </a>
+</nav>
+<div class="p-4 mt-auto">
+<button class="w-full bg-gradient-to-tr from-primary to-primary-container text-white py-4 px-6 rounded-xl font-headline font-bold shadow-lg shadow-orange-500/10 hover:scale-[1.02] transition-transform active:scale-95">
+                Create New Menu
+            </button>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="md:ml-64 min-h-screen relative flex flex-col">
+<!-- TopNavBar -->
+<header class="w-full sticky top-0 z-50 flex justify-between items-center px-6 py-3 bg-[#fcf9f8]/80 backdrop-blur-md shadow-sm">
+<div class="flex items-center gap-4">
+<span class="text-2xl font-black tracking-tight text-orange-600">MENUZA AI</span>
+</div>
+<div class="flex items-center gap-6">
+<button class="text-gray-500 hover:bg-orange-50 transition-colors p-2 rounded-full active:scale-95 duration-150">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+<button class="text-gray-500 hover:bg-orange-50 transition-colors p-2 rounded-full active:scale-95 duration-150">
+<span class="material-symbols-outlined" data-icon="help">help</span>
+</button>
+<button class="bg-primary-container/10 text-primary font-bold px-4 py-1.5 rounded-full text-sm">Upgrade</button>
+<div class="w-10 h-10 rounded-full bg-surface-container-highest flex items-center justify-center overflow-hidden">
+<img alt="User profile avatar" class="w-full h-full object-cover" data-alt="Portrait of a male restaurant owner" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDTc_-JXPdsOaZpSPlK66WFj6Hba9os9KqzVuBhEqqJK6xR-PKcQBmtElyFlwUMKy1SWyZ5BJ9uaBSIMQ91Tk9b_9mLG9gD9G4TvxpXffiIzXhKao8lXNxSKFfILk9yJzHSowsWVnngxvBc1pqotdat8yZRVG-ZwZprH4MMnxUVZYwJ0cwpw5BajhxDe3kXv4aKjN1-GYg_ecSHO27i_LsaRcCiz_gUCZNeKO6dOX8krDB6TtmEBt_X0dj6Li-2veoaIOTVCR5aFEM"/>
+</div>
+</div>
+</header>
+<!-- Page Content: Upload Screen -->
+<section class="flex-1 flex flex-col items-center justify-center p-6 md:p-12 max-w-6xl mx-auto w-full">
+<!-- Editorial Header -->
+<div class="text-center mb-12 max-w-2xl">
+<h2 class="text-4xl md:text-5xl font-headline font-extrabold text-on-surface tracking-tight mb-4">
+                    Upload Your <span class="text-primary">Menu</span>
+</h2>
+<p class="text-secondary text-lg font-body leading-relaxed">
+                    Snap a photo of your menu or upload a file. Our AI Maître d’ will handle the heavy lifting and digitize it in seconds.
+                </p>
+</div>
+<!-- Bento Grid Layout for Upload Section -->
+<div class="grid grid-cols-1 md:grid-cols-12 gap-8 w-full">
+<!-- Main Upload Box -->
+<div class="md:col-span-8 bg-surface-container-lowest rounded-[2rem] border-2 border-dashed border-outline-variant/30 p-12 flex flex-col items-center justify-center relative overflow-hidden group hover:border-primary/40 transition-colors">
+<div class="absolute inset-0 bg-gradient-to-tr from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+<div class="relative z-10 flex flex-col items-center">
+<div class="w-24 h-24 bg-primary/10 text-primary rounded-full flex items-center justify-center mb-6 shadow-xl shadow-primary/5 group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined !text-5xl" data-icon="cloud_upload">cloud_upload</span>
+</div>
+<h3 class="text-2xl font-headline font-bold text-on-surface mb-2">Drop your files here</h3>
+<p class="text-secondary mb-8 text-center">Supports PNG, JPEG, PDF, or Text documents up to 20MB.</p>
+<button class="bg-on-surface text-surface py-3 px-8 rounded-full font-headline font-bold hover:bg-primary transition-colors active:scale-95 flex items-center gap-2">
+<span class="material-symbols-outlined" data-icon="add">add</span>
+                            Browse Files
+                        </button>
+</div>
+</div>
+<!-- Secondary Actions Column -->
+<div class="md:col-span-4 flex flex-col gap-6">
+<!-- Option: Camera -->
+<div class="bg-surface-container-low p-6 rounded-[1.5rem] flex items-center gap-5 hover:bg-surface-container transition-colors cursor-pointer group">
+<div class="w-14 h-14 bg-white rounded-2xl flex items-center justify-center text-primary shadow-sm group-hover:shadow-md transition-shadow">
+<span class="material-symbols-outlined !text-3xl" data-icon="photo_camera">photo_camera</span>
+</div>
+<div>
+<h4 class="font-headline font-bold text-on-surface">Use Camera</h4>
+<p class="text-xs text-secondary font-medium">Capture a fresh photo</p>
+</div>
+</div>
+<!-- Option: PDF/Doc -->
+<div class="bg-surface-container-low p-6 rounded-[1.5rem] flex items-center gap-5 hover:bg-surface-container transition-colors cursor-pointer group">
+<div class="w-14 h-14 bg-white rounded-2xl flex items-center justify-center text-primary shadow-sm group-hover:shadow-md transition-shadow">
+<span class="material-symbols-outlined !text-3xl" data-icon="picture_as_pdf">picture_as_pdf</span>
+</div>
+<div>
+<h4 class="font-headline font-bold text-on-surface">Upload PDF</h4>
+<p class="text-xs text-secondary font-medium">Standard menu document</p>
+</div>
+</div>
+<!-- Option: Text -->
+<div class="bg-surface-container-low p-6 rounded-[1.5rem] flex items-center gap-5 hover:bg-surface-container transition-colors cursor-pointer group">
+<div class="w-14 h-14 bg-white rounded-2xl flex items-center justify-center text-primary shadow-sm group-hover:shadow-md transition-shadow">
+<span class="material-symbols-outlined !text-3xl" data-icon="text_snippet">text_snippet</span>
+</div>
+<div>
+<h4 class="font-headline font-bold text-on-surface">Paste Text</h4>
+<p class="text-xs text-secondary font-medium">Quick copy-paste import</p>
+</div>
+</div>
+<!-- Tip Card -->
+<div class="mt-auto bg-primary-fixed p-6 rounded-[1.5rem] relative overflow-hidden">
+<span class="material-symbols-outlined absolute -right-4 -bottom-4 !text-8xl opacity-10 rotate-12" data-icon="lightbulb">lightbulb</span>
+<h4 class="font-headline font-bold text-on-primary-fixed mb-2 flex items-center gap-2">
+<span class="material-symbols-outlined !text-lg" data-icon="auto_awesome">auto_awesome</span>
+                            Pro Tip
+                        </h4>
+<p class="text-on-primary-fixed-variant text-sm leading-snug">
+                            Ensure good lighting and high resolution for the best AI extraction results.
+                        </p>
+</div>
+</div>
+</div>
+</section>
+<!-- Loader State / Processing View (Overlaying or Bottom-fixed Toast) -->
+<div class="fixed bottom-12 left-1/2 -translate-x-1/2 z-50 w-[90%] max-w-md">
+<div class="glass-effect p-5 rounded-2xl shadow-2xl border border-white/40 flex items-center gap-4">
+<div class="relative w-12 h-12 flex items-center justify-center">
+<!-- Spinning logic represented by design -->
+<div class="absolute inset-0 border-4 border-primary/20 rounded-full"></div>
+<div class="absolute inset-0 border-4 border-primary rounded-full border-t-transparent animate-spin"></div>
+<span class="material-symbols-outlined text-primary" data-icon="bolt">bolt</span>
+</div>
+<div class="flex-1">
+<p class="font-headline font-bold text-on-surface text-sm">MENUZA AI is reading your menu...</p>
+<div class="w-full bg-surface-container-highest h-1.5 rounded-full mt-2 overflow-hidden">
+<div class="bg-primary h-full w-[65%] rounded-full"></div>
+</div>
+</div>
+<button class="text-secondary hover:text-error transition-colors">
+<span class="material-symbols-outlined" data-icon="close">close</span>
+</button>
+</div>
+</div>
+<!-- Space for the bottom nav on mobile -->
+<div class="h-24 md:hidden"></div>
+</main>
+<!-- BottomNavBar (Mobile Only) -->
+<nav class="md:hidden fixed bottom-0 left-0 w-full z-50 flex justify-around items-end px-4 pb-6 bg-[#fcf9f8]/90 backdrop-blur-xl border-t border-orange-100/10 shadow-[0_-4px_20px_rgba(0,0,0,0.04)]">
+<a class="flex flex-col items-center justify-center text-gray-400 p-2 hover:text-orange-500 transition-all active:scale-90 duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="home">home</span>
+<span class="text-[10px] font-bold font-headline uppercase">Home</span>
+</a>
+<a class="flex flex-col items-center justify-center bg-gradient-to-tr from-orange-600 to-orange-400 text-white rounded-2xl p-3 mb-2 scale-110 shadow-lg shadow-orange-500/20 active:scale-90 duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="menu_book">menu_book</span>
+<span class="text-[10px] font-bold font-headline uppercase">Menus</span>
+</a>
+<a class="flex flex-col items-center justify-center text-gray-400 p-2 hover:text-orange-500 transition-all active:scale-90 duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="qr_code_scanner">qr_code_scanner</span>
+<span class="text-[10px] font-bold font-headline uppercase">Scan</span>
+</a>
+<a class="flex flex-col items-center justify-center text-gray-400 p-2 hover:text-orange-500 transition-all active:scale-90 duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+<span class="text-[10px] font-bold font-headline uppercase">Profile</span>
+</a>
+</nav>
+</body></html>

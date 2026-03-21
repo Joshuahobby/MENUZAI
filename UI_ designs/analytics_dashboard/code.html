@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>MENUZA AI - Analytics Overview</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "background": "#fcf9f8",
+                        "on-primary": "#ffffff",
+                        "surface-container-lowest": "#ffffff",
+                        "on-secondary-container": "#636262",
+                        "primary-fixed-dim": "#ffb693",
+                        "on-tertiary-container": "#003a13",
+                        "on-tertiary-fixed": "#002108",
+                        "on-primary-fixed": "#351000",
+                        "inverse-surface": "#303030",
+                        "surface-container-low": "#f6f3f2",
+                        "surface-variant": "#e5e2e1",
+                        "surface-tint": "#a04100",
+                        "secondary-container": "#e2dfde",
+                        "on-primary-container": "#572000",
+                        "surface-bright": "#fcf9f8",
+                        "surface-container-high": "#eae7e7",
+                        "inverse-on-surface": "#f3f0ef",
+                        "surface-dim": "#dcd9d9",
+                        "on-secondary": "#ffffff",
+                        "tertiary-fixed": "#69ff87",
+                        "inverse-primary": "#ffb693",
+                        "error-container": "#ffdad6",
+                        "primary": "#a04100",
+                        "on-tertiary-fixed-variant": "#00531e",
+                        "on-primary-fixed-variant": "#7a3000",
+                        "on-tertiary": "#ffffff",
+                        "tertiary": "#006e2a",
+                        "surface-container": "#f0eded",
+                        "tertiary-container": "#00b149",
+                        "on-surface": "#1b1b1c",
+                        "tertiary-fixed-dim": "#3ce36a",
+                        "on-background": "#1b1b1c",
+                        "outline": "#8e7164",
+                        "surface": "#fcf9f8",
+                        "on-surface-variant": "#5a4136",
+                        "error": "#ba1a1a",
+                        "secondary-fixed": "#e5e2e1",
+                        "on-error": "#ffffff",
+                        "secondary-fixed-dim": "#c8c6c5",
+                        "primary-fixed": "#ffdbcc",
+                        "on-secondary-fixed": "#1b1b1c",
+                        "primary-container": "#ff6b00",
+                        "secondary": "#5f5e5e",
+                        "on-error-container": "#93000a",
+                        "on-secondary-fixed-variant": "#474746",
+                        "surface-container-highest": "#e5e2e1",
+                        "outline-variant": "#e2bfb0"
+                    },
+                    fontFamily: {
+                        "headline": ["Plus Jakarta Sans"],
+                        "body": ["Inter"],
+                        "label": ["Inter"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .chart-gradient {
+            background: linear-gradient(180deg, rgba(255, 107, 0, 0.1) 0%, rgba(255, 107, 0, 0) 100%);
+        }
+        body { font-family: 'Inter', sans-serif; }
+        h1, h2, h3 { font-family: 'Plus Jakarta Sans', sans-serif; }
+    </style>
+</head>
+<body class="bg-background text-on-background min-h-screen flex">
+<!-- Sidebar (Shared Component Integrated) -->
+<aside class="w-72 bg-surface-container-low border-r border-outline-variant/15 flex flex-col fixed inset-y-0 left-0 z-50">
+<div class="p-8 flex flex-col gap-8 h-full">
+<div class="flex flex-col gap-1">
+<h1 class="text-on-surface text-xl font-bold tracking-tight">MENUZA AI</h1>
+<p class="text-on-surface-variant text-sm font-medium">Restaurant Admin</p>
+</div>
+<nav class="flex flex-col gap-2 flex-1">
+<a class="flex items-center gap-3 px-4 py-3 rounded-xl transition-colors text-on-surface-variant hover:bg-surface-container" href="#">
+<span class="material-symbols-outlined" data-icon="layout">mobile_layout</span>
+<span class="font-medium">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-xl transition-colors bg-primary text-on-primary shadow-lg shadow-primary/20" href="#">
+<span class="material-symbols-outlined" data-icon="chart_bar" style="font-variation-settings: 'FILL' 1;">bar_chart</span>
+<span class="font-medium">Analytics</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-xl transition-colors text-on-surface-variant hover:bg-surface-container" href="#">
+<span class="material-symbols-outlined" data-icon="shopping_bag">shopping_bag</span>
+<span class="font-medium">Orders</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-xl transition-colors text-on-surface-variant hover:bg-surface-container" href="#">
+<span class="material-symbols-outlined" data-icon="knife">swords</span>
+<span class="font-medium">Menu Management</span>
+</a>
+<div class="mt-auto">
+<a class="flex items-center gap-3 px-4 py-3 rounded-xl transition-colors text-on-surface-variant hover:bg-surface-container" href="#">
+<span class="material-symbols-outlined" data-icon="gear">search_gear</span>
+<span class="font-medium">Settings</span>
+</a>
+</div>
+</nav>
+</div>
+</aside>
+<!-- Main Content -->
+<main class="flex-1 ml-72">
+<!-- Header -->
+<header class="h-20 px-8 flex items-center justify-between bg-background sticky top-0 z-40">
+<div class="flex items-center gap-4">
+<h2 class="text-2xl font-bold text-on-surface">Analytics Overview</h2>
+</div>
+<div class="flex items-center gap-4">
+<div class="relative group">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant" data-icon="magnifying_glass">magnification_large</span>
+<input class="pl-10 pr-4 py-2 rounded-full border-none bg-surface-container-low focus:ring-2 focus:ring-primary/20 w-64 text-sm" placeholder="Search data..." type="text"/>
+</div>
+<button class="w-10 h-10 rounded-full flex items-center justify-center bg-surface-container-low text-on-surface">
+<span class="material-symbols-outlined" data-icon="bell">doorbell</span>
+</button>
+<button class="w-10 h-10 rounded-full flex items-center justify-center bg-primary-container text-on-primary">
+<span class="material-symbols-outlined" data-icon="user_circle">supervised_user_circle</span>
+</button>
+</div>
+</header>
+<!-- Dashboard Content -->
+<div class="p-8 max-w-7xl mx-auto space-y-8">
+<!-- Conversion Hero Card -->
+<div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+<div class="col-span-1 bg-surface-container-lowest p-6 rounded-xl shadow-sm border border-outline-variant/10">
+<div class="flex flex-col gap-1">
+<p class="text-on-surface-variant text-sm font-semibold uppercase tracking-wider">Conversion Rate</p>
+<div class="flex items-end gap-3">
+<h3 class="text-4xl font-bold text-on-surface">7.4%</h3>
+<span class="text-tertiary text-sm font-bold flex items-center mb-1">
+<span class="material-symbols-outlined text-xs" data-icon="trending_up">trending_up</span>
+                                +1.2%
+                            </span>
+</div>
+</div>
+<div class="mt-4 h-12 w-full flex items-end gap-1">
+<!-- Tiny trend sparkline -->
+<div class="w-2 bg-primary/20 rounded-full" style="height: 40%"></div>
+<div class="w-2 bg-primary/20 rounded-full" style="height: 60%"></div>
+<div class="w-2 bg-primary/20 rounded-full" style="height: 35%"></div>
+<div class="w-2 bg-primary/20 rounded-full" style="height: 50%"></div>
+<div class="w-2 bg-primary/20 rounded-full" style="height: 80%"></div>
+<div class="w-2 bg-primary rounded-full" style="height: 100%"></div>
+</div>
+</div>
+<!-- AI Insight Box - Editorial Asymmetry -->
+<div class="col-span-1 md:col-span-3 bg-gradient-to-br from-primary to-primary-container p-6 rounded-xl text-on-primary flex flex-col md:flex-row items-center gap-6 shadow-xl shadow-primary/20">
+<div class="bg-on-primary/20 p-4 rounded-full">
+<span class="material-symbols-outlined text-4xl" data-icon="lightbulb" style="font-variation-settings: 'FILL' 1;">lightbulb</span>
+</div>
+<div class="flex-1 space-y-2">
+<h4 class="text-xl font-bold">AI Insight</h4>
+<p class="text-on-primary/90 text-lg leading-snug">
+                            Your <span class="font-bold border-b-2 border-on-primary">Burger</span> is your top seller. Consider promoting it to a Combo to increase ticket size by <span class="text-2xl font-black">15%</span>.
+                        </p>
+</div>
+<button class="bg-on-primary text-primary px-6 py-3 rounded-full font-bold text-sm whitespace-nowrap hover:bg-surface-bright transition-colors shadow-lg">
+                        Create Combo
+                    </button>
+</div>
+</div>
+<!-- Main Charts Grid -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+<!-- Most Viewed Dishes -->
+<div class="bg-surface-container-lowest p-8 rounded-xl border border-outline-variant/10">
+<div class="flex items-center justify-between mb-8">
+<div>
+<h4 class="text-lg font-bold text-on-surface">Most Viewed Dishes</h4>
+<p class="text-on-surface-variant text-sm">Traffic breakdown last 30 days</p>
+</div>
+<div class="text-right">
+<p class="text-2xl font-bold text-on-surface">1,240</p>
+<p class="text-tertiary text-xs font-bold">+15% vs LY</p>
+</div>
+</div>
+<div class="flex items-end justify-between h-48 gap-4 px-2">
+<div class="flex-1 flex flex-col items-center gap-3">
+<div class="w-full bg-surface-container-low rounded-t-lg relative group cursor-pointer" style="height: 60%">
+<div class="absolute inset-0 bg-primary/40 rounded-t-lg transition-all group-hover:bg-primary/60"></div>
+</div>
+<span class="text-xs font-bold text-on-surface-variant truncate w-full text-center">Burger</span>
+</div>
+<div class="flex-1 flex flex-col items-center gap-3">
+<div class="w-full bg-surface-container-low rounded-t-lg relative group cursor-pointer" style="height: 40%">
+<div class="absolute inset-0 bg-primary/40 rounded-t-lg transition-all group-hover:bg-primary/60"></div>
+</div>
+<span class="text-xs font-bold text-on-surface-variant truncate w-full text-center">Pizza</span>
+</div>
+<div class="flex-1 flex flex-col items-center gap-3">
+<div class="w-full bg-surface-container-low rounded-t-lg relative group cursor-pointer" style="height: 30%">
+<div class="absolute inset-0 bg-primary/40 rounded-t-lg transition-all group-hover:bg-primary/60"></div>
+</div>
+<span class="text-xs font-bold text-on-surface-variant truncate w-full text-center">Pasta</span>
+</div>
+<div class="flex-1 flex flex-col items-center gap-3">
+<div class="w-full bg-surface-container-low rounded-t-lg relative group cursor-pointer" style="height: 25%">
+<div class="absolute inset-0 bg-primary/40 rounded-t-lg transition-all group-hover:bg-primary/60"></div>
+</div>
+<span class="text-xs font-bold text-on-surface-variant truncate w-full text-center">Salad</span>
+</div>
+<div class="flex-1 flex flex-col items-center gap-3">
+<div class="w-full bg-surface-container-low rounded-t-lg relative group cursor-pointer" style="height: 90%">
+<div class="absolute inset-0 bg-primary rounded-t-lg transition-all"></div>
+</div>
+<span class="text-xs font-bold text-on-surface-variant truncate w-full text-center">Taco</span>
+</div>
+</div>
+</div>
+<!-- Most Ordered Dishes -->
+<div class="bg-surface-container-lowest p-8 rounded-xl border border-outline-variant/10">
+<div class="flex items-center justify-between mb-8">
+<div>
+<h4 class="text-lg font-bold text-on-surface">Most Ordered Dishes</h4>
+<p class="text-on-surface-variant text-sm">Conversion of top menu items</p>
+</div>
+<div class="text-right">
+<p class="text-2xl font-bold text-on-surface">856</p>
+<p class="text-tertiary text-xs font-bold">+8% growth</p>
+</div>
+</div>
+<div class="flex items-end justify-between h-48 gap-4 px-2">
+<div class="flex-1 flex flex-col items-center gap-3">
+<div class="w-full bg-primary rounded-t-lg transition-all" style="height: 85%"></div>
+<span class="text-xs font-bold text-on-surface-variant truncate w-full text-center">Burger</span>
+</div>
+<div class="flex-1 flex flex-col items-center gap-3">
+<div class="w-full bg-surface-container-low rounded-t-lg" style="height: 35%"></div>
+<span class="text-xs font-bold text-on-surface-variant truncate w-full text-center">Fries</span>
+</div>
+<div class="flex-1 flex flex-col items-center gap-3">
+<div class="w-full bg-surface-container-low rounded-t-lg" style="height: 30%"></div>
+<span class="text-xs font-bold text-on-surface-variant truncate w-full text-center">Soda</span>
+</div>
+<div class="flex-1 flex flex-col items-center gap-3">
+<div class="w-full bg-primary/60 rounded-t-lg" style="height: 65%"></div>
+<span class="text-xs font-bold text-on-surface-variant truncate w-full text-center">Pizza</span>
+</div>
+<div class="flex-1 flex flex-col items-center gap-3">
+<div class="w-full bg-surface-container-low rounded-t-lg" style="height: 20%"></div>
+<span class="text-xs font-bold text-on-surface-variant truncate w-full text-center">Wings</span>
+</div>
+</div>
+</div>
+<!-- Peak Hours Line Chart -->
+<div class="lg:col-span-2 bg-surface-container-lowest p-8 rounded-xl border border-outline-variant/10 relative overflow-hidden">
+<div class="flex items-center justify-between mb-12">
+<div>
+<h4 class="text-lg font-bold text-on-surface">Peak Ordering Hours</h4>
+<p class="text-on-surface-variant text-sm">Daily average guest volume</p>
+</div>
+<div class="flex items-center gap-2 px-4 py-2 bg-surface-container-low rounded-full">
+<div class="w-2 h-2 rounded-full bg-primary"></div>
+<span class="text-sm font-bold text-on-surface">Peak: 7 PM</span>
+</div>
+</div>
+<div class="relative h-64 w-full">
+<!-- Line Chart SVG -->
+<svg class="w-full h-full preserve-3d" viewbox="0 0 1000 200">
+<!-- Area Gradient -->
+<path d="M0,150 Q100,160 200,120 T400,140 T600,80 T800,20 T1000,100 L1000,200 L0,200 Z" fill="url(#line-grad)" opacity="0.4"></path>
+<!-- Line -->
+<path d="M0,150 Q100,160 200,120 T400,140 T600,80 T800,20 T1000,100" fill="none" stroke="#a04100" stroke-linecap="round" stroke-width="4"></path>
+<!-- Key Point Dot -->
+<circle cx="800" cy="20" fill="#a04100" r="6"></circle>
+<circle cx="800" cy="20" fill="#a04100" opacity="0.2" r="12"></circle>
+<defs>
+<lineargradient id="line-grad" x1="0" x2="0" y1="0" y2="1">
+<stop offset="0%" stop-color="#ff6b00"></stop>
+<stop offset="100%" stop-color="#ff6b00" stop-opacity="0"></stop>
+</lineargradient>
+</defs>
+</svg>
+<!-- Time Labels -->
+<div class="flex justify-between mt-6 text-on-surface-variant text-xs font-bold uppercase tracking-widest px-2">
+<span>12 PM</span>
+<span>2 PM</span>
+<span>4 PM</span>
+<span>6 PM</span>
+<span class="text-primary scale-110">7 PM</span>
+<span>8 PM</span>
+<span>10 PM</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Bottom Detail Section -->
+<div class="flex flex-col md:flex-row gap-6">
+<div class="flex-1 bg-surface-container-low p-6 rounded-xl flex items-center justify-between">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-xl bg-surface-container-lowest flex items-center justify-center text-primary shadow-sm">
+<span class="material-symbols-outlined" data-icon="timer">timer</span>
+</div>
+<div>
+<p class="text-sm font-bold text-on-surface">Average Prep Time</p>
+<p class="text-on-surface-variant text-sm">12.4 minutes</p>
+</div>
+</div>
+<span class="text-error text-xs font-bold">+2 min spike</span>
+</div>
+<div class="flex-1 bg-surface-container-low p-6 rounded-xl flex items-center justify-between">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-xl bg-surface-container-lowest flex items-center justify-center text-primary shadow-sm">
+<span class="material-symbols-outlined" data-icon="groups">groups</span>
+</div>
+<div>
+<p class="text-sm font-bold text-on-surface">Returning Customers</p>
+<p class="text-on-surface-variant text-sm">62% of total orders</p>
+</div>
+</div>
+<span class="text-tertiary text-xs font-bold">+4.1% increase</span>
+</div>
+</div>
+</div>
+</main>
+</body></html>

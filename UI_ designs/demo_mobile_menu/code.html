@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              colors: {
+                "outline-variant": "#e2bfb0",
+                "primary-container": "#ff6b00",
+                "on-surface": "#1b1b1c",
+                "background": "#fcf9f8",
+                "on-primary": "#ffffff",
+                "on-secondary-fixed": "#1b1b1c",
+                "secondary-container": "#e2dfde",
+                "surface-container-low": "#f6f3f2",
+                "on-error": "#ffffff",
+                "on-tertiary": "#ffffff",
+                "on-secondary-fixed-variant": "#474746",
+                "on-primary-fixed-variant": "#7a3000",
+                "primary": "#a04100",
+                "outline": "#8e7164",
+                "inverse-on-surface": "#f3f0ef",
+                "inverse-surface": "#303030",
+                "on-primary-container": "#572000",
+                "tertiary-fixed-dim": "#3ce36a",
+                "on-tertiary-fixed": "#002108",
+                "on-tertiary-container": "#003a13",
+                "tertiary-fixed": "#69ff87",
+                "on-tertiary-fixed-variant": "#00531e",
+                "primary-fixed-dim": "#ffb693",
+                "on-background": "#1b1b1c",
+                "tertiary-container": "#00b149",
+                "on-primary-fixed": "#351000",
+                "secondary-fixed-dim": "#c8c6c5",
+                "secondary-fixed": "#e5e2e1",
+                "surface-container-lowest": "#ffffff",
+                "tertiary": "#006e2a",
+                "primary-fixed": "#ffdbcc",
+                "on-secondary": "#ffffff",
+                "surface-tint": "#a04100",
+                "surface-container-highest": "#e5e2e1",
+                "on-surface-variant": "#5a4136",
+                "secondary": "#5f5e5e",
+                "inverse-primary": "#ffb693",
+                "error-container": "#ffdad6",
+                "surface-container": "#f0eded",
+                "surface-variant": "#e5e2e1",
+                "error": "#ba1a1a",
+                "on-secondary-container": "#636262",
+                "surface-dim": "#dcd9d9",
+                "surface": "#fcf9f8",
+                "on-error-container": "#93000a",
+                "surface-bright": "#fcf9f8",
+                "surface-container-high": "#eae7e7"
+              },
+              fontFamily: {
+                "headline": ["Plus Jakarta Sans"],
+                "body": ["Inter"],
+                "label": ["Inter"]
+              },
+              borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+            },
+          },
+        }
+    </script>
+<style>
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background font-body text-on-surface antialiased">
+<!-- TopAppBar -->
+<header class="sticky top-0 w-full z-50 bg-[#fcf9f8]/80 dark:bg-zinc-950/80 backdrop-blur-xl shadow-sm shadow-zinc-200/50 dark:shadow-none">
+<div class="flex items-center justify-between px-6 py-4 w-full">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-orange-600 dark:text-orange-500" data-icon="restaurant_menu">restaurant_menu</span>
+<span class="text-xl font-bold text-zinc-900 dark:text-zinc-50 font-['Plus_Jakarta_Sans'] tracking-tight">INKURU BISTRO</span>
+</div>
+<div class="flex items-center gap-2 px-3 py-1 bg-tertiary-container rounded-full">
+<div class="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></div>
+<span class="text-[10px] font-bold text-on-tertiary uppercase tracking-wider">Open Now</span>
+</div>
+</div>
+</header>
+<main class="pb-32">
+<!-- Hero Branding -->
+<section class="px-6 py-8">
+<h1 class="text-4xl font-headline font-extrabold tracking-tight text-on-surface leading-tight">
+                Authentic Flavors, <br/><span class="text-primary">Modern Soul.</span>
+</h1>
+</section>
+<!-- Category Horizontal Scroll -->
+<nav class="sticky top-[72px] z-40 bg-background/95 backdrop-blur-sm py-4 mb-4">
+<div class="flex gap-3 px-6 overflow-x-auto no-scrollbar">
+<button class="flex-none px-6 py-3 bg-orange-100 dark:bg-orange-950/30 text-orange-700 dark:text-orange-400 rounded-2xl font-bold font-headline text-sm flex items-center gap-2">
+                    Drinks 🍹
+                </button>
+<button class="flex-none px-6 py-3 bg-surface-container-low text-on-surface-variant hover:bg-orange-50/50 transition-colors rounded-2xl font-semibold font-headline text-sm flex items-center gap-2">
+                    Food 🍔
+                </button>
+<button class="flex-none px-6 py-3 bg-surface-container-low text-on-surface-variant hover:bg-orange-50/50 transition-colors rounded-2xl font-semibold font-headline text-sm flex items-center gap-2">
+                    Specials ⭐
+                </button>
+</div>
+</nav>
+<!-- Menu Section: Featured (Chef's Choice) -->
+<section class="px-6 mb-10">
+<div class="flex justify-between items-end mb-6">
+<h2 class="text-2xl font-headline font-bold">Chef's Choice</h2>
+<span class="text-sm font-medium text-primary uppercase tracking-widest">Seasonal</span>
+</div>
+<!-- Asymmetric Hero Card -->
+<div class="relative group overflow-hidden rounded-[2rem] bg-surface-container-low">
+<div class="aspect-[4/5] w-full">
+<img alt="" class="w-full h-full object-cover" data-alt="Gourmet grilled steak with herbs and vegetables" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD9263f9HB_9PQDmc21vyEXMMVJMBk7FZTAbLf9_u4N_I0kvmMooad5Mc4AJMg6djtaeWhb3DUzg-BVSTmrdhbJYCvrVriHLRffGtempbQv6sefKUZf7T45cavZ6LRYFNyQRbJ0n7shDzceNiXW7Fa2zXOx3yia47NaiSpOUXBRbA5wKzYsDeG2xFHX2cC2VLYLqeG1753Vc0Uqt4MmjhG1rRQjYH_8A1HmIPGky5EwJxw5muNO8Lz7UeuFFNYxHFeq_dTFnsxtc3M"/>
+</div>
+<div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
+<div class="absolute bottom-0 left-0 p-6 w-full">
+<div class="flex items-center gap-2 mb-2">
+<span class="px-3 py-1 bg-primary text-white text-[10px] font-bold rounded-full uppercase">Chef's Choice</span>
+</div>
+<h3 class="text-2xl font-headline font-bold text-white mb-1">Slow-Braised Prime Rib</h3>
+<p class="text-white/70 text-sm mb-4">24-hour braised rib with local spice infusion and honey-glazed roots.</p>
+<div class="flex items-center justify-between">
+<span class="text-xl font-headline font-extrabold text-white">18,500 RWF</span>
+<button class="px-6 py-3 bg-white text-on-surface font-bold rounded-xl active:scale-95 transition-all">
+                            [ + Add ]
+                        </button>
+</div>
+</div>
+</div>
+</section>
+<!-- Most Popular Bento Grid -->
+<section class="px-6 mb-10">
+<h2 class="text-2xl font-headline font-bold mb-6">Most Popular</h2>
+<div class="grid grid-cols-2 gap-4">
+<!-- Popular Item 1 -->
+<div class="bg-surface-container-lowest rounded-3xl p-4 flex flex-col h-full shadow-sm shadow-zinc-200/40">
+<div class="aspect-square rounded-2xl overflow-hidden mb-4 relative">
+<img alt="" class="w-full h-full object-cover" data-alt="Large gourmet burger with melted cheese" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBIrvbymeTPX0TFUKwszMOuoRvfdV2n37XA3QKZRTtrsE_7Qy1KStsebTujziJhLmbRYPCA0Tx14pSmgVjHmArYQEiTUvaxuDt4yNxDHk-dGRbz6egFluv_cEi9N9W-FWA06IhkHUCxq8vrlpoaeHztyLgtdR_oZJFh8MRrC8jvK5RBA_c-onsaVC0zaabO0MtNdwfcicot1XwwMW7hwOsxBoe5J8wIGiJlUvangWhKgZd2cAxcUnUViyVM8IOs3NhdXPAN4uT0phY"/>
+<div class="absolute top-2 right-2">
+<span class="material-symbols-outlined text-primary bg-white/90 p-1.5 rounded-full text-sm" data-icon="favorite" style="font-variation-settings: 'FILL' 1;">favorite</span>
+</div>
+</div>
+<h3 class="font-headline font-bold text-base mb-1">Inkuru Classic</h3>
+<p class="text-xs text-secondary mb-3 line-clamp-2">Double beef patty, secret sauce, house pickles.</p>
+<div class="mt-auto flex flex-col gap-3">
+<span class="text-primary font-bold">12,000 RWF</span>
+<button class="w-full py-2 bg-surface-container-low text-primary font-bold rounded-xl text-sm hover:bg-primary-container hover:text-white transition-colors">
+                            [ + Add ]
+                        </button>
+</div>
+</div>
+<!-- Popular Item 2 -->
+<div class="bg-surface-container-lowest rounded-3xl p-4 flex flex-col h-full shadow-sm shadow-zinc-200/40">
+<div class="aspect-square rounded-2xl overflow-hidden mb-4 relative">
+<img alt="" class="w-full h-full object-cover" data-alt="Healthy buddha bowl with fresh vegetables" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDcf1T5pPGXjG78ix8pPujtGQbteFtXsHSHh_bbcl7YGj3IaQ0IbQ0zTTOL2FqA7xE5lqy6De9XyT-h5kS88uu3R-PT-_GClLEFwMFTjjre1-GyQ3znHWcMeAvrdX14gfjEQyWyeMs5JM6Rh3PdLg-Q-kU1U_8CCwtEYAFOFpuhZc-149Z36s7P5CSnAv-Jazn0-S0zpjMSQ9twUVhebl8BomSx4fMEBSYKzoTl-V7VDyMfvI4qU5P2JQgVXEEGgsOFC4aP-risu_0"/>
+</div>
+<h3 class="font-headline font-bold text-base mb-1">Zen Garden Bowl</h3>
+<p class="text-xs text-secondary mb-3 line-clamp-2">Quinoa, avocado, roasted chickpeas, tahini.</p>
+<div class="mt-auto flex flex-col gap-3">
+<span class="text-primary font-bold">9,500 RWF</span>
+<button class="w-full py-2 bg-surface-container-low text-primary font-bold rounded-xl text-sm hover:bg-primary-container hover:text-white transition-colors">
+                            [ + Add ]
+                        </button>
+</div>
+</div>
+</div>
+</section>
+<!-- More Drinks Section -->
+<section class="px-6 mb-10">
+<h2 class="text-2xl font-headline font-bold mb-6">Signature Sips</h2>
+<div class="space-y-6">
+<!-- List Item (High End) -->
+<div class="flex gap-4 items-center">
+<div class="w-24 h-24 rounded-2xl overflow-hidden flex-shrink-0 bg-surface-container-low">
+<img alt="" class="w-full h-full object-cover" data-alt="Bright orange cocktail with ice and orange slice" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAbWo91JXR9a2PZZK-J9xRzDwN9doCZahQgWJ-OU2CNlNyWQ2bYveHutXa0F7vBV_Re31Bw_eHEXjL_Mj6D953KTxM4PEE6w8aiS77mLwUFaiqneroBOzqkI0iFaUrsEc35SqTGTyf_d1TG34rmFRu-LQYo4eXA6f7SkDTH4NRNuT7EdGtv2xbM2zqSD1_y2610To6ROlN34VRx9HZ8SOeCEXiJNd05bVc0KXhAVJa_9AEVKAiE1BdR6GtciYXiNnUWD_hUgx3IOcM"/>
+</div>
+<div class="flex-grow">
+<div class="flex justify-between items-start mb-1">
+<h3 class="font-headline font-bold">Mango Chili Fizz</h3>
+<span class="text-primary font-bold text-sm">4,500 RWF</span>
+</div>
+<p class="text-xs text-secondary mb-2">Fresh mango puree, sparkling soda, hint of bird's eye chili.</p>
+<button class="text-primary font-bold text-xs uppercase tracking-wider flex items-center gap-1">
+<span class="material-symbols-outlined text-sm" data-icon="add_circle">add_circle</span>
+                            [ + Add ]
+                        </button>
+</div>
+</div>
+<div class="flex gap-4 items-center">
+<div class="w-24 h-24 rounded-2xl overflow-hidden flex-shrink-0 bg-surface-container-low">
+<img alt="" class="w-full h-full object-cover" data-alt="Elegant espresso martini in a coupe glass" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAUrGGysNbPnlD9rLbiRO4SL2Xh9pEPXb0JCPr7T71pUmkdOA83Q5fCq-z0iybFWAUW-buVJkd9JFjC_TAfbI_eSLRLNGNZILqvzb9cQpuZ77R1wlCKmy9CHAlBBVQYl-n8jySoBf9t_EHIxI9F2rsLdDVApNdoc81agG5J-PQ1xHkwdcb_HWKO-0NJFBR6_J0ALJyRCs6R7Gwab6TbftAo_XTwWfjkQV9bS_wMrhKXWwNffilvnASQVpGKqpNPOR4yC8vjEwmmbxw"/>
+</div>
+<div class="flex-grow">
+<div class="flex justify-between items-start mb-1">
+<h3 class="font-headline font-bold">Bistro Espresso</h3>
+<span class="text-primary font-bold text-sm">3,500 RWF</span>
+</div>
+<p class="text-xs text-secondary mb-2">Single origin Rwandan beans, smooth crema finish.</p>
+<button class="text-primary font-bold text-xs uppercase tracking-wider flex items-center gap-1">
+<span class="material-symbols-outlined text-sm" data-icon="add_circle">add_circle</span>
+                            [ + Add ]
+                        </button>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- Floating Action Button: View Order -->
+<div class="fixed bottom-32 left-0 w-full flex justify-center px-6 pointer-events-none">
+<button class="pointer-events-auto w-full max-w-md bg-gradient-to-r from-primary to-primary-container text-white py-5 rounded-[2rem] shadow-2xl shadow-orange-900/20 flex items-center justify-between px-8 group active:scale-95 transition-all">
+<div class="flex items-center gap-4">
+<div class="relative">
+<span class="material-symbols-outlined" data-icon="shopping_bag">shopping_bag</span>
+<span class="absolute -top-1 -right-1 w-4 h-4 bg-white text-primary text-[10px] flex items-center justify-center rounded-full font-bold">3</span>
+</div>
+<span class="font-headline font-extrabold text-lg uppercase tracking-tight">View Order</span>
+</div>
+<span class="font-headline font-bold text-lg">34,000 RWF</span>
+</button>
+</div>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full flex justify-around items-center px-4 pb-6 pt-3 bg-white/90 dark:bg-zinc-900/90 backdrop-blur-md rounded-t-[2rem] z-50 shadow-[0_-4px_24px_rgba(0,0,0,0.04)]">
+<a class="flex flex-col items-center justify-center bg-orange-100 dark:bg-orange-950/30 text-orange-700 dark:text-orange-400 rounded-2xl px-5 py-2 scale-90 duration-300 ease-out" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="lunch_dining" style="font-variation-settings: 'FILL' 1;">lunch_dining</span>
+<span class="text-[11px] font-semibold font-['Plus_Jakarta_Sans']">Menu</span>
+</a>
+<a class="flex flex-col items-center justify-center text-zinc-400 dark:text-zinc-500 px-5 py-2 hover:text-orange-500 dark:hover:text-orange-300 scale-90 duration-300 ease-out" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="search">search</span>
+<span class="text-[11px] font-semibold font-['Plus_Jakarta_Sans']">Search</span>
+</a>
+<a class="flex flex-col items-center justify-center text-zinc-400 dark:text-zinc-500 px-5 py-2 hover:text-orange-500 dark:hover:text-orange-300 scale-90 duration-300 ease-out" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="shopping_bag">shopping_bag</span>
+<span class="text-[11px] font-semibold font-['Plus_Jakarta_Sans']">Orders</span>
+</a>
+<a class="flex flex-col items-center justify-center text-zinc-400 dark:text-zinc-500 px-5 py-2 hover:text-orange-500 dark:hover:text-orange-300 scale-90 duration-300 ease-out" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="person">person</span>
+<span class="text-[11px] font-semibold font-['Plus_Jakarta_Sans']">Profile</span>
+</a>
+</nav>
+</body></html>

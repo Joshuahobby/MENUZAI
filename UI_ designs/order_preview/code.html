@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Order Confirmation - MENUZA AI</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "on-tertiary": "#ffffff",
+              "on-primary-fixed-variant": "#7a3000",
+              "on-secondary-container": "#636262",
+              "outline-variant": "#e2bfb0",
+              "secondary": "#5f5e5e",
+              "surface-container": "#f0eded",
+              "secondary-container": "#e2dfde",
+              "surface-container-low": "#f6f3f2",
+              "surface-container-high": "#eae7e7",
+              "on-tertiary-fixed": "#002108",
+              "tertiary-container": "#00b149",
+              "on-secondary": "#ffffff",
+              "error-container": "#ffdad6",
+              "on-error-container": "#93000a",
+              "surface-container-lowest": "#ffffff",
+              "on-surface": "#1b1b1c",
+              "on-secondary-fixed": "#1b1b1c",
+              "on-tertiary-container": "#003a13",
+              "on-surface-variant": "#5a4136",
+              "surface-dim": "#dcd9d9",
+              "inverse-surface": "#303030",
+              "primary-fixed-dim": "#ffb693",
+              "tertiary-fixed-dim": "#3ce36a",
+              "surface": "#fcf9f8",
+              "background": "#fcf9f8",
+              "surface-tint": "#a04100",
+              "error": "#ba1a1a",
+              "primary-container": "#ff6b00",
+              "inverse-primary": "#ffb693",
+              "outline": "#8e7164",
+              "on-primary": "#ffffff",
+              "on-tertiary-fixed-variant": "#00531e",
+              "on-background": "#1b1b1c",
+              "on-error": "#ffffff",
+              "on-primary-container": "#572000",
+              "primary": "#a04100",
+              "secondary-fixed-dim": "#c8c6c5",
+              "primary-fixed": "#ffdbcc",
+              "surface-container-highest": "#e5e2e1",
+              "tertiary": "#006e2a",
+              "on-secondary-fixed-variant": "#474746",
+              "inverse-on-surface": "#f3f0ef",
+              "surface-variant": "#e5e2e1",
+              "secondary-fixed": "#e5e2e1",
+              "tertiary-fixed": "#69ff87",
+              "on-primary-fixed": "#351000",
+              "surface-bright": "#fcf9f8"
+            },
+            fontFamily: {
+              "headline": ["Plus Jakarta Sans"],
+              "body": ["Inter"],
+              "label": ["Inter"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>.material-symbols-outlined {
+    font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24
+    }
+.whatsapp-bg {
+    background-color: #e5ddd5;
+    background-image: url(https://lh3.googleusercontent.com/aida-public/AB6AXuB21dr3AjIdkaCV_Fh6dBpV34qslEBjtPA9TZa2fzqxpkMwDrNpigb_IMjEc98TZJZRpIDKKtbkcmAgaEs9uQ-myP9Z7aO_YRiJIsBk61abzzp3vIp_5v9_nO-N-ycj0BrOXeO_nTcnkHv3iRcfOGJQkTNBzlqd7K9mGBSDtfiHEiIG_AyOUyv_X-6QWLfXYdqW4GaOpiNaAzF_ubiFbST33M-yL0JKUJ2FuhBDz9A8xQkDCCP6UGAy91i2-Vhfak20ijDYYe-oI4k)
+    }</style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background font-body text-on-surface min-h-screen flex flex-col">
+<!-- Top Navigation Bar -->
+<header class="w-full sticky top-0 z-50 bg-[#fcf9f8] dark:bg-stone-950/60 backdrop-blur-xl flex justify-between items-center px-8 h-20 w-full">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-on-surface-variant cursor-pointer">arrow_back</span>
+<span class="text-2xl font-black tracking-tighter text-[#FF6B00] dark:text-[#ff8533]">MENUZA AI</span>
+</div>
+<div class="flex items-center gap-6">
+<span class="material-symbols-outlined text-stone-600 hover:bg-[#f6f3f2] p-2 rounded-full transition-colors cursor-pointer" data-icon="help_outline">help_outline</span>
+<div class="w-10 h-10 rounded-full bg-secondary-container flex items-center justify-center overflow-hidden border-2 border-primary/10">
+<img alt="User Profile Avatar" class="w-full h-full object-cover" data-alt="Close up portrait of a smiling man" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAHzp1jENW84pQP22IWCrXsz15wFmac1n2GcvOw3TjD8WrvErDn9pBCbhfF6rUGbbTRNNqN930TqPzkwLeo7HLDC2CGy2UApx25NCzPlgmHh6l1gC9E8m_qTPFbqSbPjIfvbFaajN1aUWjGMP0jYqsmEPImtbg0ovIb7kbV-jlkyvND2MQO3fQFwleI-hRrsweVuVCufo8zO-B3ZsG0Z-Cbs8ZVaXF_iYAijRzwJCukY6y9LZsWw5-YcXIhvIiq4goVrJoJnbEPjpQ"/>
+</div>
+</div>
+</header>
+<main class="flex-1 max-w-2xl mx-auto w-full px-6 pt-8 pb-32">
+<!-- Header Section -->
+<div class="mb-10 text-center">
+<h1 class="font-headline font-extrabold text-4xl tracking-tight text-on-surface mb-3">Review Your Order</h1>
+<p class="text-on-surface-variant font-medium">We've prepared your WhatsApp message. Tap confirm to send it to the restaurant.</p>
+</div>
+<!-- Bento Layout Preview -->
+<div class="grid grid-cols-1 md:grid-cols-12 gap-6">
+<!-- WhatsApp Chat Preview (Glassmorphism Effect) -->
+<div class="md:col-span-12 rounded-[2.5rem] overflow-hidden shadow-2xl shadow-primary/5 border border-white/20 bg-surface-container-lowest">
+<!-- Chat Header -->
+<div class="bg-[#075e54] p-5 flex items-center justify-between">
+<div class="flex items-center gap-3">
+<div class="relative">
+<div class="w-12 h-12 rounded-full bg-stone-200 overflow-hidden">
+<img alt="Restaurant Logo" class="w-full h-full object-cover" data-alt="Modern restaurant interior logo on wall" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBA5wmE-lVimHBcGYU2PQS6OJLwx_J7jVLSTATbVWORD1DlSoPAeKPHyb6JB5MY_uMVcFjjEXDK6YTTlQxWKDSA3xn8YExDGUlOjtkzNhrCFEnB3euQ1QSky6659Ava5pFhsjrY2IBXuGDdp8blbLsvGndifLWqvU4vvUZvrm7hBjJElWt6KdZa8FmTf_kPeZc8g3Ek-IgZ2qo391x4U4FcG0XkCyhh3BuN7fWV4808L5EjShv9btK5PyOJGsRJAoKSug5KqyEkvMk"/>
+</div>
+<div class="absolute bottom-0 right-0 w-3 h-3 bg-tertiary-container border-2 border-[#075e54] rounded-full"></div>
+</div>
+<div>
+<h3 class="text-white font-bold text-lg leading-tight">The Gourmet Burger Co.</h3>
+<p class="text-white/80 text-xs">Online</p>
+</div>
+</div>
+<div class="flex gap-4 text-white/90">
+<span class="material-symbols-outlined">videocam</span>
+<span class="material-symbols-outlined">call</span>
+<span class="material-symbols-outlined">more_vert</span>
+</div>
+</div>
+<!-- Chat Body -->
+<div class="whatsapp-bg min-h-[350px] p-6 flex flex-col justify-end relative">
+<div class="absolute top-4 left-1/2 -translate-x-1/2 bg-[#d1e4fc] px-4 py-1 rounded-lg shadow-sm">
+<p class="text-[10px] font-bold text-stone-600 uppercase tracking-widest">Today</p>
+</div>
+<!-- Order Message Bubble -->
+<div class="self-end max-w-[85%] bg-[#dcf8c6] rounded-t-2xl rounded-bl-2xl p-4 shadow-md relative">
+<div class="text-stone-800 text-[15px] leading-relaxed whitespace-pre-line font-medium">
+                            Hello, I’d like to order:
+                            • Chicken Burger
+                            • 2x Soda
+
+                            Address: 123 Editorial Way, Suite 4
+                            Payment: Cash on Delivery
+                        </div>
+<div class="flex justify-end items-center gap-1 mt-1">
+<span class="text-[10px] text-stone-500">12:45 PM</span>
+<span class="material-symbols-outlined text-[16px] text-[#34b7f1]" style="font-variation-settings: 'FILL' 1;">done_all</span>
+</div>
+</div>
+</div>
+<!-- Chat Input Mockup -->
+<div class="bg-[#f0f0f0] p-3 flex items-center gap-2">
+<div class="flex-1 bg-white rounded-full h-12 flex items-center px-4 gap-3 text-stone-400">
+<span class="material-symbols-outlined">sentiment_satisfied</span>
+<span class="flex-1 text-sm font-body">Type a message</span>
+<span class="material-symbols-outlined">attach_file</span>
+<span class="material-symbols-outlined">photo_camera</span>
+</div>
+<div class="w-12 h-12 rounded-full bg-[#075e54] flex items-center justify-center text-white">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">mic</span>
+</div>
+</div>
+</div>
+<!-- Order Details Summary Card -->
+<div class="md:col-span-12 bg-surface-container-low p-8 rounded-[2rem] border-none">
+<div class="flex justify-between items-start mb-6">
+<div>
+<span class="bg-tertiary-container/10 text-tertiary-container px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider">Ready to Send</span>
+<h4 class="font-headline font-bold text-2xl mt-2">Order Summary</h4>
+</div>
+<div class="text-right">
+<p class="text-on-surface-variant text-sm font-medium">Total Amount</p>
+<p class="text-primary font-headline font-extrabold text-2xl">$24.50</p>
+</div>
+</div>
+<div class="space-y-4">
+<div class="flex items-center justify-between p-4 bg-surface-container-lowest rounded-xl">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 bg-primary/5 rounded-lg flex items-center justify-center text-primary">
+<span class="material-symbols-outlined" data-icon="restaurant">restaurant</span>
+</div>
+<div>
+<p class="font-bold text-on-surface">Chicken Burger</p>
+<p class="text-xs text-on-surface-variant">Classic Crispy Fillet</p>
+</div>
+</div>
+<p class="font-bold text-on-surface">$18.00</p>
+</div>
+<div class="flex items-center justify-between p-4 bg-surface-container-lowest rounded-xl">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 bg-primary/5 rounded-lg flex items-center justify-center text-primary">
+<span class="material-symbols-outlined" data-icon="local_drink">local_drink</span>
+</div>
+<div>
+<p class="font-bold text-on-surface">2x Soda</p>
+<p class="text-xs text-on-surface-variant">Original Cola</p>
+</div>
+</div>
+<p class="font-bold text-on-surface">$6.50</p>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Floating Action Button Area (Confirmation) -->
+<div class="fixed bottom-0 left-0 w-full p-6 md:p-8 bg-gradient-to-t from-background via-background to-transparent z-40">
+<div class="max-w-2xl mx-auto flex flex-col gap-4">
+<button class="w-full h-16 bg-gradient-to-r from-primary to-primary-container text-white rounded-[1.5rem] font-headline font-bold text-lg flex items-center justify-center gap-3 shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">send</span>
+                Confirm &amp; Open WhatsApp
+            </button>
+<button class="w-full py-4 text-on-surface-variant font-semibold text-sm hover:text-primary transition-colors">
+                Edit Order Items
+            </button>
+</div>
+</div>
+<!-- Bottom Navigation Bar (Mobile Only) -->
+<nav class="md:hidden fixed bottom-0 left-0 w-full h-24 bg-white/80 dark:bg-stone-900/80 backdrop-blur-md flex justify-around items-center px-6 pb-safe z-50 rounded-t-[2rem] shadow-[0_-8px_30px_rgb(0,0,0,0.04)]">
+<div class="flex flex-col items-center justify-center text-stone-400 p-2">
+<span class="material-symbols-outlined" data-icon="home">home</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[10px] font-bold uppercase tracking-widest mt-1">Home</span>
+</div>
+<div class="flex flex-col items-center justify-center bg-[#FF6B00] text-white rounded-2xl p-3 mb-2 scale-110 shadow-lg shadow-[#FF6B00]/20">
+<span class="material-symbols-outlined" data-icon="menu_book" style="font-variation-settings: 'FILL' 1;">menu_book</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[10px] font-bold uppercase tracking-widest mt-1">Menus</span>
+</div>
+<div class="flex flex-col items-center justify-center text-stone-400 p-2">
+<span class="material-symbols-outlined" data-icon="qr_code_scanner">qr_code_scanner</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[10px] font-bold uppercase tracking-widest mt-1">Scan</span>
+</div>
+<div class="flex flex-col items-center justify-center text-stone-400 p-2">
+<span class="material-symbols-outlined" data-icon="more_horiz">more_horiz</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[10px] font-bold uppercase tracking-widest mt-1">More</span>
+</div>
+</nav>
+</body></html>

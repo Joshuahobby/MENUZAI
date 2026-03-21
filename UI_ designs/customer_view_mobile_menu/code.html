@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>MENUZA AI - Digital Menu</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "on-tertiary": "#ffffff",
+                        "on-primary-fixed-variant": "#7a3000",
+                        "on-secondary-container": "#636262",
+                        "outline-variant": "#e2bfb0",
+                        "secondary": "#5f5e5e",
+                        "surface-container": "#f0eded",
+                        "secondary-container": "#e2dfde",
+                        "surface-container-low": "#f6f3f2",
+                        "surface-container-high": "#eae7e7",
+                        "on-tertiary-fixed": "#002108",
+                        "tertiary-container": "#00b149",
+                        "on-secondary": "#ffffff",
+                        "error-container": "#ffdad6",
+                        "on-error-container": "#93000a",
+                        "surface-container-lowest": "#ffffff",
+                        "on-surface": "#1b1b1c",
+                        "on-secondary-fixed": "#1b1b1c",
+                        "on-tertiary-container": "#003a13",
+                        "on-surface-variant": "#5a4136",
+                        "surface-dim": "#dcd9d9",
+                        "inverse-surface": "#303030",
+                        "primary-fixed-dim": "#ffb693",
+                        "tertiary-fixed-dim": "#3ce36a",
+                        "surface": "#fcf9f8",
+                        "background": "#fcf9f8",
+                        "surface-tint": "#a04100",
+                        "error": "#ba1a1a",
+                        "primary-container": "#ff6b00",
+                        "inverse-primary": "#ffb693",
+                        "outline": "#8e7164",
+                        "on-primary": "#ffffff",
+                        "on-tertiary-fixed-variant": "#00531e",
+                        "on-background": "#1b1b1c",
+                        "on-error": "#ffffff",
+                        "on-primary-container": "#572000",
+                        "primary": "#a04100",
+                        "secondary-fixed-dim": "#c8c6c5",
+                        "primary-fixed": "#ffdbcc",
+                        "surface-container-highest": "#e5e2e1",
+                        "tertiary": "#006e2a",
+                        "on-secondary-fixed-variant": "#474746",
+                        "inverse-on-surface": "#f3f0ef",
+                        "surface-variant": "#e5e2e1",
+                        "secondary-fixed": "#e5e2e1",
+                        "tertiary-fixed": "#69ff87",
+                        "on-primary-fixed": "#351000",
+                        "surface-bright": "#fcf9f8"
+                    },
+                    fontFamily: {
+                        "headline": ["Plus Jakarta Sans"],
+                        "body": ["Inter"],
+                        "label": ["Inter"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface font-body text-on-surface antialiased pb-32">
+<!-- Top Navigation Bar -->
+<header class="w-full sticky top-0 z-50 bg-[#fcf9f8] dark:bg-stone-950/60 backdrop-blur-xl flex justify-between items-center px-6 h-20 w-full">
+<div class="flex flex-col">
+<h1 class="text-2xl font-black tracking-tighter text-[#FF6B00] dark:text-[#ff8533]">MENUZA AI</h1>
+<span class="text-[10px] font-bold uppercase tracking-widest text-secondary -mt-1">The Bistro &amp; Grill</span>
+</div>
+<div class="flex items-center gap-4">
+<button class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-[#f6f3f2] dark:hover:bg-stone-800 transition-colors duration-200">
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="search">search</span>
+</button>
+<div class="w-10 h-10 rounded-full bg-surface-container-highest overflow-hidden">
+<img alt="User Profile Avatar" class="w-full h-full object-cover" data-alt="User profile placeholder avatar image" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCOPP1-yh58hXNlErtmSZAJRUjFtZzde8RMXRTAtUt_e0op_f1f4f3Efnwoh6XIhEC4_BdKQkrkMNGgpr7PZSjEPyo6unDsyFLsXNUNzdgFQNgpE57nd9Sxg6kWtslq_bTwxzR8O1eUgvNzB9ZnHMib1xWIkFKHLtdvgT2Cc1keExVf0rGN0D4S1N5RgrdVaHf8bvDnoMduG5gl6_RR1DSOPo8ZmahAUdeWC7z_a6MStFakN0Mgqei6AZunSF0R4UfrT3uPWEcdHes"/>
+</div>
+</div>
+</header>
+<!-- Category Tabs - Sticky -->
+<nav class="sticky top-20 z-40 bg-surface/95 backdrop-blur-sm py-4 overflow-x-auto hide-scrollbar">
+<div class="flex px-6 gap-3">
+<button class="px-6 py-2.5 rounded-full bg-primary-container text-white font-headline font-bold text-sm shadow-lg shadow-primary-container/20 whitespace-nowrap">
+                Specials
+            </button>
+<button class="px-6 py-2.5 rounded-full bg-surface-container-low text-on-surface-variant font-headline font-semibold text-sm whitespace-nowrap hover:bg-surface-container-high transition-colors">
+                Food
+            </button>
+<button class="px-6 py-2.5 rounded-full bg-surface-container-low text-on-surface-variant font-headline font-semibold text-sm whitespace-nowrap hover:bg-surface-container-high transition-colors">
+                Drinks
+            </button>
+<button class="px-6 py-2.5 rounded-full bg-surface-container-low text-on-surface-variant font-headline font-semibold text-sm whitespace-nowrap hover:bg-surface-container-high transition-colors">
+                Desserts
+            </button>
+</div>
+</nav>
+<!-- Hero Banner (Bento Style) -->
+<main class="px-6 pt-4 space-y-8">
+<section class="relative h-48 rounded-3xl overflow-hidden group">
+<img alt="Featured Dish" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" data-alt="High-quality close up of a gourmet steak dish" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCHzB8jUy0Vs1ayYpUbUHWC9t2zqHBh5wrp6YE_Cq74KUYVe-8ToevpHUm-SRY24EC4y7P-UZ2zVUz-070LU70sf6QJfy5uEhnR3zOSYEZKeO0Qc97evshtsXN-eUzhGVKqElXSsad_fnyQYMjJB_gkep80adhmkMoxvfSnpQ-LBJ1_CeCQCdUwFr7lTikuf3LRbmyUN0xhijGtRg5lden53A58IdkQJAiwtMpXB_Vr_oBl32uUor3anEsfgQmBtxOys1ehMzZ9ZhQ"/>
+<div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end p-6">
+<span class="inline-block px-3 py-1 bg-tertiary-container text-on-tertiary-container text-[10px] font-bold uppercase tracking-widest rounded-full mb-2 w-fit">Chef's Pick</span>
+<h2 class="text-white font-headline text-2xl font-extrabold tracking-tight">Truffle Ribeye Steak</h2>
+<p class="text-white/80 text-xs font-body mt-1 italic">Limited availability for dinner service</p>
+</div>
+</section>
+<!-- Menu Section: Specials -->
+<section class="space-y-6">
+<div class="flex items-center justify-between">
+<h3 class="font-headline text-xl font-extrabold tracking-tight text-on-surface">Daily Specials</h3>
+<span class="text-primary font-headline text-xs font-bold uppercase tracking-widest">See All</span>
+</div>
+<!-- Menu Cards Grid -->
+<div class="grid grid-cols-1 gap-6">
+<!-- Item Card 1 -->
+<div class="bg-surface-container-lowest rounded-[2rem] overflow-hidden flex flex-col shadow-sm">
+<div class="relative h-64">
+<img alt="Honey Glazed Salmon" class="w-full h-full object-cover" data-alt="Vibrant healthy salad bowl with fresh greens and protein" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCDt_R2InUmdVVBAeMkD2zAvwpb778y0CN0VF-aLVAAKkXoiynaCAzyuavj_DPNC3Q-26aidG4kinpkA-gh7nHp_NsFJV0u44e6kG4MEa0YPGYeue5-jqMYYq7c2HnOvcaxk6Ar0V65uTNkR8iKk_93nqkLxDz1fGVo7evHHNK_GGDZ_xr4wat-RGMkcJwl2V55zrFXRdfWFEpKcZcci4CzsKaqh7FmNIKqUU1m270aqNuEAgBYSclUjyDX7k83suiuyRBaKsXVUlU"/>
+<div class="absolute top-4 right-4 bg-white/90 backdrop-blur-md px-4 py-2 rounded-2xl">
+<span class="text-primary font-headline font-extrabold">$24.00</span>
+</div>
+</div>
+<div class="p-6 flex flex-col">
+<div class="flex justify-between items-start mb-2">
+<h4 class="font-headline text-lg font-bold text-on-surface">Mediterranean Salmon</h4>
+<div class="flex items-center gap-1 text-tertiary">
+<span class="material-symbols-outlined text-sm" data-icon="leaf" style="font-variation-settings: 'FILL' 1;">eco</span>
+<span class="text-[10px] font-bold uppercase tracking-tighter">Healthy</span>
+</div>
+</div>
+<p class="text-on-surface-variant text-sm leading-relaxed mb-6">Pan-seared Atlantic salmon with a honey-soy glaze, served over roasted asparagus and wild rice.</p>
+<button class="w-full py-4 bg-primary text-white font-headline font-bold rounded-2xl flex items-center justify-center gap-2 active:scale-95 transition-transform duration-200">
+                            Order Now
+                            <span class="material-symbols-outlined text-lg" data-icon="add_circle">add_circle</span>
+</button>
+</div>
+</div>
+<!-- Item Card 2 -->
+<div class="bg-surface-container-lowest rounded-[2rem] overflow-hidden flex flex-col shadow-sm">
+<div class="relative h-64">
+<img alt="Signature Burger" class="w-full h-full object-cover" data-alt="Juicy gourmet beef burger with melted cheese and fries" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCsp-YRUU9NAN8GYaJjKyzJKRyERy_N8jZBpW7mBK6HsAx7AURqe_wJyJEFE8YWAJrJcx7cLovG1KEFS-YH0HsM7xsUJXKO4TUtjpopw2K-Jv2sf9LCsBpTorjlNMpSnIjt_ar9IkWXi2icUg9dkEdROW1jCaroN0Ifa4FBRWZKP9urqBgkhZZSOEzFKkrfmRSXoc-pwc4waIsxJDxOLXFWRhpPz1BTGnSluaZ5q3Uf9ztgWFMt3zQiYGaZKxDWxgRmSUppHesJT50"/>
+<div class="absolute top-4 right-4 bg-white/90 backdrop-blur-md px-4 py-2 rounded-2xl">
+<span class="text-primary font-headline font-extrabold">$18.50</span>
+</div>
+</div>
+<div class="p-6 flex flex-col">
+<div class="flex justify-between items-start mb-2">
+<h4 class="font-headline text-lg font-bold text-on-surface">The Menuza Royale</h4>
+<div class="flex items-center gap-1 text-primary">
+<span class="material-symbols-outlined text-sm" data-icon="local_fire_department" style="font-variation-settings: 'FILL' 1;">local_fire_department</span>
+<span class="text-[10px] font-bold uppercase tracking-tighter">Popular</span>
+</div>
+</div>
+<p class="text-on-surface-variant text-sm leading-relaxed mb-6">Double wagyu beef patties, aged cheddar, caramelized onions, and our secret Menuza AI sauce.</p>
+<button class="w-full py-4 bg-primary text-white font-headline font-bold rounded-2xl flex items-center justify-center gap-2 active:scale-95 transition-transform duration-200">
+                            Order Now
+                            <span class="material-symbols-outlined text-lg" data-icon="shopping_basket">shopping_basket</span>
+</button>
+</div>
+</div>
+</div>
+</section>
+<!-- Small Bento Grid for Drinks -->
+<section class="space-y-4">
+<h3 class="font-headline text-xl font-extrabold tracking-tight text-on-surface">Beverages</h3>
+<div class="grid grid-cols-2 gap-4">
+<div class="bg-surface-container-low p-4 rounded-3xl flex flex-col gap-3">
+<div class="h-32 rounded-2xl overflow-hidden">
+<img alt="Cocktail" class="w-full h-full object-cover" data-alt="A colorful tropical cocktail with garnish" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD_pj7lGdGJKeoy2YzMQm48BjnuWyQsUT5m4paFCGOKap54cXgROQWnIfiGv-bfRpPBj6hwZdX-KKbky_sy0Ci0D6wYunaWvDbxKhkqbXiyOB46dDmg5qzrrnXQdhY2iPgx3Usc7FP4F2yKbnuuO2MekZ7ZGFrF5TFxgTWDxmou_Gx1ZujYO3MPBOLxQxj55ABgS7HyQzQSbvVag9c5z3syqs-X7JgjePi2fk5cRwM7YoSVpKKwfLvV8xkA2aQaQ43WyZAl5Bt0S1I"/>
+</div>
+<div>
+<h5 class="font-headline font-bold text-sm text-on-surface">Summer Spritz</h5>
+<p class="text-primary font-headline font-bold text-xs">$12.00</p>
+</div>
+</div>
+<div class="bg-surface-container-low p-4 rounded-3xl flex flex-col gap-3">
+<div class="h-32 rounded-2xl overflow-hidden">
+<img alt="Coffee" class="w-full h-full object-cover" data-alt="Artistic latte art in a white ceramic cup" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA6HKORQMe223s4JbU55IUjdhTkggRhe8D4oNJ9s1aMWT8yOFlB4fJirwL8PNCZpVNFoV6IbMyakrTcXNjRfNOSbvy0KRXAyGbX9tCzWcRcmH9kARVCldSAN3_u2v3SEuMs5y6OPUliMMv63Knyr64JqIiYKXEfjhFjwN72MIUnA8Gz8MmN2aI89pRIfwd9x21cUmUw05xm24E4AbCH2cjTmqzUc4PSKph5T3nsP62MFeViztwMQt5-Y-yy08-mXfsoopZwQLqAQaM"/>
+</div>
+<div>
+<h5 class="font-headline font-bold text-sm text-on-surface">Artisan Latte</h5>
+<p class="text-primary font-headline font-bold text-xs">$5.50</p>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- Global CTA Bottom Nav -->
+<div class="fixed bottom-0 left-0 w-full p-6 z-50">
+<div class="max-w-md mx-auto">
+<button class="w-full h-16 bg-[#25D366] hover:bg-[#128C7E] text-white rounded-full flex items-center justify-center gap-3 shadow-[0_12px_40px_rgba(37,211,102,0.4)] active:scale-95 transition-all duration-300">
+<svg class="w-6 h-6 fill-current" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+<path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L0 24l6.335-1.662c1.72.937 3.659 1.432 5.71 1.433h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"></path>
+</svg>
+<span class="font-headline font-extrabold tracking-tight uppercase text-sm">Order via WhatsApp</span>
+</button>
+</div>
+</div>
+<!-- Minimal Bottom Sheet Hook (for cart view) -->
+<div class="fixed bottom-0 left-0 w-full bg-white/10 backdrop-blur-md pointer-events-none h-32"></div>
+<!-- Bottom Navigation Bar (Mobile) -->
+<nav class="fixed bottom-0 left-0 w-full h-24 flex justify-around items-center px-6 pb-safe bg-white/80 dark:bg-stone-900/80 backdrop-blur-md rounded-t-[2rem] z-50 shadow-[0_-8px_30px_rgb(0,0,0,0.04)] hidden">
+<div class="flex flex-col items-center justify-center bg-[#FF6B00] text-white rounded-2xl p-3 mb-2 scale-110 shadow-lg shadow-[#FF6B00]/20">
+<span class="material-symbols-outlined" data-icon="home" style="font-variation-settings: 'FILL' 1;">home</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[10px] font-bold uppercase tracking-widest mt-1">Home</span>
+</div>
+<div class="flex flex-col items-center justify-center text-stone-400 dark:text-stone-500 p-2">
+<span class="material-symbols-outlined" data-icon="menu_book">menu_book</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[10px] font-bold uppercase tracking-widest mt-1">Menus</span>
+</div>
+<div class="flex flex-col items-center justify-center text-stone-400 dark:text-stone-500 p-2">
+<span class="material-symbols-outlined" data-icon="qr_code_scanner">qr_code_scanner</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[10px] font-bold uppercase tracking-widest mt-1">Scan</span>
+</div>
+<div class="flex flex-col items-center justify-center text-stone-400 dark:text-stone-500 p-2">
+<span class="material-symbols-outlined" data-icon="more_horiz">more_horiz</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[10px] font-bold uppercase tracking-widest mt-1">More</span>
+</div>
+</nav>
+</body></html>
