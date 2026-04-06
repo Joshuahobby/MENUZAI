@@ -1,11 +1,89 @@
 "use client";
 
-import { useState } from "react";
-import { restaurant } from "@/data/mockData";
+import { useState, useEffect } from "react";
+import { useMenu } from "@/context/MenuContext";
+import { supabase } from "@/lib/supabase";
+import { toast } from "sonner";
 
 export default function SettingsPage() {
+  const { restaurantId, restaurantName, setRestaurantName, restaurantPhone, setRestaurantPhone } = useMenu();
+
+  const [name, setName] = useState(restaurantName);
+  const [tagline, setTagline] = useState("");
+  const [hours, setHours] = useState("");
+  const [phone, setPhone] = useState(restaurantPhone);
   const [whatsappEnabled, setWhatsappEnabled] = useState(true);
-  const [phone, setPhone] = useState(restaurant.phone);
+
+  const [savingInfo, setSavingInfo] = useState(false);
+  const [savedInfo, setSavedInfo] = useState(false);
+  const [savingWhatsApp, setSavingWhatsApp] = useState(false);
+  const [savedWhatsApp, setSavedWhatsApp] = useState(false);
+
+  // Load restaurant data from Supabase on mount
+  useEffect(() => {
+    if (!restaurantId) return;
+
+    const load = async () => {
+      const { data } = await supabase
+        .from("restaurants")
+        .select("name, tagline, phone, hours")
+        .eq("id", restaurantId)
+        .single();
+
+      if (data) {
+        setName(data.name ?? "");
+        setTagline(data.tagline ?? "");
+        setHours(data.hours ?? "");
+        setPhone(data.phone ?? "");
+        setWhatsappEnabled(!!data.phone);
+      }
+    };
+
+    load();
+  }, [restaurantId]);
+
+  const saveRestaurantInfo = async () => {
+    if (!restaurantId) return;
+    setSavingInfo(true);
+    setSavedInfo(false);
+
+    const { error } = await supabase
+      .from("restaurants")
+      .update({ name, tagline, hours })
+      .eq("id", restaurantId);
+
+    if (!error) {
+      setRestaurantName(name);
+      setSavedInfo(true);
+      toast.success("Restaurant info saved.");
+      setTimeout(() => setSavedInfo(false), 2000);
+    } else {
+      toast.error("Failed to save. Please try again.");
+    }
+    setSavingInfo(false);
+  };
+
+  const saveWhatsAppSettings = async () => {
+    if (!restaurantId) return;
+    setSavingWhatsApp(true);
+    setSavedWhatsApp(false);
+
+    const phoneValue = whatsappEnabled ? phone : null;
+    const { error } = await supabase
+      .from("restaurants")
+      .update({ phone: phoneValue })
+      .eq("id", restaurantId);
+
+    if (!error) {
+      setRestaurantPhone(phoneValue ?? "");
+      setSavedWhatsApp(true);
+      toast.success("WhatsApp settings saved.");
+      setTimeout(() => setSavedWhatsApp(false), 2000);
+    } else {
+      toast.error("Failed to save. Please try again.");
+    }
+    setSavingWhatsApp(false);
+  };
 
   return (
     <div className="p-6 lg:p-12 pb-24 lg:pb-12">
@@ -21,18 +99,24 @@ export default function SettingsPage() {
           <div className="space-y-5">
             <div>
               <label className="text-xs font-bold text-secondary uppercase tracking-[0.2em] mb-2 block" htmlFor="restaurant-name">Restaurant Name</label>
-              <input id="restaurant-name" className="w-full bg-surface-container-low border-none rounded-xl py-3 px-4 text-sm focus:ring-2 focus:ring-primary/20" defaultValue={restaurant.name} title="Restaurant Name" aria-label="Restaurant Name" />
+              <input id="restaurant-name" className="w-full bg-surface-container-low border-none rounded-xl py-3 px-4 text-sm focus:ring-2 focus:ring-primary/20"
+                value={name} onChange={(e) => setName(e.target.value)} title="Restaurant Name" aria-label="Restaurant Name" />
             </div>
             <div>
               <label className="text-xs font-bold text-secondary uppercase tracking-[0.2em] mb-2 block" htmlFor="tagline">Tagline</label>
-              <input id="tagline" className="w-full bg-surface-container-low border-none rounded-xl py-3 px-4 text-sm focus:ring-2 focus:ring-primary/20" defaultValue={restaurant.tagline} title="Restaurant Tagline" aria-label="Restaurant Tagline" />
+              <input id="tagline" className="w-full bg-surface-container-low border-none rounded-xl py-3 px-4 text-sm focus:ring-2 focus:ring-primary/20"
+                value={tagline} onChange={(e) => setTagline(e.target.value)} title="Restaurant Tagline" aria-label="Restaurant Tagline" />
             </div>
             <div>
               <label className="text-xs font-bold text-secondary uppercase tracking-[0.2em] mb-2 block" htmlFor="hours">Operating Hours</label>
-              <input id="hours" className="w-full bg-surface-container-low border-none rounded-xl py-3 px-4 text-sm focus:ring-2 focus:ring-primary/20" defaultValue={restaurant.hours} title="Operating Hours" aria-label="Operating Hours" />
+              <input id="hours" className="w-full bg-surface-container-low border-none rounded-xl py-3 px-4 text-sm focus:ring-2 focus:ring-primary/20"
+                value={hours} onChange={(e) => setHours(e.target.value)} title="Operating Hours" aria-label="Operating Hours" />
             </div>
-            <button className="w-full py-3 bg-gradient-to-br from-primary to-primary-container rounded-xl font-bold text-sm text-white shadow-lg shadow-primary/20 hover:opacity-90 transition-all active:scale-95 mt-4">
-              Save Changes
+            <button
+              onClick={saveRestaurantInfo}
+              disabled={savingInfo}
+              className="w-full py-3 bg-gradient-to-br from-primary to-primary-container rounded-xl font-bold text-sm text-white shadow-lg shadow-primary/20 hover:opacity-90 transition-all active:scale-95 mt-4 disabled:opacity-60">
+              {savingInfo ? "Saving..." : savedInfo ? "Saved!" : "Save Changes"}
             </button>
           </div>
         </div>
@@ -70,15 +154,18 @@ export default function SettingsPage() {
                       <p>Hello, I&apos;d like to order:</p>
                       <p className="mt-1">• Classic Burger x1</p>
                       <p>• Summer Spritz x2</p>
-                      <p className="mt-2 font-bold">💰 Total: $42.50</p>
-                      <p>👤 Name: John</p>
-                      <p>🪑 Table: 5</p>
+                      <p className="mt-2 font-bold">Total: $42.50</p>
+                      <p>Name: John</p>
+                      <p>Table: 5</p>
                     </div>
                   </div>
                 </div>
               </div>
-              <button className="w-full py-3 bg-whatsapp hover:bg-whatsapp-dark text-white rounded-xl font-bold transition-all active:scale-95">
-                Save WhatsApp Settings
+              <button
+                onClick={saveWhatsAppSettings}
+                disabled={savingWhatsApp}
+                className="w-full py-3 bg-whatsapp hover:bg-whatsapp-dark text-white rounded-xl font-bold transition-all active:scale-95 disabled:opacity-60">
+                {savingWhatsApp ? "Saving..." : savedWhatsApp ? "Saved!" : "Save WhatsApp Settings"}
               </button>
             </div>
           )}

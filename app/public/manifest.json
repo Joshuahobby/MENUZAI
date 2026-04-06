@@ -1,0 +1,9 @@
+{
+  "name": "MENUZA AI",
+  "short_name": "MENUZA",
+  "description": "Smart digital restaurant menus",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#fcf9f8",
+  "theme_color": "#FF6B00"
+}

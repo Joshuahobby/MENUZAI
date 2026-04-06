@@ -1,11 +1,9 @@
 "use client";
 
 import React, { createContext, useContext, useState, useCallback, ReactNode } from "react";
-import { MenuItem } from "@/data/mockData";
+import type { MenuItem, CartItem } from "@/types/menu";
 
-export interface CartItem extends MenuItem {
-  quantity: number;
-}
+export type { CartItem };
 
 interface CartContextType {
   items: CartItem[];

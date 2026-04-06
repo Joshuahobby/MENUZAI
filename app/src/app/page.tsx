@@ -13,7 +13,7 @@ export default function LandingPage() {
           <div className="flex items-center gap-8">
             <span className="text-2xl font-[var(--font-headline)] font-black tracking-tight text-primary-container">MENUZA AI</span>
             <div className="hidden md:flex gap-6 items-center">
-              <a className="text-primary-container font-bold border-b-2 border-primary-container font-[var(--font-headline)] text-sm" href="#">Home</a>
+              <a className="text-primary-container font-bold border-b-2 border-primary-container font-[var(--font-headline)] text-sm" href="/">Home</a>
               <a className="text-secondary hover:bg-primary-container/5 transition-colors font-[var(--font-headline)] font-medium text-sm px-2 py-1 rounded" href="#features">Features</a>
               <a className="text-secondary hover:bg-primary-container/5 transition-colors font-[var(--font-headline)] font-medium text-sm px-2 py-1 rounded" href="#pricing">Pricing</a>
             </div>
@@ -26,7 +26,9 @@ export default function LandingPage() {
               Sign Up
             </Link>
             <div className="flex gap-2 text-secondary">
-              <span className="material-symbols-outlined cursor-pointer p-2 hover:bg-primary-container/5 rounded-full">notifications</span>
+              <Link href="/login" className="p-2 hover:bg-primary-container/5 rounded-full flex items-center justify-center">
+                <span className="material-symbols-outlined">notifications</span>
+              </Link>
             </div>
           </div>
         </div>
@@ -137,9 +139,9 @@ export default function LandingPage() {
               <div className="w-full md:w-2/3">
                 <h3 className="text-2xl font-[var(--font-headline)] font-bold mb-4">Smart Insights</h3>
                 <p className="text-secondary leading-relaxed mb-6">We track gaze patterns and click-through rates. Know exactly which photo drives the most orders.</p>
-                <button className="text-primary font-bold flex items-center gap-2 hover:translate-x-1 transition-transform">
+                <a href="#features" className="text-primary font-bold flex items-center gap-2 hover:translate-x-1 transition-transform">
                   Learn about tracking <span className="material-symbols-outlined">arrow_forward</span>
-                </button>
+                </a>
               </div>
             </div>
             <div className="md:col-span-1 bg-surface-container-lowest p-8 rounded-[2rem] border border-outline-variant/10">
@@ -161,9 +163,9 @@ export default function LandingPage() {
               <h2 className="text-4xl font-[var(--font-headline)] font-black tracking-tight mb-4">Powerful Features for Pro Restaurateurs</h2>
               <p className="text-secondary text-lg">Everything you need to run a high-performance digital menu.</p>
             </div>
-            <button className="px-6 py-3 border border-primary text-primary font-bold rounded-xl hover:bg-primary/5 transition-colors">
+            <a href="#features" className="px-6 py-3 border border-primary text-primary font-bold rounded-xl hover:bg-primary/5 transition-colors">
               View all features
-            </button>
+            </a>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
             {[
@@ -214,11 +216,11 @@ export default function LandingPage() {
                     </li>
                   ))}
                 </ul>
-                <button className={`w-full py-4 font-bold rounded-xl transition-all ${plan.popular
+                <Link href="/login" className={`w-full py-4 font-bold rounded-xl transition-all text-center ${plan.popular
                   ? "bg-gradient-to-tr from-primary to-primary-container text-white shadow-lg shadow-primary-container/20 active:scale-95"
                   : "bg-surface-container-highest text-on-surface hover:bg-surface-variant"}`}>
                   {plan.cta}
-                </button>
+                </Link>
               </div>
             ))}
           </div>
@@ -237,9 +239,9 @@ export default function LandingPage() {
               <Link href="/login" className="px-10 py-5 bg-primary-container text-white font-black rounded-2xl text-xl shadow-2xl active:scale-95 transition-all hover:shadow-primary-container/40 hover:shadow-xl">
                 Get Started Now
               </Link>
-              <button className="px-10 py-5 bg-white/10 text-white font-bold rounded-2xl text-xl backdrop-blur-md hover:bg-white/20 transition-all">
+              <a href="#pricing" className="px-10 py-5 bg-white/10 text-white font-bold rounded-2xl text-xl backdrop-blur-md hover:bg-white/20 transition-all">
                 Book a Demo
-              </button>
+              </a>
             </div>
           </div>
           <div className="absolute -bottom-20 -left-20 w-80 h-80 bg-primary/20 rounded-full blur-[100px]"></div>
@@ -254,10 +256,10 @@ export default function LandingPage() {
             <p className="text-sm text-secondary">© 2026 Menuza Systems Inc. All rights reserved.</p>
           </div>
           <div className="flex gap-8 text-sm font-semibold text-on-surface-variant">
-            <a className="hover:text-primary transition-colors" href="#">Terms</a>
-            <a className="hover:text-primary transition-colors" href="#">Privacy</a>
-            <a className="hover:text-primary transition-colors" href="#">Contact</a>
-            <a className="hover:text-primary transition-colors" href="#">Blog</a>
+            <a className="hover:text-primary transition-colors" href="#pricing">Terms</a>
+            <a className="hover:text-primary transition-colors" href="#pricing">Privacy</a>
+            <a className="hover:text-primary transition-colors" href="#features">Contact</a>
+            <a className="hover:text-primary transition-colors" href="#features">Blog</a>
           </div>
           <div className="flex gap-4">
             <div className="w-10 h-10 rounded-full bg-surface-container flex items-center justify-center hover:bg-primary/10 transition-colors cursor-pointer">

@@ -3,45 +3,104 @@
 import Link from "next/link";
 import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { useMenu, MenuItem } from "@/context/MenuContext";
+import { useMenu } from "@/context/MenuContext";
+import type { MenuItem, MenuStyle } from "@/types/menu";
+
+type UploadState = "idle" | "uploading" | "extracting" | "done" | "error";
 
 export default function UploadPage() {
-  const { setMenuItems, setCategories, setRestaurantName } = useMenu();
-  const [uploadProgress, setUploadProgress] = useState(0);
+  const { setMenuItems, setCategories, setRestaurantName, applyTemplate } = useMenu();
+  const [state, setState] = useState<UploadState>("idle");
+  const [progress, setProgress] = useState(0);
+  const [errorMsg, setErrorMsg] = useState("");
+  const [extractedCount, setExtractedCount] = useState({ items: 0, categories: 0 });
   const router = useRouter();
   const [dragActive, setDragActive] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
-  const handleUpload = () => {
-    let currentProgress = 0;
-    const interval = setInterval(() => {
-      currentProgress += Math.random() * 25;
-      if (currentProgress >= 100) {
-        currentProgress = 100;
-        clearInterval(interval);
-        
-        // Simulate AI Data Extraction
-        setRestaurantName("Le Bistro");
-        setCategories([
-          { id: "appetizers", name: "Appetizers", itemCount: 3 },
-          { id: "main-courses", name: "Main Courses", itemCount: 5 },
-          { id: "desserts", name: "Desserts", itemCount: 4 }
-        ]);
-        
-        // We'll use mock items but filter for these categories
-        const mockItems = [
-          { id: "1", name: "Truffle Fries", price: 12, category: "appetizers", description: "Crispy fries with truffle oil", image: "", tags: ["Vegetarian"] },
-          { id: "2", name: "Steak Frites", price: 28, category: "main-courses", description: "Prime ribeye with house sauce", image: "", tags: ["Best Seller"] },
-          { id: "3", name: "Lava Cake", price: 10, category: "desserts", description: "Warm chocolate with vanilla ice cream", image: "", tags: ["Sweet"] },
-        ];
-        setMenuItems(mockItems as MenuItem[]);
+  const handleFile = async (file: File) => {
+    if (file.size > 10 * 1024 * 1024) {
+      setErrorMsg("File too large. Maximum size is 10MB.");
+      setState("error");
+      return;
+    }
 
-        setTimeout(() => {
-          router.push("/ai-result");
-        }, 800);
+    const validTypes = ["image/jpeg", "image/png", "image/webp", "image/gif", "application/pdf"];
+    if (!validTypes.includes(file.type)) {
+      setErrorMsg("Unsupported file type. Use JPG, PNG, WebP, GIF, or PDF.");
+      setState("error");
+      return;
+    }
+
+    setState("uploading");
+    setProgress(20);
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    setProgress(40);
+    setState("extracting");
+
+    try {
+      const res = await fetch("/api/extract-menu", {
+        method: "POST",
+        body: formData,
+      });
+
+      setProgress(80);
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Extraction failed");
       }
-      setUploadProgress(currentProgress);
-    }, 150);
+
+      const result = await res.json();
+
+      setRestaurantName(result.restaurantName);
+      setCategories(result.categories);
+      setMenuItems(result.items as MenuItem[]);
+      setExtractedCount({ items: result.items.length, categories: result.categories.length });
+
+      if (result.suggestedTheme) {
+        const styleMap: Record<string, Partial<MenuStyle>> = {
+          "Classic Elegance": { primaryColor: "#1E1E1E", secondaryColor: "#FFFFFF", headlineFont: "Playfair Display", bodyFont: "Inter", borderRadius: "0.5rem" },
+          "Modern Minimal": { primaryColor: "#1E1E1E", secondaryColor: "#FFFFFF", headlineFont: "Plus Jakarta Sans", bodyFont: "Inter", borderRadius: "0.5rem" },
+          "Luxury Gold": { primaryColor: "#C5A059", secondaryColor: "#1E1E1E", headlineFont: "Playfair Display", bodyFont: "Inter", borderRadius: "2rem" },
+          "Street Food": { primaryColor: "#FF6B00", secondaryColor: "#1E1E1E", headlineFont: "Poppins", bodyFont: "Montserrat", borderRadius: "1rem" },
+          "Botanical Garden": { primaryColor: "#00C853", secondaryColor: "#351000", headlineFont: "Playfair Display", bodyFont: "Open Sans", borderRadius: "3rem" },
+          "Neon Night": { primaryColor: "#7928CA", secondaryColor: "#0070F3", headlineFont: "Poppins", bodyFont: "Montserrat", borderRadius: "1.5rem" },
+        };
+        const themeStyle = styleMap[result.suggestedTheme];
+        if (themeStyle) applyTemplate(themeStyle);
+      }
+
+      setProgress(100);
+      setState("done");
+
+      setTimeout(() => router.push("/ai-result"), 1200);
+    } catch (err) {
+      setErrorMsg(err instanceof Error ? err.message : "Something went wrong");
+      setState("error");
+    }
+  };
+
+  const onFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) handleFile(file);
+  };
+
+  const onDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setDragActive(false);
+    const file = e.dataTransfer.files[0];
+    if (file) handleFile(file);
+  };
+
+  const reset = () => {
+    setState("idle");
+    setProgress(0);
+    setErrorMsg("");
+    if (fileRef.current) fileRef.current.value = "";
   };
 
   return (
@@ -55,7 +114,7 @@ export default function UploadPage() {
 
       <main className="flex items-center justify-center min-h-[calc(100vh-80px)] px-6 py-12">
         <div className="max-w-2xl w-full">
-          {uploadProgress === 0 && (
+          {state === "idle" && (
             <div className="space-y-8">
               <div className="text-center">
                 <h1 className="text-4xl lg:text-5xl font-[var(--font-headline)] font-extrabold tracking-tight mb-4">
@@ -69,16 +128,16 @@ export default function UploadPage() {
                 onDragEnter={() => setDragActive(true)}
                 onDragLeave={() => setDragActive(false)}
                 onDragOver={(e) => e.preventDefault()}
-                onDrop={(e) => { e.preventDefault(); setDragActive(false); handleUpload(); }}
+                onDrop={onDrop}
                 onClick={() => fileRef.current?.click()}
               >
-                <input ref={fileRef} type="file" className="hidden" accept=".pdf,.jpg,.jpeg,.png,.txt" onChange={handleUpload} id="menu-upload" title="Menu File Upload" aria-label="Menu File Upload" />
+                <input ref={fileRef} type="file" className="hidden" accept=".pdf,.jpg,.jpeg,.png,.webp,.gif" onChange={onFileChange} id="menu-upload" title="Menu File Upload" aria-label="Menu File Upload" />
                 <label htmlFor="menu-upload" className="cursor-pointer flex flex-col items-center">
-                  <span className="material-symbols-outlined text-primary text-5xl mb-4 group-hover:scale-110 transition-transform">cloud_upload</span>
+                  <span className="material-symbols-outlined text-primary text-5xl mb-4">cloud_upload</span>
                   <p className="font-[var(--font-headline)] font-bold text-on-surface text-lg">Drop your menu here</p>
-                  <p className="text-secondary text-sm">PDF, JPEG or PNG (Max 10MB)</p>
+                  <p className="text-secondary text-sm">PDF, JPEG, PNG or WebP (Max 10MB)</p>
                 </label>
-                <button className="mt-6 px-6 py-3 bg-gradient-to-tr from-primary to-primary-container text-white font-bold rounded-xl shadow-lg shadow-primary/20 active:scale-95 transition-all">
+                <button type="button" className="mt-6 px-6 py-3 bg-gradient-to-tr from-primary to-primary-container text-white font-bold rounded-xl shadow-lg shadow-primary/20 active:scale-95 transition-all">
                   Browse Files
                 </button>
               </div>
@@ -87,9 +146,9 @@ export default function UploadPage() {
                 {[
                   { icon: "image", label: "Image", desc: "JPG, PNG" },
                   { icon: "picture_as_pdf", label: "PDF", desc: "Document" },
-                  { icon: "text_snippet", label: "Text", desc: "TXT, CSV" },
+                  { icon: "photo_camera", label: "Camera", desc: "Take Photo" },
                 ].map((o) => (
-                  <button key={o.label} onClick={handleUpload}
+                  <button key={o.label} type="button" onClick={() => fileRef.current?.click()}
                     className="p-6 bg-surface-container-lowest rounded-2xl text-center hover:bg-surface-container-low transition-colors border border-outline-variant/10 group">
                     <span className="material-symbols-outlined text-primary text-2xl mb-2 block group-hover:scale-110 transition-transform">{o.icon}</span>
                     <p className="font-bold text-sm">{o.label}</p>
@@ -100,36 +159,51 @@ export default function UploadPage() {
             </div>
           )}
 
-          {uploadProgress > 0 && uploadProgress < 100 && (
+          {(state === "uploading" || state === "extracting") && (
             <div className="text-center py-20">
               <div className="w-24 h-24 mx-auto bg-primary-container/10 rounded-full flex items-center justify-center mb-8 animate-pulse">
                 <span className="material-symbols-outlined text-primary-container text-5xl icon-fill">auto_awesome</span>
               </div>
-              <h2 className="text-3xl font-[var(--font-headline)] font-extrabold mb-4">MENUZAI is reading your menu...</h2>
-              <p className="text-secondary text-lg">Extracting categories, items, and prices with AI</p>
+              <h2 className="text-3xl font-[var(--font-headline)] font-extrabold mb-4">
+                {state === "uploading" ? "Uploading your menu..." : "AI is extracting your menu..."}
+              </h2>
+              <p className="text-secondary text-lg">
+                {state === "uploading" ? "Sending file to our servers" : "Extracting categories, items, and prices with AI"}
+              </p>
               <div className="mt-8 w-64 h-2 bg-surface-container-highest rounded-full mx-auto overflow-hidden">
-                <div 
-                  className="bg-primary h-full transition-all duration-300 rounded-full" 
-                  ref={(el) => {
-                    if (el) {
-                      el.style.width = `${uploadProgress}%`;
-                    }
-                  }} 
+                <style>{`
+                  .dynamic-progress-bar { width: ${progress}%; }
+                `}</style>
+                <div
+                  className="bg-primary h-full transition-all duration-500 rounded-full dynamic-progress-bar"
                 />
               </div>
             </div>
           )}
 
-          {uploadProgress === 100 && (
+          {state === "done" && (
             <div className="text-center py-20">
               <div className="w-24 h-24 mx-auto bg-tertiary/10 rounded-full flex items-center justify-center mb-8">
                 <span className="material-symbols-outlined text-tertiary text-5xl icon-fill">check_circle</span>
               </div>
               <h2 className="text-3xl font-[var(--font-headline)] font-extrabold mb-4">Menu Extracted Successfully!</h2>
-              <p className="text-secondary text-lg mb-8">12 items found across 4 categories</p>
+              <p className="text-secondary text-lg mb-8">{extractedCount.items} items found across {extractedCount.categories} categories</p>
               <Link href="/ai-result" className="px-8 py-4 bg-gradient-to-tr from-primary to-primary-container text-white font-bold rounded-xl shadow-lg shadow-primary/20 active:scale-95 transition-all text-lg">
                 Review & Edit
               </Link>
+            </div>
+          )}
+
+          {state === "error" && (
+            <div className="text-center py-20">
+              <div className="w-24 h-24 mx-auto bg-error/10 rounded-full flex items-center justify-center mb-8">
+                <span className="material-symbols-outlined text-error text-5xl">error</span>
+              </div>
+              <h2 className="text-3xl font-[var(--font-headline)] font-extrabold mb-4">Extraction Failed</h2>
+              <p className="text-secondary text-lg mb-8">{errorMsg}</p>
+              <button type="button" onClick={reset} className="px-8 py-4 bg-gradient-to-tr from-primary to-primary-container text-white font-bold rounded-xl shadow-lg shadow-primary/20 active:scale-95 transition-all text-lg">
+                Try Again
+              </button>
             </div>
           )}
         </div>

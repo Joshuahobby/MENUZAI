@@ -5,9 +5,10 @@ import { templates } from "@/data/mockData";
 import { useState } from "react";
 import { useMenu, MenuStyle } from "@/context/MenuContext";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 export default function TemplatesPage() {
-  const { applyTemplate } = useMenu();
+  const { applyTemplate, plan } = useMenu();
   const router = useRouter();
   const [filter, setFilter] = useState<"all" | "free" | "pro">("all");
   const [previewId, setPreviewId] = useState<string | null>(null);
@@ -33,7 +34,13 @@ export default function TemplatesPage() {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
         {filtered.map((t) => (
-          <div key={t.id} onClick={() => setPreviewId(t.id)}
+          <div key={t.id} onClick={() => {
+            if (t.tier === "pro" && plan === "free") {
+              toast.error("This template requires a Pro plan.", { description: "Upgrade to unlock all premium templates." });
+              return;
+            }
+            setPreviewId(t.id);
+          }}
             className="bg-surface-container-lowest rounded-[2rem] overflow-hidden shadow-sm hover:shadow-xl transition-all cursor-pointer group border border-transparent hover:border-primary/10">
             <div className="relative h-48 overflow-hidden">
               <NextImage 
@@ -49,6 +56,11 @@ export default function TemplatesPage() {
                   {t.tier}
                 </span>
               </div>
+              {t.tier === "pro" && plan === "free" && (
+                <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px] flex items-center justify-center z-20">
+                  <span className="material-symbols-outlined text-white text-4xl">lock</span>
+                </div>
+              )}
             </div>
             <div className="p-6">
               <h3 className="font-[var(--font-headline)] font-bold text-lg mb-1">{t.name}</h3>
@@ -89,10 +101,17 @@ export default function TemplatesPage() {
               <div className="flex gap-4">
                 <button 
                   onClick={() => {
+                    if (preview.tier === "pro" && plan === "free") {
+                      toast.error("Upgrade to Pro to use this template.");
+                      return;
+                    }
                     const styleMap: Record<string, Partial<MenuStyle>> = {
+                      "Classic Elegance": { primaryColor: "#1E1E1E", secondaryColor: "#FFFFFF", headlineFont: "Playfair Display", bodyFont: "Inter", borderRadius: "0.5rem" },
+                      "Modern Minimal": { primaryColor: "#1E1E1E", secondaryColor: "#FFFFFF", headlineFont: "Plus Jakarta Sans", bodyFont: "Inter", borderRadius: "0.5rem" },
                       "Luxury Gold": { primaryColor: "#C5A059", secondaryColor: "#1E1E1E", headlineFont: "Playfair Display", bodyFont: "Inter", borderRadius: "2rem" },
-                      "Modern Minimalist": { primaryColor: "#1E1E1E", secondaryColor: "#FFFFFF", headlineFont: "Plus Jakarta Sans", bodyFont: "Inter", borderRadius: "0.5rem" },
-                      "Tropical Bistro": { primaryColor: "#00C853", secondaryColor: "#351000", headlineFont: "Poppins", bodyFont: "Montserrat", borderRadius: "3rem" }
+                      "Street Food": { primaryColor: "#FF6B00", secondaryColor: "#1E1E1E", headlineFont: "Poppins", bodyFont: "Montserrat", borderRadius: "1rem" },
+                      "Botanical Garden": { primaryColor: "#00C853", secondaryColor: "#351000", headlineFont: "Playfair Display", bodyFont: "Open Sans", borderRadius: "3rem" },
+                      "Neon Night": { primaryColor: "#7928CA", secondaryColor: "#0070F3", headlineFont: "Poppins", bodyFont: "Montserrat", borderRadius: "1.5rem" },
                     };
                     const style = styleMap[preview.name] || {};
                     applyTemplate(style);

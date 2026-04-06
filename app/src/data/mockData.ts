@@ -1,4 +1,8 @@
 // Mock data for the MENUZAI SaaS platform
+// Types are defined in @/types/menu — imported here for use in this file
+import type { MenuItem, MenuCategory } from "@/types/menu";
+
+export type { MenuItem, MenuCategory };
 
 export const restaurant = {
   name: "Le Bistro",
@@ -7,25 +11,6 @@ export const restaurant = {
   owner: "Chef Marco",
   hours: "Mon–Sat 10:00 AM – 10:00 PM",
 };
-
-export interface MenuItem {
-  id: string;
-  name: string;
-  description: string;
-  price: number;
-  category: string;
-  image: string;
-  tags: string[];
-  badge?: "bestseller" | "popular" | "healthy" | "chefs-pick" | "new";
-  margin?: number;
-  orders?: number;
-}
-
-export interface MenuCategory {
-  id: string;
-  name: string;
-  itemCount: number;
-}
 
 export const categories: MenuCategory[] = [
   { id: "specials", name: "Specials", itemCount: 4 },

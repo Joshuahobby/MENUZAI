@@ -1,59 +1,49 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect, useRef } from "react";
-import { menuItems as mockItems, categories as mockCategories } from "@/data/mockData";
+import React, { createContext, useContext, useState, useEffect, useRef, useCallback } from "react";
 import { supabase } from "@/lib/supabase";
+import { generateSlug, ensureUniqueSlug } from "@/lib/slug";
 import { User } from "@supabase/supabase-js";
 
-export interface MenuItem {
-  id: string;
-  name: string;
-  description: string;
-  price: number;
-  category: string;
-  image: string;
-  tags: string[];
-  badge?: string; // Changed from specific literals to string
-  margin?: number;
-  orders?: number;
-}
-
-export interface MenuCategory {
-  id: string;
-  name: string;
-  itemCount: number;
-}
-
-export interface MenuStyle {
-  primaryColor: string;
-  secondaryColor: string;
-  headlineFont: string;
-  bodyFont: string;
-  borderRadius: string;
-  layoutDensity: "compact" | "comfortable" | "spacious";
-  theme: "light" | "dark" | "glass";
-}
+// Re-export shared types for backward compatibility
+export type { MenuItem, MenuCategory, MenuStyle } from "@/types/menu";
+import type { MenuItem, MenuCategory, MenuStyle } from "@/types/menu";
 
 interface MenuContextType {
   restaurantName: string;
   setRestaurantName: (name: string) => void;
+  restaurantId: string | null;
+  restaurantPhone: string;
+  setRestaurantPhone: (phone: string) => void;
+  plan: string;
   categories: MenuCategory[];
   setCategories: React.Dispatch<React.SetStateAction<MenuCategory[]>>;
   menuItems: MenuItem[];
   setMenuItems: React.Dispatch<React.SetStateAction<MenuItem[]>>;
   menuStyle: MenuStyle;
   setMenuStyle: React.Dispatch<React.SetStateAction<MenuStyle>>;
+  activeMenuId: string | null;
+  activeMenuName: string;
+  menuStatus: "draft" | "published";
+  menuSlug: string | null;
   // Actions
   addCategory: (name: string) => void;
   addItem: (categoryId: string) => void;
   removeItem: (itemId: string) => void;
   updateItem: (itemId: string, updates: Partial<MenuItem>) => void;
   applyTemplate: (style: Partial<MenuStyle>) => void;
+  publishMenu: () => Promise<string | null>;
+  unpublishMenu: () => Promise<void>;
+  switchMenu: (menuId: string) => Promise<void>;
+  createMenu: (name: string) => Promise<string | null>;
+  deleteMenu: (menuId: string) => Promise<boolean>;
+  renameMenu: (menuId: string, name: string) => Promise<boolean>;
   isSyncing: boolean;
   lastSynced: Date | null;
+  isLoading: boolean;
 }
 
-const defaultStyle: MenuStyle = {
+export const defaultStyle: MenuStyle = {
   primaryColor: "#FF6B00",
   secondaryColor: "#1E1E1E",
   headlineFont: "Plus Jakarta Sans",
@@ -66,17 +56,26 @@ const defaultStyle: MenuStyle = {
 const MenuContext = createContext<MenuContextType | undefined>(undefined);
 
 export function MenuProvider({ children }: { children: React.ReactNode }) {
-  const [restaurantName, setRestaurantName] = useState("Le Bistro");
-  const [categories, setCategories] = useState<MenuCategory[]>(mockCategories);
-  const [menuItems, setMenuItems] = useState<MenuItem[]>(mockItems);
+  const [restaurantName, setRestaurantName] = useState("My Restaurant");
+  const [categories, setCategories] = useState<MenuCategory[]>([]);
+  const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [menuStyle, setMenuStyle] = useState<MenuStyle>(defaultStyle);
   const [user, setUser] = useState<User | null>(null);
+  const [activeMenuId, setActiveMenuId] = useState<string | null>(null);
+  const [activeMenuName, setActiveMenuName] = useState("My Menu");
+  const [menuStatus, setMenuStatus] = useState<"draft" | "published">("draft");
+  const [menuSlug, setMenuSlug] = useState<string | null>(null);
+  const [restaurantId, setRestaurantId] = useState<string | null>(null);
+  const [restaurantPhone, setRestaurantPhone] = useState("");
+  const [plan, setPlan] = useState("free");
   const [isSyncing, setIsSyncing] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [lastSynced, setLastSynced] = useState<Date | null>(null);
-  const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const menuSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const restaurantSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const isInitialLoad = useRef(true);
 
-  // 1. Handle Auth State
+  // 1. Track auth state
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => setUser(data.user));
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
@@ -85,58 +84,196 @@ export function MenuProvider({ children }: { children: React.ReactNode }) {
     return () => subscription.unsubscribe();
   }, []);
 
-  // 2. Fetch Menu from DB if logged in
+  // 2. On login: ensure restaurant row exists, then load the active menu
   useEffect(() => {
-    if (!user) return;
+    if (!user) {
+      // Reset to defaults when logged out
+      isInitialLoad.current = true;
+      setActiveMenuId(null);
+      setRestaurantId(null);
+      setRestaurantName("My Restaurant");
+      setCategories([]);
+      setMenuItems([]);
+      setMenuStyle(defaultStyle);
+      setPlan("free");
+      return;
+    }
 
-    const fetchMenu = async () => {
-      const { data, error } = await supabase
-        .from('menus')
-        .select('*')
-        .eq('user_id', user.id)
-        .single();
+    let cancelled = false;
 
-      if (data && !error) {
-        setRestaurantName(data.restaurant_name);
-        setCategories(data.categories);
-        setMenuItems(data.items);
-        setMenuStyle(data.style);
-        setLastSynced(new Date(data.updated_at));
+    const bootstrap = async () => {
+      setIsLoading(true);
+      isInitialLoad.current = true;
+
+      // --- Ensure restaurant row ---
+      let restoId: string;
+      const { data: existingRestaurant } = await supabase
+        .from("restaurants")
+        .select("id, name, phone, plan")
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      if (existingRestaurant) {
+        restoId = existingRestaurant.id;
+        if (!cancelled) {
+          setRestaurantId(restoId);
+          setRestaurantName(existingRestaurant.name);
+          setRestaurantPhone(existingRestaurant.phone ?? "");
+          setPlan(existingRestaurant.plan ?? "free");
+        }
+      } else {
+        const { data: newRestaurant, error } = await supabase
+          .from("restaurants")
+          .insert({ user_id: user.id, name: "My Restaurant" })
+          .select("id")
+          .maybeSingle();
+
+        if (error || !newRestaurant) {
+          console.error("Failed to create restaurant:", error?.message);
+          setIsLoading(false);
+          return;
+        }
+        restoId = newRestaurant.id;
+        if (!cancelled) setRestaurantId(restoId);
       }
-      isInitialLoad.current = false;
+
+      // --- Fetch most recent menu for this restaurant ---
+      const { data: menu } = await supabase
+        .from("menus")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("updated_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (menu && !cancelled) {
+        setActiveMenuId(menu.id);
+        setActiveMenuName(menu.name ?? "My Menu");
+        setMenuStatus(menu.status === "published" ? "published" : "draft");
+        setMenuSlug(menu.slug ?? null);
+        setCategories(menu.categories ?? []);
+        setMenuItems(menu.items ?? []);
+        setMenuStyle(menu.style && Object.keys(menu.style).length > 0 ? menu.style : defaultStyle);
+        setLastSynced(new Date(menu.updated_at));
+      } else if (!menu) {
+        // First-time user: create an empty default menu
+        const { data: newMenu, error } = await supabase
+          .from("menus")
+          .insert({
+            user_id: user.id,
+            restaurant_id: restoId,
+            name: "My Menu",
+            categories: [],
+            items: [],
+            style: defaultStyle,
+          })
+          .select("id")
+          .maybeSingle();
+
+        if (!error && newMenu && !cancelled) {
+          setActiveMenuId(newMenu.id);
+          setCategories([]);
+          setMenuItems([]);
+        }
+      }
+
+      if (!cancelled) {
+        isInitialLoad.current = false;
+        setIsLoading(false);
+      }
     };
 
-    fetchMenu();
+    bootstrap();
+    return () => { cancelled = true; };
   }, [user]);
 
-  // 3. Auto-save with Debounce
+  // 3. Auto-save menu data with debounce (2 s)
   useEffect(() => {
-    if (!user || isInitialLoad.current) return;
+    if (!user || !activeMenuId || isInitialLoad.current) return;
 
-    if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
+    if (menuSaveTimeoutRef.current) clearTimeout(menuSaveTimeoutRef.current);
 
-    saveTimeoutRef.current = setTimeout(async () => {
+    menuSaveTimeoutRef.current = setTimeout(async () => {
       setIsSyncing(true);
       const { error } = await supabase
-        .from('menus')
-        .upsert({
-          user_id: user.id,
-          restaurant_name: restaurantName,
-          categories: categories,
-          items: menuItems,
-          style: menuStyle,
-          updated_at: new Date().toISOString(),
-        }, { onConflict: 'user_id' });
+        .from("menus")
+        .upsert(
+          {
+            id: activeMenuId,
+            user_id: user.id,
+            categories,
+            items: menuItems,
+            style: menuStyle,
+            updated_at: new Date().toISOString(),
+          },
+          { onConflict: "id" }
+        );
 
       if (!error) setLastSynced(new Date());
       setIsSyncing(false);
-    }, 2000); // 2 second debounce
+    }, 2000);
 
-    return () => { if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current); };
-  }, [restaurantName, categories, menuItems, menuStyle, user]);
+    return () => { if (menuSaveTimeoutRef.current) clearTimeout(menuSaveTimeoutRef.current); };
+  }, [categories, menuItems, menuStyle, user, activeMenuId]);
+
+  // 4. Auto-save restaurant name changes with debounce (2 s)
+  useEffect(() => {
+    if (!user || !restaurantId || isInitialLoad.current) return;
+
+    if (restaurantSaveTimeoutRef.current) clearTimeout(restaurantSaveTimeoutRef.current);
+
+    restaurantSaveTimeoutRef.current = setTimeout(async () => {
+      await supabase
+        .from("restaurants")
+        .update({ name: restaurantName })
+        .eq("id", restaurantId);
+    }, 2000);
+
+    return () => { if (restaurantSaveTimeoutRef.current) clearTimeout(restaurantSaveTimeoutRef.current); };
+  }, [restaurantName, user, restaurantId]);
+
+  const publishMenu = useCallback(async (): Promise<string | null> => {
+    if (!activeMenuId || !user) return null;
+    setIsSyncing(true);
+
+    let slug = menuSlug;
+    if (!slug) {
+      const base = generateSlug(restaurantName || "menu");
+      slug = await ensureUniqueSlug(base);
+    }
+
+    const { error } = await supabase
+      .from("menus")
+      .update({ status: "published", slug })
+      .eq("id", activeMenuId);
+
+    if (!error) {
+      setMenuStatus("published");
+      setMenuSlug(slug);
+      setIsSyncing(false);
+      return slug;
+    }
+    setIsSyncing(false);
+    return null;
+  }, [activeMenuId, user, menuSlug, restaurantName]);
+
+  const unpublishMenu = useCallback(async (): Promise<void> => {
+    if (!activeMenuId || !user) return;
+    setIsSyncing(true);
+
+    const { error } = await supabase
+      .from("menus")
+      .update({ status: "draft" })
+      .eq("id", activeMenuId);
+
+    if (!error) {
+      setMenuStatus("draft");
+    }
+    setIsSyncing(false);
+  }, [activeMenuId, user]);
 
   const addCategory = (name: string) => {
-    const id = name.toLowerCase().replace(/\s+/g, "-");
+    const id = `${name.toLowerCase().replace(/\s+/g, "-")}-${Date.now()}`;
     setCategories((prev) => [...prev, { id, name, itemCount: 0 }]);
   };
 
@@ -151,7 +288,7 @@ export function MenuProvider({ children }: { children: React.ReactNode }) {
       tags: [],
     };
     setMenuItems((prev) => [...prev, newItem]);
-    setCategories((prev) => 
+    setCategories((prev) =>
       prev.map((c) => c.id === categoryId ? { ...c, itemCount: c.itemCount + 1 } : c)
     );
   };
@@ -160,7 +297,7 @@ export function MenuProvider({ children }: { children: React.ReactNode }) {
     const item = menuItems.find((i) => i.id === itemId);
     if (!item) return;
     setMenuItems((prev) => prev.filter((i) => i.id !== itemId));
-    setCategories((prev) => 
+    setCategories((prev) =>
       prev.map((c) => c.id === item.category ? { ...c, itemCount: Math.max(0, c.itemCount - 1) } : c)
     );
   };
@@ -173,23 +310,194 @@ export function MenuProvider({ children }: { children: React.ReactNode }) {
     setMenuStyle((prev) => ({ ...prev, ...style }));
   };
 
+  // --- Multi-menu: switch to a different menu by ID ---
+  const switchMenu = useCallback(async (menuId: string): Promise<void> => {
+    if (!user || menuId === activeMenuId) return;
+
+    // Flush any pending save before switching
+    if (menuSaveTimeoutRef.current) {
+      clearTimeout(menuSaveTimeoutRef.current);
+      menuSaveTimeoutRef.current = null;
+    }
+
+    setIsLoading(true);
+    isInitialLoad.current = true;
+
+    const { data: menu } = await supabase
+      .from("menus")
+      .select("*")
+      .eq("id", menuId)
+      .eq("user_id", user.id)
+      .single();
+
+    if (menu) {
+      setActiveMenuId(menu.id);
+      setActiveMenuName(menu.name ?? "My Menu");
+      setMenuStatus(menu.status === "published" ? "published" : "draft");
+      setMenuSlug(menu.slug ?? null);
+      setCategories(menu.categories ?? []);
+      setMenuItems(menu.items ?? []);
+      setMenuStyle(menu.style && Object.keys(menu.style).length > 0 ? menu.style : defaultStyle);
+      setLastSynced(new Date(menu.updated_at));
+    }
+
+    isInitialLoad.current = false;
+    setIsLoading(false);
+  }, [user, activeMenuId]);
+
+  // --- Multi-menu: create a new blank menu ---
+  const createMenu = useCallback(async (name: string): Promise<string | null> => {
+    if (!user || !restaurantId) return null;
+
+    // Flush pending save
+    if (menuSaveTimeoutRef.current) {
+      clearTimeout(menuSaveTimeoutRef.current);
+      menuSaveTimeoutRef.current = null;
+    }
+
+    const { data: newMenu, error } = await supabase
+      .from("menus")
+      .insert({
+        user_id: user.id,
+        restaurant_id: restaurantId,
+        name,
+        categories: [],
+        items: [],
+        style: defaultStyle,
+      })
+      .select("id")
+      .single();
+
+    if (error || !newMenu) return null;
+
+    // Auto-switch to the new menu
+    isInitialLoad.current = true;
+    setActiveMenuId(newMenu.id);
+    setActiveMenuName(name);
+    setMenuStatus("draft");
+    setMenuSlug(null);
+    setCategories([]);
+    setMenuItems([]);
+    setMenuStyle(defaultStyle);
+    setLastSynced(null);
+    isInitialLoad.current = false;
+
+    return newMenu.id;
+  }, [user, restaurantId]);
+
+  // --- Multi-menu: delete a menu ---
+  const deleteMenu = useCallback(async (menuId: string): Promise<boolean> => {
+    if (!user) return false;
+
+    const { error } = await supabase
+      .from("menus")
+      .delete()
+      .eq("id", menuId)
+      .eq("user_id", user.id);
+
+    if (error) return false;
+
+    // If we deleted the active menu, load the most recent remaining one
+    if (menuId === activeMenuId) {
+      isInitialLoad.current = true;
+      const { data: nextMenu } = await supabase
+        .from("menus")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("updated_at", { ascending: false })
+        .limit(1)
+        .single();
+
+      if (nextMenu) {
+        setActiveMenuId(nextMenu.id);
+        setActiveMenuName(nextMenu.name ?? "My Menu");
+        setMenuStatus(nextMenu.status === "published" ? "published" : "draft");
+        setMenuSlug(nextMenu.slug ?? null);
+        setCategories(nextMenu.categories ?? []);
+        setMenuItems(nextMenu.items ?? []);
+        setMenuStyle(nextMenu.style && Object.keys(nextMenu.style).length > 0 ? nextMenu.style : defaultStyle);
+      } else {
+        // No menus left — create a fresh one
+        const { data: freshMenu } = await supabase
+          .from("menus")
+          .insert({
+            user_id: user.id,
+            restaurant_id: restaurantId!,
+            name: "My Menu",
+            categories: [],
+            items: [],
+            style: defaultStyle,
+          })
+          .select("id")
+          .single();
+
+        if (freshMenu) {
+          setActiveMenuId(freshMenu.id);
+          setActiveMenuName("My Menu");
+          setMenuStatus("draft");
+          setMenuSlug(null);
+          setCategories([]);
+          setMenuItems([]);
+          setMenuStyle(defaultStyle);
+        }
+      }
+      isInitialLoad.current = false;
+    }
+
+    return true;
+  }, [user, activeMenuId, restaurantId]);
+
+  // --- Multi-menu: rename a menu ---
+  const renameMenu = useCallback(async (menuId: string, name: string): Promise<boolean> => {
+    if (!user) return false;
+
+    const { error } = await supabase
+      .from("menus")
+      .update({ name })
+      .eq("id", menuId)
+      .eq("user_id", user.id);
+
+    if (error) return false;
+
+    if (menuId === activeMenuId) {
+      setActiveMenuName(name);
+    }
+
+    return true;
+  }, [user, activeMenuId]);
+
   return (
     <MenuContext.Provider value={{
       restaurantName,
       setRestaurantName,
+      restaurantId,
+      restaurantPhone,
+      setRestaurantPhone,
+      plan,
       categories,
       setCategories,
       menuItems,
       setMenuItems,
       menuStyle,
       setMenuStyle,
+      activeMenuId,
+      activeMenuName,
+      menuStatus,
+      menuSlug,
       addCategory,
       addItem,
       removeItem,
       updateItem,
       applyTemplate,
+      publishMenu,
+      unpublishMenu,
+      switchMenu,
+      createMenu,
+      deleteMenu,
+      renameMenu,
       isSyncing,
-      lastSynced
+      lastSynced,
+      isLoading,
     }}>
       {children}
     </MenuContext.Provider>

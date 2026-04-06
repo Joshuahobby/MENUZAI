@@ -1,8 +1,6 @@
-import { MenuItem } from "@/data/mockData";
+import type { CartItem } from "@/types/menu";
 
-export interface CartItem extends MenuItem {
-  quantity: number;
-}
+export type { CartItem };
 
 export function buildWhatsAppMessage(items: CartItem[], customerName?: string, tableNumber?: string): string {
   let message = "Hello, I'd like to order:\n\n";

@@ -2,6 +2,9 @@ import type { Metadata } from "next";
 import { Plus_Jakarta_Sans, Inter } from "next/font/google";
 import "./globals.css";
 import { MenuProvider } from "@/context/MenuContext";
+import { CartProvider } from "@/contexts/CartContext";
+import { Toaster } from "sonner";
+import { ConfirmModal, PromptModal } from "@/components/Modals";
 
 const plusJakartaSans = Plus_Jakarta_Sans({
   subsets: ["latin"],
@@ -21,6 +24,7 @@ export const metadata: Metadata = {
   title: "MENUZA AI | Turn Your Menu Into a Revenue Engine",
   description:
     "Create, optimize, and track your restaurant menu with AI. Upload your menu, customize with smart templates, generate QR codes, and take orders via WhatsApp.",
+  manifest: "/manifest.json",
   keywords: [
     "restaurant menu",
     "digital menu",
@@ -51,6 +55,13 @@ export const metadata: Metadata = {
   },
 };
 
+export const viewport = {
+  themeColor: "#FF6B00",
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -66,7 +77,38 @@ export default function RootLayout({
       </head>
       <body className="bg-surface text-on-surface antialiased">
         <MenuProvider>
-          {children}
+          <CartProvider>
+            {children}
+            <ConfirmModal />
+            <PromptModal />
+            <Toaster
+              position="bottom-right"
+              toastOptions={{
+                style: {
+                  background: "var(--color-surface-container-lowest)",
+                  color: "var(--color-on-surface)",
+                  border: "1px solid color-mix(in srgb, var(--color-outline-variant) 30%, transparent)",
+                  borderRadius: "1rem",
+                  fontFamily: "var(--font-body)",
+                  fontSize: "0.875rem",
+                  fontWeight: "600",
+                },
+              }}
+            />
+            <script
+              dangerouslySetInnerHTML={{
+                __html: `
+                  if ('serviceWorker' in navigator) {
+                    window.addEventListener('load', function() {
+                      navigator.serviceWorker.register('/sw.js').catch(function(err) {
+                        console.log('ServiceWorker registration failed: ', err);
+                      });
+                    });
+                  }
+                `,
+              }}
+            />
+          </CartProvider>
         </MenuProvider>
       </body>
     </html>
