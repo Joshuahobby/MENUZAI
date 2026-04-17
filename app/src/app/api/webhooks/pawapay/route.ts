@@ -1,13 +1,18 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
+import { getSupabaseAdmin } from "@/lib/supabase-admin";
+
+// Tell Next.js to always run this route dynamically and skip static collection during build
+export const dynamic = "force-dynamic";
 
 export async function POST(req: Request) {
   try {
-    // We need the service role key to bypass RLS and update the user's plan via webhook
-    const supabaseAdmin = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL || "https://dummy.supabase.co",
-      process.env.SUPABASE_SERVICE_ROLE_KEY || "dummy"
-    );
+    const supabaseAdmin = getSupabaseAdmin();
+    
+    // Build-time safety check: if admin client failed to initialize (e.g. during Vercel static analysis)
+    if (!supabaseAdmin) {
+      console.error("Supabase Admin client not initialized. Check environment variables.");
+      return NextResponse.json({ error: "Internal Server Error (Configuration)" }, { status: 500 });
+    }
 
     const payload = await req.json();
 
@@ -16,23 +21,43 @@ export async function POST(req: Request) {
 
     const { depositId, status, amount } = payload;
 
-    // 2. Check if payment was successful
-    if (status === "COMPLETED") {
-      // 3. Find the user associated with this depositId (Assuming you saved it in a transactions table)
-      // For this example, let's assume the payload includes metadata or we look it up
-      // const { data: tx } = await supabaseAdmin.from('transactions').select('*').eq('deposit_id', depositId).single();
-      
-      // 4. Update the restaurant's plan to 'pro'
-      // Example:
-      // await supabaseAdmin
-      //   .from("restaurants")
-      //   .update({ plan: "pro" })
-      //   .eq("user_id", tx.user_id);
+    // 2. Fetch the transaction from the database
+    const { data: tx, error: txError } = await supabaseAdmin
+      .from("transactions")
+      .select("*")
+      .eq("deposit_id", depositId)
+      .single();
 
-      console.log(`✅ pawaPay payment ${depositId} successful for ${amount}`);
+    if (txError || !tx) {
+      console.error("Transaction not found for depositId:", depositId);
+      return NextResponse.json({ error: "Transaction not found" }, { status: 404 });
+    }
+
+    // 3. Handle status updates
+    if (status === "COMPLETED") {
+      // Update transaction status
+      await supabaseAdmin
+        .from("transactions")
+        .update({ status: "completed" })
+        .eq("deposit_id", depositId);
+
+      // Upgrade restaurant plan
+      const { error: upgradeError } = await supabaseAdmin
+        .from("restaurants")
+        .update({ plan: tx.plan_name || "pro" })
+        .eq("id", tx.restaurant_id);
+
+      if (upgradeError) {
+        console.error("Failed to upgrade restaurant plan:", upgradeError);
+      } else {
+        console.log(`✅ Restaurant ${tx.restaurant_id} upgraded to ${tx.plan_name}`);
+      }
     } else if (status === "FAILED") {
-      console.log(`❌ pawaPay payment ${depositId} failed`);
-      // Update transaction status to failed
+      await supabaseAdmin
+        .from("transactions")
+        .update({ status: "failed" })
+        .eq("deposit_id", depositId);
+      console.log(`❌ pawaPay payment ${depositId} marked as failed`);
     }
 
     // Always return 200 OK to acknowledge receipt of the webhook, otherwise pawaPay will retry

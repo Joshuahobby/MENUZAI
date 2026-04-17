@@ -379,10 +379,17 @@ export function MenuProvider({ children }: { children: React.ReactNode }) {
   const createMenu = useCallback(async (name: string): Promise<string | null> => {
     if (!user || !restaurantId) return null;
 
-    // Flush pending save
-    if (menuSaveTimeoutRef.current) {
-      clearTimeout(menuSaveTimeoutRef.current);
-      menuSaveTimeoutRef.current = null;
+    // Check plan limits: Free users only get 1 menu
+    if (plan === "free") {
+      const { count } = await supabase
+        .from("menus")
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", user.id);
+      
+      if (count && count >= 1) {
+        console.warn("Plan limit reached: upgrade to Pro to create more menus.");
+        return null;
+      }
     }
 
     const { data: newMenu, error } = await supabase

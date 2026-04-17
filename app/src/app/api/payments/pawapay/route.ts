@@ -1,19 +1,26 @@
 import { NextResponse } from "next/server";
-import { supabase } from "@/lib/supabase"; // We'll need a service role key for admin tasks later, but standard is fine for reading auth
+import { createSupabaseServerClient } from "@/lib/supabase-server";
 
 export async function POST(req: Request) {
   try {
     const { phoneNumber, plan, amount } = await req.json();
 
     // 1. Get authenticated user
-    const authHeader = req.headers.get("Authorization");
-    if (!authHeader) {
+    const supabase = await createSupabaseServerClient();
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { data: { user }, error: authError } = await supabase.auth.getUser(authHeader.replace("Bearer ", ""));
-    if (authError || !user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    // Get restaurant ID for this user
+    const { data: restaurant } = await supabase
+      .from("restaurants")
+      .select("id")
+      .eq("user_id", user.id)
+      .single();
+
+    if (!restaurant) {
+      return NextResponse.json({ error: "Restaurant not found" }, { status: 404 });
     }
 
     // 2. Generate a unique deposit ID for this transaction
@@ -37,37 +44,61 @@ export async function POST(req: Request) {
     };
 
     // 4. Call pawaPay API
-    // Note: This requires PAWAPAY_JWT in your .env.local
-    const pawaPayUrl = process.env.NODE_ENV === "production" 
+    const isProduction = process.env.NODE_ENV === "production" || process.env.PAWAPAY_JWT?.startsWith("pk_");
+    const pawaPayUrl = isProduction 
       ? "https://api.pawapay.io/v1/deposits" 
       : "https://api.sandbox.pawapay.io/v1/deposits";
 
-    /* 
-    // UNCOMMENT WHEN YOU HAVE API KEYS
-    const response = await fetch(pawaPayUrl, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": \`Bearer \${process.env.PAWAPAY_JWT}\`
-      },
-      body: JSON.stringify(pawapayPayload)
+    // 5. Store pending transaction in our database
+    const { error: dbError } = await supabase.from('transactions').insert({ 
+      deposit_id: depositId, 
+      user_id: user.id, 
+      restaurant_id: restaurant.id,
+      status: 'pending', 
+      amount: amount,
+      currency: "RWF",
+      plan_name: plan
     });
 
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.message || "Failed to initiate payment with pawaPay");
+    if (dbError) {
+      console.error("DB Error:", dbError);
+      throw new Error("Failed to record transaction. Please try again.");
     }
-    */
 
-    // 5. Store pending transaction in our database (Optional but recommended)
-    // await supabaseAdmin.from('transactions').insert({ deposit_id: depositId, user_id: user.id, status: 'pending', plan });
+    // 6. Initiate Payment with pawaPay
+    if (process.env.PAWAPAY_JWT) {
+      const response = await fetch(pawaPayUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${process.env.PAWAPAY_JWT}`
+        },
+        body: JSON.stringify(pawapayPayload)
+      });
 
-    // For now, simulate success response
-    return NextResponse.json({ 
-      success: true, 
-      depositId, 
-      message: "Payment initiated. Please check your phone for the MoMo prompt." 
-    });
+      if (!response.ok) {
+        const errorData = await response.json();
+        // Update transaction status to failed if initiation failed
+        await supabase.from('transactions').update({ status: 'failed' }).eq('deposit_id', depositId);
+        throw new Error(errorData.message || "Failed to initiate payment with pawaPay");
+      }
+
+      const pawaPayData = await response.json();
+      return NextResponse.json({ 
+        success: true, 
+        depositId, 
+        externalId: pawaPayData.externalId,
+        message: "Payment initiated. Please check your phone for the MoMo prompt." 
+      });
+    } else {
+      // Fallback for simulation if JWT is missing (should not happen in prod)
+      return NextResponse.json({ 
+        success: true, 
+        depositId, 
+        simulated: true,
+        message: "Payment simulated (PAWAPAY_JWT missing). Transaction recorded as pending." 
+      });
+    }
 
   } catch (error: any) {
     console.error("pawaPay Error:", error);

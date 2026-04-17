@@ -25,6 +25,7 @@ const CURRENCIES = [
 export default function SettingsPage() {
   const {
     restaurantId,
+    plan: restaurantPlan,
     restaurantName, setRestaurantName,
     restaurantPhone, setRestaurantPhone,
     restaurantLogoUrl, setRestaurantLogoUrl,
@@ -176,6 +177,28 @@ export default function SettingsPage() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+
+        {/* Plan & Billing */}
+        <div className="bg-surface-container-lowest p-8 rounded-[2rem] border border-surface-container/50 lg:col-span-2">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+            <div>
+              <h3 className="font-[var(--font-headline)] font-bold text-lg mb-2">Subscription & Plan</h3>
+              <p className="text-sm text-secondary">You are currently on the <span className="font-bold text-primary uppercase">{restaurantPlan}</span> plan.</p>
+            </div>
+            {restaurantPlan === "free" ? (
+              <a 
+                href="/pricing"
+                className="px-8 py-3 bg-gradient-to-tr from-primary to-primary-container text-white font-bold rounded-xl shadow-lg shadow-primary-container/20 hover:shadow-xl active:scale-95 transition-all"
+              >
+                Upgrade to Pro
+              </a>
+            ) : (
+              <div className="px-6 py-2 bg-tertiary/10 text-tertiary font-bold rounded-xl text-xs uppercase tracking-widest">
+                Pro Member
+              </div>
+            )}
+          </div>
+        </div>
 
         {/* Logo Upload */}
         <div className="bg-surface-container-lowest p-8 rounded-[2rem] border border-surface-container/50 lg:col-span-2">
