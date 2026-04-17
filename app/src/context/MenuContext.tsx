@@ -15,6 +15,8 @@ interface MenuContextType {
   restaurantId: string | null;
   restaurantPhone: string;
   setRestaurantPhone: (phone: string) => void;
+  restaurantLogoUrl: string;
+  setRestaurantLogoUrl: (url: string) => void;
   plan: string;
   categories: MenuCategory[];
   setCategories: React.Dispatch<React.SetStateAction<MenuCategory[]>>;
@@ -28,9 +30,12 @@ interface MenuContextType {
   menuSlug: string | null;
   // Actions
   addCategory: (name: string) => void;
+  renameCategory: (categoryId: string, name: string) => void;
+  removeCategory: (categoryId: string) => void;
   addItem: (categoryId: string) => void;
   removeItem: (itemId: string) => void;
   updateItem: (itemId: string, updates: Partial<MenuItem>) => void;
+  duplicateItem: (itemId: string) => void;
   applyTemplate: (style: Partial<MenuStyle>) => void;
   publishMenu: () => Promise<string | null>;
   unpublishMenu: () => Promise<void>;
@@ -45,12 +50,11 @@ interface MenuContextType {
 
 export const defaultStyle: MenuStyle = {
   primaryColor: "#FF6B00",
-  secondaryColor: "#1E1E1E",
   headlineFont: "Plus Jakarta Sans",
   bodyFont: "Inter",
   borderRadius: "2rem",
   layoutDensity: "comfortable",
-  theme: "light",
+  currency: "RWF",
 };
 
 const MenuContext = createContext<MenuContextType | undefined>(undefined);
@@ -67,6 +71,7 @@ export function MenuProvider({ children }: { children: React.ReactNode }) {
   const [menuSlug, setMenuSlug] = useState<string | null>(null);
   const [restaurantId, setRestaurantId] = useState<string | null>(null);
   const [restaurantPhone, setRestaurantPhone] = useState("");
+  const [restaurantLogoUrl, setRestaurantLogoUrl] = useState("");
   const [plan, setPlan] = useState("free");
   const [isSyncing, setIsSyncing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -92,6 +97,8 @@ export function MenuProvider({ children }: { children: React.ReactNode }) {
       setActiveMenuId(null);
       setRestaurantId(null);
       setRestaurantName("My Restaurant");
+      setRestaurantPhone("");
+      setRestaurantLogoUrl("");
       setCategories([]);
       setMenuItems([]);
       setMenuStyle(defaultStyle);
@@ -109,7 +116,7 @@ export function MenuProvider({ children }: { children: React.ReactNode }) {
       let restoId: string;
       const { data: existingRestaurant } = await supabase
         .from("restaurants")
-        .select("id, name, phone, plan")
+        .select("id, name, phone, plan, logo_url")
         .eq("user_id", user.id)
         .maybeSingle();
 
@@ -119,6 +126,7 @@ export function MenuProvider({ children }: { children: React.ReactNode }) {
           setRestaurantId(restoId);
           setRestaurantName(existingRestaurant.name);
           setRestaurantPhone(existingRestaurant.phone ?? "");
+          setRestaurantLogoUrl(existingRestaurant.logo_url ?? "");
           setPlan(existingRestaurant.plan ?? "free");
         }
       } else {
@@ -277,6 +285,15 @@ export function MenuProvider({ children }: { children: React.ReactNode }) {
     setCategories((prev) => [...prev, { id, name, itemCount: 0 }]);
   };
 
+  const renameCategory = (categoryId: string, name: string) => {
+    setCategories((prev) => prev.map((c) => c.id === categoryId ? { ...c, name } : c));
+  };
+
+  const removeCategory = (categoryId: string) => {
+    setCategories((prev) => prev.filter((c) => c.id !== categoryId));
+    setMenuItems((prev) => prev.filter((i) => i.category !== categoryId));
+  };
+
   const addItem = (categoryId: string) => {
     const newItem: MenuItem = {
       id: Math.random().toString(36).substr(2, 9),
@@ -306,6 +323,19 @@ export function MenuProvider({ children }: { children: React.ReactNode }) {
     setMenuItems((prev) => prev.map((i) => i.id === itemId ? { ...i, ...updates } : i));
   };
 
+  const duplicateItem = (itemId: string) => {
+    const item = menuItems.find((i) => i.id === itemId);
+    if (!item) return;
+    const newItem: MenuItem = { ...item, id: Math.random().toString(36).substr(2, 9), name: `${item.name} (copy)` };
+    setMenuItems((prev) => {
+      const idx = prev.findIndex((i) => i.id === itemId);
+      const next = [...prev];
+      next.splice(idx + 1, 0, newItem);
+      return next;
+    });
+    setCategories((prev) => prev.map((c) => c.id === item.category ? { ...c, itemCount: c.itemCount + 1 } : c));
+  };
+
   const applyTemplate = (style: Partial<MenuStyle>) => {
     setMenuStyle((prev) => ({ ...prev, ...style }));
   };
@@ -328,7 +358,7 @@ export function MenuProvider({ children }: { children: React.ReactNode }) {
       .select("*")
       .eq("id", menuId)
       .eq("user_id", user.id)
-      .single();
+      .maybeSingle();
 
     if (menu) {
       setActiveMenuId(menu.id);
@@ -406,7 +436,7 @@ export function MenuProvider({ children }: { children: React.ReactNode }) {
         .eq("user_id", user.id)
         .order("updated_at", { ascending: false })
         .limit(1)
-        .single();
+        .maybeSingle();
 
       if (nextMenu) {
         setActiveMenuId(nextMenu.id);
@@ -473,6 +503,8 @@ export function MenuProvider({ children }: { children: React.ReactNode }) {
       restaurantId,
       restaurantPhone,
       setRestaurantPhone,
+      restaurantLogoUrl,
+      setRestaurantLogoUrl,
       plan,
       categories,
       setCategories,
@@ -485,9 +517,12 @@ export function MenuProvider({ children }: { children: React.ReactNode }) {
       menuStatus,
       menuSlug,
       addCategory,
+      renameCategory,
+      removeCategory,
       addItem,
       removeItem,
       updateItem,
+      duplicateItem,
       applyTemplate,
       publishMenu,
       unpublishMenu,

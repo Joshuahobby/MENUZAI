@@ -40,7 +40,7 @@ export default async function PublicMenuPage({ params }: PageProps) {
 
   const { data: menu } = await supabase
     .from("menus")
-    .select("id, name, slug, categories, items, style, view_count, restaurant_id, restaurants!inner(name, phone, tagline)")
+    .select("id, name, slug, categories, items, style, view_count, restaurant_id, restaurants!inner(name, phone, tagline, logo_url)")
     .eq("slug", slug)
     .eq("status", "published")
     .limit(1)
@@ -63,6 +63,7 @@ export default async function PublicMenuPage({ params }: PageProps) {
       restaurantId={menu.restaurant_id}
       restaurantName={restaurant?.name ?? "Restaurant"}
       restaurantPhone={restaurant?.phone ?? ""}
+      restaurantLogoUrl={(restaurant as { logo_url?: string })?.logo_url ?? ""}
       slug={slug}
       categories={menu.categories ?? []}
       items={menu.items ?? []}

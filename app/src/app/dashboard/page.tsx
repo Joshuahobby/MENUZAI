@@ -1,9 +1,8 @@
 "use client";
 import { useEffect, useState } from "react";
-import Image from "next/image";
 import { useMenu } from "@/context/MenuContext";
 import Link from "next/link";
-import { formatEventType, formatRelativeTime } from "@/lib/utils";
+import { formatPrice, formatEventType, formatRelativeTime } from "@/lib/utils";
 import { SkeletonKpi, SkeletonRow } from "@/components/Skeleton";
 
 interface AnalyticsData {
@@ -14,7 +13,8 @@ interface AnalyticsData {
 }
 
 export default function DashboardPage() {
-  const { restaurantId, lastSynced } = useMenu();
+  const { restaurantId, lastSynced, menuStyle } = useMenu();
+  const currency = menuStyle.currency ?? "RWF";
   const [data, setData] = useState<AnalyticsData | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -82,7 +82,7 @@ export default function DashboardPage() {
       {/* KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         {[
-          { label: "Total Revenue", value: `$${kpis.revenue.toFixed(2)}`, color: "tertiary", icon: "payments" },
+          { label: "Total Revenue", value: formatPrice(kpis.revenue, currency), color: "tertiary", icon: "payments" },
           { label: "Total Orders", value: kpis.orders.toLocaleString(), color: "tertiary", icon: "receipt_long" },
           { label: "Menu Views", value: kpis.views.toLocaleString(), color: "primary", icon: "visibility" },
           { label: "Conversion Rate", value: `${kpis.conversionRate.toFixed(1)}%`, color: "tertiary", icon: "conversion_path" },
@@ -144,7 +144,7 @@ export default function DashboardPage() {
                     <p className="text-sm font-bold">Someone {formatEventType(a.type)}</p>
                     <p className="text-[10px] text-secondary">{formatRelativeTime(a.time)}{a.item ? ` • ${a.item}` : ""}</p>
                   </div>
-                  {a.amount && <span className="text-xs font-bold text-primary">${Number(a.amount).toFixed(2)}</span>}
+                  {a.amount && <span className="text-xs font-bold text-primary">{formatPrice(Number(a.amount), currency)}</span>}
                 </div>
               ))
             )}

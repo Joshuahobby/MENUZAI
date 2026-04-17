@@ -6,6 +6,7 @@ import Link from "next/link";
 import { buildWhatsAppMessage, buildWhatsAppURL } from "@/lib/whatsapp";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
+import { formatPrice } from "@/lib/utils";
 import type { CartItem } from "@/types/menu";
 
 function OrderContent({ slug }: { slug: string }) {
@@ -18,8 +19,8 @@ function OrderContent({ slug }: { slug: string }) {
 
   const menuId = searchParams.get("menuId") || null;
   const restaurantId = searchParams.get("restaurantId") || null;
-  // C5: read phone inside OrderContent via useSearchParams (SSR-safe)
   const phone = searchParams.get("phone") || "";
+  const currency = searchParams.get("currency") || "RWF";
 
   let items: CartItem[] = [];
   try {
@@ -78,7 +79,7 @@ function OrderContent({ slug }: { slug: string }) {
             {items.map((item) => (
               <div key={item.id} className="flex justify-between text-sm">
                 <span className="font-medium">{item.name} <span className="text-secondary">x{item.quantity}</span></span>
-                <span className="font-bold text-primary">${(item.price * item.quantity).toFixed(2)}</span>
+                <span className="font-bold text-primary">{formatPrice(item.price * item.quantity, currency)}</span>
               </div>
             ))}
             <div className="pt-3 border-t border-surface-container flex justify-between font-bold">
@@ -124,7 +125,7 @@ function OrderContent({ slug }: { slug: string }) {
               </div>
               <div className="mt-6 pt-4 border-t border-surface-container flex justify-between items-center">
                 <span className="font-[var(--font-headline)] font-bold text-lg">Total</span>
-                <span className="font-[var(--font-headline)] font-extrabold text-2xl text-primary">${total.toFixed(2)}</span>
+                <span className="font-[var(--font-headline)] font-extrabold text-2xl text-primary">{formatPrice(total, currency)}</span>
               </div>
             </>
           )}

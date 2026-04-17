@@ -1,3 +1,14 @@
+// Currencies where cents are not used — display as rounded integers
+const WHOLE_UNIT_CURRENCIES = new Set(["RWF", "UGX", "TZS", "BIF", "GNF", "KMF", "MGA", "JPY", "KRW", "VND", "IDR", "CLP"]);
+
+export function formatPrice(amount: number, currency: string): string {
+  const whole = WHOLE_UNIT_CURRENCIES.has(currency.toUpperCase());
+  const num = whole
+    ? Math.round(amount).toLocaleString()
+    : amount.toFixed(2);
+  return `${currency} ${num}`;
+}
+
 export function formatRelativeTime(iso: string) {
   const diff = Date.now() - new Date(iso).getTime();
   const mins = Math.floor(diff / 60000);

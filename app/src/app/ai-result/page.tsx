@@ -2,9 +2,11 @@
 
 import Link from "next/link";
 import { useMenu } from "@/context/MenuContext";
+import { formatPrice } from "@/lib/utils";
 
 export default function AIResultPage() {
-  const { menuItems, updateItem } = useMenu();
+  const { menuItems, menuStyle, updateItem } = useMenu();
+  const currency = menuStyle.currency ?? "RWF";
 
   const grouped = menuItems.reduce((acc, item) => {
     if (!acc[item.category]) acc[item.category] = [];
@@ -58,11 +60,11 @@ export default function AIResultPage() {
                   />
                   <input
                     className="font-[var(--font-headline)] font-bold text-primary text-lg bg-transparent border-none focus:ring-2 focus:ring-primary/20 rounded-lg px-2 w-24 text-right"
-                    value={`$${item.price.toFixed(2)}`}
+                    value={formatPrice(item.price, currency)}
                     title="Item Price"
                     placeholder="Price"
                     aria-label="Item Price"
-                    onChange={(e) => updateItem(item.id, { price: parseFloat(e.target.value.replace("$", "")) || 0 })}
+                    onChange={(e) => updateItem(item.id, { price: parseFloat(e.target.value.replace(/[^\d.]/g, "")) || 0 })}
                   />
                 </div>
                 <input

@@ -4,7 +4,8 @@ import Link from "next/link";
 import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useMenu } from "@/context/MenuContext";
-import type { MenuItem, MenuStyle } from "@/types/menu";
+import { templates } from "@/data/mockData";
+import type { MenuItem } from "@/types/menu";
 
 type UploadState = "idle" | "uploading" | "extracting" | "done" | "error";
 
@@ -62,16 +63,10 @@ export default function UploadPage() {
       setExtractedCount({ items: result.items.length, categories: result.categories.length });
 
       if (result.suggestedTheme) {
-        const styleMap: Record<string, Partial<MenuStyle>> = {
-          "Classic Elegance": { primaryColor: "#1E1E1E", secondaryColor: "#FFFFFF", headlineFont: "Playfair Display", bodyFont: "Inter", borderRadius: "0.5rem" },
-          "Modern Minimal": { primaryColor: "#1E1E1E", secondaryColor: "#FFFFFF", headlineFont: "Plus Jakarta Sans", bodyFont: "Inter", borderRadius: "0.5rem" },
-          "Luxury Gold": { primaryColor: "#C5A059", secondaryColor: "#1E1E1E", headlineFont: "Playfair Display", bodyFont: "Inter", borderRadius: "2rem" },
-          "Street Food": { primaryColor: "#FF6B00", secondaryColor: "#1E1E1E", headlineFont: "Poppins", bodyFont: "Montserrat", borderRadius: "1rem" },
-          "Botanical Garden": { primaryColor: "#00C853", secondaryColor: "#351000", headlineFont: "Playfair Display", bodyFont: "Open Sans", borderRadius: "3rem" },
-          "Neon Night": { primaryColor: "#7928CA", secondaryColor: "#0070F3", headlineFont: "Poppins", bodyFont: "Montserrat", borderRadius: "1.5rem" },
-        };
-        const themeStyle = styleMap[result.suggestedTheme];
-        if (themeStyle) applyTemplate(themeStyle);
+        const match = templates.find(
+          (t) => t.name.toLowerCase() === result.suggestedTheme.toLowerCase()
+        );
+        if (match) applyTemplate(match.config);
       }
 
       setProgress(100);

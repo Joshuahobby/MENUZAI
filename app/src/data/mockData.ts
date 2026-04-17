@@ -157,63 +157,141 @@ export const menuItems: MenuItem[] = [
   },
 ];
 
+export type TemplateCategory = "casual" | "fine-dining" | "cafe" | "bar" | "fast-food";
+
 export interface Template {
   id: string;
   name: string;
-  style: string;
+  label: string;        // display tag shown on card
+  category: TemplateCategory;
   tier: "free" | "pro";
   image: string;
   description: string;
+  config: Partial<import("@/types/menu").MenuStyle>;
 }
 
 export const templates: Template[] = [
+  // ── FREE ─────────────────────────────────────────────────────
   {
     id: "t1",
     name: "Classic Elegance",
-    style: "Classic",
+    label: "Classic",
+    category: "fine-dining",
     tier: "free",
     image: "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=400&h=300&fit=crop",
-    description: "Timeless design with clean typography and neutral tones.",
+    description: "Timeless serif typography with a refined dark palette.",
+    config: { primaryColor: "#1E1E1E", headlineFont: "Playfair Display", bodyFont: "Inter", borderRadius: "0.5rem", layoutDensity: "spacious" },
   },
   {
     id: "t2",
     name: "Modern Minimal",
-    style: "Modern",
+    label: "Modern",
+    category: "casual",
     tier: "free",
     image: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400&h=300&fit=crop",
-    description: "Bold headers, generous whitespace, and contemporary feel.",
+    description: "Ultra-clean layout with bold headers and generous whitespace.",
+    config: { primaryColor: "#0070F3", headlineFont: "Plus Jakarta Sans", bodyFont: "Inter", borderRadius: "0.75rem", layoutDensity: "comfortable" },
   },
   {
     id: "t3",
-    name: "Luxury Gold",
-    style: "Luxury",
-    tier: "pro",
-    image: "https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?w=400&h=300&fit=crop",
-    description: "Premium look with gold accents and dark backgrounds.",
+    name: "Street Food",
+    label: "Fast Food",
+    category: "fast-food",
+    tier: "free",
+    image: "https://images.unsplash.com/photo-1565299507177-b0ac66763828?w=400&h=300&fit=crop",
+    description: "Vibrant and energetic — built for casual dining and takeaway spots.",
+    config: { primaryColor: "#FF6B00", headlineFont: "Poppins", bodyFont: "Montserrat", borderRadius: "1rem", layoutDensity: "compact" },
   },
   {
     id: "t4",
-    name: "Street Food",
-    style: "Fast Food",
+    name: "Café Parisien",
+    label: "Café",
+    category: "cafe",
     tier: "free",
-    image: "https://images.unsplash.com/photo-1565299507177-b0ac66763828?w=400&h=300&fit=crop",
-    description: "Vibrant, energetic layout for casual dining spots.",
+    image: "https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=400&h=300&fit=crop",
+    description: "Warm brown tones and soft curves — cozy and inviting.",
+    config: { primaryColor: "#8B5E3C", headlineFont: "Lora", bodyFont: "Inter", borderRadius: "1.5rem", layoutDensity: "comfortable" },
   },
   {
     id: "t5",
-    name: "Botanical Garden",
-    style: "Organic",
-    tier: "pro",
-    image: "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=400&h=300&fit=crop",
-    description: "Earth tones with botanical illustrations and organic feel.",
+    name: "Brunch Bloom",
+    label: "Playful",
+    category: "cafe",
+    tier: "free",
+    image: "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=400&h=300&fit=crop",
+    description: "Playful pink energy with rounded cards. Perfect for brunch spots.",
+    config: { primaryColor: "#E11D48", headlineFont: "Poppins", bodyFont: "Open Sans", borderRadius: "2rem", layoutDensity: "compact" },
   },
   {
     id: "t6",
+    name: "Sushi Minimal",
+    label: "Japanese",
+    category: "fine-dining",
+    tier: "free",
+    image: "https://images.unsplash.com/photo-1617196034183-421b4040ed20?w=400&h=300&fit=crop",
+    description: "Japanese-inspired minimalism. Black ink on a clean white canvas.",
+    config: { primaryColor: "#111111", headlineFont: "Plus Jakarta Sans", bodyFont: "Lato", borderRadius: "0.25rem", layoutDensity: "spacious" },
+  },
+  // ── PRO ──────────────────────────────────────────────────────
+  {
+    id: "t7",
+    name: "Luxury Gold",
+    label: "Luxury",
+    category: "fine-dining",
+    tier: "pro",
+    image: "https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?w=400&h=300&fit=crop",
+    description: "Premium gold accents and dark elegance for upscale venues.",
+    config: { primaryColor: "#C5A059", headlineFont: "Playfair Display", bodyFont: "Lato", borderRadius: "2rem", layoutDensity: "spacious" },
+  },
+  {
+    id: "t8",
+    name: "Botanical Garden",
+    label: "Organic",
+    category: "cafe",
+    tier: "pro",
+    image: "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=400&h=300&fit=crop",
+    description: "Earth tones and organic shapes for plant-based and eco-focused brands.",
+    config: { primaryColor: "#00C853", headlineFont: "Playfair Display", bodyFont: "Open Sans", borderRadius: "3rem", layoutDensity: "comfortable" },
+  },
+  {
+    id: "t9",
     name: "Neon Night",
-    style: "Modern",
+    label: "Nightlife",
+    category: "bar",
     tier: "pro",
     image: "https://images.unsplash.com/photo-1552566626-52f8b828add9?w=400&h=300&fit=crop",
-    description: "Dark mode design with neon pops for nightlife venues.",
+    description: "Dark mode with electric purple pops. Made for nightlife venues.",
+    config: { primaryColor: "#7928CA", headlineFont: "Poppins", bodyFont: "Montserrat", borderRadius: "1.5rem", layoutDensity: "compact" },
+  },
+  {
+    id: "t10",
+    name: "Italian Trattoria",
+    label: "Italian",
+    category: "fine-dining",
+    tier: "pro",
+    image: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=400&h=300&fit=crop",
+    description: "Rustic Italian warmth with deep red accents and a classic serif face.",
+    config: { primaryColor: "#C0392B", headlineFont: "Lora", bodyFont: "Inter", borderRadius: "0.5rem", layoutDensity: "comfortable" },
+  },
+  {
+    id: "t11",
+    name: "Wine Bar",
+    label: "Wine",
+    category: "bar",
+    tier: "pro",
+    image: "https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?w=400&h=300&fit=crop",
+    description: "Deep burgundy and a sophisticated layout for wine and cocktail bars.",
+    config: { primaryColor: "#722F37", headlineFont: "Playfair Display", bodyFont: "Lato", borderRadius: "1rem", layoutDensity: "spacious" },
+  },
+  {
+    id: "t12",
+    name: "Tropical Breeze",
+    label: "Resort",
+    category: "casual",
+    tier: "pro",
+    image: "https://images.unsplash.com/photo-1544145945-f90425340c7e?w=400&h=300&fit=crop",
+    description: "Ocean blue and bold rounded cards for beach bars and resort menus.",
+    config: { primaryColor: "#0EA5E9", headlineFont: "Poppins", bodyFont: "Open Sans", borderRadius: "2.5rem", layoutDensity: "compact" },
   },
 ];
 

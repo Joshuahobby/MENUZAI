@@ -14,70 +14,92 @@ All commands run from the `app/` directory:
 cd app
 npm install       # Install dependencies
 npm run dev       # Start dev server at http://localhost:3000
-npm run build     # Production build
+npm run build     # Production build (must pass before deploying)
 npm run lint      # ESLint checks
 npm start         # Run production server
 ```
 
 No test framework is configured.
 
-## Environment Setup
+## Environment Variables
 
-Create `app/.env.local` with Supabase credentials:
+All required variables are documented in `app/.env.example`. For local dev, create `app/.env.local`:
+
 ```
-NEXT_PUBLIC_SUPABASE_URL=your-project-url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
+NEXT_PUBLIC_SUPABASE_URL=
+NEXT_PUBLIC_SUPABASE_ANON_KEY=
+OPENROUTER_API_KEY=          # from openrouter.ai
+OPENROUTER_MODEL=google/gemma-3-27b-it:free   # swap without redeploying
+NEXT_PUBLIC_SITE_URL=http://localhost:3000     # set to production domain on Vercel
+# PAWAPAY_JWT=               # uncomment when enabling payments
 ```
 
 ## Architecture
 
-MENUZAI is an AI-powered SaaS platform for restaurant menu digitization. It uses the **Next.js App Router** (all routes under `app/src/app/`), **Supabase** for database and auth, and **React Context API** for client-side state.
+MENUZAI is an AI-powered SaaS platform for restaurant menu digitization. Stack: **Next.js 16 App Router**, **Supabase** (Postgres + auth + RLS), **React Context API**, **OpenRouter** for AI vision, **Tailwind CSS v4**.
 
-### Route Structure
+### Route Map
 
-| Route | Auth | Notes |
+| Route | Auth Required | Notes |
 |---|---|---|
-| `/` | No | Landing page |
+| `/` | No | Landing page, uses `mockData.ts` for pricing section |
 | `/login` | No | Supabase email/password |
-| `/upload` | Yes | Menu upload entry |
-| `/ai-result` | Yes | AI processing display |
-| `/onboarding` | Yes | Setup flow |
-| `/dashboard/*` | Yes | Main app (layout has auth guard) |
-| `/menu/demo` | No | Public menu showcase |
-| `/menu/demo/order` | No | Cart + WhatsApp checkout |
+| `/pricing` | No | Standalone pricing page |
+| `/onboarding` | Yes | One-time setup; sets `restaurants.onboarded = true` |
+| `/upload` | Yes | File upload → `/api/extract-menu` → redirects to `/ai-result` |
+| `/ai-result` | Yes | Review/edit AI-extracted menu items before saving |
+| `/dashboard/*` | Yes | Auth + onboarding guard in `dashboard/layout.tsx` |
+| `/menu/[slug]` | No | Public menu — only renders if `status = 'published'` |
+| `/menu/[slug]/order` | No | Cart + WhatsApp checkout for public menus |
+| `/menu/demo` | No | Demo using hardcoded mock data |
+
+### Supabase: Two Clients
+
+**Never mix these up:**
+
+- **Browser client** (`app/src/lib/supabase.ts`) — singleton, used in Client Components and `"use client"` route handlers. Import: `import { supabase } from "@/lib/supabase"`
+- **Server client** (`app/src/lib/supabase-server.ts`) — created per-request with SSR cookies, used in Server Components and API routes that need auth context. Import: `import { createSupabaseServerClient } from "@/lib/supabase-server"`
+
+### Database Schema
+
+Migrations live in `app/supabase/migrations/` — run them in order in the Supabase SQL Editor.
+
+Key tables:
+
+- **`restaurants`** — one row per user, created on first login. Has `onboarded boolean` checked by dashboard layout.
+- **`menus`** — many per restaurant. `categories` and `items` are JSONB arrays. `status` is `'draft' | 'published'`. Has a legacy `restaurant_name` column (nullable, unused — do not rely on it).
+- **`analytics_events`** — fired client-side via `app/src/lib/analytics.ts` (fire-and-forget, no error handling by design).
+- **`orders`** — created via WhatsApp flow, not via API currently.
 
 ### State Management
 
-Two React contexts power the app:
+**`MenuContext`** (`app/src/context/MenuContext.tsx`) — the central store for the authenticated user's active menu. Bootstraps on login: finds/creates the restaurant row, then loads the most-recently-updated menu. Auto-saves changes (categories, items, style) to Supabase with a 2-second debounce. Manages multi-menu switching, publishing (generates slug via `app/src/lib/slug.ts`), and CRUD for items/categories.
 
-**`MenuContext`** (`app/src/context/MenuContext.tsx`) — global menu state that auto-fetches from Supabase on login and auto-saves changes with a 2-second debounce. Manages `restaurantName`, `categories`, `menuItems`, and `menuStyle`. The Supabase `menus` table stores everything as JSON columns per user.
+**`CartContext`** (`app/src/contexts/CartContext.tsx`) — ephemeral cart for the public ordering flow. Contents are serialized into a WhatsApp message via `app/src/lib/whatsapp.ts` and opened via `wa.me` URL — no WhatsApp API key needed.
 
-**`CartContext`** (`app/src/contexts/CartContext.tsx`) — ephemeral cart state for the public demo ordering flow. Cart contents are formatted into a WhatsApp message via `app/src/lib/whatsapp.ts` and sent via the `wa.me` URL scheme (no WhatsApp API key needed).
+### AI Menu Extraction
+
+`POST /api/extract-menu` accepts an image (JPG/PNG/WebP/GIF, max 10MB — PDF not supported by free models). It calls OpenRouter using the model in `OPENROUTER_MODEL`, passes the image as a base64 `image_url` block, and parses the JSON response via `app/src/lib/ai-extract.ts`. Rate-limited to 5 requests/IP/minute (in-memory only — resets on server restart).
 
 ### Styling
 
-Uses **Tailwind CSS v4** (not v3) — configuration lives in `app/src/app/globals.css` inside a `@theme` block, not in `tailwind.config.js`. Custom CSS variables define:
-- Primary: `#FF6B00` (orange), Tertiary: `#00C853` (green), Surface: `#fcf9f8`
-- Fonts: Plus Jakarta Sans (headings), Inter (body)
-- Material Design 3 color tokens
-- Special utilities: `.glass-nav`, `.editor-canvas`, `.hide-scrollbar`, `.icon-fill`, `.premium-shadow`
+**Tailwind CSS v4** — config is inside `app/src/app/globals.css` in a `@theme {}` block, not in `tailwind.config.js` (that file doesn't exist). Custom tokens:
 
-Material Symbols Outlined icons are loaded via Google Fonts in the root layout.
+- Colors: primary `#FF6B00`, tertiary `#00C853`, surface `#fcf9f8`
+- Fonts: Plus Jakarta Sans (headlines), Inter (body) — loaded via Google Fonts in root layout
+- Material Design 3 token naming (`on-surface`, `surface-container-low`, etc.)
+- Custom utilities: `.glass-nav`, `.editor-canvas`, `.hide-scrollbar`, `.icon-fill`, `.premium-shadow`
+
+Icons are **Material Symbols Outlined** loaded via Google Fonts — use `<span className="material-symbols-outlined">icon_name</span>`.
 
 ### Path Alias
 
-`@/*` resolves to `app/src/*` (configured in `tsconfig.json`).
+`@/*` → `app/src/*` (set in `app/tsconfig.json`).
 
-### Key Libraries
+### Payments
 
-- `@supabase/supabase-js` — database + auth client (singleton in `app/src/lib/supabase.ts`)
-- `recharts` — analytics charts
-- `qrcode.react` — QR code generation
-
-### Mock Data
-
-`app/src/data/mockData.ts` contains sample restaurant data (35+ items, 6 categories, analytics KPIs, live activity feeds) used for the demo menu and UI prototypes. The AI menu extraction is currently simulated, not a real API call.
+`/api/payments/pawapay` and `/api/webhooks/pawapay` exist but the actual API calls are commented out — they return a simulated success response. To enable: set `PAWAPAY_JWT`, uncomment the fetch block in the route, and implement webhook signature verification.
 
 ### Deployment
 
-Vercel-optimized (`app/vercel.json`), build region CDG1 (Paris).
+Vercel-optimized (`app/vercel.json`), deployed to region `cdg1` (Paris). Root directory must be set to `app` in Vercel project settings. After deploying, update Supabase Auth → URL Configuration to add `https://your-domain.com/api/auth/callback` as a redirect URL.

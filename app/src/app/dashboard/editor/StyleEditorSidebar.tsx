@@ -1,82 +1,123 @@
+"use client";
+import { useEffect, useRef } from "react";
 import { useMenu } from "@/context/MenuContext";
 
 const DENSITY_VALUES: Array<"compact" | "comfortable" | "spacious"> = ["compact", "comfortable", "spacious"];
 const DENSITY_LABELS: Record<string, string> = { compact: "Compact", comfortable: "Relaxed", spacious: "Spacious" };
 
-const PRESETS: Array<{ label: string; style: Parameters<ReturnType<typeof useMenu>["applyTemplate"]>[0] }> = [
-  { label: "Editorial", style: { primaryColor: "#1E1E1E", headlineFont: "Playfair Display", bodyFont: "Inter", borderRadius: "0.5rem", layoutDensity: "comfortable" } },
-  { label: "Minimal", style: { primaryColor: "#0070F3", headlineFont: "Plus Jakarta Sans", bodyFont: "Inter", borderRadius: "1rem", layoutDensity: "compact" } },
+const HEADLINE_FONTS = ["Plus Jakarta Sans", "Poppins", "Playfair Display", "Montserrat", "Lora"];
+const BODY_FONTS = ["Inter", "Montserrat", "Open Sans", "Lato", "Source Sans 3"];
+
+const CURRENCIES = [
+  { code: "RWF", name: "Rwandan Franc" },
+  { code: "USD", name: "US Dollar" },
+  { code: "EUR", name: "Euro" },
+  { code: "GBP", name: "British Pound" },
+  { code: "KES", name: "Kenyan Shilling" },
+  { code: "UGX", name: "Ugandan Shilling" },
+  { code: "TZS", name: "Tanzanian Shilling" },
+  { code: "GHS", name: "Ghanaian Cedi" },
+  { code: "NGN", name: "Nigerian Naira" },
+  { code: "ZAR", name: "South African Rand" },
+  { code: "ETB", name: "Ethiopian Birr" },
+  { code: "XOF", name: "West African CFA" },
+  { code: "XAF", name: "Central African CFA" },
 ];
+
+const PRESET_COLORS = [
+  { name: "Orange",  hex: "#FF6B00" },
+  { name: "Onyx",   hex: "#1E1E1E" },
+  { name: "Green",  hex: "#00C853" },
+  { name: "Blue",   hex: "#0070F3" },
+  { name: "Purple", hex: "#7928CA" },
+  { name: "Rose",   hex: "#E11D48" },
+];
+
+import { templates } from "@/data/mockData";
+
+// 6 curated quick-apply presets from the template gallery
+const PRESET_IDS = ["t1", "t2", "t3", "t4", "t7", "t9"];
+const PRESETS = PRESET_IDS.map((id) => templates.find((t) => t.id === id)!).filter(Boolean);
 
 export function StyleEditorSidebar() {
   const { menuStyle, setMenuStyle, applyTemplate } = useMenu();
+  const loadedFontsRef = useRef<Set<string>>(new Set());
 
   const densityIndex = DENSITY_VALUES.indexOf(menuStyle.layoutDensity);
+
+  // Dynamically load Google Fonts when headline or body font changes
+  useEffect(() => {
+    const fonts = [menuStyle.headlineFont, menuStyle.bodyFont].filter(Boolean);
+    fonts.forEach((font) => {
+      if (loadedFontsRef.current.has(font)) return;
+      loadedFontsRef.current.add(font);
+      const link = document.createElement("link");
+      link.rel = "stylesheet";
+      link.href = `https://fonts.googleapis.com/css2?family=${font.replace(/ /g, "+")}:wght@400;600;700;800&display=swap`;
+      document.head.appendChild(link);
+    });
+  }, [menuStyle.headlineFont, menuStyle.bodyFont]);
 
   return (
     <aside className="w-72 bg-surface flex flex-col p-6 overflow-y-auto shrink-0 hidden xl:flex">
       <div className="mb-8">
         <h2 className="font-[var(--font-headline)] text-lg font-bold tracking-tight mb-2">Style Editor</h2>
-        <p className="text-xs text-on-surface-variant font-medium uppercase tracking-widest">Global Brand Identity</p>
+        <p className="text-xs text-on-surface-variant font-medium uppercase tracking-widest">Brand Identity</p>
       </div>
+
       <div className="space-y-8">
+
         {/* Typography */}
         <div>
           <label className="block text-[10px] font-bold text-secondary uppercase tracking-[0.2em] mb-4">Typography</label>
           <div className="space-y-4">
             <div>
-              <label className="text-xs font-bold text-on-surface-variant mb-2 block" htmlFor="headline-font">Headlines</label>
-              <select 
-                id="headline-font" 
+              <label className="text-xs font-bold text-on-surface-variant mb-2 block" htmlFor="headline-font">
+                Headlines
+              </label>
+              <select
+                id="headline-font"
                 className="w-full bg-surface-container-low border-none rounded-xl py-3 px-4 text-sm font-semibold focus:ring-2 focus:ring-primary/20 cursor-pointer"
                 value={menuStyle.headlineFont}
                 onChange={(e) => setMenuStyle({ ...menuStyle, headlineFont: e.target.value })}
-                title="Select Headline Typography" aria-label="Select Headline Typography"
+                style={{ fontFamily: menuStyle.headlineFont }}
+                title="Select headline font"
+                aria-label="Select headline font"
               >
-                <option>Plus Jakarta Sans</option>
-                <option>Poppins</option>
-                <option>Playfair Display</option>
+                {HEADLINE_FONTS.map((f) => <option key={f} value={f} style={{ fontFamily: f }}>{f}</option>)}
               </select>
             </div>
             <div>
-              <label className="text-xs font-bold text-on-surface-variant mb-2 block" htmlFor="body-font">Body Text</label>
-              <select 
-                id="body-font" 
+              <label className="text-xs font-bold text-on-surface-variant mb-2 block" htmlFor="body-font">
+                Body Text
+              </label>
+              <select
+                id="body-font"
                 className="w-full bg-surface-container-low border-none rounded-xl py-3 px-4 text-sm font-semibold focus:ring-2 focus:ring-primary/20 cursor-pointer"
                 value={menuStyle.bodyFont}
                 onChange={(e) => setMenuStyle({ ...menuStyle, bodyFont: e.target.value })}
-                title="Select Body Typography" aria-label="Select Body Typography"
+                style={{ fontFamily: menuStyle.bodyFont }}
+                title="Select body font"
+                aria-label="Select body font"
               >
-                <option>Inter</option>
-                <option>Montserrat</option>
-                <option>Open Sans</option>
+                {BODY_FONTS.map((f) => <option key={f} value={f} style={{ fontFamily: f }}>{f}</option>)}
               </select>
             </div>
           </div>
         </div>
+
         {/* Colors */}
         <div>
           <label className="block text-[10px] font-bold text-secondary uppercase tracking-[0.2em] mb-4">Color Palette</label>
-          <div className="grid grid-cols-5 gap-3">
-            {[
-              { name: "Orange", hex: "#FF6B00" },
-              { name: "Black", hex: "#1E1E1E" },
-              { name: "Green", hex: "#00C853" },
-              { name: "Blue", hex: "#0070F3" },
-              { name: "Purple", hex: "#7928CA" }
-            ].map((color) => {
-              const isActive = menuStyle.primaryColor === color.hex;
-              const bgColorClass = 
-                  color.hex === "#FF6B00" ? "bg-[#FF6B00]" :
-                  color.hex === "#1E1E1E" ? "bg-[#1E1E1E]" :
-                  color.hex === "#00C853" ? "bg-[#00C853]" :
-                  color.hex === "#0070F3" ? "bg-[#0070F3]" :
-                  "bg-[#7928CA]";
-
+          <div className="grid grid-cols-6 gap-2 mb-3">
+            {PRESET_COLORS.map((color) => {
+              const isActive = menuStyle.primaryColor.toLowerCase() === color.hex.toLowerCase();
               return (
-                <button 
+                <button
                   key={color.hex}
-                  className={`w-full aspect-square rounded-full flex items-center justify-center transition-all ${isActive ? "ring-4 ring-primary/20 ring-offset-2 scale-110" : "hover:scale-110"} ${bgColorClass}`}
+                  type="button"
+                  className={`w-full aspect-square rounded-full flex items-center justify-center transition-all ${isActive ? "ring-4 ring-primary/20 ring-offset-2 scale-110" : "hover:scale-110"}`}
+                  style={{ backgroundColor: color.hex }}
                   onClick={() => setMenuStyle({ ...menuStyle, primaryColor: color.hex })}
                   title={color.name}
                   aria-label={color.name}
@@ -86,49 +127,98 @@ export function StyleEditorSidebar() {
               );
             })}
           </div>
+          {/* Custom color picker */}
+          <label className="flex items-center gap-3 cursor-pointer group" title="Pick a custom color">
+            <div className="relative w-8 h-8 rounded-full overflow-hidden border-2 border-outline-variant/30 group-hover:border-primary/40 transition-all shrink-0 shadow-sm">
+              <div className="absolute inset-0" style={{ backgroundColor: menuStyle.primaryColor }} />
+              <input
+                type="color"
+                value={menuStyle.primaryColor}
+                onChange={(e) => setMenuStyle({ ...menuStyle, primaryColor: e.target.value })}
+                className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                title="Pick custom color"
+                aria-label="Pick custom color"
+              />
+            </div>
+            <span className="text-xs font-bold text-secondary group-hover:text-primary transition-colors">Custom color</span>
+            <span className="text-[10px] font-mono text-secondary ml-auto">{menuStyle.primaryColor}</span>
+          </label>
         </div>
-        {/* Presets — M1: wired */}
+
+        {/* Currency */}
+        <div>
+          <label className="block text-[10px] font-bold text-secondary uppercase tracking-[0.2em] mb-4" htmlFor="currency-select">Currency</label>
+          <select
+            id="currency-select"
+            className="w-full bg-surface-container-low border-none rounded-xl py-3 px-4 text-sm font-semibold focus:ring-2 focus:ring-primary/20 cursor-pointer"
+            value={menuStyle.currency ?? "RWF"}
+            onChange={(e) => setMenuStyle({ ...menuStyle, currency: e.target.value })}
+            title="Select menu currency"
+            aria-label="Select menu currency"
+          >
+            {CURRENCIES.map((c) => (
+              <option key={c.code} value={c.code}>{c.code} — {c.name}</option>
+            ))}
+          </select>
+        </div>
+
+        {/* Style Presets */}
         <div>
           <label className="block text-[10px] font-bold text-secondary uppercase tracking-[0.2em] mb-4">Style Presets</label>
-          <div className="grid grid-cols-2 gap-2">
-            {PRESETS.map((preset) => {
-              const isActive = menuStyle.headlineFont === preset.style.headlineFont && menuStyle.layoutDensity === preset.style.layoutDensity;
+          <div className="grid grid-cols-3 gap-2">
+            {PRESETS.map((t) => {
+              const isActive =
+                menuStyle.headlineFont === t.config?.headlineFont &&
+                menuStyle.primaryColor === t.config?.primaryColor;
               return (
                 <button
-                  key={preset.label}
-                  onClick={() => applyTemplate(preset.style)}
-                  className={`h-12 rounded-xl flex items-center justify-center text-[10px] font-bold uppercase tracking-widest active:scale-95 transition-all border-2 ${isActive ? "bg-primary/10 text-primary border-primary/20" : "bg-surface-container-low text-on-surface-variant border-transparent hover:bg-surface-container-high"}`}
+                  key={t.id}
+                  type="button"
+                  title={t.name}
+                  aria-label={`Apply ${t.name} preset`}
+                  onClick={() => applyTemplate(t.config || {})}
+                  className={`h-12 rounded-xl flex flex-col items-center justify-center gap-1 text-[9px] font-bold uppercase tracking-widest active:scale-95 transition-all border-2 overflow-hidden ${
+                    isActive
+                      ? "border-primary/40 bg-primary/5 text-primary"
+                      : "bg-surface-container-low text-on-surface-variant border-transparent hover:bg-surface-container-high"
+                  }`}
                 >
-                  {preset.label}
+                  <div
+                    className="w-4 h-1.5 rounded-full"
+                    style={{ backgroundColor: t.config?.primaryColor ?? "#FF6B00" }}
+                  />
+                  {t.name.split(" ")[0]}
                 </button>
               );
             })}
           </div>
         </div>
-        {/* Layout — M1: wired to layoutDensity */}
+
+        {/* Layout */}
         <div>
-          <label className="block text-[10px] font-bold text-secondary uppercase tracking-[0.2em] mb-4">Layout Grid</label>
-          <div className="grid grid-cols-2 gap-3">
-            <div
+          <label className="block text-[10px] font-bold text-secondary uppercase tracking-[0.2em] mb-4">Layout</label>
+          <div className="grid grid-cols-2 gap-3 mb-4">
+            <button
+              type="button"
               onClick={() => setMenuStyle({ ...menuStyle, layoutDensity: "comfortable" })}
-              className={`p-3 rounded-xl flex flex-col items-center gap-2 cursor-pointer border-2 transition-all ${menuStyle.layoutDensity === "comfortable" ? "bg-surface-container-high border-primary" : "bg-surface-container-low border-transparent hover:bg-surface-container-high"}`}
+              className={`p-3 rounded-xl flex flex-col items-center gap-2 border-2 transition-all ${menuStyle.layoutDensity === "comfortable" ? "bg-surface-container-high border-primary" : "bg-surface-container-low border-transparent hover:bg-surface-container-high"}`}
             >
               <span className={`material-symbols-outlined ${menuStyle.layoutDensity === "comfortable" ? "text-primary" : "text-secondary"}`}>view_stream</span>
-              <span className="text-[10px] font-bold uppercase tracking-tighter">Single Column</span>
-            </div>
-            <div
+              <span className="text-[10px] font-bold uppercase tracking-tighter">Single</span>
+            </button>
+            <button
+              type="button"
               onClick={() => setMenuStyle({ ...menuStyle, layoutDensity: "compact" })}
-              className={`p-3 rounded-xl flex flex-col items-center gap-2 cursor-pointer border-2 transition-all ${menuStyle.layoutDensity === "compact" ? "bg-surface-container-high border-primary" : "bg-surface-container-low border-transparent hover:bg-surface-container-high"}`}
+              className={`p-3 rounded-xl flex flex-col items-center gap-2 border-2 transition-all ${menuStyle.layoutDensity === "compact" ? "bg-surface-container-high border-primary" : "bg-surface-container-low border-transparent hover:bg-surface-container-high"}`}
             >
               <span className={`material-symbols-outlined ${menuStyle.layoutDensity === "compact" ? "text-primary" : "text-secondary"}`}>view_module</span>
-              <span className="text-[10px] font-bold uppercase tracking-tighter">Two Column</span>
-            </div>
+              <span className="text-[10px] font-bold uppercase tracking-tighter">Compact</span>
+            </button>
           </div>
-        </div>
-        {/* Density Slider — M1: wired */}
-        <div>
-          <div className="flex justify-between items-center mb-4">
-            <label className="block text-[10px] font-bold text-secondary uppercase tracking-[0.2em]" htmlFor="density-slider">Density</label>
+
+          {/* Density slider */}
+          <div className="flex justify-between items-center mb-2">
+            <label className="text-[10px] font-bold text-secondary uppercase tracking-[0.2em]" htmlFor="density-slider">Spacing</label>
             <span className="text-xs font-bold text-primary">{DENSITY_LABELS[menuStyle.layoutDensity]}</span>
           </div>
           <input
@@ -140,9 +230,11 @@ export function StyleEditorSidebar() {
             value={densityIndex === -1 ? 1 : densityIndex}
             onChange={(e) => setMenuStyle({ ...menuStyle, layoutDensity: DENSITY_VALUES[parseInt(e.target.value)] })}
             className="w-full h-1.5 bg-surface-container-low rounded-full appearance-none cursor-pointer accent-primary"
-            title="Layout Density" aria-label="Layout Density"
+            title="Layout spacing"
+            aria-label="Layout spacing"
           />
         </div>
+
       </div>
     </aside>
   );

@@ -6,7 +6,19 @@ import Link from "next/link";
 import { StyleEditorSidebar } from "./StyleEditorSidebar";
 import { MenuSectionsSidebar } from "./MenuSectionsSidebar";
 import { ImageUpload } from "@/components/ImageUpload";
+import { prompt } from "@/components/Modals";
 import { supabase } from "@/lib/supabase";
+import { toast } from "sonner";
+
+type Viewport = "mobile" | "tablet" | "desktop";
+
+const VIEWPORT_CONFIG: Record<Viewport, { width: string; rounded: string; border: string; minH: string }> = {
+  mobile:  { width: "max-w-[420px]",  rounded: "rounded-[3rem]", border: "border-[12px] border-on-surface", minH: "min-h-[600px]" },
+  tablet:  { width: "max-w-[680px]",  rounded: "rounded-[2rem]", border: "border-[8px] border-on-surface/60",  minH: "min-h-[500px]" },
+  desktop: { width: "max-w-[900px]",  rounded: "rounded-xl",     border: "border border-surface-container",    minH: "min-h-[500px]" },
+};
+
+const BADGES = ["bestseller", "popular", "healthy", "chefs-pick", "new"] as const;
 
 export default function MenuEditorPage() {
   const {
@@ -18,13 +30,14 @@ export default function MenuEditorPage() {
     addItem,
     updateItem,
     removeItem,
+    duplicateItem,
+    publishMenu,
+    unpublishMenu,
+    renameMenu,
     menuStatus,
     menuSlug,
     activeMenuId,
     activeMenuName,
-    publishMenu,
-    unpublishMenu,
-    renameMenu,
     isSyncing,
   } = useMenu();
 
@@ -33,35 +46,44 @@ export default function MenuEditorPage() {
   const [tempName, setTempName] = useState("");
   const [userId, setUserId] = useState<string | null>(null);
   const [expandedItemId, setExpandedItemId] = useState<string | null>(null);
+  const [viewport, setViewport] = useState<Viewport>("mobile");
+  const [addingTagForItem, setAddingTagForItem] = useState<string | null>(null);
+  const [newTagText, setNewTagText] = useState("");
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
-      setUserId(data.user?.id ?? null);
-    });
+    supabase.auth.getUser().then(({ data }) => setUserId(data.user?.id ?? null));
   }, []);
 
   const containerRef = useRef<HTMLDivElement>(null);
-  // C4: use string | undefined, keep in sync when categories load
   const [activeCategoryId, setActiveCategoryId] = useState<string | undefined>(undefined);
 
-  // C4: once categories are available, default-select the first/third one
+  // Default to first category once loaded
   useEffect(() => {
     if (!activeCategoryId && categories.length > 0) {
-      setActiveCategoryId(categories[2]?.id || categories[0]?.id);
+      setActiveCategoryId(categories[0]?.id);
     }
   }, [categories, activeCategoryId]);
 
+  // If active category was deleted, fall back to first
+  useEffect(() => {
+    if (activeCategoryId && !categories.find((c) => c.id === activeCategoryId)) {
+      setActiveCategoryId(categories[0]?.id);
+    }
+  }, [categories, activeCategoryId]);
+
+  // Apply CSS vars for live style preview
   useEffect(() => {
     if (containerRef.current) {
       const s = containerRef.current.style;
-      s.setProperty('--primary-color', menuStyle.primaryColor);
-      s.setProperty('--font-headline', menuStyle.headlineFont);
-      s.setProperty('--font-body', menuStyle.bodyFont);
+      s.setProperty("--primary-color", menuStyle.primaryColor);
+      s.setProperty("--font-headline", menuStyle.headlineFont);
+      s.setProperty("--font-body", menuStyle.bodyFont);
     }
   }, [menuStyle]);
 
-  const activeCategory = categories.find(c => c.id === activeCategoryId);
-  const filteredItems = menuItems.filter(i => i.category === activeCategoryId);
+  const activeCategory = categories.find((c) => c.id === activeCategoryId);
+  const filteredItems = menuItems.filter((i) => i.category === activeCategoryId);
+  const vp = VIEWPORT_CONFIG[viewport];
 
   const handleRenameMenu = async () => {
     if (tempName.trim() && tempName !== activeMenuName && activeMenuId) {
@@ -70,10 +92,37 @@ export default function MenuEditorPage() {
     setIsEditingName(false);
   };
 
+  const handleAddTag = (itemId: string) => {
+    const tag = newTagText.trim();
+    if (!tag) { setAddingTagForItem(null); setNewTagText(""); return; }
+    const item = menuItems.find((i) => i.id === itemId);
+    if (item && !item.tags.includes(tag)) {
+      updateItem(itemId, { tags: [...item.tags, tag] });
+    }
+    setNewTagText("");
+    setAddingTagForItem(null);
+  };
+
+  const handleRemoveTag = (itemId: string, tag: string) => {
+    const item = menuItems.find((i) => i.id === itemId);
+    if (item) updateItem(itemId, { tags: item.tags.filter((t) => t !== tag) });
+  };
+
+  const handleAddTagPrompt = async (itemId: string) => {
+    const tag = await prompt({ title: "Add Tag", placeholder: "e.g. Vegan, Spicy, Gluten-Free", confirmLabel: "Add" });
+    if (tag) {
+      const item = menuItems.find((i) => i.id === itemId);
+      if (item && !item.tags.includes(tag)) {
+        updateItem(itemId, { tags: [...item.tags, tag] });
+        toast.success(`Tag "${tag}" added`);
+      }
+    }
+  };
+
   return (
-    <div 
+    <div
       ref={containerRef}
-      className="h-[calc(100vh)] flex flex-col overflow-hidden theme-transition"
+      className="h-[calc(100vh)] flex flex-col overflow-hidden"
     >
       {/* Top Bar */}
       <header className="bg-surface/80 backdrop-blur-xl flex justify-between items-center px-6 h-16 border-b border-surface-container/50 shrink-0">
@@ -85,14 +134,16 @@ export default function MenuEditorPage() {
             {isEditingName ? (
               <input
                 autoFocus
+                title="Menu name"
+                placeholder="Menu name"
                 className="font-[var(--font-headline)] font-bold text-sm bg-surface-container-low border-none rounded px-2 py-1 outline-none focus:ring-2 focus:ring-primary/20 w-48"
                 value={tempName}
                 onChange={(e) => setTempName(e.target.value)}
                 onBlur={handleRenameMenu}
-                onKeyDown={(e) => e.key === 'Enter' && handleRenameMenu()}
+                onKeyDown={(e) => e.key === "Enter" && handleRenameMenu()}
               />
             ) : (
-              <span 
+              <span
                 className="font-[var(--font-headline)] font-bold text-sm cursor-pointer hover:text-primary transition-colors flex items-center gap-1"
                 onClick={() => { setTempName(activeMenuName); setIsEditingName(true); }}
                 title="Click to rename menu"
@@ -102,7 +153,10 @@ export default function MenuEditorPage() {
               </span>
             )}
           </div>
-          <span className="text-xs text-secondary hidden sm:inline">• {activeCategory?.name || "No Selection"}</span>
+          <span className="text-xs text-secondary hidden sm:inline">• {activeCategory?.name || "No Section Selected"}</span>
+          {isSyncing && (
+            <span className="text-[10px] text-secondary animate-pulse hidden sm:inline">Saving…</span>
+          )}
         </div>
         <div className="flex items-center gap-3">
           {menuStatus === "published" && menuSlug && (
@@ -116,19 +170,23 @@ export default function MenuEditorPage() {
           )}
           {menuStatus === "published" ? (
             <button
+              type="button"
               onClick={async () => { await unpublishMenu(); setPublishedSlug(null); }}
               disabled={isSyncing}
-              className="px-4 py-2 bg-surface-container-highest rounded-xl font-bold text-sm text-on-surface hover:bg-surface-variant transition-all disabled:opacity-60">
+              className="px-4 py-2 bg-surface-container-highest rounded-xl font-bold text-sm text-on-surface hover:bg-surface-variant transition-all disabled:opacity-60"
+            >
               Unpublish
             </button>
           ) : (
             <button
+              type="button"
               onClick={async () => {
                 const slug = await publishMenu();
                 if (slug) { setPublishedSlug(slug); setTimeout(() => setPublishedSlug(null), 3000); }
               }}
               disabled={isSyncing}
-              className="px-6 py-2 bg-gradient-to-br from-primary to-primary-container rounded-xl font-bold text-sm text-white shadow-lg shadow-primary/20 hover:opacity-90 transition-all active:scale-95 disabled:opacity-60">
+              className="px-6 py-2 bg-gradient-to-br from-primary to-primary-container rounded-xl font-bold text-sm text-white shadow-lg shadow-primary/20 hover:opacity-90 transition-all active:scale-95 disabled:opacity-60"
+            >
               Publish Menu
             </button>
           )}
@@ -136,59 +194,49 @@ export default function MenuEditorPage() {
       </header>
 
       <div className="flex flex-1 overflow-hidden">
-        {/* Left Panel: Menu Sections */}
-        <MenuSectionsSidebar 
-          activeCategoryId={activeCategoryId} 
-          setActiveCategoryId={setActiveCategoryId} 
+        {/* Left Panel */}
+        <MenuSectionsSidebar
+          activeCategoryId={activeCategoryId}
+          setActiveCategoryId={setActiveCategoryId}
         />
 
         {/* Center: Live Preview */}
         <section className="flex-1 bg-surface-container-low p-6 lg:p-10 flex flex-col items-center editor-canvas relative overflow-auto">
-          {/* Smart Feature Chips */}
-          <div className="flex flex-wrap gap-3 mb-6">
-            {[
-              { icon: "star", label: "Highlight Best Seller", color: "primary" },
-              { icon: "trending_up", label: "Price Optimization (+10%)", color: "tertiary" },
-              { icon: "error_outline", label: "Low performing item alert", color: "error" },
-            ].map((chip) => (
-              <div key={chip.label} className={`flex items-center gap-2 px-4 py-2 bg-white/90 backdrop-blur-md rounded-full shadow-lg border border-${chip.color}/10 hover:scale-105 transition-transform cursor-pointer`}>
-                <span className={`material-symbols-outlined text-${chip.color} text-lg ${chip.icon === "star" ? "icon-fill" : ""}`}>{chip.icon}</span>
-                <span className={`text-xs font-bold ${chip.color !== "primary" ? `text-${chip.color}` : ""}`}>{chip.label}</span>
-              </div>
-            ))}
-          </div>
 
-          {/* Phone Frame Preview */}
-          <div className="w-full max-w-[420px] bg-white rounded-[3rem] shadow-2xl overflow-y-auto border-[12px] border-on-surface flex flex-col min-h-[600px]">
+          {/* Phone / Tablet / Desktop Frame */}
+          <div className={`w-full ${vp.width} bg-white ${vp.rounded} shadow-2xl overflow-y-auto ${vp.border} flex flex-col ${vp.minH} transition-all duration-300`}>
             <div className="w-full h-56 relative overflow-hidden shrink-0">
-              <NextImage 
-                alt="Menu Header" 
-                className="object-cover" 
-                src={filteredItems.find(i => i.image)?.image || "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=600&h=300&fit=crop"} 
-                fill 
-                sizes="(max-width: 420px) 100vw, 420px"
-                priority 
+              <NextImage
+                alt="Menu Header"
+                className="object-cover"
+                src={filteredItems.find((i) => i.image)?.image || "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=600&h=300&fit=crop"}
+                fill
+                sizes="(max-width: 900px) 100vw, 900px"
+                priority
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-white via-transparent to-black/20 z-10"></div>
+              <div className="absolute inset-0 bg-gradient-to-t from-white via-transparent to-black/20 z-10" />
               <div className="absolute bottom-6 left-6 right-6 z-20">
-                {/* H2: show real active category name */}
                 <h1 className="text-white font-[var(--font-headline)] text-3xl font-black tracking-tight drop-shadow-lg">
                   {activeCategory?.name || "Select a Category"}
                 </h1>
               </div>
             </div>
+
             <div className="p-6 space-y-6">
               {filteredItems.map((item) => {
                 const isExpanded = expandedItemId === item.id;
                 return (
-                  <div key={item.id} className={`relative group cursor-pointer -mx-2 px-2 py-3 rounded-2xl transition-all ${item.available === false ? "opacity-60 bg-surface-container-low" : "hover:bg-surface-container-low"}`}>
-                    {/* Click header row to expand/collapse */}
+                  <div
+                    key={item.id}
+                    className={`relative group cursor-pointer -mx-2 px-2 py-3 rounded-2xl transition-all ${item.available === false ? "opacity-60 bg-surface-container-low" : "hover:bg-surface-container-low"}`}
+                  >
+                    {/* Header row */}
                     <div
                       className="flex justify-between items-start mb-1"
                       onClick={() => setExpandedItemId(isExpanded ? null : item.id)}
                     >
                       <div className="flex-1">
-                        <input 
+                        <input
                           className="font-[var(--font-headline)] font-extrabold text-lg bg-transparent border-none p-0 focus:ring-0 w-full"
                           value={item.name}
                           onChange={(e) => { e.stopPropagation(); updateItem(item.id, { name: e.target.value }); }}
@@ -196,59 +244,114 @@ export default function MenuEditorPage() {
                           title="Item Name"
                           placeholder="Item Name"
                         />
-                        {item.badge === "bestseller" && (
-                          <span className="bg-[var(--primary-color)]/10 text-[var(--primary-color)] text-[10px] font-black px-2 py-0.5 rounded uppercase tracking-tighter">Bestseller</span>
-                        )}
-                        {item.available === false && (
-                          <span className="bg-error/10 text-error text-[10px] font-black px-2 py-0.5 rounded uppercase tracking-tighter">Sold Out</span>
-                        )}
+                        <div className="flex gap-1 flex-wrap mt-0.5">
+                          {item.badge && (
+                            <span className="bg-[var(--primary-color)]/10 text-[var(--primary-color)] text-[10px] font-black px-2 py-0.5 rounded uppercase tracking-tighter">
+                              {item.badge}
+                            </span>
+                          )}
+                          {item.available === false && (
+                            <span className="bg-error/10 text-error text-[10px] font-black px-2 py-0.5 rounded uppercase tracking-tighter">Sold Out</span>
+                          )}
+                        </div>
                       </div>
                       <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
-                        <span className="font-[var(--font-headline)] font-bold text-[var(--primary-color)] text-lg">$</span>
-                        <input 
+                        <span className="font-[var(--font-headline)] font-bold text-[var(--primary-color)] text-xs opacity-70">{menuStyle.currency ?? "RWF"}</span>
+                        <input
                           type="number"
-                          step="0.01"
-                          className="font-[var(--font-headline)] font-bold text-[var(--primary-color)] text-lg bg-transparent border-none p-0 focus:ring-0 w-16 text-right"
+                          step="1"
+                          min="0"
+                          className="font-[var(--font-headline)] font-bold text-[var(--primary-color)] text-lg bg-transparent border-none p-0 focus:ring-0 w-20 text-right"
                           value={item.price}
                           onChange={(e) => updateItem(item.id, { price: parseFloat(e.target.value) || 0 })}
                           title="Item Price"
-                          placeholder="0.00"
+                          placeholder="0"
                         />
                       </div>
                     </div>
-                    <textarea 
-                      className="text-sm text-on-surface-variant font-medium leading-relaxed italic bg-transparent border-none p-0 focus:ring-0 w-full resize-none h-auto overflow-hidden font-[var(--font-body)]"
+
+                    <textarea
+                      className="text-sm text-on-surface-variant font-medium leading-relaxed italic bg-transparent border-none p-0 focus:ring-0 w-full resize-none overflow-hidden font-[var(--font-body)]"
                       value={item.description}
                       rows={2}
                       onChange={(e) => updateItem(item.id, { description: e.target.value })}
                       onClick={(e) => e.stopPropagation()}
                       title="Item Description"
-                      placeholder="Description..."
+                      placeholder="Description…"
                     />
+
+                    {/* Tags display */}
                     {item.tags.length > 0 && (
-                      <div className="mt-3 flex gap-2">
+                      <div className="mt-2 flex gap-1 flex-wrap">
                         {item.tags.map((tag) => (
                           <span key={tag} className="bg-tertiary/10 text-tertiary text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-widest">{tag}</span>
                         ))}
                       </div>
                     )}
 
-                    {/* Expanded: availability toggle + image upload panel */}
+                    {/* Expanded panel */}
                     {isExpanded && userId && (
-                      <div className="mt-4 border-t border-outline-variant/20 pt-4 space-y-4" onClick={(e) => e.stopPropagation()}>
-                        {/* Availability toggle */}
+                      <div className="mt-4 border-t border-outline-variant/20 pt-4 space-y-5" onClick={(e) => e.stopPropagation()}>
+
+                        {/* Availability */}
                         <div className="flex items-center justify-between">
                           <div>
                             <p className="text-xs font-bold text-secondary">Availability</p>
                             <p className="text-[10px] text-secondary opacity-70">{item.available === false ? "Hidden from customers" : "Visible on menu"}</p>
                           </div>
                           <button
+                            type="button"
                             onClick={() => updateItem(item.id, { available: item.available === false ? true : false })}
                             className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${item.available === false ? "bg-error/10 text-error" : "bg-tertiary/10 text-tertiary"}`}
                           >
                             {item.available === false ? "Mark Available" : "Mark Sold Out"}
                           </button>
                         </div>
+
+                        {/* Badge picker */}
+                        <div>
+                          <p className="text-xs font-bold text-secondary mb-2">Badge</p>
+                          <div className="flex flex-wrap gap-1.5">
+                            {BADGES.map((b) => (
+                              <button
+                                key={b}
+                                type="button"
+                                onClick={() => updateItem(item.id, { badge: item.badge === b ? undefined : b })}
+                                className={`text-[10px] font-bold px-2.5 py-1 rounded-full capitalize transition-all ${item.badge === b ? "bg-primary text-white" : "bg-surface-container-high text-secondary hover:bg-surface-container-highest"}`}
+                              >
+                                {b}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Tags editor */}
+                        <div>
+                          <p className="text-xs font-bold text-secondary mb-2">Tags</p>
+                          <div className="flex flex-wrap gap-1.5 items-center">
+                            {item.tags.map((tag) => (
+                              <span key={tag} className="flex items-center gap-1 bg-tertiary/10 text-tertiary text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-widest">
+                                {tag}
+                                <button
+                                  type="button"
+                                  onClick={() => handleRemoveTag(item.id, tag)}
+                                  className="hover:text-error transition-colors"
+                                  title={`Remove ${tag}`}
+                                >
+                                  <span className="material-symbols-outlined text-[10px]">close</span>
+                                </button>
+                              </span>
+                            ))}
+                            <button
+                              type="button"
+                              onClick={() => handleAddTagPrompt(item.id)}
+                              className="flex items-center gap-0.5 text-[10px] font-bold text-primary hover:bg-primary/10 px-2 py-0.5 rounded-full transition-all"
+                            >
+                              <span className="material-symbols-outlined text-sm">add</span> Add tag
+                            </button>
+                          </div>
+                        </div>
+
                         {/* Image upload */}
                         <div>
                           <p className="text-xs font-bold text-secondary mb-2">Item Photo</p>
@@ -259,10 +362,21 @@ export default function MenuEditorPage() {
                             onUpload={(url) => updateItem(item.id, { image: url })}
                           />
                         </div>
+
+                        {/* Duplicate item */}
+                        <button
+                          type="button"
+                          onClick={() => { duplicateItem(item.id); setExpandedItemId(null); toast.success("Item duplicated"); }}
+                          className="flex items-center gap-2 text-xs font-bold text-secondary hover:text-primary transition-colors"
+                        >
+                          <span className="material-symbols-outlined text-sm">content_copy</span> Duplicate item
+                        </button>
                       </div>
                     )}
 
-                    <button 
+                    {/* Delete button */}
+                    <button
+                      type="button"
                       onClick={(e) => { e.stopPropagation(); removeItem(item.id); }}
                       className="absolute -right-2 top-2 opacity-0 group-hover:opacity-100 p-1 text-error hover:bg-error/10 rounded-full transition-all"
                     >
@@ -276,9 +390,9 @@ export default function MenuEditorPage() {
                   </div>
                 );
               })}
-              {/* C4: only show add button if a category is selected */}
+
               {activeCategoryId ? (
-                <div 
+                <div
                   onClick={() => addItem(activeCategoryId)}
                   className="border-2 border-dashed border-outline-variant/40 rounded-3xl p-6 flex flex-col items-center justify-center gap-2 hover:border-primary/40 hover:bg-primary/5 transition-all cursor-pointer"
                 >
@@ -296,13 +410,25 @@ export default function MenuEditorPage() {
 
           {/* Viewport Controls */}
           <div className="mt-6 flex items-center gap-1 bg-surface-container-highest p-1 rounded-full shadow-lg">
-            <button className="p-3 rounded-full bg-white shadow-sm text-primary"><span className="material-symbols-outlined">smartphone</span></button>
-            <button className="p-3 rounded-full text-on-surface-variant hover:bg-white/50 transition-all"><span className="material-symbols-outlined">tablet</span></button>
-            <button className="p-3 rounded-full text-on-surface-variant hover:bg-white/50 transition-all"><span className="material-symbols-outlined">desktop_windows</span></button>
+            {(["mobile", "tablet", "desktop"] as Viewport[]).map((v) => {
+              const icons = { mobile: "smartphone", tablet: "tablet", desktop: "desktop_windows" };
+              const isActive = viewport === v;
+              return (
+                <button
+                  key={v}
+                  type="button"
+                  title={v.charAt(0).toUpperCase() + v.slice(1)}
+                  onClick={() => setViewport(v)}
+                  className={`p-3 rounded-full transition-all ${isActive ? "bg-white shadow-sm text-primary" : "text-on-surface-variant hover:bg-white/50"}`}
+                >
+                  <span className="material-symbols-outlined">{icons[v]}</span>
+                </button>
+              );
+            })}
           </div>
         </section>
 
-        {/* Right Panel: Style Settings */}
+        {/* Right Panel */}
         <StyleEditorSidebar />
       </div>
     </div>

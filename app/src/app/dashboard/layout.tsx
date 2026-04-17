@@ -2,8 +2,10 @@
 
 import { ReactNode, useEffect, useState } from "react";
 import Link from "next/link";
+import NextImage from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
+import { useMenu } from "@/context/MenuContext";
 import { User } from "@supabase/supabase-js";
 
 const navLinks = [
@@ -27,6 +29,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
   const [moreOpen, setMoreOpen] = useState(false);
+  const { restaurantLogoUrl, restaurantName } = useMenu();
 
   useEffect(() => {
     supabase.auth.getUser().then(async ({ data }) => {
@@ -80,11 +83,15 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
         </nav>
         <div className="px-8 mt-auto pt-6 border-t border-surface-container">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-primary">
-              <span className="material-symbols-outlined">person</span>
+            <div className="w-10 h-10 rounded-xl overflow-hidden shrink-0 bg-primary/20 flex items-center justify-center text-primary">
+              {restaurantLogoUrl ? (
+                <NextImage src={restaurantLogoUrl} alt={restaurantName || "Logo"} width={40} height={40} className="object-cover w-full h-full" />
+              ) : (
+                <span className="material-symbols-outlined text-sm">store</span>
+              )}
             </div>
             <div className="overflow-hidden">
-              <p className="text-[10px] font-bold truncate">{user?.email?.split('@')[0] || "Guest"}</p>
+              <p className="text-[10px] font-bold truncate">{restaurantName || user?.email?.split('@')[0] || "My Restaurant"}</p>
               <button onClick={handleSignOut} className="text-[10px] opacity-60 hover:text-primary transition-colors block">Sign Out</button>
             </div>
           </div>

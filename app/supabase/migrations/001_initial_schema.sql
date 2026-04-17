@@ -96,7 +96,7 @@ create index if not exists analytics_events_created_at_idx on public.analytics_e
 -- ============================================================
 create table if not exists public.orders (
   id              uuid primary key default gen_random_uuid(),
-  menu_id         uuid references public.menus(id),
+  menu_id         uuid references public.menus(id) on delete set null,
   restaurant_id   uuid references public.restaurants(id) on delete cascade not null,
   items           jsonb not null,
   total           numeric not null,
@@ -116,6 +116,11 @@ alter table public.orders add column if not exists customer_name text;
 alter table public.orders add column if not exists table_number text;
 alter table public.orders add column if not exists status text not null default 'pending';
 alter table public.orders add column if not exists whatsapp_sent boolean not null default false;
+
+-- Fix orders.menu_id FK to SET NULL on menu delete (preserves order history)
+alter table public.orders drop constraint if exists orders_menu_id_fkey;
+alter table public.orders add constraint orders_menu_id_fkey
+  foreign key (menu_id) references public.menus(id) on delete set null;
 
 create index if not exists orders_restaurant_id_idx on public.orders(restaurant_id);
 create index if not exists orders_created_at_idx on public.orders(created_at desc);

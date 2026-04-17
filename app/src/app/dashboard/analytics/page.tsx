@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useMenu } from "@/context/MenuContext";
-import { formatEventType, formatRelativeTime } from "@/lib/utils";
+import { formatPrice, formatEventType, formatRelativeTime } from "@/lib/utils";
 import { SkeletonKpi, SkeletonRow } from "@/components/Skeleton";
 
 interface AnalyticsData {
@@ -13,7 +13,8 @@ interface AnalyticsData {
 }
 
 export default function AnalyticsPage() {
-  const { restaurantId, plan } = useMenu();
+  const { restaurantId, plan, menuStyle } = useMenu();
+  const currency = menuStyle.currency ?? "RWF";
   const [data, setData] = useState<AnalyticsData | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -94,7 +95,7 @@ export default function AnalyticsPage() {
         {[
           { label: "Menu Views", value: kpis.views.toLocaleString(), icon: "visibility" },
           { label: "Total Orders", value: kpis.orders.toLocaleString(), icon: "receipt_long" },
-          { label: "Revenue", value: `$${kpis.revenue.toFixed(2)}`, icon: "payments" },
+          { label: "Revenue", value: formatPrice(kpis.revenue, currency), icon: "payments" },
           { label: "Conversion Rate", value: `${kpis.conversionRate.toFixed(1)}%`, icon: "conversion_path" },
         ].map((kpi) => (
           <div key={kpi.label} className="bg-surface-container-lowest p-6 rounded-3xl shadow-sm border border-surface-container/50">
@@ -187,7 +188,7 @@ export default function AnalyticsPage() {
                     </p>
                     <p className="text-[10px] text-secondary">{formatRelativeTime(event.time)}</p>
                   </div>
-                  {event.amount && <span className="text-xs font-bold text-primary">${Number(event.amount).toFixed(2)}</span>}
+                  {event.amount && <span className="text-xs font-bold text-primary">{formatPrice(Number(event.amount), currency)}</span>}
                 </div>
               ))}
             </div>

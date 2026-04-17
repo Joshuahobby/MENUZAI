@@ -20,12 +20,11 @@ export interface MenuCategory {
 
 export interface MenuStyle {
   primaryColor: string;
-  secondaryColor: string;
   headlineFont: string;
   bodyFont: string;
   borderRadius: string;
   layoutDensity: "compact" | "comfortable" | "spacious";
-  theme: "light" | "dark" | "glass";
+  currency: string;
 }
 
 export interface CartItem extends MenuItem {
