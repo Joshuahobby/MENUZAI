@@ -37,8 +37,8 @@ export function ConfirmModal() {
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => handleClose(false)} />
-      <div className="relative bg-surface-container-lowest rounded-[2rem] p-8 w-full max-w-sm shadow-2xl border border-surface-container/50 animate-[fadeIn_0.2s_ease]">
-        <h2 className="font-[var(--font-headline)] font-bold text-xl mb-2">{state.title}</h2>
+      <div role="dialog" aria-modal="true" aria-labelledby="confirm-title" className="relative bg-surface-container-lowest rounded-[2rem] p-8 w-full max-w-sm shadow-2xl border border-surface-container/50 animate-[fadeIn_0.2s_ease]">
+        <h2 id="confirm-title" className="font-[var(--font-headline)] font-bold text-xl mb-2">{state.title}</h2>
         <p className="text-secondary text-sm leading-relaxed mb-8">{state.message}</p>
         <div className="flex gap-3">
           <button
@@ -101,8 +101,8 @@ export function PromptModal() {
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => handleClose(false)} />
-      <div className="relative bg-surface-container-lowest rounded-[2rem] p-8 w-full max-w-sm shadow-2xl border border-surface-container/50 animate-[fadeIn_0.2s_ease]">
-        <h2 className="font-[var(--font-headline)] font-bold text-xl mb-2">{state.title}</h2>
+      <div role="dialog" aria-modal="true" aria-labelledby="prompt-title" className="relative bg-surface-container-lowest rounded-[2rem] p-8 w-full max-w-sm shadow-2xl border border-surface-container/50 animate-[fadeIn_0.2s_ease]">
+        <h2 id="prompt-title" className="font-[var(--font-headline)] font-bold text-xl mb-2">{state.title}</h2>
         {state.message && <p className="text-secondary text-sm mb-4">{state.message}</p>}
         <input
           autoFocus

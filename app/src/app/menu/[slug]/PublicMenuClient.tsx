@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import NextImage from "next/image";
 import { useRouter } from "next/navigation";
+import { supabase } from "@/lib/supabase";
 import { trackMenuView, trackItemView, trackOrderClick } from "@/lib/analytics";
 import type { MenuItem, MenuCategory, MenuStyle, CartItem } from "@/types/menu";
 import { defaultStyle } from "@/context/MenuContext";
@@ -29,10 +30,12 @@ export default function PublicMenuClient(props: PublicMenuClientProps) {
     restaurantPhone,
     restaurantLogoUrl,
     slug,
-    categories,
-    items,
   } = props;
-  const { style: styleProp } = props;
+
+  const [categories, setCategories] = useState<MenuCategory[]>(props.categories);
+  const [items, setItems] = useState<MenuItem[]>(props.items);
+  const [styleProp, setStyleProp] = useState<Partial<MenuStyle>>(props.style);
+
   const menuStyle: MenuStyle = React.useMemo(() => ({ ...defaultStyle, ...styleProp }), [styleProp]);
   const containerRef = useRef<HTMLDivElement>(null);
   const [activeCategory, setActiveCategory] = useState(categories[0]?.id || "");
@@ -44,6 +47,46 @@ export default function PublicMenuClient(props: PublicMenuClientProps) {
   useEffect(() => {
     trackMenuView(menuId, restaurantId);
   }, [menuId, restaurantId]);
+
+  // Real-time synchronization
+  useEffect(() => {
+    if (!menuId) return;
+
+    const channel = supabase
+      .channel(`public-menu:${menuId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "menus",
+          filter: `id=eq.${menuId}`,
+        },
+        (payload) => {
+          const updated = payload.new as {
+            categories?: MenuCategory[];
+            items?: MenuItem[];
+            style?: Partial<MenuStyle>;
+            status?: string;
+          };
+          
+          if (updated.status === 'draft') {
+            // If menu is unpublished while customer is viewing, we could redirect or show a message
+            // For now, we'll just stop updating
+            return;
+          }
+
+          if (updated.categories) setCategories(updated.categories);
+          if (updated.items) setItems(updated.items);
+          if (updated.style) setStyleProp(updated.style);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [menuId]);
 
   useEffect(() => {
     if (containerRef.current) {

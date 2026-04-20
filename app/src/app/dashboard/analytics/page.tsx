@@ -10,22 +10,33 @@ interface AnalyticsData {
   topItems: { name: string; count: number }[];
   peakHours: { hour: number; count: number }[];
   recentEvents: { type: string; item: string | null; amount: number | null; time: string }[];
+  meta?: { days: number; plan: string };
 }
 
+const RANGE_OPTIONS = [
+  { label: "Last 7 Days", days: 7, proOnly: false },
+  { label: "Last 30 Days", days: 30, proOnly: false },
+  { label: "Last 90 Days", days: 90, proOnly: true },
+];
+
 export default function AnalyticsPage() {
-  const { restaurantId, plan, menuStyle } = useMenu();
+  const { restaurantId, plan, menuStyle, isLoading: menuLoading } = useMenu();
   const currency = menuStyle.currency ?? "RWF";
   const [data, setData] = useState<AnalyticsData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [selectedDays, setSelectedDays] = useState(plan === "free" ? 7 : 30);
+  const [rangeOpen, setRangeOpen] = useState(false);
 
   useEffect(() => {
-    if (!restaurantId) return;
-
-    fetch(`/api/analytics/summary?restaurantId=${restaurantId}&days=30`)
+    // Wait for MenuContext to finish bootstrapping before fetching;
+    // otherwise a stale restaurantId can fire a request before the session cookie is set.
+    if (!restaurantId || menuLoading) return;
+    setLoading(true);
+    fetch(`/api/analytics/summary?restaurantId=${restaurantId}&days=${selectedDays}`)
       .then(res => res.json())
       .then(setData)
       .finally(() => setLoading(false));
-  }, [restaurantId]);
+  }, [restaurantId, menuLoading, selectedDays]);
 
   if (loading) {
     return (
@@ -61,11 +72,38 @@ export default function AnalyticsPage() {
           <h1 className="text-3xl font-[var(--font-headline)] font-extrabold tracking-tight mb-1">Analytics</h1>
           <p className="text-secondary font-medium">Deep dive into your restaurant&apos;s performance metrics.</p>
         </div>
-        <div className="flex items-center gap-3">
-          <div className="bg-surface-container-lowest px-4 py-2.5 rounded-xl border border-surface-container flex items-center gap-3 shadow-sm">
-            <span className="material-symbols-outlined text-primary text-3xl icon-fill">bolt</span>
-            <span className="text-sm font-semibold">Last 30 Days</span>
-          </div>
+        <div className="relative">
+          <button
+            type="button"
+            onClick={() => setRangeOpen(v => !v)}
+            className="bg-surface-container-lowest px-4 py-2.5 rounded-xl border border-surface-container flex items-center gap-3 shadow-sm hover:border-primary/30 transition-all"
+          >
+            <span className="material-symbols-outlined text-primary text-xl icon-fill">calendar_month</span>
+            <span className="text-sm font-semibold">
+              {RANGE_OPTIONS.find(o => o.days === selectedDays)?.label ?? `Last ${selectedDays} Days`}
+            </span>
+            <span className="material-symbols-outlined text-secondary text-sm">expand_more</span>
+          </button>
+          {rangeOpen && (
+            <div className="absolute right-0 top-full mt-2 z-20 bg-surface-container-lowest border border-surface-container shadow-xl rounded-2xl overflow-hidden w-48">
+              {RANGE_OPTIONS.map(opt => {
+                const locked = opt.proOnly && plan === "free";
+                return (
+                  <button
+                    key={opt.days}
+                    type="button"
+                    disabled={locked}
+                    onClick={() => { if (!locked) { setSelectedDays(opt.days); setRangeOpen(false); } }}
+                    className={`w-full flex items-center justify-between px-4 py-3 text-sm font-semibold transition-colors ${selectedDays === opt.days ? "bg-primary/10 text-primary" : locked ? "text-secondary opacity-50 cursor-not-allowed" : "hover:bg-surface-container-low text-on-surface"}`}
+                  >
+                    {opt.label}
+                    {locked && <span className="material-symbols-outlined text-[14px]">lock</span>}
+                    {selectedDays === opt.days && !locked && <span className="material-symbols-outlined text-[14px] text-primary">check</span>}
+                  </button>
+                );
+              })}
+            </div>
+          )}
         </div>
       </header>
 
@@ -74,7 +112,7 @@ export default function AnalyticsPage() {
           <span className="material-symbols-outlined text-primary text-3xl icon-fill shrink-0">workspace_premium</span>
           <div className="flex-1">
             <p className="font-bold text-base">Unlock Advanced Analytics</p>
-            <p className="text-secondary text-sm">You&apos;re on the Free plan. Upgrade to Pro to access heatmaps, conversion funnels, and revenue breakdowns.</p>
+            <p className="text-secondary text-sm">You&apos;re on the Free plan — data is limited to 7 days. Upgrade to Pro for 90-day history, heatmaps, and revenue breakdowns.</p>
           </div>
           <a href="/pricing" className="shrink-0 px-5 py-2.5 bg-primary-container text-white font-bold rounded-xl text-sm hover:shadow-lg transition-all active:scale-95">
             Upgrade to Pro

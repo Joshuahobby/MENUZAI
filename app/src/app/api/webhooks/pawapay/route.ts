@@ -1,27 +1,40 @@
 import { NextResponse } from "next/server";
+import { createHmac, timingSafeEqual } from "crypto";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
 
-// Tell Next.js to always run this route dynamically and skip static collection during build
 export const dynamic = "force-dynamic";
+
+function verifySignature(rawBody: string, signatureHeader: string | null): boolean {
+  const secret = process.env.PAWAPAY_WEBHOOK_SECRET;
+  if (!secret || !signatureHeader) return false;
+  const expected = createHmac("sha256", secret).update(rawBody).digest("hex");
+  try {
+    return timingSafeEqual(Buffer.from(signatureHeader), Buffer.from(expected));
+  } catch {
+    return false;
+  }
+}
 
 export async function POST(req: Request) {
   try {
     const supabaseAdmin = getSupabaseAdmin();
-    
-    // Build-time safety check: if admin client failed to initialize (e.g. during Vercel static analysis)
+
     if (!supabaseAdmin) {
       console.error("Supabase Admin client not initialized. Check environment variables.");
       return NextResponse.json({ error: "Internal Server Error (Configuration)" }, { status: 500 });
     }
 
-    const payload = await req.json();
+    const rawBody = await req.text();
+    const signatureHeader = req.headers.get("x-pawapay-signature");
 
-    // 1. Verify pawaPay Signature (IMPORTANT FOR PRODUCTION)
-    // You should verify the request came from pawaPay using the X-Pawapay-Signature header.
+    if (!verifySignature(rawBody, signatureHeader)) {
+      console.error("pawaPay webhook signature verification failed.");
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
 
-    const { depositId, status, amount } = payload;
+    const payload = JSON.parse(rawBody);
+    const { depositId, status } = payload;
 
-    // 2. Fetch the transaction from the database
     const { data: tx, error: txError } = await supabaseAdmin
       .from("transactions")
       .select("*")
@@ -33,15 +46,12 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Transaction not found" }, { status: 404 });
     }
 
-    // 3. Handle status updates
     if (status === "COMPLETED") {
-      // Update transaction status
       await supabaseAdmin
         .from("transactions")
         .update({ status: "completed" })
         .eq("deposit_id", depositId);
 
-      // Upgrade restaurant plan
       const { error: upgradeError } = await supabaseAdmin
         .from("restaurants")
         .update({ plan: tx.plan_name || "pro" })
@@ -60,7 +70,6 @@ export async function POST(req: Request) {
       console.log(`❌ pawaPay payment ${depositId} marked as failed`);
     }
 
-    // Always return 200 OK to acknowledge receipt of the webhook, otherwise pawaPay will retry
     return NextResponse.json({ received: true }, { status: 200 });
 
   } catch (error: any) {

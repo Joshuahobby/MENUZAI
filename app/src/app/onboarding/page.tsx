@@ -57,7 +57,7 @@ export default function OnboardingPage() {
         .from("restaurants")
         .select("name, tagline, phone, hours, onboarded")
         .eq("user_id", userId)
-        .single();
+        .maybeSingle();
 
       if (data?.onboarded) {
         router.replace("/dashboard");

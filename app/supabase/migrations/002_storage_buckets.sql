@@ -18,12 +18,12 @@ on conflict (id) do nothing;
 -- RLS POLICIES: storage.objects (menu-images bucket)
 -- ============================================================
 
--- Anyone can read public images (for public menu pages)
+drop policy if exists "Public read menu images" on storage.objects;
 create policy "Public read menu images"
   on storage.objects for select
   using ( bucket_id = 'menu-images' );
 
--- Authenticated users can upload to their own folder (user_id/*)
+drop policy if exists "Users upload own images" on storage.objects;
 create policy "Users upload own images"
   on storage.objects for insert
   to authenticated
@@ -32,7 +32,7 @@ create policy "Users upload own images"
     and (storage.foldername(name))[1] = auth.uid()::text
   );
 
--- Users can update/replace their own images
+drop policy if exists "Users update own images" on storage.objects;
 create policy "Users update own images"
   on storage.objects for update
   to authenticated
@@ -41,7 +41,7 @@ create policy "Users update own images"
     and (storage.foldername(name))[1] = auth.uid()::text
   );
 
--- Users can delete their own images
+drop policy if exists "Users delete own images" on storage.objects;
 create policy "Users delete own images"
   on storage.objects for delete
   to authenticated

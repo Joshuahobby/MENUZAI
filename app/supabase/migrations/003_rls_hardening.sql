@@ -6,6 +6,7 @@
 -- ============================================================
 -- restaurants: add missing DELETE policy
 -- ============================================================
+drop policy if exists "Owner can delete their restaurant" on public.restaurants;
 create policy "Owner can delete their restaurant"
   on public.restaurants for delete
   using (auth.uid() = user_id);
@@ -17,6 +18,7 @@ create policy "Owner can delete their restaurant"
 -- ============================================================
 drop policy if exists "Anyone can insert analytics events" on public.analytics_events;
 
+drop policy if exists "Anyone can insert analytics events for published menus" on public.analytics_events;
 create policy "Anyone can insert analytics events for published menus"
   on public.analytics_events for insert
   with check (
@@ -34,6 +36,7 @@ create policy "Anyone can insert analytics events for published menus"
 -- ============================================================
 drop policy if exists "Anyone can insert orders" on public.orders;
 
+drop policy if exists "Anyone can insert orders for published menus" on public.orders;
 create policy "Anyone can insert orders for published menus"
   on public.orders for insert
   with check (
@@ -47,6 +50,7 @@ create policy "Anyone can insert orders for published menus"
 -- ============================================================
 -- orders: add DELETE policy so owners can remove old orders
 -- ============================================================
+drop policy if exists "Owner can delete their orders" on public.orders;
 create policy "Owner can delete their orders"
   on public.orders for delete
   using (

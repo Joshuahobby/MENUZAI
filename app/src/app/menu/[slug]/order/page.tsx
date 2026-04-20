@@ -56,6 +56,13 @@ function OrderContent({ slug }: { slug: string }) {
       return;
     }
 
+    // Fire-and-forget email notification — don't block the UX
+    fetch("/api/notifications/order", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ restaurantId, items, total, currency, customerName, tableNumber }),
+    }).catch(() => {/* non-critical */});
+
     setIsSubmitting(false);
     setOrderPlaced(true);
 

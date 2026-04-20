@@ -114,11 +114,15 @@ export function MenuProvider({ children }: { children: React.ReactNode }) {
 
       // --- Ensure restaurant row ---
       let restoId: string;
-      const { data: existingRestaurant } = await supabase
+      const { data: existingRestaurant, error: fetchError } = await supabase
         .from("restaurants")
         .select("id, name, phone, plan, logo_url")
         .eq("user_id", user.id)
         .maybeSingle();
+
+      if (fetchError) {
+        console.error("Restaurant fetch error:", fetchError.message, fetchError.code);
+      }
 
       if (existingRestaurant) {
         restoId = existingRestaurant.id;
@@ -130,18 +134,31 @@ export function MenuProvider({ children }: { children: React.ReactNode }) {
           setPlan(existingRestaurant.plan ?? "free");
         }
       } else {
-        const { data: newRestaurant, error } = await supabase
+        // Upsert to handle cases where the row exists but the SELECT failed
+        // (e.g. schema mismatch on optional columns) or the row doesn't exist yet.
+        const { data: upsertedRestaurant, error: upsertError } = await supabase
           .from("restaurants")
-          .insert({ user_id: user.id, name: "My Restaurant" })
+          .upsert({ user_id: user.id, name: "My Restaurant" }, { onConflict: "user_id", ignoreDuplicates: true })
           .select("id")
           .maybeSingle();
 
-        if (error || !newRestaurant) {
-          console.error("Failed to create restaurant:", error?.message);
-          setIsLoading(false);
-          return;
+        if (upsertError || !upsertedRestaurant) {
+          // Last resort: try a plain select by user_id to get the id at minimum
+          const { data: fallback } = await supabase
+            .from("restaurants")
+            .select("id")
+            .eq("user_id", user.id)
+            .maybeSingle();
+
+          if (!fallback) {
+            console.error("Failed to create or find restaurant:", upsertError?.message);
+            setIsLoading(false);
+            return;
+          }
+          restoId = fallback.id;
+        } else {
+          restoId = upsertedRestaurant.id;
         }
-        restoId = newRestaurant.id;
         if (!cancelled) setRestaurantId(restoId);
       }
 

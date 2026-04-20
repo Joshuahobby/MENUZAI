@@ -7,7 +7,11 @@ import { useMenu } from "@/context/MenuContext";
 import { templates } from "@/data/mockData";
 import type { MenuItem } from "@/types/menu";
 
-type UploadState = "idle" | "uploading" | "extracting" | "done" | "error";
+type UploadState = "idle" | "extracting" | "done" | "error";
+
+const MAX_FILES = 5;
+const MAX_SIZE = 10 * 1024 * 1024;
+const VALID_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
 
 export default function UploadPage() {
   const { setMenuItems, setCategories, setRestaurantName, applyTemplate } = useMenu();
@@ -15,39 +19,53 @@ export default function UploadPage() {
   const [progress, setProgress] = useState(0);
   const [errorMsg, setErrorMsg] = useState("");
   const [extractedCount, setExtractedCount] = useState({ items: 0, categories: 0 });
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const router = useRouter();
   const [dragActive, setDragActive] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
-  const handleFile = async (file: File) => {
-    if (file.size > 10 * 1024 * 1024) {
-      setErrorMsg("File too large. Maximum size is 10MB.");
-      setState("error");
-      return;
+  const addFiles = (incoming: File[]) => {
+    const valid = incoming.filter(f => VALID_TYPES.includes(f.type) && f.size <= MAX_SIZE);
+    setSelectedFiles(prev => {
+      const merged = [...prev, ...valid];
+      return merged.slice(0, MAX_FILES);
+    });
+  };
+
+  const removeFile = (index: number) => {
+    setSelectedFiles(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const handleExtract = async () => {
+    if (selectedFiles.length === 0) return;
+
+    for (const file of selectedFiles) {
+      if (!VALID_TYPES.includes(file.type)) {
+        setErrorMsg(`Unsupported type: ${file.name}. Use JPG, PNG, WebP, or GIF.`);
+        setState("error");
+        return;
+      }
+      if (file.size > MAX_SIZE) {
+        setErrorMsg(`${file.name} exceeds 10MB.`);
+        setState("error");
+        return;
+      }
     }
 
-    const validTypes = ["image/jpeg", "image/png", "image/webp", "image/gif", "application/pdf"];
-    if (!validTypes.includes(file.type)) {
-      setErrorMsg("Unsupported file type. Use JPG, PNG, WebP, GIF, or PDF.");
-      setState("error");
-      return;
-    }
-
-    setState("uploading");
+    setState("extracting");
     setProgress(20);
 
     const formData = new FormData();
-    formData.append("file", file);
+    if (selectedFiles.length === 1) {
+      formData.append("file", selectedFiles[0]);
+    } else {
+      selectedFiles.forEach((f, i) => formData.append(`file_${i}`, f));
+    }
 
     setProgress(40);
-    setState("extracting");
 
     try {
-      const res = await fetch("/api/extract-menu", {
-        method: "POST",
-        body: formData,
-      });
-
+      const res = await fetch("/api/extract-menu", { method: "POST", body: formData });
       setProgress(80);
 
       if (!res.ok) {
@@ -56,22 +74,18 @@ export default function UploadPage() {
       }
 
       const result = await res.json();
-
       setRestaurantName(result.restaurantName);
       setCategories(result.categories);
       setMenuItems(result.items as MenuItem[]);
       setExtractedCount({ items: result.items.length, categories: result.categories.length });
 
       if (result.suggestedTheme) {
-        const match = templates.find(
-          (t) => t.name.toLowerCase() === result.suggestedTheme.toLowerCase()
-        );
+        const match = templates.find(t => t.name.toLowerCase() === result.suggestedTheme.toLowerCase());
         if (match) applyTemplate(match.config);
       }
 
       setProgress(100);
       setState("done");
-
       setTimeout(() => router.push("/ai-result"), 1200);
     } catch (err) {
       setErrorMsg(err instanceof Error ? err.message : "Something went wrong");
@@ -80,21 +94,20 @@ export default function UploadPage() {
   };
 
   const onFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) handleFile(file);
+    if (e.target.files) addFiles(Array.from(e.target.files));
   };
 
   const onDrop = (e: React.DragEvent) => {
     e.preventDefault();
     setDragActive(false);
-    const file = e.dataTransfer.files[0];
-    if (file) handleFile(file);
+    addFiles(Array.from(e.dataTransfer.files));
   };
 
   const reset = () => {
     setState("idle");
     setProgress(0);
     setErrorMsg("");
+    setSelectedFiles([]);
     if (fileRef.current) fileRef.current.value = "";
   };
 
@@ -115,62 +128,109 @@ export default function UploadPage() {
                 <h1 className="text-4xl lg:text-5xl font-[var(--font-headline)] font-extrabold tracking-tight mb-4">
                   Upload Your Menu
                 </h1>
-                <p className="text-secondary text-lg">Snap a photo of your menu or upload a file</p>
+                <p className="text-secondary text-lg">Upload up to {MAX_FILES} pages — we'll extract and merge them all</p>
               </div>
 
+              {/* Drop zone */}
               <div
-                className={`border-2 border-dashed rounded-[2rem] p-16 text-center cursor-pointer transition-all ${dragActive ? "border-primary bg-primary/5 scale-[1.02]" : "border-outline-variant/40 hover:border-primary/40 hover:bg-primary/5"}`}
+                className={`border-2 border-dashed rounded-[2rem] p-12 text-center cursor-pointer transition-all ${dragActive ? "border-primary bg-primary/5 scale-[1.02]" : "border-outline-variant/40 hover:border-primary/40 hover:bg-primary/5"}`}
                 onDragEnter={() => setDragActive(true)}
                 onDragLeave={() => setDragActive(false)}
                 onDragOver={(e) => e.preventDefault()}
                 onDrop={onDrop}
                 onClick={() => fileRef.current?.click()}
               >
-                <input ref={fileRef} type="file" className="hidden" accept=".pdf,.jpg,.jpeg,.png,.webp,.gif" onChange={onFileChange} id="menu-upload" title="Menu File Upload" aria-label="Menu File Upload" />
+                <input
+                  ref={fileRef}
+                  type="file"
+                  multiple
+                  className="hidden"
+                  accept=".jpg,.jpeg,.png,.webp,.gif"
+                  onChange={onFileChange}
+                  id="menu-upload"
+                  title="Menu File Upload"
+                  aria-label="Menu File Upload"
+                />
                 <label htmlFor="menu-upload" className="cursor-pointer flex flex-col items-center">
                   <span className="material-symbols-outlined text-primary text-5xl mb-4">cloud_upload</span>
-                  <p className="font-[var(--font-headline)] font-bold text-on-surface text-lg">Drop your menu here</p>
-                  <p className="text-secondary text-sm">PDF, JPEG, PNG or WebP (Max 10MB)</p>
+                  <p className="font-[var(--font-headline)] font-bold text-on-surface text-lg">Drop menu photos here</p>
+                  <p className="text-secondary text-sm">JPG, PNG, WebP or GIF · Max 10MB each · Up to {MAX_FILES} images</p>
                 </label>
                 <button type="button" className="mt-6 px-6 py-3 bg-gradient-to-tr from-primary to-primary-container text-white font-bold rounded-xl shadow-lg shadow-primary/20 active:scale-95 transition-all">
                   Browse Files
                 </button>
               </div>
 
-              <div className="grid grid-cols-3 gap-4">
-                {[
-                  { icon: "image", label: "Image", desc: "JPG, PNG" },
-                  { icon: "picture_as_pdf", label: "PDF", desc: "Document" },
-                  { icon: "photo_camera", label: "Camera", desc: "Take Photo" },
-                ].map((o) => (
-                  <button key={o.label} type="button" onClick={() => fileRef.current?.click()}
-                    className="p-6 bg-surface-container-lowest rounded-2xl text-center hover:bg-surface-container-low transition-colors border border-outline-variant/10 group">
-                    <span className="material-symbols-outlined text-primary text-2xl mb-2 block group-hover:scale-110 transition-transform">{o.icon}</span>
-                    <p className="font-bold text-sm">{o.label}</p>
-                    <p className="text-[10px] text-secondary">{o.desc}</p>
+              {/* Selected files preview */}
+              {selectedFiles.length > 0 && (
+                <div className="space-y-3">
+                  <p className="text-xs font-bold text-secondary uppercase tracking-widest">
+                    {selectedFiles.length} of {MAX_FILES} images selected
+                  </p>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                    {selectedFiles.map((file, i) => (
+                      <div key={i} className="relative group bg-surface-container-lowest rounded-2xl overflow-hidden border border-surface-container">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={URL.createObjectURL(file)}
+                          alt={file.name}
+                          className="w-full h-28 object-cover"
+                        />
+                        <div className="p-2">
+                          <p className="text-[10px] font-bold text-secondary truncate">{file.name}</p>
+                          <p className="text-[10px] text-secondary opacity-60">{(file.size / 1024).toFixed(0)} KB</p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={(e) => { e.stopPropagation(); removeFile(i); }}
+                          className="absolute top-2 right-2 w-6 h-6 bg-error text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                          title="Remove"
+                        >
+                          <span className="material-symbols-outlined text-[12px]">close</span>
+                        </button>
+                      </div>
+                    ))}
+                    {selectedFiles.length < MAX_FILES && (
+                      <button
+                        type="button"
+                        onClick={() => fileRef.current?.click()}
+                        className="h-full min-h-28 border-2 border-dashed border-outline-variant/40 rounded-2xl flex flex-col items-center justify-center gap-1 hover:border-primary/40 hover:bg-primary/5 transition-all"
+                      >
+                        <span className="material-symbols-outlined text-primary text-2xl">add</span>
+                        <span className="text-[10px] font-bold text-secondary">Add more</span>
+                      </button>
+                    )}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleExtract}
+                    className="w-full py-4 bg-gradient-to-tr from-primary to-primary-container text-white font-bold rounded-2xl shadow-lg shadow-primary/20 active:scale-95 transition-all flex items-center justify-center gap-2 text-lg"
+                  >
+                    <span className="material-symbols-outlined">auto_awesome</span>
+                    Extract Menu{selectedFiles.length > 1 ? ` from ${selectedFiles.length} Images` : ""}
                   </button>
-                ))}
-              </div>
+                </div>
+              )}
             </div>
           )}
 
-          {(state === "uploading" || state === "extracting") && (
+          {state === "extracting" && (
             <div className="text-center py-20">
               <div className="w-24 h-24 mx-auto bg-primary-container/10 rounded-full flex items-center justify-center mb-8 animate-pulse">
                 <span className="material-symbols-outlined text-primary-container text-5xl icon-fill">auto_awesome</span>
               </div>
               <h2 className="text-3xl font-[var(--font-headline)] font-extrabold mb-4">
-                {state === "uploading" ? "Uploading your menu..." : "AI is extracting your menu..."}
+                AI is reading your menu…
               </h2>
               <p className="text-secondary text-lg">
-                {state === "uploading" ? "Sending file to our servers" : "Extracting categories, items, and prices with AI"}
+                {selectedFiles.length > 1
+                  ? `Processing ${selectedFiles.length} images in parallel and merging results`
+                  : "Extracting categories, items, and prices"}
               </p>
               <div className="mt-8 w-64 h-2 bg-surface-container-highest rounded-full mx-auto overflow-hidden">
-                <style>{`
-                  .dynamic-progress-bar { width: ${progress}%; }
-                `}</style>
                 <div
-                  className="bg-primary h-full transition-all duration-500 rounded-full dynamic-progress-bar"
+                  className="bg-primary h-full transition-all duration-500 rounded-full"
+                  ref={(el) => { if (el) el.style.width = `${progress}%`; }}
                 />
               </div>
             </div>

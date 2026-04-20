@@ -19,11 +19,11 @@ create table if not exists public.transactions (
 -- RLS
 alter table public.transactions enable row level security;
 
+drop policy if exists "Owner can read their transactions" on public.transactions;
 create policy "Owner can read their transactions"
   on public.transactions for select
   using (auth.uid() = user_id);
 
--- Enable trigger for updated_at
-create trigger transactions_updated_at
+create or replace trigger transactions_updated_at
   before update on public.transactions
   for each row execute function public.handle_updated_at();

@@ -25,6 +25,13 @@ export const metadata: Metadata = {
   description:
     "Create, optimize, and track your restaurant menu with AI. Upload your menu, customize with smart templates, generate QR codes, and take orders via WhatsApp.",
   manifest: "/manifest.json",
+  icons: {
+    icon: [
+      { url: "/favicon.svg", type: "image/svg+xml" },
+      { url: "/icon-192.png", sizes: "192x192", type: "image/png" },
+    ],
+    apple: { url: "/icon-192.png", sizes: "192x192" },
+  },
   keywords: [
     "restaurant menu",
     "digital menu",

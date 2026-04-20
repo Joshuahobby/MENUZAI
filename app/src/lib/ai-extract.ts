@@ -40,6 +40,54 @@ Rules:
 - Generate short descriptions if none are visible on the menu
 - Item ids should be unique strings like "item-1", "item-2", etc.`;
 
+export function mergeExtractionResults(results: ExtractionResult[]): ExtractionResult {
+  if (results.length === 0) return { restaurantName: "My Restaurant", categories: [], items: [] };
+  if (results.length === 1) return results[0];
+
+  const restaurantName = results.find(r => r.restaurantName !== "My Restaurant")?.restaurantName ?? "My Restaurant";
+  const suggestedTheme = results[0].suggestedTheme;
+
+  // Deduplicate categories by normalized name; keep canonical id from first occurrence
+  const categoryMap = new Map<string, MenuCategory>();
+  const idRemap = new Map<string, string>(); // old_id -> canonical_id per result
+  results.forEach(result => {
+    result.categories.forEach(cat => {
+      const key = cat.name.toLowerCase().trim();
+      if (!categoryMap.has(key)) {
+        categoryMap.set(key, { ...cat });
+      } else {
+        idRemap.set(cat.id, categoryMap.get(key)!.id);
+      }
+    });
+  });
+
+  // Merge items with re-indexed IDs and remapped category references
+  let itemIndex = 1;
+  const seenNames = new Set<string>();
+  const mergedItems: MenuItem[] = [];
+
+  results.forEach(result => {
+    result.items.forEach(item => {
+      const nameKey = item.name.toLowerCase().trim();
+      if (seenNames.has(nameKey)) return; // deduplicate by name
+      seenNames.add(nameKey);
+
+      const canonicalCategory = idRemap.get(item.category) ?? item.category;
+      mergedItems.push({ ...item, id: `item-${itemIndex++}`, category: canonicalCategory });
+    });
+  });
+
+  // Recalculate itemCount per category
+  const counts = new Map<string, number>();
+  mergedItems.forEach(i => counts.set(i.category, (counts.get(i.category) ?? 0) + 1));
+  const categories = Array.from(categoryMap.values()).map(c => ({
+    ...c,
+    itemCount: counts.get(c.id) ?? 0,
+  })).filter(c => c.itemCount > 0);
+
+  return { restaurantName, suggestedTheme, categories, items: mergedItems };
+}
+
 export function parseExtractionResponse(text: string): ExtractionResult {
   // Strip markdown code fences if present
   let cleaned = text.trim();

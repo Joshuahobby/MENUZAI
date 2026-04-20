@@ -33,12 +33,9 @@ export function CheckoutModal({ isOpen, onClose, planName, priceAmount }: Checko
     try {
       const res = await fetch("/api/payments/pawapay", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${session.access_token}`
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          phoneNumber,
+          phoneNumber: `250${phoneNumber.replace(/^0+/, "")}`,
           plan: planName,
           amount: priceAmount,
         }),

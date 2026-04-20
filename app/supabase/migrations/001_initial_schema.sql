@@ -47,8 +47,8 @@ create table if not exists public.menus (
 
 -- Backfill any columns missing from a prior partial run
 alter table public.menus add column if not exists restaurant_id uuid references public.restaurants(id) on delete cascade;
--- restaurant_name is a legacy column from an older schema; make it nullable so inserts don't fail
-alter table public.menus alter column restaurant_name drop not null;
+-- restaurant_name is a legacy nullable column; add it if this is a fresh install
+alter table public.menus add column if not exists restaurant_name text;
 alter table public.menus add column if not exists name text not null default 'My Menu';
 alter table public.menus add column if not exists slug text;
 alter table public.menus add column if not exists status text not null default 'draft';
@@ -135,31 +135,35 @@ alter table public.analytics_events enable row level security;
 alter table public.orders enable row level security;
 
 -- --- restaurants ---
+drop policy if exists "Owner can read their restaurant" on public.restaurants;
 create policy "Owner can read their restaurant"
   on public.restaurants for select
   using (auth.uid() = user_id);
 
+drop policy if exists "Owner can insert their restaurant" on public.restaurants;
 create policy "Owner can insert their restaurant"
   on public.restaurants for insert
   with check (auth.uid() = user_id);
 
+drop policy if exists "Owner can update their restaurant" on public.restaurants;
 create policy "Owner can update their restaurant"
   on public.restaurants for update
   using (auth.uid() = user_id);
 
 -- --- menus ---
+drop policy if exists "Owner can manage their menus" on public.menus;
 create policy "Owner can manage their menus"
   on public.menus for all
   using (auth.uid() = user_id)
   with check (auth.uid() = user_id);
 
--- Customers can read published menus without logging in
+drop policy if exists "Anyone can read published menus" on public.menus;
 create policy "Anyone can read published menus"
   on public.menus for select
   using (status = 'published');
 
 -- --- analytics_events ---
--- Restaurant owners can read their own events
+drop policy if exists "Owner can read their analytics events" on public.analytics_events;
 create policy "Owner can read their analytics events"
   on public.analytics_events for select
   using (
@@ -168,13 +172,13 @@ create policy "Owner can read their analytics events"
     )
   );
 
--- Anyone (including unauthenticated customers) can insert events
+drop policy if exists "Anyone can insert analytics events" on public.analytics_events;
 create policy "Anyone can insert analytics events"
   on public.analytics_events for insert
   with check (true);
 
 -- --- orders ---
--- Restaurant owners can read and update their orders
+drop policy if exists "Owner can read their orders" on public.orders;
 create policy "Owner can read their orders"
   on public.orders for select
   using (
@@ -183,6 +187,7 @@ create policy "Owner can read their orders"
     )
   );
 
+drop policy if exists "Owner can update their orders" on public.orders;
 create policy "Owner can update their orders"
   on public.orders for update
   using (
@@ -191,7 +196,7 @@ create policy "Owner can update their orders"
     )
   );
 
--- Anyone (unauthenticated customers) can place orders
+drop policy if exists "Anyone can insert orders" on public.orders;
 create policy "Anyone can insert orders"
   on public.orders for insert
   with check (true);
@@ -207,10 +212,10 @@ begin
 end;
 $$;
 
-create trigger restaurants_updated_at
+create or replace trigger restaurants_updated_at
   before update on public.restaurants
   for each row execute function public.handle_updated_at();
 
-create trigger menus_updated_at
+create or replace trigger menus_updated_at
   before update on public.menus
   for each row execute function public.handle_updated_at();
