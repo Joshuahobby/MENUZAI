@@ -100,8 +100,11 @@ export async function POST(req: Request) {
       });
     }
 
-  } catch (error: any) {
-    console.error("pawaPay Error:", error);
-    return NextResponse.json({ error: error.message || "Payment initiation failed" }, { status: 500 });
+  } catch (error: unknown) {
+    console.error("Payment initiation error:", error);
+    return NextResponse.json({ 
+      error: "Internal server error",
+      details: error instanceof Error ? error.message : String(error)
+    }, { status: 500 });
   }
 }

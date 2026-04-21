@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useMenu } from "@/context/MenuContext";
 import { templates } from "@/data/mockData";
@@ -12,17 +12,40 @@ type UploadState = "idle" | "extracting" | "done" | "error";
 const MAX_FILES = 5;
 const MAX_SIZE = 10 * 1024 * 1024;
 const VALID_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+const EXTRACTING_STEPS = [
+  "Reading menu text...",
+  "Analyzing dish details...",
+  "Organizing categories...",
+  "Identifying ingredients...",
+  "Detecting prices...",
+  "Picking a color theme...",
+  "Finalizing your menu..."
+];
 
 export default function UploadPage() {
   const { setMenuItems, setCategories, setRestaurantName, applyTemplate } = useMenu();
   const [state, setState] = useState<UploadState>("idle");
   const [progress, setProgress] = useState(0);
+  const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [errorMsg, setErrorMsg] = useState("");
   const [extractedCount, setExtractedCount] = useState({ items: 0, categories: 0 });
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const router = useRouter();
   const [dragActive, setDragActive] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+
+  // Rotate extraction messages
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (state === "extracting") {
+      interval = setInterval(() => {
+        setCurrentStepIndex(prev => (prev + 1) % EXTRACTING_STEPS.length);
+      }, 3000);
+    }
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [state]);
 
   const addFiles = (incoming: File[]) => {
     const valid = incoming.filter(f => VALID_TYPES.includes(f.type) && f.size <= MAX_SIZE);
@@ -128,7 +151,7 @@ export default function UploadPage() {
                 <h1 className="text-4xl lg:text-5xl font-[var(--font-headline)] font-extrabold tracking-tight mb-4">
                   Upload Your Menu
                 </h1>
-                <p className="text-secondary text-lg">Upload up to {MAX_FILES} pages — we'll extract and merge them all</p>
+                <p className="text-secondary text-lg">Upload up to {MAX_FILES} pages — we&apos;ll extract and merge them all</p>
               </div>
 
               {/* Drop zone */}
@@ -222,11 +245,19 @@ export default function UploadPage() {
               <h2 className="text-3xl font-[var(--font-headline)] font-extrabold mb-4">
                 AI is reading your menu…
               </h2>
-              <p className="text-secondary text-lg">
-                {selectedFiles.length > 1
-                  ? `Processing ${selectedFiles.length} images in parallel and merging results`
-                  : "Extracting categories, items, and prices"}
-              </p>
+              <div className="flex flex-col items-center gap-2">
+                <div className="flex items-center gap-2 text-primary">
+                  <span className="material-symbols-outlined text-sm animate-spin">sync</span>
+                  <p className="text-lg font-bold tracking-tight">
+                    {EXTRACTING_STEPS[currentStepIndex]}
+                  </p>
+                </div>
+                <p className="text-secondary text-sm opacity-70">
+                  {selectedFiles.length > 1
+                    ? `Processing ${selectedFiles.length} images and merging results`
+                    : "This might take a moment depending on the menu size"}
+                </p>
+              </div>
               <div className="mt-8 w-64 h-2 bg-surface-container-highest rounded-full mx-auto overflow-hidden">
                 <div
                   className="bg-primary h-full transition-all duration-500 rounded-full"

@@ -13,7 +13,7 @@ export default function LandingPage() {
           <div className="flex items-center gap-8">
             <span className="text-2xl font-[var(--font-headline)] font-black tracking-tight text-primary-container">MENUZA AI</span>
             <div className="hidden md:flex gap-6 items-center">
-              <a className="text-primary-container font-bold border-b-2 border-primary-container font-[var(--font-headline)] text-sm" href="/">Home</a>
+              <Link className="text-primary-container font-bold border-b-2 border-primary-container font-[var(--font-headline)] text-sm" href="/">Home</Link>
               <a className="text-secondary hover:bg-primary-container/5 transition-colors font-[var(--font-headline)] font-medium text-sm px-2 py-1 rounded" href="#features">Features</a>
               <a className="text-secondary hover:bg-primary-container/5 transition-colors font-[var(--font-headline)] font-medium text-sm px-2 py-1 rounded" href="#pricing">Pricing</a>
             </div>

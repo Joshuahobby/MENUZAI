@@ -55,7 +55,7 @@ export async function GET(request: Request) {
     .forEach(e => { itemCounts[e.item_name!] = (itemCounts[e.item_name!] || 0) + 1; });
   const topItems = Object.entries(itemCounts)
     .sort((a, b) => b[1] - a[1])
-    .slice(0, 5)
+    .slice(0, 20)
     .map(([name, count]) => ({ name, count }));
 
   const hourCounts = new Array(24).fill(0);

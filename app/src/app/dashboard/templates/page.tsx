@@ -1,11 +1,11 @@
 "use client";
 
-import NextImage from "next/image";
 import { templates, type Template, type TemplateCategory } from "@/data/mockData";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useMenu } from "@/context/MenuContext";
-import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { TemplatePreview, DEMO_DATA, type TplData } from "./TemplatePreview";
+import { PrintView } from "./PrintView";
 
 const CATEGORY_LABELS: Record<"all" | TemplateCategory, string> = {
   all: "All",
@@ -17,11 +17,12 @@ const CATEGORY_LABELS: Record<"all" | TemplateCategory, string> = {
 };
 
 export default function TemplatesPage() {
-  const { applyTemplate, plan } = useMenu();
-  const router = useRouter();
+  const { applyTemplate, plan, restaurantName } = useMenu();
+  // Removed unused router
   const [tierFilter, setTierFilter] = useState<"all" | "free" | "pro">("all");
   const [catFilter, setCatFilter] = useState<"all" | TemplateCategory>("all");
   const [previewId, setPreviewId] = useState<string | null>(null);
+  const [printId, setPrintId] = useState<string | null>(null);
 
   const filtered = templates.filter((t) => {
     const tierMatch = tierFilter === "all" || t.tier === tierFilter;
@@ -30,6 +31,13 @@ export default function TemplatesPage() {
   });
 
   const preview = templates.find((t) => t.id === previewId);
+  const printTpl = templates.find((t) => t.id === printId);
+
+  // Prepare data for the preview
+  const tplData: TplData = useMemo(() => ({
+    ...DEMO_DATA,
+    restaurantName: restaurantName || DEMO_DATA.restaurantName,
+  }), [restaurantName]);
 
   const applyAndGo = (t: Template) => {
     if (t.tier === "pro" && plan === "free") {
@@ -111,16 +119,21 @@ export default function TemplatesPage() {
             }}
             className="bg-surface-container-lowest rounded-[2rem] overflow-hidden shadow-sm hover:shadow-xl transition-all cursor-pointer group border border-transparent hover:border-primary/10"
           >
-            {/* Thumbnail */}
-            <div className="relative h-48 overflow-hidden">
-              <NextImage
-                alt={t.name}
-                className="object-cover group-hover:scale-105 transition-transform duration-500"
-                src={t.image}
-                fill
-                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                priority={t.id === "t1"}
-              />
+            {/* Live Preview Thumbnail */}
+            <div className="relative h-64 overflow-hidden bg-surface-container-low">
+              <div className="absolute inset-0 group-hover:scale-105 transition-transform duration-500 origin-top">
+                <TemplatePreview 
+                  templateId={t.id} 
+                  containerWidth={400} 
+                  data={tplData}
+                  primaryColor={t.config.primaryColor}
+                  backgroundColor={t.config.backgroundColor}
+                />
+              </div>
+              
+              {/* Overlay Gradient */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+
               {/* Tier badge */}
               <div className="absolute top-4 right-4 z-10">
                 <span
@@ -141,7 +154,7 @@ export default function TemplatesPage() {
               )}
               {/* Color accent strip */}
               <div
-                className="absolute bottom-0 left-0 right-0 h-1 z-10"
+                className="absolute bottom-0 left-0 right-0 h-1.5 z-10"
                 style={{ backgroundColor: t.config.primaryColor ?? "#FF6B00" }}
               />
             </div>
@@ -180,73 +193,81 @@ export default function TemplatesPage() {
           onClick={() => setPreviewId(null)}
         >
           <div
-            className="bg-surface-container-lowest rounded-[2rem] max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl"
+            className="bg-surface-container-lowest rounded-[2rem] max-w-4xl w-full max-h-[95vh] overflow-hidden shadow-2xl flex flex-col md:flex-row"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Modal image */}
-            <div className="relative h-64 overflow-hidden rounded-t-[2rem]">
-              <NextImage
-                alt={preview.name}
-                className="object-cover"
-                src={preview.image}
-                fill
-                sizes="(max-width: 1200px) 100vw, 800px"
-                priority
-              />
-              <button
+            {/* Left: Large Live Preview */}
+            <div className="w-full md:w-[450px] h-[400px] md:h-auto bg-surface-container-low overflow-hidden relative border-r border-surface-container-high shrink-0">
+               <div className="absolute inset-0">
+                  <TemplatePreview 
+                    templateId={preview.id} 
+                    containerWidth={450} 
+                    data={tplData}
+                    primaryColor={preview.config.primaryColor}
+                    backgroundColor={preview.config.backgroundColor}
+                  />
+               </div>
+               <button
                 type="button"
                 onClick={() => setPreviewId(null)}
-                className="absolute top-4 right-4 w-10 h-10 bg-white/90 backdrop-blur-md rounded-full flex items-center justify-center hover:bg-white transition-colors z-20"
+                className="absolute top-4 right-4 w-10 h-10 bg-white/90 backdrop-blur-md rounded-full flex items-center justify-center hover:bg-white transition-colors z-20 md:hidden"
               >
                 <span className="material-symbols-outlined">close</span>
               </button>
-              <div className="absolute top-4 left-4 z-20">
-                <span
-                  className={`text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-full ${
-                    preview.tier === "pro" ? "bg-primary-container text-white" : "bg-tertiary-container text-white"
-                  }`}
-                >
-                  {preview.tier}
-                </span>
-              </div>
-              <div
-                className="absolute bottom-0 left-0 right-0 h-1.5 z-10"
-                style={{ backgroundColor: preview.config.primaryColor ?? "#FF6B00" }}
-              />
             </div>
 
-            {/* Modal body */}
-            <div className="p-8">
-              <div className="flex items-center gap-4 mb-4">
-                <div
-                  className="w-10 h-10 rounded-full ring-4 ring-outline-variant/20 shadow-md shrink-0"
-                  style={{ backgroundColor: preview.config.primaryColor ?? "#FF6B00" }}
-                />
+            {/* Right: Modal body */}
+            <div className="flex-1 p-8 md:p-10 flex flex-col overflow-y-auto">
+              <div className="flex items-start justify-between mb-6">
                 <div>
-                  <h2 className="text-2xl font-[var(--font-headline)] font-extrabold leading-tight">{preview.name}</h2>
-                  <p className="text-secondary text-xs font-bold uppercase tracking-widest">{CATEGORY_LABELS[preview.category]}</p>
+                  <p className="text-secondary text-xs font-bold uppercase tracking-[0.2em] mb-2">{CATEGORY_LABELS[preview.category]}</p>
+                  <h2 className="text-3xl font-[var(--font-headline)] font-extrabold leading-tight mb-2">{preview.name}</h2>
+                  <div className="flex items-center gap-2">
+                    <span
+                      className={`text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-full ${
+                        preview.tier === "pro" ? "bg-primary-container text-white" : "bg-tertiary-container text-white"
+                      }`}
+                    >
+                      {preview.tier}
+                    </span>
+                    <span className="text-secondary/50 text-[10px]">•</span>
+                    <span className="text-secondary text-[10px] font-bold uppercase tracking-widest">Premium Layout</span>
+                  </div>
                 </div>
+                <button
+                  type="button"
+                  onClick={() => setPreviewId(null)}
+                  className="hidden md:flex w-10 h-10 bg-surface-container-high rounded-full items-center justify-center hover:bg-surface-container-highest transition-colors"
+                >
+                  <span className="material-symbols-outlined">close</span>
+                </button>
               </div>
 
-              <p className="text-on-surface-variant text-sm mb-6 leading-relaxed">{preview.description}</p>
+              <p className="text-secondary text-base mb-8 leading-relaxed">{preview.description}</p>
 
               {/* Style meta */}
-              <div className="grid grid-cols-3 gap-3 mb-8">
-                <div className="bg-surface-container-low rounded-xl p-3 text-center">
-                  <p className="text-[10px] font-bold text-secondary uppercase tracking-widest mb-1">Headline</p>
-                  <p className="text-xs font-bold text-on-surface">{preview.config.headlineFont}</p>
+              <div className="grid grid-cols-2 gap-4 mb-10">
+                <div className="bg-surface-container-low rounded-[1.5rem] p-4 flex items-center gap-4">
+                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+                    <span className="material-symbols-outlined text-xl">font_download</span>
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-bold text-secondary uppercase tracking-widest">Typography</p>
+                    <p className="text-sm font-bold text-on-surface">{preview.config.headlineFont}</p>
+                  </div>
                 </div>
-                <div className="bg-surface-container-low rounded-xl p-3 text-center">
-                  <p className="text-[10px] font-bold text-secondary uppercase tracking-widest mb-1">Body</p>
-                  <p className="text-xs font-bold text-on-surface">{preview.config.bodyFont}</p>
-                </div>
-                <div className="bg-surface-container-low rounded-xl p-3 text-center">
-                  <p className="text-[10px] font-bold text-secondary uppercase tracking-widest mb-1">Layout</p>
-                  <p className="text-xs font-bold text-on-surface capitalize">{preview.config.layoutDensity}</p>
+                <div className="bg-surface-container-low rounded-[1.5rem] p-4 flex items-center gap-4">
+                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary" style={{ backgroundColor: `${preview.config.primaryColor}22`, color: preview.config.primaryColor }}>
+                    <span className="material-symbols-outlined text-xl">palette</span>
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-bold text-secondary uppercase tracking-widest">Theme Color</p>
+                    <p className="text-sm font-bold text-on-surface uppercase">{preview.config.primaryColor}</p>
+                  </div>
                 </div>
               </div>
 
-              <div className="flex gap-4">
+              <div className="mt-auto space-y-4">
                 <button
                   type="button"
                   onClick={() => {
@@ -254,27 +275,46 @@ export default function TemplatesPage() {
                     applyAndGo(preview);
                   }}
                   disabled={preview.tier === "pro" && plan === "free"}
-                  className="flex-1 py-4 bg-gradient-to-br from-primary to-primary-container rounded-2xl font-bold text-white shadow-lg shadow-primary/20 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full py-5 bg-gradient-to-br from-primary to-primary-container rounded-[2rem] font-bold text-white shadow-xl shadow-primary/20 hover:shadow-2xl hover:-translate-y-0.5 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
                   {preview.tier === "pro" && plan === "free" ? (
-                    <span className="flex items-center justify-center gap-2">
-                      <span className="material-symbols-outlined text-sm">lock</span> Upgrade to Pro
-                    </span>
+                    <>
+                      <span className="material-symbols-outlined text-xl">lock</span> 
+                      Upgrade to unlock Template
+                    </>
                   ) : (
-                    "Use This Template"
+                    <>
+                      <span className="material-symbols-outlined text-xl">edit</span>
+                      Start Customizing
+                    </>
                   )}
                 </button>
+                
                 <button
                   type="button"
-                  onClick={() => setPreviewId(null)}
-                  className="py-4 px-6 bg-surface-container-highest rounded-2xl font-bold text-on-surface hover:bg-surface-variant transition-all"
+                  onClick={() => {
+                    setPreviewId(null);
+                    setPrintId(preview.id);
+                  }}
+                  className="w-full py-5 bg-surface-container-high rounded-[2rem] font-bold text-on-surface hover:bg-surface-container-highest transition-all flex items-center justify-center gap-2"
                 >
-                  Cancel
+                  <span className="material-symbols-outlined text-xl">print</span>
+                  Print Preview / Share
                 </button>
               </div>
             </div>
           </div>
         </div>
+      )}
+
+      {/* Print Overlay */}
+      {printTpl && (
+        <PrintView
+          templateId={printTpl.id}
+          templateName={printTpl.name}
+          restaurantData={tplData}
+          onClose={() => setPrintId(null)}
+        />
       )}
     </div>
   );

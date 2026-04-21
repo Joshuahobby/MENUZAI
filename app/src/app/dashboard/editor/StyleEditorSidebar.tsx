@@ -5,8 +5,29 @@ import { useMenu } from "@/context/MenuContext";
 const DENSITY_VALUES: Array<"compact" | "comfortable" | "spacious"> = ["compact", "comfortable", "spacious"];
 const DENSITY_LABELS: Record<string, string> = { compact: "Compact", comfortable: "Relaxed", spacious: "Spacious" };
 
-const HEADLINE_FONTS = ["Plus Jakarta Sans", "Poppins", "Playfair Display", "Montserrat", "Lora"];
-const BODY_FONTS = ["Inter", "Montserrat", "Open Sans", "Lato", "Source Sans 3"];
+const HEADLINE_FONTS = [
+  "Plus Jakarta Sans", 
+  "Poppins", 
+  "Playfair Display", 
+  "Montserrat", 
+  "Lora", 
+  "Cormorant Garamond", 
+  "Outfit", 
+  "Bebas Neue", 
+  "Fraunces", 
+  "Jost"
+];
+const BODY_FONTS = [
+  "Inter", 
+  "Montserrat", 
+  "Open Sans", 
+  "Lato", 
+  "Source Sans 3", 
+  "Outfit", 
+  "Work Sans", 
+  "Jost", 
+  "Lora"
+];
 
 const CURRENCIES = [
   { code: "RWF", name: "Rwandan Franc" },
@@ -35,8 +56,8 @@ const PRESET_COLORS = [
 
 import { templates } from "@/data/mockData";
 
-// 6 curated quick-apply presets from the template gallery
-const PRESET_IDS = ["t1", "t2", "t3", "t4", "t7", "t9"];
+// 9 curated quick-apply presets from the template gallery
+const PRESET_IDS = ["t1", "t2", "t3", "t4", "t7", "t9", "t10", "t11", "t12"];
 const PRESETS = PRESET_IDS.map((id) => templates.find((t) => t.id === id)!).filter(Boolean);
 
 export function StyleEditorSidebar() {
@@ -107,42 +128,77 @@ export function StyleEditorSidebar() {
         </div>
 
         {/* Colors */}
-        <div>
-          <label className="block text-[10px] font-bold text-secondary uppercase tracking-[0.2em] mb-4">Color Palette</label>
-          <div className="grid grid-cols-6 gap-2 mb-3">
-            {PRESET_COLORS.map((color) => {
-              const isActive = menuStyle.primaryColor.toLowerCase() === color.hex.toLowerCase();
-              return (
-                <button
-                  key={color.hex}
-                  type="button"
-                  className={`w-full aspect-square rounded-full flex items-center justify-center transition-all ${isActive ? "ring-4 ring-primary/20 ring-offset-2 scale-110" : "hover:scale-110"}`}
-                  style={{ backgroundColor: color.hex }}
-                  onClick={() => setMenuStyle({ ...menuStyle, primaryColor: color.hex })}
-                  title={color.name}
-                  aria-label={color.name}
-                >
-                  {isActive && <span className="material-symbols-outlined text-white text-xs">check</span>}
-                </button>
-              );
-            })}
-          </div>
-          {/* Custom color picker */}
-          <label className="flex items-center gap-3 cursor-pointer group" title="Pick a custom color">
-            <div className="relative w-8 h-8 rounded-full overflow-hidden border-2 border-outline-variant/30 group-hover:border-primary/40 transition-all shrink-0 shadow-sm">
-              <div className="absolute inset-0" style={{ backgroundColor: menuStyle.primaryColor }} />
-              <input
-                type="color"
-                value={menuStyle.primaryColor}
-                onChange={(e) => setMenuStyle({ ...menuStyle, primaryColor: e.target.value })}
-                className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
-                title="Pick custom color"
-                aria-label="Pick custom color"
-              />
+        <div className="space-y-6">
+          <div>
+            <label className="block text-[10px] font-bold text-secondary uppercase tracking-[0.2em] mb-4">Primary Accent</label>
+            <div className="grid grid-cols-6 gap-2 mb-3">
+              {PRESET_COLORS.map((color) => {
+                const isActive = menuStyle.primaryColor.toLowerCase() === color.hex.toLowerCase();
+                return (
+                  <button
+                    key={color.hex}
+                    type="button"
+                    className={`w-full aspect-square rounded-full flex items-center justify-center transition-all ${isActive ? "ring-4 ring-primary/20 ring-offset-2 scale-110" : "hover:scale-110"}`}
+                    style={{ backgroundColor: color.hex }}
+                    onClick={() => setMenuStyle({ ...menuStyle, primaryColor: color.hex })}
+                    title={color.name}
+                    aria-label={color.name}
+                  >
+                    {isActive && <span className="material-symbols-outlined text-white text-xs">check</span>}
+                  </button>
+                );
+              })}
             </div>
-            <span className="text-xs font-bold text-secondary group-hover:text-primary transition-colors">Custom color</span>
-            <span className="text-[10px] font-mono text-secondary ml-auto">{menuStyle.primaryColor}</span>
-          </label>
+            {/* Custom color picker */}
+            <label className="flex items-center gap-3 cursor-pointer group" title="Pick a custom color">
+              <div className="relative w-8 h-8 rounded-full overflow-hidden border-2 border-outline-variant/30 group-hover:border-primary/40 transition-all shrink-0 shadow-sm">
+                <div className="absolute inset-0" style={{ backgroundColor: menuStyle.primaryColor }} />
+                <input
+                  type="color"
+                  value={menuStyle.primaryColor}
+                  onChange={(e) => setMenuStyle({ ...menuStyle, primaryColor: e.target.value })}
+                  className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                  title="Pick custom color"
+                  aria-label="Pick custom color"
+                />
+              </div>
+              <span className="text-xs font-bold text-secondary group-hover:text-primary transition-colors">Custom accent</span>
+              <span className="text-[10px] font-mono text-secondary ml-auto">{menuStyle.primaryColor}</span>
+            </label>
+          </div>
+
+          <div>
+            <label className="block text-[10px] font-bold text-secondary uppercase tracking-[0.2em] mb-4">Background</label>
+            <div className="grid grid-cols-4 gap-2 mb-3">
+              {["#FFFFFF", "#F9F9FB", "#111111", "#FAF3E0"].map((hex) => (
+                <button
+                  key={hex}
+                  type="button"
+                  className={`w-full h-8 rounded-lg border-2 transition-all ${menuStyle.backgroundColor.toLowerCase() === hex.toLowerCase() ? "border-primary" : "border-outline-variant/20"}`}
+                  style={{ backgroundColor: hex }}
+                  onClick={() => setMenuStyle({ ...menuStyle, backgroundColor: hex })}
+                  title={hex}
+                  aria-label={`Set background to ${hex}`}
+                />
+              ))}
+            </div>
+            {/* Custom color picker */}
+            <label className="flex items-center gap-3 cursor-pointer group" title="Pick a custom side background color">
+              <div className="relative w-8 h-8 rounded-full overflow-hidden border-2 border-outline-variant/30 group-hover:border-primary/40 transition-all shrink-0 shadow-sm">
+                <div className="absolute inset-0" style={{ backgroundColor: menuStyle.backgroundColor }} />
+                <input
+                  type="color"
+                  value={menuStyle.backgroundColor}
+                  onChange={(e) => setMenuStyle({ ...menuStyle, backgroundColor: e.target.value })}
+                  className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                  title="Pick custom background"
+                  aria-label="Pick custom background"
+                />
+              </div>
+              <span className="text-xs font-bold text-secondary group-hover:text-primary transition-colors">Surface color</span>
+              <span className="text-[10px] font-mono text-secondary ml-auto">{menuStyle.backgroundColor}</span>
+            </label>
+          </div>
         </div>
 
         {/* Currency */}
@@ -194,9 +250,26 @@ export function StyleEditorSidebar() {
           </div>
         </div>
 
-        {/* Layout */}
+        {/* Layout & Cards */}
         <div>
-          <label className="block text-[10px] font-bold text-secondary uppercase tracking-[0.2em] mb-4">Layout</label>
+          <label className="block text-[10px] font-bold text-secondary uppercase tracking-[0.2em] mb-4">Card Style</label>
+          <div className="grid grid-cols-3 gap-2 mb-6">
+            {(["flat", "elevated", "glass"] as const).map((style) => (
+              <button
+                key={style}
+                type="button"
+                onClick={() => setMenuStyle({ ...menuStyle, cardStyle: style })}
+                className={`p-2 rounded-xl flex flex-col items-center gap-1 border-2 transition-all ${menuStyle.cardStyle === style ? "bg-primary/5 border-primary text-primary" : "bg-surface-container-low border-transparent text-secondary hover:bg-surface-container-high"}`}
+              >
+                <span className="material-symbols-outlined text-sm">
+                  {style === "flat" ? "rectangle" : style === "elevated" ? "layers" : "opacity"}
+                </span>
+                <span className="text-[9px] font-bold uppercase">{style}</span>
+              </button>
+            ))}
+          </div>
+
+          <label className="block text-[10px] font-bold text-secondary uppercase tracking-[0.2em] mb-4">Grid Layout</label>
           <div className="grid grid-cols-2 gap-3 mb-4">
             <button
               type="button"

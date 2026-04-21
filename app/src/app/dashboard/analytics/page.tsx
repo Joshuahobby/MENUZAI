@@ -31,7 +31,7 @@ export default function AnalyticsPage() {
     // Wait for MenuContext to finish bootstrapping before fetching;
     // otherwise a stale restaurantId can fire a request before the session cookie is set.
     if (!restaurantId || menuLoading) return;
-    setLoading(true);
+    setTimeout(() => setLoading(true), 0);
     fetch(`/api/analytics/summary?restaurantId=${restaurantId}&days=${selectedDays}`)
       .then(res => res.json())
       .then(setData)
@@ -147,28 +147,45 @@ export default function AnalyticsPage() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Top Items */}
+        {/* Popularity Heatmap */}
         <div className="bg-surface-container-lowest p-8 rounded-3xl border border-surface-container/50 shadow-sm">
-          <h3 className="text-xl font-[var(--font-headline)] font-bold mb-6">Top Performing Items</h3>
+          <div className="flex justify-between items-center mb-6">
+            <h3 className="text-xl font-[var(--font-headline)] font-bold">Popularity Heatmap</h3>
+            <span className="text-[10px] font-bold text-secondary uppercase tracking-widest">By Interactions</span>
+          </div>
           {topItems.length === 0 ? (
             <p className="text-secondary text-sm">No item data yet.</p>
           ) : (
-            <div className="space-y-5">
-              {topItems.map((item, i) => (
-                <div key={item.name} className="flex items-center gap-4">
-                  <span className="text-xs font-bold text-secondary w-5">{i + 1}</span>
-                  <div className="w-10 h-10 rounded-xl bg-surface-container flex items-center justify-center shrink-0">
-                    <span className="material-symbols-outlined text-primary text-sm">restaurant</span>
-                  </div>
-                  <div className="flex-1">
-                    <p className="font-bold text-sm">{item.name}</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="font-bold text-sm text-primary">{item.count}</p>
-                    <p className="text-[10px] text-secondary">interactions</p>
-                  </div>
-                </div>
-              ))}
+            <div className="space-y-6">
+              {(() => {
+                const maxCount = Math.max(...topItems.map(i => i.count), 1);
+                return topItems.map((item, i) => {
+                  const heatPercent = (item.count / maxCount) * 100;
+                  return (
+                    <div key={item.name} className="space-y-2">
+                      <div className="flex justify-between items-end">
+                        <div className="flex items-center gap-2">
+                          <span className={`text-[10px] font-black w-4 ${i === 0 ? "text-primary" : "text-secondary"}`}>{i + 1}</span>
+                          <span className="text-sm font-bold truncate max-w-[150px] sm:max-w-none">{item.name}</span>
+                          {i === 0 && (
+                            <span className="bg-primary/10 text-primary text-[8px] font-black px-1.5 py-0.5 rounded-full uppercase tracking-tighter flex items-center gap-1">
+                              <span className="material-symbols-outlined text-[10px] icon-fill">local_fire_department</span>
+                              Hot
+                            </span>
+                          )}
+                        </div>
+                        <span className="text-xs font-bold text-secondary">{item.count}</span>
+                      </div>
+                      <div className="h-2 w-full bg-surface-container-low rounded-full overflow-hidden">
+                        <div 
+                          className="h-full bg-gradient-to-r from-primary to-primary-container rounded-full transition-all duration-1000"
+                          style={{ width: `${heatPercent}%` }}
+                        />
+                      </div>
+                    </div>
+                  );
+                });
+              })()}
             </div>
           )}
         </div>

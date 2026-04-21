@@ -47,12 +47,6 @@ export default function SettingsPage() {
 
   const logoInputRef = useRef<HTMLInputElement>(null);
 
-  // Keep currency in sync when the active menu changes
-  useEffect(() => {
-    setCurrency(menuStyle.currency ?? "RWF");
-  }, [menuStyle.currency]);
-
-  // Load restaurant data from Supabase on mount
   useEffect(() => {
     if (!restaurantId) return;
     const load = async () => {

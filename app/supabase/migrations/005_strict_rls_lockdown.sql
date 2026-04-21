@@ -54,3 +54,41 @@ create policy "Owner can update their orders"
       select user_id from public.restaurants where id = public.orders.restaurant_id limit 1
     )
   );
+
+-- 5. Additional Policies to allow cascading/deletion
+drop policy if exists "Owner can delete their menus" on public.menus;
+create policy "Owner can delete their menus"
+  on public.menus for delete
+  using (auth.uid() = user_id);
+
+-- 6. Analytics Persistence: Don't delete analytics when menu is deleted
+-- a. Make menu_id nullable
+alter table public.analytics_events 
+  alter column menu_id drop not null;
+
+-- b. Change FK to SET NULL instead of CASCADE
+alter table public.analytics_events 
+  drop constraint if exists analytics_events_menu_id_fkey;
+
+alter table public.analytics_events
+  add constraint analytics_events_menu_id_fkey 
+  foreign key (menu_id) references public.menus(id) on delete set null;
+
+-- c. Allow owners to update their analytics (required for SET NULL to work)
+drop policy if exists "Owner can update their analytics events" on public.analytics_events;
+create policy "Owner can update their analytics events"
+  on public.analytics_events for update
+  using (
+    auth.uid() = (
+      select user_id from public.restaurants where id = public.analytics_events.restaurant_id limit 1
+    )
+  );
+
+drop policy if exists "Owner can delete their analytics events" on public.analytics_events;
+create policy "Owner can delete their analytics events"
+  on public.analytics_events for delete
+  using (
+    auth.uid() = (
+      select user_id from public.restaurants where id = public.analytics_events.restaurant_id limit 1
+    )
+  );

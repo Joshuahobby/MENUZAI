@@ -41,8 +41,7 @@ test.describe("Demo menu page", () => {
     if (hasAdd) {
       await addBtn.click();
       // Cart badge / total should appear somewhere
-      const cartBadge = page.locator("[class*='cart'], [class*='Cart'], [aria-label*='cart']").first();
-      const hasCart = await cartBadge.isVisible().catch(() => false);
+      const _hasCart = await page.isVisible('[data-testid="cart-button"]');
       // At minimum the page should not crash
       await expect(page.locator("body")).toBeVisible();
     }

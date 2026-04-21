@@ -89,8 +89,11 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ sent: true });
 
-  } catch (error: any) {
-    console.error("Order notification error:", error);
-    return NextResponse.json({ sent: false, reason: error.message }, { status: 500 });
+  } catch (err: unknown) {
+    console.error("Notification route error:", err);
+    return NextResponse.json({ 
+      error: "Internal server error",
+      details: err instanceof Error ? err.message : String(err)
+    }, { status: 500 });
   }
 }

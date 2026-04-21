@@ -13,20 +13,75 @@ const OFFLINE_HTML = `<!DOCTYPE html>
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Offline — MENUZA AI</title>
   <style>
-    body{margin:0;font-family:sans-serif;background:#fcf9f8;color:#1c1c1e;display:flex;align-items:center;justify-content:center;min-height:100vh;text-align:center;padding:24px}
-    .card{max-width:380px}
-    .icon{font-size:64px;margin-bottom:16px}
-    h1{font-size:24px;font-weight:800;margin:0 0 8px}
-    p{color:#5f5e5e;margin:0 0 24px;line-height:1.5}
-    button{background:#FF6B00;color:#fff;border:none;padding:14px 28px;border-radius:12px;font-weight:700;font-size:14px;cursor:pointer}
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: #fcf9f8;
+      color: #1a1a1b;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      text-align: center;
+      padding: 32px;
+    }
+    .card {
+      max-width: 400px;
+      background: white;
+      padding: 48px;
+      border-radius: 40px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.05);
+    }
+    .icon {
+      font-size: 80px;
+      margin-bottom: 24px;
+      display: block;
+    }
+    h1 {
+      font-size: 28px;
+      font-weight: 900;
+      margin: 0 0 12px;
+      letter-spacing: -0.02em;
+    }
+    p {
+      color: #5f5e5e;
+      margin: 0 0 32px;
+      line-height: 1.6;
+      font-size: 15px;
+    }
+    button {
+      background: #FF6B00;
+      color: #fff;
+      border: none;
+      padding: 18px 36px;
+      border-radius: 20px;
+      font-weight: 800;
+      font-size: 15px;
+      cursor: pointer;
+      transition: transform 0.2s;
+      box-shadow: 0 10px 20px rgba(255,107,0,0.2);
+    }
+    button:active {
+      transform: scale(0.95);
+    }
+    .logo {
+      margin-top: 32px;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.2em;
+      color: #FF6B00;
+      font-weight: 800;
+      opacity: 0.5;
+    }
   </style>
 </head>
 <body>
   <div class="card">
-    <div class="icon">🍽️</div>
-    <h1>You're offline</h1>
-    <p>Check your connection and try again. Your menu edits are saved locally and will sync when you're back online.</p>
-    <button onclick="window.location.reload()">Try Again</button>
+    <span class="icon">📡</span>
+    <h1>Resting our signal...</h1>
+    <p>It looks like you're offline. Don't worry, once you've visited this menu once, our smart caching keeps it ready for you! Check your connection to place new orders.</p>
+    <button onclick="window.location.reload()">Refresh Page</button>
+    <div class="logo">Powered by MENUZA AI</div>
   </div>
 </body>
 </html>`;

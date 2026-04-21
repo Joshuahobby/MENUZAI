@@ -1,6 +1,6 @@
 "use client";
 
-import { ReactNode, useEffect, useState } from "react";
+import { ReactNode, useEffect, useState, useRef } from "react";
 import Link from "next/link";
 import NextImage from "next/image";
 import { usePathname, useRouter } from "next/navigation";
@@ -30,8 +30,12 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [moreOpen, setMoreOpen] = useState(false);
   const { restaurantLogoUrl, restaurantName } = useMenu();
+  const initialLoadDone = useRef(false);
 
   useEffect(() => {
+    if (initialLoadDone.current) return;
+    initialLoadDone.current = true;
+
     supabase.auth.getUser().then(async ({ data }) => {
       if (!data.user) {
         router.push("/login");
@@ -54,7 +58,11 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   }, [router]);
 
   // Close more drawer when navigating
-  useEffect(() => { setMoreOpen(false); }, [pathname]);
+  useEffect(() => {
+    if (moreOpen) {
+      setTimeout(() => setMoreOpen(false), 0);
+    }
+  }, [pathname, moreOpen]);
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();

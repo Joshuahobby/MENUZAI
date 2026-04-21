@@ -7,11 +7,11 @@ export interface ExtractionResult {
   suggestedTheme?: string;
 }
 
-export const EXTRACTION_PROMPT = `You are a restaurant menu data extractor. Analyze this menu image/document and extract ALL menu items.
+export const EXTRACTION_PROMPT = `You are a restaurant menu data extractor. Analyze this menu image and extract ALL items.
 
-Return ONLY valid JSON in this exact format (no markdown, no explanation):
+Return ONLY valid JSON in this exact format (no markdown):
 {
-  "restaurantName": "Name of the restaurant if visible, otherwise 'My Restaurant'",
+  "restaurantName": "Name of the restaurant",
   "suggestedTheme": "One of: Classic Elegance, Modern Minimal, Luxury Gold, Street Food, Botanical Garden, Neon Night",
   "categories": [
     { "id": "category-slug", "name": "Category Name", "itemCount": 3 }
@@ -20,25 +20,27 @@ Return ONLY valid JSON in this exact format (no markdown, no explanation):
     {
       "id": "unique-id",
       "name": "Item Name",
-      "description": "Brief description if available, otherwise generate a short appealing one",
+      "description": "Short appealing description",
       "price": 12.50,
       "category": "category-slug",
-      "image": "",
-      "tags": ["relevant", "tags"],
-      "badge": ""
+      "tags": ["Vegetarian", "Spicy"],
+      "badge": "bestseller"
     }
   ]
 }
 
-Rules:
-- Extract every single item visible on the menu
-- category "id" must be a lowercase slug matching across categories and items
-- itemCount must match the actual number of items in that category
-- price must be a number (not string), use 0 if not visible
-- tags can include: Vegetarian, Vegan, Gluten-Free, Spicy, Popular, New, Chef's Pick
-- badge can be: bestseller, popular, healthy, new, chefs-pick, or empty string
-- Generate short descriptions if none are visible on the menu
-- Item ids should be unique strings like "item-1", "item-2", etc.`;
+Heuristics for tags and badges:
+- If you see a leaf icon or "V", add "Vegetarian" or "Vegan" to tags.
+- If you see a chili icon or "Hot", add "Spicy" to tags.
+- If you see "GF", add "Gluten-Free" to tags.
+- If an item is boxed, has a star, or says "Chef's Special", set badge to "chefs-pick".
+- If an item says "Most Popular" or "Best Seller", set badge to "bestseller".
+- All other items should have empty tags [] and badge "" unless clearly indicated otherwise.
+- Generate short, appetizing descriptions if the menu lacks them.
+- **PRICE EXTRACTION**: Extract prices as numbers. 
+  - If a price has a comma as a thousand separator (e.g., 7,000), remove the comma before parsing.
+  - If a price has a decimal (e.g., .9), ensure it is treated as a fractional part.
+- Ensure category IDs are unique lowercase slugs.`;
 
 export function mergeExtractionResults(results: ExtractionResult[]): ExtractionResult {
   if (results.length === 0) return { restaurantName: "My Restaurant", categories: [], items: [] };
@@ -108,7 +110,9 @@ export function parseExtractionResponse(text: string): ExtractionResult {
     id: String(item.id || `item-${idx + 1}`),
     name: String(item.name || "Unknown Item"),
     description: String(item.description || ""),
-    price: Number(item.price || 0),
+    price: typeof item.price === "string" 
+      ? Number(item.price.replace(/,/g, "")) 
+      : Number(item.price || 0),
     category: String(item.category || categories[0]?.id || "uncategorized"),
     image: String(item.image || ""),
     tags: Array.isArray(item.tags) ? item.tags.map(String) : [],

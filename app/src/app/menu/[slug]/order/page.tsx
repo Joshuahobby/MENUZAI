@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, Suspense, use } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { buildWhatsAppMessage, buildWhatsAppURL } from "@/lib/whatsapp";
 import { supabase } from "@/lib/supabase";
@@ -11,9 +11,11 @@ import type { CartItem } from "@/types/menu";
 
 function OrderContent({ slug }: { slug: string }) {
   const searchParams = useSearchParams();
-  const router = useRouter();
+  // const router = useRouter();
   const [customerName, setCustomerName] = useState("");
-  const [tableNumber, setTableNumber] = useState("");
+  const [tableNumber, setTableNumber] = useState(
+    searchParams.get("table") ? `Table ${searchParams.get("table")}` : ""
+  );
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [orderPlaced, setOrderPlaced] = useState(false);
 

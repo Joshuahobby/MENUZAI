@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 
 // ── Confirm Modal ──────────────────────────────────────────────────────────
 
@@ -25,7 +25,9 @@ export function confirm(opts: ConfirmOptions): Promise<boolean> {
 
 export function ConfirmModal() {
   const [state, setState] = useState<ConfirmState | null>(null);
-  _setConfirm = setState;
+  useEffect(() => {
+    _setConfirm = setState;
+  }, []);
 
   const handleClose = useCallback((result: boolean) => {
     state?.resolve(result);
@@ -88,7 +90,9 @@ export function prompt(opts: PromptOptions): Promise<string | null> {
 export function PromptModal() {
   const [state, setState] = useState<PromptState | null>(null);
   const [value, setValue] = useState("");
-  _setPrompt = (s) => { setState(s); setValue(s?.defaultValue ?? ""); };
+  useEffect(() => {
+    _setPrompt = (s) => { setState(s); setValue(s?.defaultValue ?? ""); };
+  }, []);
 
   const handleClose = useCallback((submit: boolean) => {
     state?.resolve(submit && value.trim() ? value.trim() : null);

@@ -72,8 +72,11 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ received: true }, { status: 200 });
 
-  } catch (error: any) {
-    console.error("pawaPay Webhook Error:", error);
-    return NextResponse.json({ error: "Webhook processing failed" }, { status: 500 });
+  } catch (error: unknown) {
+    console.error("Webhook processing error:", error);
+    return NextResponse.json({ 
+      error: "Internal server error",
+      details: error instanceof Error ? error.message : String(error)
+    }, { status: 500 });
   }
 }

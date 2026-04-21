@@ -2,13 +2,13 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { supabase } from "@/lib/supabase";
-import { useMenu } from "@/context/MenuContext";
 import { useRouter } from "next/navigation";
 import { formatRelativeTime } from "@/lib/utils";
 import { toast } from "sonner";
 import { confirm, prompt } from "@/components/Modals";
 import { SkeletonCard } from "@/components/Skeleton";
+import { useMenu } from "@/hooks/useMenu";
+import { supabase } from "@/lib/supabase";
 
 interface MenuRow {
   id: string;
@@ -37,11 +37,14 @@ export default function MenusPage() {
       .order("updated_at", { ascending: false });
 
     if (data) setMenus(data);
-    setLoading(false);
+    setTimeout(() => setLoading(false), 0);
   };
 
   useEffect(() => {
-    loadMenus();
+    const timer = setTimeout(() => {
+      loadMenus();
+    }, 0);
+    return () => clearTimeout(timer);
   }, []);
 
   const handleEdit = async (menuId: string) => {
@@ -50,8 +53,11 @@ export default function MenusPage() {
   };
 
   const handleCreateNew = async () => {
-    if (plan === "free" && menus.length >= 1) {
-      toast.error("Upgrade to Pro to create multiple menus.", { description: "Free plan is limited to 1 menu." });
+    const draftCount = menus.filter(m => m.status === 'draft').length;
+    if (plan === "free" && draftCount >= 1) {
+      toast.error("Draft limit reached.", { 
+        description: "Free plan allows 1 draft menu. Publish your current draft to start a new design." 
+      });
       return;
     }
     const name = await prompt({
@@ -67,7 +73,7 @@ export default function MenusPage() {
     if (newId) {
       router.push("/dashboard/editor");
     } else {
-      setLoading(false);
+      setTimeout(() => setLoading(false), 0);
       toast.error("Failed to create menu.");
     }
   };
@@ -194,11 +200,11 @@ export default function MenusPage() {
 
           {/* Create New Card */}
           <button onClick={handleCreateNew} className="bg-surface-container-lowest rounded-[2rem] border-2 border-dashed border-outline-variant/40 flex flex-col items-center justify-center min-h-[300px] hover:border-primary/40 hover:bg-primary/5 transition-all cursor-pointer group outline-none">
-            {plan === "free" && menus.length >= 1 ? (
+            {plan === "free" && menus.filter(m => m.status === 'draft').length >= 1 ? (
               <>
-                <span className="material-symbols-outlined text-primary text-4xl mb-4">lock</span>
-                <p className="font-[var(--font-headline)] font-bold text-on-surface">Pro Feature</p>
-                <p className="text-sm text-secondary">Upgrade to create multiple menus</p>
+                <span className="material-symbols-outlined text-primary text-4xl mb-4">auto_awesome_motion</span>
+                <p className="font-[var(--font-headline)] font-bold text-on-surface">1 Draft Active</p>
+                <p className="text-sm text-secondary">Free plan allows 1 Draft & 1 Published</p>
               </>
             ) : (
               <>

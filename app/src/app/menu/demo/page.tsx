@@ -16,11 +16,11 @@ export default function CustomerMenuPage() {
 
   useEffect(() => {
     if (containerRef.current) {
-      const s = containerRef.current.style;
-      s.setProperty('--primary-color', menuStyle.primaryColor);
-      s.setProperty('--font-headline', menuStyle.headlineFont);
-      s.setProperty('--font-body', menuStyle.bodyFont);
-      s.setProperty('--border-radius', menuStyle.borderRadius);
+      const canvasStyle = containerRef.current.style;
+      canvasStyle.setProperty('--primary-color', menuStyle.primaryColor);
+      canvasStyle.setProperty('--font-headline', menuStyle.headlineFont);
+      canvasStyle.setProperty('--font-body', menuStyle.bodyFont);
+      canvasStyle.setProperty('--border-radius', menuStyle.borderRadius);
     }
   }, [menuStyle]);
 

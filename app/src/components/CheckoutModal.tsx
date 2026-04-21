@@ -49,8 +49,8 @@ export function CheckoutModal({ isOpen, onClose, planName, priceAmount }: Checko
       } else {
         throw new Error(data.error || "Payment failed");
       }
-    } catch (err: any) {
-      toast.error(err.message);
+    } catch (err: unknown) {
+      toast.error((err as Error).message);
     } finally {
       setLoading(false);
     }

@@ -25,8 +25,6 @@ export default function MenuEditorPage() {
     categories,
     menuItems,
     menuStyle,
-    setMenuStyle,
-    addCategory,
     addItem,
     updateItem,
     removeItem,
@@ -47,8 +45,7 @@ export default function MenuEditorPage() {
   const [userId, setUserId] = useState<string | null>(null);
   const [expandedItemId, setExpandedItemId] = useState<string | null>(null);
   const [viewport, setViewport] = useState<Viewport>("mobile");
-  const [addingTagForItem, setAddingTagForItem] = useState<string | null>(null);
-  const [newTagText, setNewTagText] = useState("");
+  const [isStyleSidebarOpen, setIsStyleSidebarOpen] = useState(false);
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => setUserId(data.user?.id ?? null));
@@ -60,24 +57,27 @@ export default function MenuEditorPage() {
   // Default to first category once loaded
   useEffect(() => {
     if (!activeCategoryId && categories.length > 0) {
-      setActiveCategoryId(categories[0]?.id);
+      setTimeout(() => setActiveCategoryId(categories[0]?.id), 0);
     }
   }, [categories, activeCategoryId]);
 
   // If active category was deleted, fall back to first
   useEffect(() => {
     if (activeCategoryId && !categories.find((c) => c.id === activeCategoryId)) {
-      setActiveCategoryId(categories[0]?.id);
+      setTimeout(() => setActiveCategoryId(categories[0]?.id), 0);
     }
   }, [categories, activeCategoryId]);
 
   // Apply CSS vars for live style preview
   useEffect(() => {
-    if (containerRef.current) {
-      const s = containerRef.current.style;
-      s.setProperty("--primary-color", menuStyle.primaryColor);
-      s.setProperty("--font-headline", menuStyle.headlineFont);
-      s.setProperty("--font-body", menuStyle.bodyFont);
+    const el = containerRef.current;
+    if (el) {
+      el.style.setProperty("--primary-color", menuStyle.primaryColor);
+      el.style.setProperty("--secondary-color", menuStyle.secondaryColor);
+      el.style.setProperty("--bg-color", menuStyle.backgroundColor);
+      el.style.setProperty("--font-headline", menuStyle.headlineFont);
+      el.style.setProperty("--font-body", menuStyle.bodyFont);
+      el.style.setProperty("--border-radius", menuStyle.borderRadius);
     }
   }, [menuStyle]);
 
@@ -90,17 +90,6 @@ export default function MenuEditorPage() {
       await renameMenu(activeMenuId, tempName.trim());
     }
     setIsEditingName(false);
-  };
-
-  const handleAddTag = (itemId: string) => {
-    const tag = newTagText.trim();
-    if (!tag) { setAddingTagForItem(null); setNewTagText(""); return; }
-    const item = menuItems.find((i) => i.id === itemId);
-    if (item && !item.tags.includes(tag)) {
-      updateItem(itemId, { tags: [...item.tags, tag] });
-    }
-    setNewTagText("");
-    setAddingTagForItem(null);
   };
 
   const handleRemoveTag = (itemId: string, tag: string) => {
@@ -165,6 +154,17 @@ export default function MenuEditorPage() {
               /menu/{menuSlug}
             </Link>
           )}
+
+          <button
+            type="button"
+            onClick={() => setIsStyleSidebarOpen(!isStyleSidebarOpen)}
+            className={`p-2 rounded-xl transition-all flex items-center gap-2 ${isStyleSidebarOpen ? "bg-primary text-white shadow-lg" : "bg-surface-container-highest text-secondary hover:text-primary"}`}
+            title="Toggle Style Editor"
+          >
+            <span className="material-symbols-outlined text-sm">palette</span>
+            <span className="text-xs font-bold hidden md:inline">Design</span>
+          </button>
+
           {publishedSlug && (
             <span className="text-xs text-tertiary font-bold animate-pulse">Published!</span>
           )}
@@ -204,7 +204,10 @@ export default function MenuEditorPage() {
         <section className="flex-1 bg-surface-container-low p-6 lg:p-10 flex flex-col items-center editor-canvas relative overflow-auto">
 
           {/* Phone / Tablet / Desktop Frame */}
-          <div className={`w-full ${vp.width} bg-white ${vp.rounded} shadow-2xl overflow-y-auto ${vp.border} flex flex-col ${vp.minH} transition-all duration-300`}>
+          <div 
+            className={`w-full ${vp.width} ${vp.rounded} shadow-2xl overflow-y-auto ${vp.border} flex flex-col ${vp.minH} transition-all duration-300`}
+            style={{ backgroundColor: "var(--bg-color)" }}
+          >
             <div className="w-full h-56 relative overflow-hidden shrink-0">
               <NextImage
                 alt="Menu Header"
@@ -225,10 +228,17 @@ export default function MenuEditorPage() {
             <div className="p-6 space-y-6">
               {filteredItems.map((item) => {
                 const isExpanded = expandedItemId === item.id;
+                
+                // Determine card classes based on cardStyle
+                const cardClasses = 
+                  menuStyle.cardStyle === "elevated" ? "bg-white shadow-sm border border-surface-container/30" :
+                  menuStyle.cardStyle === "glass" ? "bg-white/40 backdrop-blur-md border border-white/20 shadow-lg" :
+                  "bg-transparent border-b border-surface-container/50 rounded-none";
+
                 return (
                   <div
                     key={item.id}
-                    className={`relative group cursor-pointer -mx-2 px-2 py-3 rounded-2xl transition-all ${item.available === false ? "opacity-60 bg-surface-container-low" : "hover:bg-surface-container-low"}`}
+                    className={`relative group cursor-pointer -mx-2 px-4 py-4 rounded-[var(--border-radius)] transition-all ${cardClasses} ${item.available === false ? "opacity-60" : "hover:scale-[1.01]"}`}
                   >
                     {/* Header row */}
                     <div
@@ -271,7 +281,8 @@ export default function MenuEditorPage() {
                     </div>
 
                     <textarea
-                      className="text-sm text-on-surface-variant font-medium leading-relaxed italic bg-transparent border-none p-0 focus:ring-0 w-full resize-none overflow-hidden font-[var(--font-body)]"
+                      className="text-sm font-medium leading-relaxed italic bg-transparent border-none p-0 focus:ring-0 w-full resize-none overflow-hidden font-[var(--font-body)]"
+                      style={{ color: "var(--secondary-color)" }}
                       value={item.description}
                       rows={2}
                       onChange={(e) => updateItem(item.id, { description: e.target.value })}
@@ -429,7 +440,7 @@ export default function MenuEditorPage() {
         </section>
 
         {/* Right Panel */}
-        <StyleEditorSidebar />
+        {isStyleSidebarOpen && <StyleEditorSidebar />}
       </div>
     </div>
   );

@@ -25,7 +25,7 @@ export default function DashboardPage() {
     }
     if (!restaurantId) {
       // restaurantId resolved to empty string or falsy — stop spinner
-      setLoading(false);
+      setTimeout(() => setLoading(false), 0);
       return;
     }
 

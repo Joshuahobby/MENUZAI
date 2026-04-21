@@ -193,8 +193,8 @@ export default function PricingPage() {
           <p className="text-sm text-secondary">© 2026 Menuza Systems Inc. All rights reserved.</p>
           <div className="flex gap-6 text-sm font-semibold text-on-surface-variant">
             <Link href="/" className="hover:text-primary transition-colors">Home</Link>
-            <a href="/#features" className="hover:text-primary transition-colors">Features</a>
-            <a href="/#pricing" className="hover:text-primary transition-colors">Pricing</a>
+            <Link href="/#features" className="hover:text-primary transition-colors">Features</Link>
+            <Link href="/#pricing" className="hover:text-primary transition-colors">Pricing</Link>
           </div>
         </div>
       </footer>

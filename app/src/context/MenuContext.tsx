@@ -4,6 +4,7 @@ import React, { createContext, useContext, useState, useEffect, useRef, useCallb
 import { supabase } from "@/lib/supabase";
 import { generateSlug, ensureUniqueSlug } from "@/lib/slug";
 import { User } from "@supabase/supabase-js";
+import { toast } from "sonner";
 
 // Re-export shared types for backward compatibility
 export type { MenuItem, MenuCategory, MenuStyle } from "@/types/menu";
@@ -50,11 +51,15 @@ interface MenuContextType {
 
 export const defaultStyle: MenuStyle = {
   primaryColor: "#FF6B00",
+  secondaryColor: "#1E1E1E",
+  backgroundColor: "#FFFFFF",
   headlineFont: "Plus Jakarta Sans",
   bodyFont: "Inter",
   borderRadius: "2rem",
   layoutDensity: "comfortable",
+  cardStyle: "elevated",
   currency: "RWF",
+  layoutStyle: "default",
 };
 
 const MenuContext = createContext<MenuContextType | undefined>(undefined);
@@ -79,6 +84,7 @@ export function MenuProvider({ children }: { children: React.ReactNode }) {
   const menuSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const restaurantSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const isInitialLoad = useRef(true);
+  const isBootstrappingRef = useRef(false);
 
   // 1. Track auth state
   useEffect(() => {
@@ -106,110 +112,136 @@ export function MenuProvider({ children }: { children: React.ReactNode }) {
       return;
     }
 
+    if (isBootstrappingRef.current) return;
+    isBootstrappingRef.current = true;
+
     let cancelled = false;
 
     const bootstrap = async () => {
+      // Internal guard to prevent concurrent executions within this effect instance
+      if (isBootstrappingRef.current) return;
+      isBootstrappingRef.current = true;
+
       setIsLoading(true);
       isInitialLoad.current = true;
 
-      // --- Ensure restaurant row ---
-      let restoId: string;
-      const { data: existingRestaurant, error: fetchError } = await supabase
-        .from("restaurants")
-        .select("id, name, phone, plan, logo_url")
-        .eq("user_id", user.id)
-        .maybeSingle();
-
-      if (fetchError) {
-        console.error("Restaurant fetch error:", fetchError.message, fetchError.code);
-      }
-
-      if (existingRestaurant) {
-        restoId = existingRestaurant.id;
-        if (!cancelled) {
-          setRestaurantId(restoId);
-          setRestaurantName(existingRestaurant.name);
-          setRestaurantPhone(existingRestaurant.phone ?? "");
-          setRestaurantLogoUrl(existingRestaurant.logo_url ?? "");
-          setPlan(existingRestaurant.plan ?? "free");
-        }
-      } else {
-        // Upsert to handle cases where the row exists but the SELECT failed
-        // (e.g. schema mismatch on optional columns) or the row doesn't exist yet.
-        const { data: upsertedRestaurant, error: upsertError } = await supabase
+      try {
+        // --- Ensure restaurant row ---
+        let restoId: string;
+        const { data: existingRestaurant } = await supabase
           .from("restaurants")
-          .upsert({ user_id: user.id, name: "My Restaurant" }, { onConflict: "user_id", ignoreDuplicates: true })
-          .select("id")
+          .select("id, name, phone, plan, logo_url")
+          .eq("user_id", user.id)
           .maybeSingle();
 
-        if (upsertError || !upsertedRestaurant) {
-          // Last resort: try a plain select by user_id to get the id at minimum
-          const { data: fallback } = await supabase
+        if (existingRestaurant) {
+          restoId = existingRestaurant.id;
+          if (!cancelled) {
+            setRestaurantId(restoId);
+            setRestaurantName(existingRestaurant.name);
+            setRestaurantPhone(existingRestaurant.phone ?? "");
+            setRestaurantLogoUrl(existingRestaurant.logo_url ?? "");
+            setPlan(existingRestaurant.plan ?? "free");
+          }
+        } else {
+          // Atomic upsert to avoid race conditions
+          const { data: upsertedRestaurant, error: upsertError } = await supabase
             .from("restaurants")
+            .upsert({ user_id: user.id, name: "My Restaurant" }, { onConflict: "user_id", ignoreDuplicates: false })
             .select("id")
-            .eq("user_id", user.id)
+            .single();
+
+          if (upsertError || !upsertedRestaurant) {
+            // If conflict, find the one that was just created
+            const { data: fallback } = await supabase
+              .from("restaurants")
+              .select("id")
+              .eq("user_id", user.id)
+              .maybeSingle();
+
+            if (!fallback) {
+              console.error("Failed to bootstrap restaurant");
+              setIsLoading(false);
+              isBootstrappingRef.current = false;
+              return;
+            }
+            restoId = fallback.id;
+          } else {
+            restoId = upsertedRestaurant.id;
+          }
+          if (!cancelled) setRestaurantId(restoId);
+        }
+
+        // --- Fetch most recent menu ---
+        const { data: menu } = await supabase
+          .from("menus")
+          .select("*")
+          .eq("user_id", user.id)
+          .order("updated_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+
+        if (menu && !cancelled) {
+          setActiveMenuId(menu.id);
+          setActiveMenuName(menu.name ?? "My Menu");
+          setMenuStatus(menu.status === "published" ? "published" : "draft");
+          setMenuSlug(menu.slug ?? null);
+          setCategories(menu.categories ?? []);
+          setMenuItems(menu.items ?? []);
+          setMenuStyle(menu.style && Object.keys(menu.style).length > 0 ? menu.style : defaultStyle);
+          setLastSynced(new Date(menu.updated_at));
+        } else if (!menu && !cancelled) {
+          // Create default menu if none exist
+          const { data: newMenu, error: insertError } = await supabase
+            .from("menus")
+            .insert({
+              user_id: user.id,
+              restaurant_id: restoId,
+              name: "My Menu",
+              categories: [],
+              items: [],
+              style: defaultStyle,
+            })
+            .select("id")
             .maybeSingle();
 
-          if (!fallback) {
-            console.error("Failed to create or find restaurant:", upsertError?.message);
-            setIsLoading(false);
-            return;
+          if (insertError && insertError.code === "23505") { // 23505 is unique violation (Conflict)
+            // Race condition: another instance just created the menu. Re-fetch.
+            const { data: lateMenu } = await supabase
+              .from("menus")
+              .select("*")
+              .eq("user_id", user.id)
+              .limit(1)
+              .maybeSingle();
+
+            if (lateMenu && !cancelled) {
+              setActiveMenuId(lateMenu.id);
+              setActiveMenuName(lateMenu.name ?? "My Menu");
+              setMenuStatus(lateMenu.status === "published" ? "published" : "draft");
+              setMenuSlug(lateMenu.slug ?? null);
+              setCategories(lateMenu.categories ?? []);
+              setMenuItems(lateMenu.items ?? []);
+              setMenuStyle(lateMenu.style && Object.keys(lateMenu.style).length > 0 ? lateMenu.style : defaultStyle);
+            }
+          } else if (newMenu && !cancelled) {
+            setActiveMenuId(newMenu.id);
+            setCategories([]);
+            setMenuItems([]);
           }
-          restoId = fallback.id;
-        } else {
-          restoId = upsertedRestaurant.id;
         }
-        if (!cancelled) setRestaurantId(restoId);
-      }
-
-      // --- Fetch most recent menu for this restaurant ---
-      const { data: menu } = await supabase
-        .from("menus")
-        .select("*")
-        .eq("user_id", user.id)
-        .order("updated_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
-
-      if (menu && !cancelled) {
-        setActiveMenuId(menu.id);
-        setActiveMenuName(menu.name ?? "My Menu");
-        setMenuStatus(menu.status === "published" ? "published" : "draft");
-        setMenuSlug(menu.slug ?? null);
-        setCategories(menu.categories ?? []);
-        setMenuItems(menu.items ?? []);
-        setMenuStyle(menu.style && Object.keys(menu.style).length > 0 ? menu.style : defaultStyle);
-        setLastSynced(new Date(menu.updated_at));
-      } else if (!menu) {
-        // First-time user: create an empty default menu
-        const { data: newMenu, error } = await supabase
-          .from("menus")
-          .insert({
-            user_id: user.id,
-            restaurant_id: restoId,
-            name: "My Menu",
-            categories: [],
-            items: [],
-            style: defaultStyle,
-          })
-          .select("id")
-          .maybeSingle();
-
-        if (!error && newMenu && !cancelled) {
-          setActiveMenuId(newMenu.id);
-          setCategories([]);
-          setMenuItems([]);
+      } catch (err) {
+        console.error("Bootstrap error:", err);
+      } finally {
+        if (!cancelled) {
+          isInitialLoad.current = false;
+          setIsLoading(false);
         }
-      }
-
-      if (!cancelled) {
-        isInitialLoad.current = false;
-        setIsLoading(false);
+        isBootstrappingRef.current = false;
       }
     };
 
     bootstrap();
-    return () => { cancelled = true; };
+    return () => { cancelled = true; isBootstrappingRef.current = false; };
   }, [user]);
 
   // 3. Auto-save menu data with debounce (2 s)
@@ -259,8 +291,25 @@ export function MenuProvider({ children }: { children: React.ReactNode }) {
 
   const publishMenu = useCallback(async (): Promise<string | null> => {
     if (!activeMenuId || !user) return null;
-    setIsSyncing(true);
 
+    // Plan restriction: 1 Published menu maximum
+    if (plan === "free") {
+      const { data: publishedMenus } = await supabase
+        .from("menus")
+        .select("id")
+        .eq("user_id", user.id)
+        .eq("status", "published")
+        .neq("id", activeMenuId);
+
+      if (publishedMenus && publishedMenus.length >= 1) {
+        toast.error("Published menu limit reached.", { 
+          description: "Free plan allows 1 published menu. Unpublish your current live menu to publish this one." 
+        });
+        return null;
+      }
+    }
+
+    setIsSyncing(true);
     let slug = menuSlug;
     if (!slug) {
       const base = generateSlug(restaurantName || "menu");
@@ -280,7 +329,7 @@ export function MenuProvider({ children }: { children: React.ReactNode }) {
     }
     setIsSyncing(false);
     return null;
-  }, [activeMenuId, user, menuSlug, restaurantName]);
+  }, [activeMenuId, user, menuSlug, restaurantName, plan]);
 
   const unpublishMenu = useCallback(async (): Promise<void> => {
     if (!activeMenuId || !user) return;
@@ -354,7 +403,11 @@ export function MenuProvider({ children }: { children: React.ReactNode }) {
   };
 
   const applyTemplate = (style: Partial<MenuStyle>) => {
-    setMenuStyle((prev) => ({ ...prev, ...style }));
+    // Overwrite style to feel like a fresh start (Canva-like)
+    setMenuStyle({
+      ...defaultStyle,
+      ...style
+    });
   };
 
   // --- Multi-menu: switch to a different menu by ID ---
@@ -396,15 +449,18 @@ export function MenuProvider({ children }: { children: React.ReactNode }) {
   const createMenu = useCallback(async (name: string): Promise<string | null> => {
     if (!user || !restaurantId) return null;
 
-    // Check plan limits: Free users only get 1 menu
+    // Plan restriction: 1 Draft menu maximum
     if (plan === "free") {
-      const { count } = await supabase
+      const { data: drafts } = await supabase
         .from("menus")
-        .select("id", { count: "exact", head: true })
-        .eq("user_id", user.id);
+        .select("id")
+        .eq("user_id", user.id)
+        .eq("status", "draft");
       
-      if (count && count >= 1) {
-        console.warn("Plan limit reached: upgrade to Pro to create more menus.");
+      if (drafts && drafts.length >= 1) {
+        toast.error("Draft limit reached.", { 
+          description: "You already have a draft menu. Publish it or delete it to create a new experiment." 
+        });
         return null;
       }
     }
@@ -437,7 +493,7 @@ export function MenuProvider({ children }: { children: React.ReactNode }) {
     isInitialLoad.current = false;
 
     return newMenu.id;
-  }, [user, restaurantId]);
+  }, [user, restaurantId, plan]);
 
   // --- Multi-menu: delete a menu ---
   const deleteMenu = useCallback(async (menuId: string): Promise<boolean> => {

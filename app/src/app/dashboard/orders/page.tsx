@@ -69,11 +69,29 @@ export default function OrdersPage() {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<StatusFilter>("all");
   const [isLive, setIsLive] = useState(false);
+  const [now, setNow] = useState(0);
   const initialLoadDone = useRef(false);
+
+  // Initialize 'now' and update periodically to refresh 'new' badges
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setNow(Date.now());
+    }, 0);
+    const interval = setInterval(() => setNow(Date.now()), 30000);
+    return () => {
+      clearTimeout(timer);
+      clearInterval(interval);
+    };
+  }, []);
 
   // ── Fetch ──────────────────────────────────────────────────
   useEffect(() => {
-    if (!restaurantId) return;
+    if (!restaurantId) {
+      if (loading) {
+        setTimeout(() => setLoading(false), 0);
+      }
+      return;
+    }
 
     const fetchOrders = async () => {
       const { data, error } = await supabase
@@ -91,6 +109,8 @@ export default function OrdersPage() {
     fetchOrders();
 
     // ── Realtime ───────────────────────────────────────────
+    const audio = new Audio("https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3");
+
     const channel = supabase
       .channel(`orders:${restaurantId}`)
       .on(
@@ -106,6 +126,11 @@ export default function OrdersPage() {
             const newOrder = payload.new as OrderRow;
             // Don't fire toast on first load
             if (initialLoadDone.current) {
+              // Play notification sound
+              audio.play().catch(() => {
+                console.log("Audio playback blocked by browser. User must interact with the page first.");
+              });
+
               toast("New order received!", {
                 description: newOrder.customer_name
                   ? `From ${newOrder.customer_name}${newOrder.table_number ? ` · Table ${newOrder.table_number}` : ""}`
@@ -132,7 +157,7 @@ export default function OrdersPage() {
       supabase.removeChannel(channel);
       setIsLive(false);
     };
-  }, [restaurantId]);
+  }, [restaurantId, loading]);
 
   // ── Status update (optimistic) ─────────────────────────
   const updateStatus = async (orderId: string, newStatus: OrderRow["status"]) => {
@@ -279,7 +304,7 @@ export default function OrdersPage() {
           {filtered.map((order) => {
             const s = STATUS_STYLE[order.status];
             const isNew =
-              Date.now() - new Date(order.created_at).getTime() < 60_000;
+              now - new Date(order.created_at).getTime() < 60_000;
 
             return (
               <div
