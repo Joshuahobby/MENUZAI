@@ -2,6 +2,7 @@
 
 import { templates, type Template, type TemplateCategory } from "@/data/mockData";
 import { useState, useMemo } from "react";
+import { useRouter } from "next/navigation";
 import { useMenu } from "@/context/MenuContext";
 import { toast } from "sonner";
 import { TemplatePreview, DEMO_DATA, type TplData } from "./TemplatePreview";
@@ -17,8 +18,8 @@ const CATEGORY_LABELS: Record<"all" | TemplateCategory, string> = {
 };
 
 export default function TemplatesPage() {
+  const router = useRouter();
   const { applyTemplate, plan, restaurantName } = useMenu();
-  // Removed unused router
   const [tierFilter, setTierFilter] = useState<"all" | "free" | "pro">("all");
   const [catFilter, setCatFilter] = useState<"all" | TemplateCategory>("all");
   const [previewId, setPreviewId] = useState<string | null>(null);

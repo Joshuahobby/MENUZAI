@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import NextImage from "next/image";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { trackMenuView, trackItemView, trackOrderClick } from "@/lib/analytics";
 import type { MenuItem, MenuCategory, MenuStyle, CartItem } from "@/types/menu";

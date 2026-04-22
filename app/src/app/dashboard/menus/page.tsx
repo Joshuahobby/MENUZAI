@@ -7,7 +7,7 @@ import { formatRelativeTime } from "@/lib/utils";
 import { toast } from "sonner";
 import { confirm, prompt } from "@/components/Modals";
 import { SkeletonCard } from "@/components/Skeleton";
-import { useMenu } from "@/hooks/useMenu";
+import { useMenu } from "@/context/MenuContext";
 import { supabase } from "@/lib/supabase";
 
 interface MenuRow {
