@@ -45,7 +45,7 @@ async function extractFromFile(file: File, apiKey: string): Promise<ExtractionRe
       "X-Title": "MENUZAI",
     },
     body: JSON.stringify({
-      model: process.env.OPENROUTER_MODEL ?? "google/gemma-3-27b-it:free",
+      model: process.env.OPENROUTER_MODEL ?? "google/gemini-2.0-flash-exp:free",
       max_tokens: 4096,
       messages: [{
         role: "user",
