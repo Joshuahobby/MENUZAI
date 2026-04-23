@@ -9,8 +9,13 @@
  */
 import { test, expect } from "@playwright/test";
 import { OnboardingPage } from "../pages/OnboardingPage";
+import { resetOnboarding } from "../utils/db-utils";
 
 test.describe("Onboarding flow", () => {
+  test.beforeEach(async () => {
+    await resetOnboarding("e2e-test@menuzai.test");
+  });
+
   test("Step 1 — requires restaurant name", async ({ page }) => {
     const ob = new OnboardingPage(page);
     await ob.goto();
@@ -114,16 +119,10 @@ test.describe("Onboarding flow", () => {
     await expect(page).toHaveURL("/dashboard/editor");
   });
 
-  test("Step 3 — 'Upload Menu' option is visible (skip if already onboarded)", async ({ page }) => {
+  test("Step 3 — 'Upload Menu' option is visible", async ({ page }) => {
     const ob = new OnboardingPage(page);
     await ob.goto();
-    await page.waitForURL(/\/(onboarding|dashboard)/, { timeout: 10000 });
-    try {
-      await page.waitForSelector("#ob-name", { timeout: 3000 });
-    } catch {
-      test.skip();
-      return;
-    }
+    await page.waitForSelector("#ob-name", { timeout: 10000 });
     await ob.completeStep1("E2E Test Restaurant 2");
     await ob.completeStep2("+250788000001");
 
@@ -133,15 +132,18 @@ test.describe("Onboarding flow", () => {
   });
 
   test("already-onboarded user is redirected to /dashboard", async ({ page }) => {
-    // After completing onboarding once, revisiting /onboarding should redirect
-    await page.goto("/dashboard/editor");
-    await page.waitForURL(/\/(dashboard|onboarding)/, { timeout: 10000 });
+    // Manually complete onboarding first so we can test the redirect
+    const ob = new OnboardingPage(page);
+    await ob.goto();
+    await page.waitForSelector("#ob-name", { timeout: 10000 });
+    await ob.completeStep1("Final Test Restaurant");
+    await ob.completeStep2("+250788999999");
+    await ob.chooseStartFromScratch();
+    await page.waitForURL("/dashboard/editor", { timeout: 15000 });
 
-    if (page.url().includes("/dashboard")) {
-      // Already onboarded — go back to onboarding, expect redirect
-      await page.goto("/onboarding");
-      await page.waitForURL("/dashboard", { timeout: 8000 });
-      await expect(page).toHaveURL("/dashboard");
-    }
+    // Now revisit /onboarding, expect redirect
+    await page.goto("/onboarding");
+    await page.waitForURL("/dashboard", { timeout: 10000 });
+    await expect(page).toHaveURL("/dashboard");
   });
 });

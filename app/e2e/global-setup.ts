@@ -6,7 +6,7 @@
  */
 import * as fs from "fs";
 import * as path from "path";
-import { chromium, FullConfig } from "@playwright/test";
+import { chromium } from "@playwright/test";
 import { createClient } from "@supabase/supabase-js";
 
 // Load .env.local manually — global-setup runs outside Next.js
@@ -24,7 +24,7 @@ if (fs.existsSync(envPath)) {
   }
 }
 
-const BASE_URL = process.env.PLAYWRIGHT_BASE_URL || "http://localhost:3001";
+const BASE_URL = process.env.PLAYWRIGHT_BASE_URL || "http://localhost:3000";
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
@@ -33,7 +33,7 @@ export const TEST_USER = {
   password: process.env.E2E_TEST_PASSWORD || "TestPassword123!",
 };
 
-async function globalSetup(_config: FullConfig) {
+async function globalSetup() {
   if (!SUPABASE_URL || !SERVICE_ROLE_KEY) {
     throw new Error(
       "Missing NEXT_PUBLIC_SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY in .env.local.\n" +
@@ -74,7 +74,8 @@ async function globalSetup(_config: FullConfig) {
 
   if (existingUserId) {
     testUserId = await upsertTestUser(existingUserId);
-    // Clear any leftover restaurant row so onboarding starts fresh
+    // Clear any leftover data so onboarding starts fresh
+    await admin.from("menus").delete().eq("user_id", testUserId);
     await admin.from("restaurants").delete().eq("user_id", testUserId);
     console.log(`✓ Existing test user reset: ${TEST_USER.email}`);
   } else {
@@ -95,6 +96,7 @@ async function globalSetup(_config: FullConfig) {
         );
       }
       testUserId = await upsertTestUser(retryId);
+      await admin.from("menus").delete().eq("user_id", testUserId);
       await admin.from("restaurants").delete().eq("user_id", testUserId);
       console.log(`✓ Existing test user reset (retry path): ${TEST_USER.email}`);
     } else if (createError || !created.user) {
@@ -114,15 +116,34 @@ async function globalSetup(_config: FullConfig) {
   const page = await context.newPage();
 
   await page.goto(`${BASE_URL}/login`);
-  // Wait for the React form to hydrate
-  await page.locator('input[type="email"]').waitFor({ state: "visible", timeout: 60000 });
+  // Wait for the React form to hydrate and be fully ready
+  const emailInput = page.locator('input[type="email"]');
+  await emailInput.waitFor({ state: "visible", timeout: 60000 });
+  
+  // Extra cushion for hydration
+  await page.waitForTimeout(1000);
 
-  await page.locator('input[type="email"]').fill(TEST_USER.email);
+  await emailInput.fill(TEST_USER.email);
   await page.locator('input[type="password"]').fill(TEST_USER.password);
+  
+  // Give React a moment to sync state
+  await page.waitForTimeout(500);
+
+  // Click and wait for navigation
+  console.log("Submitting login form...");
   await page.getByRole("button", { name: /sign in/i }).click();
 
-  // Wait for post-login redirect (new user → onboarding; returning user → dashboard)
-  await page.waitForURL(/\/(onboarding|dashboard)/, { timeout: 20000 });
+  try {
+    await page.waitForURL(/\/(onboarding|dashboard)/, { timeout: 60000 });
+    console.log(`Redirected to: ${page.url()}`);
+  } catch (e: unknown) {
+    const err = e as Error;
+    const url = page.url();
+    const content = await page.content().catch(() => "could not get content");
+    const screenshotPath = path.join(authDir, "login-failure.png");
+    await page.screenshot({ path: screenshotPath }).catch(() => {});
+    throw new Error(`Login failed to redirect from ${url}. Error: ${err.message}. Screenshot saved to ${screenshotPath}. Page content snippet: ${content.slice(0, 1000)}`);
+  }
 
   await context.storageState({ path: path.join(authDir, "user.json") });
   await browser.close();

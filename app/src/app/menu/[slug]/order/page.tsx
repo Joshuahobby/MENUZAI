@@ -31,7 +31,7 @@ function OrderContent({ slug }: { slug: string }) {
   } catch { /* fallback */ }
 
   const total = items.reduce((s, i) => s + i.price * i.quantity, 0);
-  const message = buildWhatsAppMessage(items, customerName, tableNumber);
+  const message = buildWhatsAppMessage(items, customerName, tableNumber, currency);
   const whatsappUrl = buildWhatsAppURL(phone, message);
 
   const handlePlaceOrder = async (e: React.MouseEvent) => {
@@ -93,7 +93,7 @@ function OrderContent({ slug }: { slug: string }) {
             ))}
             <div className="pt-3 border-t border-surface-container flex justify-between font-bold">
               <span>Total</span>
-              <span className="text-primary">${total.toFixed(2)}</span>
+              <span className="text-primary">{formatPrice(total, currency)}</span>
             </div>
           </div>
           <Link
@@ -128,7 +128,7 @@ function OrderContent({ slug }: { slug: string }) {
                       <p className="font-bold text-sm">{item.name}</p>
                       <p className="text-xs text-secondary">x{item.quantity}</p>
                     </div>
-                    <span className="font-[var(--font-headline)] font-bold text-primary">${(item.price * item.quantity).toFixed(2)}</span>
+                    <span className="font-[var(--font-headline)] font-bold text-primary">{formatPrice(item.price * item.quantity, currency)}</span>
                   </div>
                 ))}
               </div>

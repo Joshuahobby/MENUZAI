@@ -29,6 +29,7 @@ interface MenuContextType {
   activeMenuName: string;
   menuStatus: "draft" | "published";
   menuSlug: string | null;
+  onboarded: boolean;
   // Actions
   addCategory: (name: string) => void;
   renameCategory: (categoryId: string, name: string) => void;
@@ -74,29 +75,37 @@ export function MenuProvider({ children }: { children: React.ReactNode }) {
   const [activeMenuName, setActiveMenuName] = useState("My Menu");
   const [menuStatus, setMenuStatus] = useState<"draft" | "published">("draft");
   const [menuSlug, setMenuSlug] = useState<string | null>(null);
+  const [onboarded, setOnboarded] = useState<boolean>(true); // Default true to prevent flicker
   const [restaurantId, setRestaurantId] = useState<string | null>(null);
   const [restaurantPhone, setRestaurantPhone] = useState("");
   const [restaurantLogoUrl, setRestaurantLogoUrl] = useState("");
   const [plan, setPlan] = useState("free");
   const [isSyncing, setIsSyncing] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [lastSynced, setLastSynced] = useState<Date | null>(null);
   const menuSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const restaurantSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const isInitialLoad = useRef(true);
   const isBootstrappingRef = useRef(false);
+  const [authChecked, setAuthChecked] = useState(false);
 
   // 1. Track auth state
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => setUser(data.user));
+    supabase.auth.getUser().then(({ data }) => {
+      setUser(data.user);
+      setAuthChecked(true);
+    });
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
+      setAuthChecked(true);
     });
     return () => subscription.unsubscribe();
   }, []);
 
   // 2. On login: ensure restaurant row exists, then load the active menu
   useEffect(() => {
+    if (!authChecked) return;
+
     if (!user) {
       // Reset to defaults when logged out
       isInitialLoad.current = true;
@@ -109,6 +118,7 @@ export function MenuProvider({ children }: { children: React.ReactNode }) {
       setMenuItems([]);
       setMenuStyle(defaultStyle);
       setPlan("free");
+      setIsLoading(false);
       return;
     }
 
@@ -118,10 +128,6 @@ export function MenuProvider({ children }: { children: React.ReactNode }) {
     let cancelled = false;
 
     const bootstrap = async () => {
-      // Internal guard to prevent concurrent executions within this effect instance
-      if (isBootstrappingRef.current) return;
-      isBootstrappingRef.current = true;
-
       setIsLoading(true);
       isInitialLoad.current = true;
 
@@ -130,7 +136,7 @@ export function MenuProvider({ children }: { children: React.ReactNode }) {
         let restoId: string;
         const { data: existingRestaurant } = await supabase
           .from("restaurants")
-          .select("id, name, phone, plan, logo_url")
+          .select("id, name, phone, plan, logo_url, onboarded")
           .eq("user_id", user.id)
           .maybeSingle();
 
@@ -142,12 +148,13 @@ export function MenuProvider({ children }: { children: React.ReactNode }) {
             setRestaurantPhone(existingRestaurant.phone ?? "");
             setRestaurantLogoUrl(existingRestaurant.logo_url ?? "");
             setPlan(existingRestaurant.plan ?? "free");
+            setOnboarded(existingRestaurant.onboarded ?? false);
           }
         } else {
           // Atomic upsert to avoid race conditions
           const { data: upsertedRestaurant, error: upsertError } = await supabase
             .from("restaurants")
-            .upsert({ user_id: user.id, name: "My Restaurant" }, { onConflict: "user_id", ignoreDuplicates: false })
+            .upsert({ user_id: user.id, name: "My Restaurant", onboarded: true }, { onConflict: "user_id", ignoreDuplicates: false })
             .select("id")
             .single();
 
@@ -169,7 +176,10 @@ export function MenuProvider({ children }: { children: React.ReactNode }) {
           } else {
             restoId = upsertedRestaurant.id;
           }
-          if (!cancelled) setRestaurantId(restoId);
+          if (!cancelled) {
+            setRestaurantId(restoId);
+            setOnboarded(true); // Newly created are auto-onboarded in bootstrap
+          }
         }
 
         // --- Fetch most recent menu ---
@@ -241,17 +251,21 @@ export function MenuProvider({ children }: { children: React.ReactNode }) {
     };
 
     bootstrap();
-    return () => { cancelled = true; isBootstrappingRef.current = false; };
-  }, [user]);
+
+    return () => {
+      cancelled = true;
+      isBootstrappingRef.current = false;
+    };
+  }, [user, authChecked]);
 
   // 3. Auto-save menu data with debounce (2 s)
   useEffect(() => {
     if (!user || !activeMenuId || isInitialLoad.current) return;
 
     if (menuSaveTimeoutRef.current) clearTimeout(menuSaveTimeoutRef.current);
+    setIsSyncing(true);
 
     menuSaveTimeoutRef.current = setTimeout(async () => {
-      setIsSyncing(true);
       const { error } = await supabase
         .from("menus")
         .upsert(
@@ -268,23 +282,25 @@ export function MenuProvider({ children }: { children: React.ReactNode }) {
 
       if (!error) setLastSynced(new Date());
       setIsSyncing(false);
-    }, 2000);
+    }, 1000); // Reduced to 1s for better responsiveness, especially in tests
 
     return () => { if (menuSaveTimeoutRef.current) clearTimeout(menuSaveTimeoutRef.current); };
   }, [categories, menuItems, menuStyle, user, activeMenuId]);
 
-  // 4. Auto-save restaurant name changes with debounce (2 s)
+  // 4. Auto-save restaurant name changes with debounce (1 s)
   useEffect(() => {
     if (!user || !restaurantId || isInitialLoad.current) return;
 
     if (restaurantSaveTimeoutRef.current) clearTimeout(restaurantSaveTimeoutRef.current);
+    setIsSyncing(true);
 
     restaurantSaveTimeoutRef.current = setTimeout(async () => {
       await supabase
         .from("restaurants")
         .update({ name: restaurantName })
         .eq("id", restaurantId);
-    }, 2000);
+      setIsSyncing(false);
+    }, 1000);
 
     return () => { if (restaurantSaveTimeoutRef.current) clearTimeout(restaurantSaveTimeoutRef.current); };
   }, [restaurantName, user, restaurantId]);
@@ -596,6 +612,7 @@ export function MenuProvider({ children }: { children: React.ReactNode }) {
       activeMenuName,
       menuStatus,
       menuSlug,
+      onboarded,
       addCategory,
       renameCategory,
       removeCategory,

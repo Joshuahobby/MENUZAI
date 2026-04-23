@@ -25,13 +25,14 @@ No test framework is configured.
 
 All required variables are documented in `app/.env.example`. For local dev, create `app/.env.local`:
 
-```
+```env
 NEXT_PUBLIC_SUPABASE_URL=
 NEXT_PUBLIC_SUPABASE_ANON_KEY=
 OPENROUTER_API_KEY=          # from openrouter.ai
 OPENROUTER_MODEL=google/gemma-3-27b-it:free   # swap without redeploying
 NEXT_PUBLIC_SITE_URL=http://localhost:3000     # set to production domain on Vercel
 # PAWAPAY_JWT=               # uncomment when enabling payments
+# PAWAPAY_WEBHOOK_SECRET=    # from pawaPay dashboard → Webhooks; required for signature verification
 ```
 
 ## Architecture
@@ -41,28 +42,53 @@ MENUZAI is an AI-powered SaaS platform for restaurant menu digitization. Stack: 
 ### Route Map
 
 | Route | Auth Required | Notes |
-|---|---|---|
+| --- | --- | --- |
 | `/` | No | Landing page, uses `mockData.ts` for pricing section |
 | `/login` | No | Supabase email/password |
 | `/pricing` | No | Standalone pricing page |
 | `/onboarding` | Yes | One-time setup; sets `restaurants.onboarded = true` |
 | `/upload` | Yes | File upload → `/api/extract-menu` → redirects to `/ai-result` |
 | `/ai-result` | Yes | Review/edit AI-extracted menu items before saving |
-| `/dashboard/*` | Yes | Auth + onboarding guard in `dashboard/layout.tsx` |
+| `/dashboard` | Yes | Auth + onboarding guard in `dashboard/layout.tsx` |
+| `/dashboard/editor` | Yes | Menu editor with drag-drop item/category management |
+| `/dashboard/analytics` | Yes | Menu performance charts (views, conversions) via recharts |
+| `/dashboard/menus` | Yes | List, create, and switch between menus |
+| `/dashboard/orders` | Yes | WhatsApp order history |
+| `/dashboard/qr-codes` | Yes | Generate custom QR codes with logo overlay |
+| `/dashboard/settings` | Yes | Restaurant and account settings |
+| `/dashboard/templates` | Yes | Choose pre-designed menu templates |
 | `/menu/[slug]` | No | Public menu — only renders if `status = 'published'` |
 | `/menu/[slug]/order` | No | Cart + WhatsApp checkout for public menus |
 | `/menu/demo` | No | Demo using hardcoded mock data |
 
-### Supabase: Two Clients
+### API Routes
+
+| Route | Method | Notes |
+| --- | --- | --- |
+| `/api/extract-menu` | POST | Image → OpenRouter LLM → parsed menu JSON; rate-limited 5 req/IP/min (in-memory) |
+| `/api/auth/callback` | GET | Supabase OAuth redirect handler |
+| `/api/analytics/summary` | GET | Aggregated analytics from `analytics_events` table |
+| `/api/payments/pawapay` | POST | Payment initiation; falls back to simulation if `PAWAPAY_JWT` not set |
+| `/api/webhooks/pawapay` | POST | Payment webhook; verifies `X-Pawapay-Signature` HMAC-SHA256 against `PAWAPAY_WEBHOOK_SECRET` |
+
+### Supabase: Three Clients
 
 **Never mix these up:**
 
 - **Browser client** (`app/src/lib/supabase.ts`) — singleton, used in Client Components and `"use client"` route handlers. Import: `import { supabase } from "@/lib/supabase"`
 - **Server client** (`app/src/lib/supabase-server.ts`) — created per-request with SSR cookies, used in Server Components and API routes that need auth context. Import: `import { createSupabaseServerClient } from "@/lib/supabase-server"`
+- **Admin client** (`app/src/lib/supabase-admin.ts`) — uses `service_role` key, bypasses RLS. Only use in trusted server-side contexts where elevated privileges are required.
 
 ### Database Schema
 
 Migrations live in `app/supabase/migrations/` — run them in order in the Supabase SQL Editor.
+
+| Migration | Purpose |
+| --- | --- |
+| `001_initial_schema.sql` | Core tables: `restaurants`, `menus`, `analytics_events`, `orders` |
+| `002_storage_buckets.sql` | Supabase Storage bucket configuration |
+| `002_transactions_schema.sql` | Payment transaction tracking for PawaPay |
+| `003_rls_hardening.sql` | Row-Level Security policies (run last) |
 
 Key tables:
 
@@ -88,9 +114,16 @@ Key tables:
 - Colors: primary `#FF6B00`, tertiary `#00C853`, surface `#fcf9f8`
 - Fonts: Plus Jakarta Sans (headlines), Inter (body) — loaded via Google Fonts in root layout
 - Material Design 3 token naming (`on-surface`, `surface-container-low`, etc.)
-- Custom utilities: `.glass-nav`, `.editor-canvas`, `.hide-scrollbar`, `.icon-fill`, `.premium-shadow`
+- Custom utilities: `.glass-nav`, `.editor-canvas`, `.hide-scrollbar`, `.icon-fill`, `.premium-shadow`, `.theme-transition`
 
 Icons are **Material Symbols Outlined** loaded via Google Fonts — use `<span className="material-symbols-outlined">icon_name</span>`.
+
+### Key Dependencies
+
+- `recharts` — analytics charts in `/dashboard/analytics`
+- `qrcode.react` — QR code generation in `/dashboard/qr-codes`
+- `sonner` — toast notifications (Toaster registered in root layout)
+- `@anthropic-ai/sdk` — present in package.json for future Claude AI features (not currently wired to routes)
 
 ### Path Alias
 
@@ -99,6 +132,11 @@ Icons are **Material Symbols Outlined** loaded via Google Fonts — use `<span c
 ### Payments
 
 `/api/payments/pawapay` and `/api/webhooks/pawapay` exist but the actual API calls are commented out — they return a simulated success response. To enable: set `PAWAPAY_JWT`, uncomment the fetch block in the route, and implement webhook signature verification.
+
+### Other
+
+- **ServiceWorker** — registered in root layout (`/sw.js`), enables PWA/offline capability.
+- **`app/src/data/mockData.ts`** — hardcoded fixtures used by the landing page pricing section and `/menu/demo`.
 
 ### Deployment
 

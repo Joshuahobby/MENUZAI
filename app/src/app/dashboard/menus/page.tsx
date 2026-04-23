@@ -23,7 +23,7 @@ interface MenuRow {
 export default function MenusPage() {
   const [menus, setMenus] = useState<MenuRow[]>([]);
   const [loading, setLoading] = useState(true);
-  const { switchMenu, createMenu, deleteMenu, renameMenu, activeMenuId, plan } = useMenu();
+  const { switchMenu, createMenu, deleteMenu, renameMenu, publishMenu, activeMenuId, plan } = useMenu();
   const router = useRouter();
 
   const loadMenus = async () => {
@@ -169,7 +169,7 @@ export default function MenusPage() {
                 <div className="p-6">
                   <div className="flex items-center justify-between mb-2">
                     <h3 className="font-[var(--font-headline)] font-bold text-lg truncate pr-2">{menu.name}</h3>
-                    <span className={`text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-full shrink-0 ${isPublished ? "bg-tertiary-container text-white" : "bg-surface-container-highest text-secondary"}`}>
+                    <span className={`text-[10px] font-black uppercase tracking-[0.1em] px-3 py-1 rounded-full shrink-0 shadow-sm ${isPublished ? "bg-tertiary text-white ring-4 ring-tertiary/10" : "bg-surface-container-highest text-secondary"}`}>
                       {menu.status}
                     </span>
                   </div>
@@ -184,12 +184,22 @@ export default function MenusPage() {
                       Edit
                     </button>
                     {isPublished && menu.slug ? (
-                      <Link href={`/menu/${menu.slug}`} className="flex-1 flex items-center justify-center py-3 bg-surface-container-highest text-on-surface font-bold rounded-xl text-sm text-center hover:bg-surface-variant transition-colors">
+                      <Link href={`/menu/${menu.slug}`} className="flex-1 flex items-center justify-center py-3 bg-tertiary/10 text-tertiary font-bold rounded-xl text-sm text-center hover:bg-tertiary/20 transition-colors border-none">
                         Preview
                       </Link>
                     ) : (
-                      <button disabled className="flex-1 py-3 bg-surface-container-low text-secondary font-bold rounded-xl text-sm text-center opacity-50 cursor-not-allowed border-none">
-                        Preview
+                      <button 
+                        onClick={async () => {
+                          await switchMenu(menu.id);
+                          const slug = await publishMenu();
+                          if (slug) {
+                            toast.success("Menu published successfully!");
+                            loadMenus();
+                          }
+                        }}
+                        className="flex-1 py-3 bg-tertiary text-white font-bold rounded-xl text-sm text-center hover:opacity-90 transition-all border-none cursor-pointer"
+                      >
+                        Publish
                       </button>
                     )}
                   </div>

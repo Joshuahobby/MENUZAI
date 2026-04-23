@@ -37,6 +37,7 @@ export default function MenuEditorPage() {
     activeMenuId,
     activeMenuName,
     isSyncing,
+    isLoading,
   } = useMenu();
 
   const [publishedSlug, setPublishedSlug] = useState<string | null>(null);
@@ -86,10 +87,14 @@ export default function MenuEditorPage() {
   const vp = VIEWPORT_CONFIG[viewport];
 
   const handleRenameMenu = async () => {
-    if (tempName.trim() && tempName !== activeMenuName && activeMenuId) {
-      await renameMenu(activeMenuId, tempName.trim());
+    if (isSyncing || !isEditingName) return;
+    const newName = tempName.trim();
+    if (newName && newName !== activeMenuName && activeMenuId) {
+      setIsEditingName(false); // Hide input immediately
+      await renameMenu(activeMenuId, newName);
+    } else {
+      setIsEditingName(false);
     }
-    setIsEditingName(false);
   };
 
   const handleRemoveTag = (itemId: string, tag: string) => {
@@ -107,6 +112,17 @@ export default function MenuEditorPage() {
       }
     }
   };
+
+  if (isLoading) {
+    return (
+      <div className="h-screen flex items-center justify-center bg-surface">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-12 h-12 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
+          <p className="text-sm font-bold text-secondary animate-pulse">Loading Editor…</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div
@@ -144,7 +160,12 @@ export default function MenuEditorPage() {
           </div>
           <span className="text-xs text-secondary hidden sm:inline">• {activeCategory?.name || "No Section Selected"}</span>
           {isSyncing && (
-            <span className="text-[10px] text-secondary animate-pulse hidden sm:inline">Saving…</span>
+            <span 
+              data-testid="sync-indicator"
+              className="text-[10px] text-secondary animate-pulse"
+            >
+              Saving…
+            </span>
           )}
         </div>
         <div className="flex items-center gap-3">

@@ -55,9 +55,10 @@ test.describe("Analytics page", () => {
   });
 
   test("shows top items list", async ({ page }) => {
-    await expect(page.getByText("Beef Burger")).toBeVisible({ timeout: 10000 });
-    await expect(page.getByText("Beef Burger")).toBeVisible({ timeout: 8000 });
-    await expect(page.getByText("Samosa")).toBeVisible();
+    // Use first() to avoid strict-mode violation when the item name appears
+    // in both the top items list and the recent events feed
+    await expect(page.getByText("Beef Burger").first()).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText("Samosa").first()).toBeVisible({ timeout: 8000 });
   });
 
   test("date range selector renders", async ({ page }) => {

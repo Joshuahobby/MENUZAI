@@ -1,6 +1,6 @@
 "use client";
 
-import { ReactNode, useEffect, useState, useRef } from "react";
+import { ReactNode, useEffect, useState } from "react";
 import Link from "next/link";
 import NextImage from "next/image";
 import { usePathname, useRouter } from "next/navigation";
@@ -29,12 +29,12 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
   const [moreOpen, setMoreOpen] = useState(false);
-  const { restaurantLogoUrl, restaurantName } = useMenu();
-  const initialLoadDone = useRef(false);
+  const [authReady, setAuthReady] = useState(false);
+  const { restaurantLogoUrl, restaurantName, onboarded, isLoading } = useMenu();
 
   useEffect(() => {
-    if (initialLoadDone.current) return;
-    initialLoadDone.current = true;
+    // Wait for MenuContext to finish its initial bootstrap
+    if (isLoading) return;
 
     supabase.auth.getUser().then(async ({ data }) => {
       if (!data.user) {
@@ -44,18 +44,16 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 
       setUser(data.user);
 
-      // Check if user has completed onboarding
-      const { data: restaurant } = await supabase
-        .from("restaurants")
-        .select("onboarded")
-        .eq("user_id", data.user.id)
-        .single();
-
-      if (!restaurant || !restaurant.onboarded) {
+      // If we finished loading and we're not onboarded, redirect
+      if (!onboarded && pathname !== "/dashboard/onboarding") {
         router.replace("/onboarding");
+        return;
       }
+
+      // Signal to E2E tests that auth + onboarding check is complete
+      setAuthReady(true);
     });
-  }, [router]);
+  }, [router, isLoading, onboarded, pathname]);
 
   // Close more drawer when navigating
   useEffect(() => {
@@ -70,7 +68,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   };
 
   return (
-    <div className="min-h-screen bg-surface text-on-surface">
+    <div className="min-h-screen bg-surface text-on-surface" data-auth-ready={authReady ? "true" : undefined}>
       {/* Desktop Sidebar */}
       <aside className="hidden lg:flex fixed left-0 top-0 h-full flex-col py-6 z-50 bg-surface w-64 border-r border-surface-container font-[var(--font-headline)] text-sm font-medium">
         <div className="px-8 mb-10">

@@ -4,8 +4,6 @@
  * the real AI API (slow, costs money, rate-limited).
  */
 import { test, expect } from "@playwright/test";
-import * as path from "path";
-import * as fs from "fs";
 
 const MOCK_EXTRACTION_RESPONSE = {
   restaurantName: "AI Test Restaurant",

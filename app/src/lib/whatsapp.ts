@@ -2,15 +2,15 @@ import type { CartItem } from "@/types/menu";
 
 export type { CartItem };
 
-export function buildWhatsAppMessage(items: CartItem[], customerName?: string, tableNumber?: string): string {
+export function buildWhatsAppMessage(items: CartItem[], customerName?: string, tableNumber?: string, currency: string = "RWF"): string {
   let message = "Hello, I'd like to order:\n\n";
 
   items.forEach((item) => {
-    message += `• ${item.name} x${item.quantity} — $${(item.price * item.quantity).toFixed(2)}\n`;
+    message += `• ${item.name} x${item.quantity} — ${currency} ${(item.price * item.quantity).toLocaleString()}\n`;
   });
 
   const total = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
-  message += `\n💰 Total: $${total.toFixed(2)}`;
+  message += `\n💰 Total: ${currency} ${total.toLocaleString()}`;
 
   if (customerName) {
     message += `\n👤 Name: ${customerName}`;
