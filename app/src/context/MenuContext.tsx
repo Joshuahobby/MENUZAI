@@ -75,7 +75,7 @@ export function MenuProvider({ children }: { children: React.ReactNode }) {
   const [activeMenuName, setActiveMenuName] = useState("My Menu");
   const [menuStatus, setMenuStatus] = useState<"draft" | "published">("draft");
   const [menuSlug, setMenuSlug] = useState<string | null>(null);
-  const [onboarded, setOnboarded] = useState<boolean>(true); // Default true to prevent flicker
+  const [onboarded, setOnboarded] = useState<boolean>(false); // Default false to ensure onboarding guard works
   const [restaurantId, setRestaurantId] = useState<string | null>(null);
   const [restaurantPhone, setRestaurantPhone] = useState("");
   const [restaurantLogoUrl, setRestaurantLogoUrl] = useState("");
@@ -154,7 +154,7 @@ export function MenuProvider({ children }: { children: React.ReactNode }) {
           // Atomic upsert to avoid race conditions
           const { data: upsertedRestaurant, error: upsertError } = await supabase
             .from("restaurants")
-            .upsert({ user_id: user.id, name: "My Restaurant", onboarded: true }, { onConflict: "user_id", ignoreDuplicates: false })
+            .upsert({ user_id: user.id, name: "My Restaurant", onboarded: false }, { onConflict: "user_id", ignoreDuplicates: false })
             .select("id")
             .single();
 
@@ -178,7 +178,7 @@ export function MenuProvider({ children }: { children: React.ReactNode }) {
           }
           if (!cancelled) {
             setRestaurantId(restoId);
-            setOnboarded(true); // Newly created are auto-onboarded in bootstrap
+            setOnboarded(false); // Newly created are NOT onboarded by default
           }
         }
 
