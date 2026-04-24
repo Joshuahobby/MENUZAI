@@ -6,7 +6,6 @@ import NextImage from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { useMenu } from "@/context/MenuContext";
-import { User } from "@supabase/supabase-js";
 
 const navLinks = [
   { href: "/dashboard", icon: "dashboard", label: "Dashboard" },
@@ -27,33 +26,25 @@ const mobileMoreLinks = navLinks.slice(4);
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
-  const [user, setUser] = useState<User | null>(null);
   const [moreOpen, setMoreOpen] = useState(false);
   const [authReady, setAuthReady] = useState(false);
-  const { restaurantLogoUrl, restaurantName, onboarded, isLoading } = useMenu();
+  const { restaurantLogoUrl, restaurantName, onboarded, isLoading, user } = useMenu();
 
   useEffect(() => {
-    // Wait for MenuContext to finish its initial bootstrap
     if (isLoading) return;
 
-    supabase.auth.getUser().then(async ({ data }) => {
-      if (!data.user) {
-        router.push("/login");
-        return;
-      }
+    if (!user) {
+      router.push("/login");
+      return;
+    }
 
-      setUser(data.user);
+    if (!onboarded && pathname !== "/dashboard/onboarding") {
+      router.replace("/onboarding");
+      return;
+    }
 
-      // If we finished loading and we're not onboarded, redirect
-      if (!onboarded && pathname !== "/dashboard/onboarding") {
-        router.replace("/onboarding");
-        return;
-      }
-
-      // Signal to E2E tests that auth + onboarding check is complete
-      setAuthReady(true);
-    });
-  }, [router, isLoading, onboarded, pathname]);
+    setAuthReady(true);
+  }, [router, isLoading, onboarded, pathname, user]);
 
   // Close more drawer when navigating
   useEffect(() => {

@@ -48,6 +48,7 @@ interface MenuContextType {
   isSyncing: boolean;
   lastSynced: Date | null;
   isLoading: boolean;
+  user: User | null;
 }
 
 export const defaultStyle: MenuStyle = {
@@ -254,9 +255,9 @@ export function MenuProvider({ children }: { children: React.ReactNode }) {
 
     return () => {
       cancelled = true;
-      isBootstrappingRef.current = false;
     };
-  }, [user, authChecked]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id, authChecked]);
 
   // 3. Auto-save menu data with debounce (2 s)
   useEffect(() => {
@@ -630,6 +631,7 @@ export function MenuProvider({ children }: { children: React.ReactNode }) {
       isSyncing,
       lastSynced,
       isLoading,
+      user,
     }}>
       {children}
     </MenuContext.Provider>

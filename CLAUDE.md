@@ -13,13 +13,22 @@ All commands run from the `app/` directory:
 ```bash
 cd app
 npm install       # Install dependencies
-npm run dev       # Start dev server at http://localhost:3000
-npm run build     # Production build (must pass before deploying)
+npm run dev       # Start dev server at http://localhost:3000 (uses --webpack, not Turbopack)
+npm run build     # Runs lint + tsc --noEmit + next build (all must pass)
 npm run lint      # ESLint checks
 npm start         # Run production server
 ```
 
-No test framework is configured.
+No unit test framework is configured. E2E tests use Playwright:
+
+```bash
+npm run test:e2e            # Run all Playwright tests
+npm run test:e2e:ui         # Run with Playwright UI
+npm run test:e2e:headed     # Run in headed browser
+npm run test:e2e:debug      # Debug mode
+```
+
+The dashboard layout sets `data-auth-ready="true"` on its root `<div>` once auth + onboarding checks complete — Playwright tests use this as a synchronization signal.
 
 ## Environment Variables
 
@@ -97,15 +106,25 @@ Key tables:
 - **`analytics_events`** — fired client-side via `app/src/lib/analytics.ts` (fire-and-forget, no error handling by design).
 - **`orders`** — created via WhatsApp flow, not via API currently.
 
+### Shared Types
+
+`app/src/types/menu.ts` is the canonical source for `MenuItem`, `MenuCategory`, `MenuStyle`, and `CartItem`. `MenuContext` re-exports them for backward compatibility — import from `@/types/menu` directly in new code.
+
+`MenuItem.available`: `undefined` or `true` = available; `false` = sold out. This field is optional and absence means available.
+
+`app/src/lib/utils.ts` exports `formatPrice(amount, currency)` which handles whole-unit currencies (RWF, UGX, TZS, etc.) without decimal places — important for the primary African market.
+
 ### State Management
 
 **`MenuContext`** (`app/src/context/MenuContext.tsx`) — the central store for the authenticated user's active menu. Bootstraps on login: finds/creates the restaurant row, then loads the most-recently-updated menu. Auto-saves changes (categories, items, style) to Supabase with a 2-second debounce. Manages multi-menu switching, publishing (generates slug via `app/src/lib/slug.ts`), and CRUD for items/categories.
+
+The dashboard auth guard lives in `app/src/app/dashboard/layout.tsx` and runs **client-side** — it reads `onboarded` from `MenuContext` and redirects to `/onboarding` if false. There is no server-side middleware. The layout waits for `isLoading` to be false before evaluating auth state.
 
 **`CartContext`** (`app/src/contexts/CartContext.tsx`) — ephemeral cart for the public ordering flow. Contents are serialized into a WhatsApp message via `app/src/lib/whatsapp.ts` and opened via `wa.me` URL — no WhatsApp API key needed.
 
 ### AI Menu Extraction
 
-`POST /api/extract-menu` accepts an image (JPG/PNG/WebP/GIF, max 10MB — PDF not supported by free models). It calls OpenRouter using the model in `OPENROUTER_MODEL`, passes the image as a base64 `image_url` block, and parses the JSON response via `app/src/lib/ai-extract.ts`. Rate-limited to 5 requests/IP/minute (in-memory only — resets on server restart).
+`POST /api/extract-menu` accepts **up to 5 images** (JPG/PNG/WebP/GIF, max 10MB each — PDF not supported by free models). Submit as `file` (single) or `file_0`…`file_4` (multiple) in multipart form data. It calls OpenRouter using the model in `OPENROUTER_MODEL`, passes each image as a base64 `image_url` block, runs extractions in parallel, then merges results via `mergeExtractionResults` in `app/src/lib/ai-extract.ts` (deduplicates categories by normalized name, deduplicates items by name). Rate-limited to 5 requests/IP/minute (in-memory only — resets on server restart).
 
 ### Styling
 
