@@ -88,6 +88,7 @@ export function MenuProvider({ children }: { children: React.ReactNode }) {
   const restaurantSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const isInitialLoad = useRef(true);
   const isBootstrappingRef = useRef(false);
+  const preventBootstrapRef = useRef(false); // Set after auth failure; cleared only on genuine sign-out
   const [authChecked, setAuthChecked] = useState(false);
 
   // 1. Track auth state — rely solely on onAuthStateChange (fires INITIAL_SESSION on setup)
@@ -105,7 +106,9 @@ export function MenuProvider({ children }: { children: React.ReactNode }) {
     if (!authChecked) return;
 
     if (!user) {
-      // Reset to defaults when logged out
+      // Reset to defaults when logged out; clear both bootstrap guards so the next login works
+      preventBootstrapRef.current = false;
+      isBootstrappingRef.current = false;
       isInitialLoad.current = true;
       setActiveMenuId(null);
       setRestaurantId(null);
@@ -120,7 +123,7 @@ export function MenuProvider({ children }: { children: React.ReactNode }) {
       return;
     }
 
-    if (isBootstrappingRef.current) return;
+    if (isBootstrappingRef.current || preventBootstrapRef.current) return;
     isBootstrappingRef.current = true;
 
     let cancelled = false;
@@ -133,20 +136,28 @@ export function MenuProvider({ children }: { children: React.ReactNode }) {
         // --- Ensure restaurant row ---
         let restoId: string;
 
-        // Helper: on 401, the JWT is expired and refresh is rate-limited.
-        // Sign out locally (clears localStorage, no network call) so the user
-        // gets redirected to /login for fresh credentials.
-        const handleUnauthorized = () => {
-          supabase.auth.signOut({ scope: "local" }).catch(() => {});
+        // If the JWT is expired / refresh is rate-limited every REST call returns 401.
+        // Set the permanent guard, clear the local session, and hard-navigate to /login
+        // so Supabase's internal SIGNED_OUT→SIGNED_IN cycling cannot restart bootstrap.
+        const isAuthFailure = (status: number, error: { message?: string } | null) => {
+          if (status === 401 || status === 403) return true;
+          const msg = (error?.message ?? '').toLowerCase();
+          return msg.includes('jwt') || msg.includes('api key') || msg.includes('not authenticated');
         };
 
-        const { data: existingRestaurant, status: selectStatus } = await supabase
+        const handleUnauthorized = () => {
+          preventBootstrapRef.current = true;
+          supabase.auth.signOut({ scope: "local" }).catch(() => {});
+          if (typeof window !== 'undefined') window.location.replace('/login');
+        };
+
+        const { data: existingRestaurant, error: selectError, status: selectStatus } = await supabase
           .from("restaurants")
           .select("id, name, phone, plan, logo_url, onboarded")
           .eq("user_id", user.id)
           .maybeSingle();
 
-        if (selectStatus === 401) { handleUnauthorized(); return; }
+        if (isAuthFailure(selectStatus, selectError)) { handleUnauthorized(); return; }
 
         if (existingRestaurant) {
           restoId = existingRestaurant.id;
@@ -166,20 +177,21 @@ export function MenuProvider({ children }: { children: React.ReactNode }) {
             .select("id")
             .single();
 
-          if (upsertStatus === 401) { handleUnauthorized(); return; }
+          if (isAuthFailure(upsertStatus, upsertError)) { handleUnauthorized(); return; }
 
           if (upsertError || !upsertedRestaurant) {
             // If conflict, find the one that was just created
-            const { data: fallback, status: fallbackStatus } = await supabase
+            const { data: fallback, error: fallbackError, status: fallbackStatus } = await supabase
               .from("restaurants")
               .select("id")
               .eq("user_id", user.id)
               .maybeSingle();
 
-            if (fallbackStatus === 401) { handleUnauthorized(); return; }
+            if (isAuthFailure(fallbackStatus, fallbackError)) { handleUnauthorized(); return; }
 
             if (!fallback) {
               console.error("Failed to bootstrap restaurant");
+              preventBootstrapRef.current = true; // don't spin forever on non-auth failures either
               return;
             }
             restoId = fallback.id;
