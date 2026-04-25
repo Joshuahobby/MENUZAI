@@ -90,12 +90,9 @@ export function MenuProvider({ children }: { children: React.ReactNode }) {
   const isBootstrappingRef = useRef(false);
   const [authChecked, setAuthChecked] = useState(false);
 
-  // 1. Track auth state
+  // 1. Track auth state — rely solely on onAuthStateChange (fires INITIAL_SESSION on setup)
+  //    to avoid competing for the gotrue lock with bootstrap's REST calls.
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
-      setUser(data.user);
-      setAuthChecked(true);
-    });
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
       setAuthChecked(true);
@@ -169,8 +166,6 @@ export function MenuProvider({ children }: { children: React.ReactNode }) {
 
             if (!fallback) {
               console.error("Failed to bootstrap restaurant");
-              setIsLoading(false);
-              isBootstrappingRef.current = false;
               return;
             }
             restoId = fallback.id;
