@@ -15,22 +15,18 @@ export default function OnboardingPage() {
     setRestaurantName,
     setRestaurantPhone,
     isLoading: menuLoading,
+    user,
   } = useMenu();
 
-  // Auth guard
-  const [authChecked, setAuthChecked] = useState(false);
-  const [userId, setUserId] = useState<string | null>(null);
+  const userId = user?.id ?? null;
 
+  // Auth guard — use MenuContext's already-resolved user to avoid extra getUser() lock contention
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
-      if (!data.user) {
-        router.replace("/login");
-      } else {
-        setUserId(data.user.id);
-        setAuthChecked(true);
-      }
-    });
-  }, [router]);
+    if (menuLoading) return;
+    if (!user) {
+      router.replace("/login");
+    }
+  }, [menuLoading, user, router]);
 
   // Step state
   const [step, setStep] = useState<Step>(1);
@@ -48,14 +44,14 @@ export default function OnboardingPage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Skip onboarding if user already has a configured restaurant
+  // Safety net: redirect to dashboard if user already completed onboarding
   useEffect(() => {
-    if (!authChecked || menuLoading || !userId) return;
+    if (menuLoading || !userId) return;
 
     const checkExisting = async () => {
       const { data } = await supabase
         .from("restaurants")
-        .select("name, tagline, phone, hours, onboarded")
+        .select("onboarded")
         .eq("user_id", userId)
         .maybeSingle();
 
@@ -65,7 +61,7 @@ export default function OnboardingPage() {
     };
 
     checkExisting();
-  }, [authChecked, menuLoading, userId, router]);
+  }, [menuLoading, userId, router]);
 
   const saveStep1 = async () => {
     if (!name.trim()) {
@@ -159,7 +155,7 @@ export default function OnboardingPage() {
     }
   };
 
-  if (!authChecked || menuLoading) {
+  if (menuLoading || !user) {
     return (
       <div className="min-h-screen bg-surface flex items-center justify-center">
         <div className="w-10 h-10 border-3 border-primary border-t-transparent rounded-full animate-spin" />
