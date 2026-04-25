@@ -132,18 +132,21 @@ export function MenuProvider({ children }: { children: React.ReactNode }) {
       try {
         // --- Ensure restaurant row ---
         let restoId: string;
-        const { data: existingRestaurant, error: fetchError } = await supabase
+
+        // Helper: on 401, the JWT is expired and refresh is rate-limited.
+        // Sign out locally (clears localStorage, no network call) so the user
+        // gets redirected to /login for fresh credentials.
+        const handleUnauthorized = () => {
+          supabase.auth.signOut({ scope: "local" }).catch(() => {});
+        };
+
+        const { data: existingRestaurant, status: selectStatus } = await supabase
           .from("restaurants")
           .select("id, name, phone, plan, logo_url, onboarded")
           .eq("user_id", user.id)
           .maybeSingle();
 
-        // 401 means the JWT is expired/invalid and the refresh token endpoint is rate-limited (429).
-        // Sign out locally (no network call) so the dashboard guard redirects to /login for fresh credentials.
-        if ((fetchError as { status?: number })?.status === 401) {
-          supabase.auth.signOut({ scope: "local" }).catch(() => {});
-          return;
-        }
+        if (selectStatus === 401) { handleUnauthorized(); return; }
 
         if (existingRestaurant) {
           restoId = existingRestaurant.id;
@@ -157,19 +160,23 @@ export function MenuProvider({ children }: { children: React.ReactNode }) {
           }
         } else {
           // Atomic upsert to avoid race conditions
-          const { data: upsertedRestaurant, error: upsertError } = await supabase
+          const { data: upsertedRestaurant, error: upsertError, status: upsertStatus } = await supabase
             .from("restaurants")
             .upsert({ user_id: user.id, name: "My Restaurant", onboarded: false }, { onConflict: "user_id", ignoreDuplicates: false })
             .select("id")
             .single();
 
+          if (upsertStatus === 401) { handleUnauthorized(); return; }
+
           if (upsertError || !upsertedRestaurant) {
             // If conflict, find the one that was just created
-            const { data: fallback } = await supabase
+            const { data: fallback, status: fallbackStatus } = await supabase
               .from("restaurants")
               .select("id")
               .eq("user_id", user.id)
               .maybeSingle();
+
+            if (fallbackStatus === 401) { handleUnauthorized(); return; }
 
             if (!fallback) {
               console.error("Failed to bootstrap restaurant");
