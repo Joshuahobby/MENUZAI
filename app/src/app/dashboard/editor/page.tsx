@@ -7,7 +7,6 @@ import { StyleEditorSidebar } from "./StyleEditorSidebar";
 import { MenuSectionsSidebar } from "./MenuSectionsSidebar";
 import { ImageUpload } from "@/components/ImageUpload";
 import { prompt } from "@/components/Modals";
-import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 
 type Viewport = "mobile" | "tablet" | "desktop";
@@ -38,19 +37,16 @@ export default function MenuEditorPage() {
     activeMenuName,
     isSyncing,
     isLoading,
+    user,
   } = useMenu();
 
   const [publishedSlug, setPublishedSlug] = useState<string | null>(null);
   const [isEditingName, setIsEditingName] = useState(false);
   const [tempName, setTempName] = useState("");
-  const [userId, setUserId] = useState<string | null>(null);
+  const userId = user?.id ?? null;
   const [expandedItemId, setExpandedItemId] = useState<string | null>(null);
   const [viewport, setViewport] = useState<Viewport>("mobile");
   const [isStyleSidebarOpen, setIsStyleSidebarOpen] = useState(false);
-
-  useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => setUserId(data.user?.id ?? null));
-  }, []);
 
   const containerRef = useRef<HTMLDivElement>(null);
   const [activeCategoryId, setActiveCategoryId] = useState<string | undefined>(undefined);

@@ -23,11 +23,10 @@ interface MenuRow {
 export default function MenusPage() {
   const [menus, setMenus] = useState<MenuRow[]>([]);
   const [loading, setLoading] = useState(true);
-  const { switchMenu, createMenu, deleteMenu, renameMenu, publishMenu, activeMenuId, plan } = useMenu();
+  const { switchMenu, createMenu, deleteMenu, renameMenu, publishMenu, activeMenuId, plan, user } = useMenu();
   const router = useRouter();
 
   const loadMenus = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
     const { data } = await supabase

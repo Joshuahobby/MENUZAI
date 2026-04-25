@@ -106,8 +106,11 @@ export function MenuProvider({ children }: { children: React.ReactNode }) {
     if (!authChecked) return;
 
     if (!user) {
-      // Reset to defaults when logged out; clear both bootstrap guards so the next login works
-      preventBootstrapRef.current = false;
+      // Reset to defaults when logged out.
+      // Do NOT clear preventBootstrapRef here — if it was set by handleUnauthorized,
+      // we need it to hold through Supabase's internal SIGNED_OUT→SIGNED_IN cycling
+      // until window.location.replace('/login') completes. After navigation the
+      // component unmounts and all refs reset naturally.
       isBootstrappingRef.current = false;
       isInitialLoad.current = true;
       setActiveMenuId(null);
