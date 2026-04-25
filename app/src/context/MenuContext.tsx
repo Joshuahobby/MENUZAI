@@ -132,11 +132,18 @@ export function MenuProvider({ children }: { children: React.ReactNode }) {
       try {
         // --- Ensure restaurant row ---
         let restoId: string;
-        const { data: existingRestaurant } = await supabase
+        const { data: existingRestaurant, error: fetchError } = await supabase
           .from("restaurants")
           .select("id, name, phone, plan, logo_url, onboarded")
           .eq("user_id", user.id)
           .maybeSingle();
+
+        // 401 means the JWT is expired/invalid and the refresh token endpoint is rate-limited (429).
+        // Sign out locally (no network call) so the dashboard guard redirects to /login for fresh credentials.
+        if ((fetchError as { status?: number })?.status === 401) {
+          supabase.auth.signOut({ scope: "local" }).catch(() => {});
+          return;
+        }
 
         if (existingRestaurant) {
           restoId = existingRestaurant.id;
@@ -281,7 +288,8 @@ export function MenuProvider({ children }: { children: React.ReactNode }) {
     }, 1000); // Reduced to 1s for better responsiveness, especially in tests
 
     return () => { if (menuSaveTimeoutRef.current) clearTimeout(menuSaveTimeoutRef.current); };
-  }, [categories, menuItems, menuStyle, user, activeMenuId]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [categories, menuItems, menuStyle, user?.id, activeMenuId]);
 
   // 4. Auto-save restaurant name changes with debounce (1 s)
   useEffect(() => {
@@ -299,7 +307,8 @@ export function MenuProvider({ children }: { children: React.ReactNode }) {
     }, 1000);
 
     return () => { if (restaurantSaveTimeoutRef.current) clearTimeout(restaurantSaveTimeoutRef.current); };
-  }, [restaurantName, user, restaurantId]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [restaurantName, user?.id, restaurantId]);
 
   const publishMenu = useCallback(async (): Promise<string | null> => {
     if (!activeMenuId || !user) return null;
