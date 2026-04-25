@@ -135,24 +135,41 @@ export function MenuProvider({ children }: { children: React.ReactNode }) {
       setIsLoading(true);
       isInitialLoad.current = true;
 
+      // ─── Auth helpers ──────────────────────────────────────────────────────
+      // Covers both HTTP status codes and Supabase JS error-message patterns.
+      const isAuthFailure = (status: number, error: { message?: string } | null) => {
+        if (status === 401 || status === 403) return true;
+        const msg = (error?.message ?? '').toLowerCase();
+        return msg.includes('jwt') || msg.includes('api key') || msg.includes('not authenticated');
+      };
+
+      // Set the permanent guard, wipe local session, and hard-navigate so
+      // Supabase's internal SIGNED_OUT→SIGNED_IN cycling cannot restart bootstrap.
+      const handleUnauthorized = () => {
+        preventBootstrapRef.current = true;
+        supabase.auth.signOut({ scope: "local" }).catch(() => {});
+        if (typeof window !== 'undefined') window.location.replace('/login');
+      };
+
       try {
+        // ─── 0. Serialize with gotrue's navigator.locks ────────────────────
+        // onAuthStateChange's INITIAL_SESSION processing holds the auth lock
+        // while it validates/refreshes the token. If we make REST calls before
+        // it releases, every _getAccessToken() call queues behind it, the 5-second
+        // timeout fires, lock-stealing triggers, concurrent refreshes pile up,
+        // and Supabase rate-limits with 429 → all REST calls get 401.
+        //
+        // Calling getSession() here waits for the lock, ensuring any in-flight
+        // token refresh completes before we make DB queries. After this returns
+        // the token is cached in-memory and all subsequent calls are instantaneous.
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        if (!session || sessionError) {
+          handleUnauthorized();
+          return;
+        }
+
         // --- Ensure restaurant row ---
         let restoId: string;
-
-        // If the JWT is expired / refresh is rate-limited every REST call returns 401.
-        // Set the permanent guard, clear the local session, and hard-navigate to /login
-        // so Supabase's internal SIGNED_OUT→SIGNED_IN cycling cannot restart bootstrap.
-        const isAuthFailure = (status: number, error: { message?: string } | null) => {
-          if (status === 401 || status === 403) return true;
-          const msg = (error?.message ?? '').toLowerCase();
-          return msg.includes('jwt') || msg.includes('api key') || msg.includes('not authenticated');
-        };
-
-        const handleUnauthorized = () => {
-          preventBootstrapRef.current = true;
-          supabase.auth.signOut({ scope: "local" }).catch(() => {});
-          if (typeof window !== 'undefined') window.location.replace('/login');
-        };
 
         const { data: existingRestaurant, error: selectError, status: selectStatus } = await supabase
           .from("restaurants")

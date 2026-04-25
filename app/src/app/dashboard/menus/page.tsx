@@ -39,12 +39,8 @@ export default function MenusPage() {
     setTimeout(() => setLoading(false), 0);
   };
 
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      loadMenus();
-    }, 0);
-    return () => clearTimeout(timer);
-  }, []);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { loadMenus(); }, [user?.id]);
 
   const handleEdit = async (menuId: string) => {
     await switchMenu(menuId);
