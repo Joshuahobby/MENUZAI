@@ -333,7 +333,7 @@ export const pricingPlans = [
     price: "35,000 RWF",
     period: "/ month",
     amountRwf: 35000,
-    features: ["Unlimited Menus", "Custom Branded QR", "AI Heatmaps & Analytics", "WhatsApp Ordering"],
+    features: ["Unlimited Menus", "Custom Branded QR", "Live Analytics & Insights", "WhatsApp Ordering"],
     cta: "Go Pro",
     popular: true,
   },
