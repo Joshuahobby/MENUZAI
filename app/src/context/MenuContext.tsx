@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useState, useEffect, useRef, useCallback } from "react";
 import { supabase } from "@/lib/supabase";
 import { generateSlug, ensureUniqueSlug } from "@/lib/slug";
+import { canCreateDraft, canPublishMenu } from "@/lib/plans";
 import { User } from "@supabase/supabase-js";
 import { toast } from "sonner";
 
@@ -89,6 +90,7 @@ export function MenuProvider({ children }: { children: React.ReactNode }) {
   const isInitialLoad = useRef(true);
   const isBootstrappingRef = useRef(false);
   const preventBootstrapRef = useRef(false); // Set after auth failure; cleared only on genuine sign-out
+  const bootstrappedForUserRef = useRef<string | null>(null);
   const [authChecked, setAuthChecked] = useState(false);
 
   // 1. Track auth state — rely solely on onAuthStateChange (fires INITIAL_SESSION on setup)
@@ -112,6 +114,7 @@ export function MenuProvider({ children }: { children: React.ReactNode }) {
       // until window.location.replace('/login') completes. After navigation the
       // component unmounts and all refs reset naturally.
       isBootstrappingRef.current = false;
+      bootstrappedForUserRef.current = null;
       isInitialLoad.current = true;
       setActiveMenuId(null);
       setRestaurantId(null);
@@ -127,6 +130,7 @@ export function MenuProvider({ children }: { children: React.ReactNode }) {
     }
 
     if (isBootstrappingRef.current || preventBootstrapRef.current) return;
+    if (bootstrappedForUserRef.current === user.id) return;
     isBootstrappingRef.current = true;
 
     let cancelled = false;
@@ -257,12 +261,13 @@ export function MenuProvider({ children }: { children: React.ReactNode }) {
             .select("id")
             .maybeSingle();
 
-          if (insertError && insertError.code === "23505") { // 23505 is unique violation (Conflict)
-            // Race condition: another instance just created the menu. Re-fetch.
+          if (insertError) {
+            // Any insert failure (unique conflict, RLS, etc.) — re-fetch whatever exists
             const { data: lateMenu } = await supabase
               .from("menus")
               .select("*")
               .eq("user_id", user.id)
+              .order("updated_at", { ascending: false })
               .limit(1)
               .maybeSingle();
 
@@ -285,6 +290,7 @@ export function MenuProvider({ children }: { children: React.ReactNode }) {
         console.error("Bootstrap error:", err);
       } finally {
         if (!cancelled) {
+          bootstrappedForUserRef.current = user.id;
           isInitialLoad.current = false;
           setIsLoading(false);
         }
@@ -352,21 +358,17 @@ export function MenuProvider({ children }: { children: React.ReactNode }) {
   const publishMenu = useCallback(async (): Promise<string | null> => {
     if (!activeMenuId || !user) return null;
 
-    // Plan restriction: 1 Published menu maximum
-    if (plan === "free") {
-      const { data: publishedMenus } = await supabase
-        .from("menus")
-        .select("id")
-        .eq("user_id", user.id)
-        .eq("status", "published")
-        .neq("id", activeMenuId);
+    const { data: publishedMenus } = await supabase
+      .from("menus")
+      .select("id")
+      .eq("user_id", user.id)
+      .eq("status", "published")
+      .neq("id", activeMenuId);
 
-      if (publishedMenus && publishedMenus.length >= 1) {
-        toast.error("Published menu limit reached.", { 
-          description: "Free plan allows 1 published menu. Unpublish your current live menu to publish this one." 
-        });
-        return null;
-      }
+    const publishCheck = canPublishMenu(plan, publishedMenus?.length ?? 0);
+    if (!publishCheck.allowed) {
+      toast.error("Published menu limit reached.", { description: publishCheck.reason });
+      return null;
     }
 
     setIsSyncing(true);
@@ -509,20 +511,16 @@ export function MenuProvider({ children }: { children: React.ReactNode }) {
   const createMenu = useCallback(async (name: string): Promise<string | null> => {
     if (!user || !restaurantId) return null;
 
-    // Plan restriction: 1 Draft menu maximum
-    if (plan === "free") {
-      const { data: drafts } = await supabase
-        .from("menus")
-        .select("id")
-        .eq("user_id", user.id)
-        .eq("status", "draft");
-      
-      if (drafts && drafts.length >= 1) {
-        toast.error("Draft limit reached.", { 
-          description: "You already have a draft menu. Publish it or delete it to create a new experiment." 
-        });
-        return null;
-      }
+    const { data: drafts } = await supabase
+      .from("menus")
+      .select("id")
+      .eq("user_id", user.id)
+      .eq("status", "draft");
+
+    const draftCheck = canCreateDraft(plan, drafts?.length ?? 0);
+    if (!draftCheck.allowed) {
+      toast.error("Draft limit reached.", { description: draftCheck.reason });
+      return null;
     }
 
     const { data: newMenu, error } = await supabase

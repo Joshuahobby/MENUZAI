@@ -28,7 +28,51 @@ const MEDIA_TYPES: Record<string, string> = {
   "image/gif": "image/gif",
 };
 
-async function extractFromFile(file: File, apiKey: string): Promise<ExtractionResult> {
+// Cache the resolved model for 5 minutes to avoid querying the models API on every request
+let modelCache: { id: string; expiresAt: number } | null = null;
+
+async function resolveModel(apiKey: string): Promise<string> {
+  const configured = process.env.OPENROUTER_MODEL?.trim();
+  if (configured) return configured;
+
+  const now = Date.now();
+  if (modelCache && now < modelCache.expiresAt) return modelCache.id;
+
+  try {
+    const res = await fetch("https://openrouter.ai/api/v1/models", {
+      headers: { "Authorization": `Bearer ${apiKey}` },
+    });
+    if (!res.ok) throw new Error("models API unavailable");
+
+    const data = await res.json() as { data: { id: string; architecture?: { input_modalities?: string[] } }[] };
+    const freeVision = data.data.filter(m =>
+      m.id.endsWith(":free") &&
+      (m.architecture?.input_modalities ?? []).includes("image")
+    );
+
+    if (freeVision.length === 0) throw new Error("No free vision models available");
+
+    // Prefer larger/newer models by sorting: gemma-4 > gemma-3, larger param count first
+    const ranked = freeVision.sort((a, b) => {
+      const score = (id: string) => {
+        if (id.includes("gemma-4")) return 40 + (parseInt(id.match(/(\d+)b/i)?.[1] ?? "0") || 0);
+        if (id.includes("gemma-3")) return 30 + (parseInt(id.match(/(\d+)b/i)?.[1] ?? "0") || 0);
+        return parseInt(id.match(/(\d+)b/i)?.[1] ?? "0") || 0;
+      };
+      return score(b.id) - score(a.id);
+    });
+
+    const chosen = ranked[0].id;
+    modelCache = { id: chosen, expiresAt: now + 5 * 60 * 1000 };
+    console.log("Auto-selected model:", chosen);
+    return chosen;
+  } catch (err) {
+    console.warn("Model auto-select failed, using fallback:", err);
+    return "google/gemma-4-31b-it:free";
+  }
+}
+
+async function extractFromFile(file: File, apiKey: string, model: string): Promise<ExtractionResult> {
   const type = file.type.toLowerCase();
   const mediaType = MEDIA_TYPES[type];
   if (!mediaType) throw new Error(`Unsupported file type: ${file.type}`);
@@ -45,7 +89,7 @@ async function extractFromFile(file: File, apiKey: string): Promise<ExtractionRe
       "X-Title": "MENUZAI",
     },
     body: JSON.stringify({
-      model: process.env.OPENROUTER_MODEL ?? "google/gemini-flash-1.5-8b:free",
+      model,
       max_tokens: 4096,
       messages: [{
         role: "user",
@@ -118,7 +162,7 @@ export async function POST(request: Request) {
     }
     if (file.type === "application/pdf") {
       return Response.json(
-        { error: "PDF is not supported by the free model. Please upload an image (JPG, PNG, WebP, GIF)." },
+        { error: "PDF is not supported. Please upload an image (JPG, PNG, WebP, GIF)." },
         { status: 400 }
       );
     }
@@ -128,7 +172,8 @@ export async function POST(request: Request) {
   }
 
   try {
-    const results = await Promise.all(files.map(f => extractFromFile(f, apiKey)));
+    const model = await resolveModel(apiKey);
+    const results = await Promise.all(files.map(f => extractFromFile(f, apiKey, model)));
     const merged = mergeExtractionResults(results);
     return Response.json(merged);
   } catch (err: unknown) {
