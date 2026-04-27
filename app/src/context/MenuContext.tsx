@@ -3,7 +3,7 @@
 import React, { createContext, useContext, useState, useEffect, useRef, useCallback } from "react";
 import { supabase } from "@/lib/supabase";
 import { generateSlug, ensureUniqueSlug } from "@/lib/slug";
-import { canCreateDraft, canPublishMenu } from "@/lib/plans";
+import { canCreateMenu, canPublishMenu } from "@/lib/plans";
 import { User } from "@supabase/supabase-js";
 import { toast } from "sonner";
 
@@ -511,15 +511,14 @@ export function MenuProvider({ children }: { children: React.ReactNode }) {
   const createMenu = useCallback(async (name: string): Promise<string | null> => {
     if (!user || !restaurantId) return null;
 
-    const { data: drafts } = await supabase
+    const { data: allMenus } = await supabase
       .from("menus")
       .select("id")
-      .eq("user_id", user.id)
-      .eq("status", "draft");
+      .eq("user_id", user.id);
 
-    const draftCheck = canCreateDraft(plan, drafts?.length ?? 0);
-    if (!draftCheck.allowed) {
-      toast.error("Draft limit reached.", { description: draftCheck.reason });
+    const createCheck = canCreateMenu(plan, allMenus?.length ?? 0);
+    if (!createCheck.allowed) {
+      toast.error("Menu limit reached.", { description: createCheck.reason });
       return null;
     }
 

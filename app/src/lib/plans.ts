@@ -57,6 +57,18 @@ export function canCreateDraft(plan: string, currentDraftCount: number): PlanChe
   };
 }
 
+export function canCreateMenu(plan: string, currentTotalCount: number): PlanCheckResult {
+  const { maxTotal } = getPlanLimits(plan);
+  if (currentTotalCount < maxTotal) return { allowed: true };
+  return {
+    allowed: false,
+    reason:
+      maxTotal === 1
+        ? "Free plan allows 1 menu. Delete it or upgrade to create another."
+        : `You have reached the menu limit (${maxTotal}).`,
+  };
+}
+
 export function canPublishMenu(plan: string, currentPublishedCount: number): PlanCheckResult {
   const { maxPublished } = getPlanLimits(plan);
   if (currentPublishedCount < maxPublished) return { allowed: true };
