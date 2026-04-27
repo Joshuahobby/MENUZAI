@@ -56,15 +56,49 @@ export async function POST(req: Request) {
 
       const planName = (tx.plan_name as string | null)?.toLowerCase() ?? "pro";
 
-      const { error: upgradeError } = await supabaseAdmin
-        .from("restaurants")
-        .update({ plan: planName })
-        .eq("id", tx.restaurant_id);
+      const [{ error: upgradeError }, { data: restaurant }, { data: { user } }] = await Promise.all([
+        supabaseAdmin.from("restaurants").update({ plan: planName }).eq("id", tx.restaurant_id),
+        supabaseAdmin.from("restaurants").select("name").eq("id", tx.restaurant_id).single(),
+        supabaseAdmin.auth.admin.getUserById(tx.user_id),
+      ]);
 
       if (upgradeError) {
         console.error("Failed to upgrade restaurant plan:", upgradeError);
       } else {
         console.log(`✅ Restaurant ${tx.restaurant_id} upgraded to ${planName}`);
+      }
+
+      // Send upgrade confirmation email
+      const ownerEmail = user?.email;
+      if (ownerEmail && process.env.RESEND_API_KEY) {
+        const planLabel = planName.charAt(0).toUpperCase() + planName.slice(1);
+        const restaurantName = restaurant?.name ?? "your restaurant";
+        const html = `
+          <div style="font-family:sans-serif;max-width:560px;margin:auto;color:#1c1c1e">
+            <div style="background:#FF6B00;padding:24px 32px;border-radius:16px 16px 0 0">
+              <h1 style="color:white;margin:0;font-size:20px">You're now on ${planLabel} — ${restaurantName}</h1>
+            </div>
+            <div style="background:#fff;padding:24px 32px;border:1px solid #e5e5ea;border-top:none;border-radius:0 0 16px 16px">
+              <p style="font-size:16px">Your payment was successful and your account has been upgraded to the <strong>${planLabel} plan</strong>.</p>
+              <p>You now have access to:</p>
+              <ul style="line-height:2">
+                ${planName === "pro" ? "<li>Unlimited menus</li><li>Custom branded QR codes</li><li>Live analytics</li><li>WhatsApp ordering</li>" : "<li>All Pro features</li><li>Multi-location admin</li><li>Priority support</li>"}
+              </ul>
+              <a href="${process.env.NEXT_PUBLIC_SITE_URL}/dashboard" style="display:inline-block;margin-top:16px;padding:12px 28px;background:#FF6B00;color:white;font-weight:bold;border-radius:12px;text-decoration:none">Open Dashboard</a>
+              <p style="font-size:12px;color:#888;margin-top:24px">Sent by MENUZA AI · Questions? Reply to this email.</p>
+            </div>
+          </div>`;
+
+        await fetch("https://api.resend.com/emails", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "Authorization": `Bearer ${process.env.RESEND_API_KEY}` },
+          body: JSON.stringify({
+            from: "MENUZA AI <orders@ikoranabuhanga.tech>",
+            to: [ownerEmail],
+            subject: `Your ${planLabel} plan is now active — MENUZA AI`,
+            html,
+          }),
+        }).catch((e) => console.error("Upgrade email failed:", e));
       }
     } else if (status === "FAILED") {
       await supabaseAdmin

@@ -25,11 +25,10 @@ export default function LandingPage() {
             <Link href="/login" className="hidden md:block px-6 py-2.5 text-sm font-bold text-white bg-primary-container rounded-xl shadow-lg shadow-primary-container/20 hover:shadow-xl active:scale-95 transition-all">
               Sign Up
             </Link>
-            <div className="flex gap-2 text-secondary">
-              <Link href="/login" className="p-2 hover:bg-primary-container/5 rounded-full flex items-center justify-center">
-                <span className="material-symbols-outlined">notifications</span>
-              </Link>
-            </div>
+            <Link href="/menu/demo" className="hidden md:flex items-center gap-1 text-secondary font-medium text-sm px-3 py-2 hover:bg-primary-container/5 rounded-xl transition-all">
+              <span className="material-symbols-outlined text-sm">play_circle</span>
+              Live Demo
+            </Link>
           </div>
         </div>
       </nav>
@@ -140,7 +139,7 @@ export default function LandingPage() {
                 <h3 className="text-2xl font-[var(--font-headline)] font-bold mb-4">Smart Insights</h3>
                 <p className="text-secondary leading-relaxed mb-6">We track gaze patterns and click-through rates. Know exactly which photo drives the most orders.</p>
                 <a href="#features" className="text-primary font-bold flex items-center gap-2 hover:translate-x-1 transition-transform">
-                  Learn about tracking <span className="material-symbols-outlined">arrow_forward</span>
+                  See all features <span className="material-symbols-outlined">arrow_forward</span>
                 </a>
               </div>
             </div>
@@ -170,11 +169,11 @@ export default function LandingPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
             {[
               { icon: "upload_file", title: "Upload & Convert", desc: "Upload a photo of your paper menu. Our AI extracts every item, price, and description automatically." },
-              { icon: "style", title: "Smart Templates", desc: "Designed by psychology experts to lead customers toward high-margin items. Editorial-grade layouts." },
+              { icon: "style", title: "Smart Templates", desc: "Choose from editorial-grade layouts designed to guide customers toward your highest-margin items." },
               { icon: "qr_code_scanner", title: "Custom QR Codes", desc: "Design branded QR codes that match your restaurant's aesthetic. High-resolution for print." },
-              { icon: "leaderboard", title: "Live Analytics", desc: "Heatmaps of customer attention. See what's hot and what's not in real-time." },
+              { icon: "leaderboard", title: "Live Analytics", desc: "Track menu views, item clicks, and order conversions in real-time from your dashboard." },
               { icon: "chat", title: "WhatsApp Orders", desc: "Direct connection to your kitchen. Orders land straight in your WhatsApp business account." },
-              { icon: "language", title: "Auto-Translation", desc: "Detects customer language and translates your menu automatically. Perfect for tourist spots." },
+              { icon: "notifications_active", title: "Order Notifications", desc: "Instant email alerts whenever a customer places an order, so you never miss a sale." },
             ].map((f, i) => (
               <div key={i} className="p-8 rounded-3xl bg-surface-container hover:bg-surface-container-low transition-colors group cursor-pointer">
                 <span className="material-symbols-outlined text-4xl text-primary mb-6 block group-hover:scale-110 transition-transform">{f.icon}</span>
@@ -239,8 +238,8 @@ export default function LandingPage() {
               <Link href="/login" className="px-10 py-5 bg-primary-container text-white font-black rounded-2xl text-xl shadow-2xl active:scale-95 transition-all hover:shadow-primary-container/40 hover:shadow-xl">
                 Get Started Now
               </Link>
-              <a href="#pricing" className="px-10 py-5 bg-white/10 text-white font-bold rounded-2xl text-xl backdrop-blur-md hover:bg-white/20 transition-all">
-                Book a Demo
+              <a href="mailto:hello@ikoranabuhanga.tech" className="px-10 py-5 bg-white/10 text-white font-bold rounded-2xl text-xl backdrop-blur-md hover:bg-white/20 transition-all">
+                Contact Us
               </a>
             </div>
           </div>
@@ -256,10 +255,9 @@ export default function LandingPage() {
             <p className="text-sm text-secondary">© 2026 Menuza Systems Inc. All rights reserved.</p>
           </div>
           <div className="flex gap-8 text-sm font-semibold text-on-surface-variant">
-            <a className="hover:text-primary transition-colors" href="#pricing">Terms</a>
-            <a className="hover:text-primary transition-colors" href="#pricing">Privacy</a>
-            <a className="hover:text-primary transition-colors" href="#features">Contact</a>
-            <a className="hover:text-primary transition-colors" href="#features">Blog</a>
+            <a className="hover:text-primary transition-colors" href="#">Terms</a>
+            <a className="hover:text-primary transition-colors" href="#">Privacy</a>
+            <a className="hover:text-primary transition-colors" href="mailto:hello@ikoranabuhanga.tech">Contact</a>
           </div>
           <div className="flex gap-4">
             <div className="w-10 h-10 rounded-full bg-surface-container flex items-center justify-center hover:bg-primary/10 transition-colors cursor-pointer">
