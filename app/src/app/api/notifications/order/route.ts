@@ -74,7 +74,7 @@ export async function POST(req: Request) {
         "Authorization": `Bearer ${process.env.RESEND_API_KEY}`,
       },
       body: JSON.stringify({
-        from: "MENUZA AI <orders@notifications.menuzaai.com>",
+        from: "MENUZA AI <orders@ikoranabuhanga.tech>",
         to: [ownerEmail],
         subject: `New order${customerName ? ` from ${customerName}` : ""} — ${restaurant.name}`,
         html,

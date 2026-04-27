@@ -26,28 +26,34 @@ export async function POST(req: Request) {
     // 2. Generate a unique deposit ID for this transaction
     const depositId = `dep_${Date.now()}_${Math.random().toString(36).substring(7)}`;
 
+    // Detect correspondent from Rwanda phone prefix
+    const localNumber = phoneNumber.replace(/^250/, "");
+    const correspondent = localNumber.startsWith("72") || localNumber.startsWith("73")
+      ? "AIRTEL_OAPI_RWA"
+      : "MTN_MOMO_RWA";
+
     // 3. Prepare payload for pawaPay
-    // Documentation: https://docs.pawapay.io/docs/pawapay-docs/api-reference/deposits
     const pawapayPayload = {
       depositId: depositId,
       amount: amount.toString(),
-      currency: "RWF", // Replace with dynamic currency if operating in multiple countries
-      country: "RWA", // Rwanda
-      correspondent: "MTN_MOMO_RWA", // Defaulting to MTN Rwanda for this example. We can make this dynamic.
+      currency: "RWF",
+      country: "RWA",
+      correspondent,
       payer: {
         type: "MSISDN",
         address: { value: phoneNumber }
       },
       customerTimestamp: new Date().toISOString(),
       statementDescription: `MENUZA AI ${plan} Plan`,
-      returnUrl: `${process.env.NEXT_PUBLIC_SITE_URL}/dashboard?payment=success`
+      callbackUrl: `${process.env.NEXT_PUBLIC_SITE_URL}/api/webhooks/pawapay`,
     };
 
     // 4. Call pawaPay API
-    const isProduction = process.env.NODE_ENV === "production" || process.env.PAWAPAY_JWT?.startsWith("pk_");
-    const pawaPayUrl = isProduction 
-      ? "https://api.pawapay.io/v1/deposits" 
-      : "https://api.sandbox.pawapay.io/v1/deposits";
+    const baseUrl = process.env.PAWAPAY_BASE_URL ??
+      (process.env.PAWAPAY_MODE === "sandbox"
+        ? "https://api.sandbox.pawapay.io"
+        : "https://api.pawapay.io");
+    const pawaPayUrl = `${baseUrl}/v1/deposits`;
 
     // 5. Store pending transaction in our database
     const { error: dbError } = await supabase.from('transactions').insert({ 
@@ -66,12 +72,12 @@ export async function POST(req: Request) {
     }
 
     // 6. Initiate Payment with pawaPay
-    if (process.env.PAWAPAY_JWT) {
+    if (process.env.PAWAPAY_API_KEY) {
       const response = await fetch(pawaPayUrl, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${process.env.PAWAPAY_JWT}`
+          "Authorization": `Bearer ${process.env.PAWAPAY_API_KEY}`
         },
         body: JSON.stringify(pawapayPayload)
       });
@@ -96,7 +102,7 @@ export async function POST(req: Request) {
         success: true, 
         depositId, 
         simulated: true,
-        message: "Payment simulated (PAWAPAY_JWT missing). Transaction recorded as pending." 
+        message: "Payment simulated (PAWAPAY_API_KEY missing). Transaction recorded as pending." 
       });
     }
 

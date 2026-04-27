@@ -1,15 +1,17 @@
 import { NextResponse } from "next/server";
-import { createHmac, timingSafeEqual } from "crypto";
+import { createVerify } from "crypto";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
 
 export const dynamic = "force-dynamic";
 
 function verifySignature(rawBody: string, signatureHeader: string | null): boolean {
-  const secret = process.env.PAWAPAY_WEBHOOK_SECRET;
-  if (!secret || !signatureHeader) return false;
-  const expected = createHmac("sha256", secret).update(rawBody).digest("hex");
+  const publicKey = process.env.PAWAPAY_WEBHOOK_PUBLIC_KEY;
+  if (!publicKey || !signatureHeader) return false;
   try {
-    return timingSafeEqual(Buffer.from(signatureHeader), Buffer.from(expected));
+    const verify = createVerify("SHA256");
+    verify.update(rawBody);
+    // PawaPay sends signature as base64
+    return verify.verify(publicKey, signatureHeader, "base64");
   } catch {
     return false;
   }
@@ -52,15 +54,17 @@ export async function POST(req: Request) {
         .update({ status: "completed" })
         .eq("deposit_id", depositId);
 
+      const planName = (tx.plan_name as string | null)?.toLowerCase() ?? "pro";
+
       const { error: upgradeError } = await supabaseAdmin
         .from("restaurants")
-        .update({ plan: tx.plan_name || "pro" })
+        .update({ plan: planName })
         .eq("id", tx.restaurant_id);
 
       if (upgradeError) {
         console.error("Failed to upgrade restaurant plan:", upgradeError);
       } else {
-        console.log(`✅ Restaurant ${tx.restaurant_id} upgraded to ${tx.plan_name}`);
+        console.log(`✅ Restaurant ${tx.restaurant_id} upgraded to ${planName}`);
       }
     } else if (status === "FAILED") {
       await supabaseAdmin
@@ -74,7 +78,7 @@ export async function POST(req: Request) {
 
   } catch (error: unknown) {
     console.error("Webhook processing error:", error);
-    return NextResponse.json({ 
+    return NextResponse.json({
       error: "Internal server error",
       details: error instanceof Error ? error.message : String(error)
     }, { status: 500 });
