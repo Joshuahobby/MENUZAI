@@ -36,16 +36,15 @@ export default function PricingPage() {
     });
   }, []);
 
-  const handleActionClick = (planName: string, priceString: string, e: React.MouseEvent) => {
-    // If it's the free plan, let them go to dashboard or login
-    if (priceString.toLowerCase().includes("free")) return;
-    
-    // If logged in, open payment modal instead of redirecting
+  const handleActionClick = (planName: string, amountRwf: number, cta: string, e: React.MouseEvent) => {
+    // Free plan — let the link navigate normally
+    if (amountRwf === 0) return;
+    // Business "Contact Sales" — let link navigate (no checkout modal)
+    if (cta === "Contact Sales") return;
+    // Paid plan + logged in → open payment modal
     if (isLoggedIn) {
       e.preventDefault();
-      // Extract numeric price from string like "$29" -> 29000 RWF for demo
-      const numericPrice = parseInt(priceString.replace(/[^0-9]/g, '')) * 1000 || 29000;
-      setSelectedPlan({ name: planName, price: numericPrice });
+      setSelectedPlan({ name: planName, price: amountRwf });
       setCheckoutModalOpen(true);
     }
   };
@@ -135,7 +134,7 @@ export default function PricingPage() {
               </ul>
               <Link
                 href={isLoggedIn ? "/dashboard" : "/login"}
-                onClick={(e) => handleActionClick(plan.name, plan.price, e)}
+                onClick={(e) => handleActionClick(plan.name, plan.amountRwf, plan.cta, e)}
                 className={`w-full py-4 font-bold rounded-xl transition-all text-center block ${
                   plan.popular
                     ? "bg-gradient-to-tr from-primary to-primary-container text-white shadow-lg shadow-primary-container/20 active:scale-95"

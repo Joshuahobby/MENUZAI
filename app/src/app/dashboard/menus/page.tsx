@@ -118,6 +118,29 @@ export default function MenusPage() {
     }
   };
 
+  const handleUnpublish = async (menuId: string, menuName: string) => {
+    const ok = await confirm({
+      title: "Unpublish Menu",
+      message: `"${menuName}" will no longer be visible to customers. You can republish it at any time.`,
+      confirmLabel: "Unpublish",
+      danger: false,
+    });
+    if (!ok) return;
+
+    const { error } = await supabase
+      .from("menus")
+      .update({ status: "draft" })
+      .eq("id", menuId)
+      .eq("user_id", user!.id);
+
+    if (!error) {
+      toast.success(`"${menuName}" unpublished.`);
+      loadMenus();
+    } else {
+      toast.error("Failed to unpublish.");
+    }
+  };
+
   const handlePublish = async (menuId: string) => {
     if (atPublishedLimit) {
       toast.error("Published menu limit reached.", {
@@ -211,6 +234,16 @@ export default function MenusPage() {
                   >
                     <span className="material-symbols-outlined text-[16px]">edit</span>
                   </button>
+                  {isPublished && (
+                    <button
+                      type="button"
+                      onClick={() => handleUnpublish(menu.id, menu.name)}
+                      className="w-8 h-8 rounded-full bg-white text-secondary hover:text-amber-600 shadow-md flex items-center justify-center transition-colors"
+                      title="Unpublish"
+                    >
+                      <span className="material-symbols-outlined text-[16px]">unpublished</span>
+                    </button>
+                  )}
                   <button
                     onClick={() => handleDelete(menu.id, menu.name)}
                     className="w-8 h-8 rounded-full bg-white text-secondary hover:text-error shadow-md flex items-center justify-center transition-colors"
