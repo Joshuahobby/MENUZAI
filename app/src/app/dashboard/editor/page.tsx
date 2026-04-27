@@ -259,10 +259,10 @@ export default function MenuEditorPage() {
                   >
                     {/* Header row */}
                     <div
-                      className="flex justify-between items-start mb-1"
+                      className="flex justify-between items-start gap-3 mb-1"
                       onClick={() => setExpandedItemId(isExpanded ? null : item.id)}
                     >
-                      <div className="flex-1">
+                      <div className="flex-1 min-w-0">
                         <input
                           className="font-[var(--font-headline)] font-extrabold text-lg bg-transparent border-none p-0 focus:ring-0 w-full"
                           value={item.name}
@@ -282,7 +282,12 @@ export default function MenuEditorPage() {
                           )}
                         </div>
                       </div>
-                      <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+                      {item.image && (
+                        <div className="relative w-16 h-16 rounded-xl overflow-hidden shrink-0 shadow-sm" onClick={(e) => e.stopPropagation()}>
+                          <NextImage src={item.image} alt={item.name} fill sizes="64px" className="object-cover" />
+                        </div>
+                      )}
+                      <div className="flex items-center gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
                         <span className="font-[var(--font-headline)] font-bold text-[var(--primary-color)] text-xs opacity-70">{menuStyle.currency ?? "RWF"}</span>
                         <input
                           type="number"
