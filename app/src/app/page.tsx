@@ -33,9 +33,6 @@ export default function LandingPage() {
               <span className="material-symbols-outlined icon-fill text-base">play_circle</span>
               Live Demo
             </Link>
-            <Link href="/login" className="text-sm font-semibold text-secondary px-4 py-2 hover:text-on-surface transition-colors">
-              Log In
-            </Link>
             <Link href="/login" className="text-sm font-bold px-5 py-2.5 bg-primary text-white rounded-xl shadow-md shadow-primary/20 hover:opacity-90 active:scale-95 transition-all">
               Get Started
             </Link>
