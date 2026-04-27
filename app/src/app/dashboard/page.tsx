@@ -60,8 +60,46 @@ export default function DashboardPage() {
   const maxHourCount = Math.max(...peakHours.map((h) => h.count), 1);
   const peakHour = peakHours.reduce((best, h) => (h.count > best.count ? h : best), { hour: 0, count: 0 });
 
+  const isNewUser = kpis.views === 0 && kpis.orders === 0;
+
   return (
     <div className="p-6 lg:p-12 pb-24 lg:pb-12">
+      {/* Quick Start — shown only when user has no activity yet */}
+      {isNewUser && (
+        <div className="mb-10 bg-gradient-to-br from-primary/5 to-primary-container/5 border border-primary/10 rounded-3xl p-8">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center shadow-md shadow-primary/20">
+              <span className="material-symbols-outlined text-white icon-fill text-xl">rocket_launch</span>
+            </div>
+            <div>
+              <h2 className="font-[var(--font-headline)] font-bold text-lg">Get your menu live in 3 steps</h2>
+              <p className="text-secondary text-xs">Follow these to start receiving orders</p>
+            </div>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            {[
+              { step: 1, icon: "edit_note", label: "Build your menu", desc: "Add items, prices, and photos", href: "/dashboard/editor", cta: "Open Editor" },
+              { step: 2, icon: "publish", label: "Publish it", desc: "Go live with a public link", href: "/dashboard/editor", cta: "Publish Menu" },
+              { step: 3, icon: "qr_code_2", label: "Share your QR code", desc: "Print and display for customers", href: "/dashboard/qr-codes", cta: "Get QR Code" },
+            ].map(({ step, icon, label, desc, href, cta }) => (
+              <Link key={step} href={href} className="group flex flex-col gap-3 bg-surface-container-lowest rounded-2xl p-5 border border-outline-variant/10 hover:border-primary/20 hover:shadow-md transition-all">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 bg-primary/10 text-primary rounded-lg flex items-center justify-center font-black text-sm">{step}</div>
+                  <span className="material-symbols-outlined text-primary">{icon}</span>
+                </div>
+                <div>
+                  <p className="font-bold text-sm">{label}</p>
+                  <p className="text-secondary text-xs mt-0.5">{desc}</p>
+                </div>
+                <span className="text-xs font-bold text-primary flex items-center gap-1 group-hover:translate-x-0.5 transition-transform">
+                  {cta} <span className="material-symbols-outlined text-sm">arrow_forward</span>
+                </span>
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <header className="flex flex-col md:flex-row justify-between items-start md:items-end mb-10 gap-4">
         <div>

@@ -13,7 +13,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   const { data: menu } = await supabase
     .from("menus")
-    .select("name, restaurants!inner(name, tagline)")
+    .select("name, items, restaurants!inner(name, tagline)")
     .eq("slug", slug)
     .eq("status", "published")
     .limit(1)
@@ -22,14 +22,28 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   if (!menu) return { title: "Menu Not Found" };
 
   const restaurant = Array.isArray(menu.restaurants) ? menu.restaurants[0] : menu.restaurants;
+  const items = (menu.items ?? []) as { image?: string }[];
+  const ogImage = items.find((i) => i.image)?.image;
+
+  const title = `${restaurant?.name ?? "Menu"} | MENUZA AI`;
+  const description = restaurant?.tagline
+    ? `${restaurant.tagline} — Browse ${menu.name} and order via WhatsApp.`
+    : `Browse the menu for ${restaurant?.name ?? "this restaurant"} and order directly via WhatsApp.`;
 
   return {
-    title: `${restaurant?.name ?? "Menu"} | MENUZA AI`,
-    description: restaurant?.tagline ?? `View the menu for ${restaurant?.name} and order via WhatsApp.`,
+    title,
+    description,
     openGraph: {
       title: `${restaurant?.name} — Digital Menu`,
-      description: `Browse ${menu.name} and order directly via WhatsApp.`,
+      description,
       type: "website",
+      ...(ogImage && { images: [{ url: ogImage, width: 1200, height: 630, alt: restaurant?.name ?? "Menu" }] }),
+    },
+    twitter: {
+      card: ogImage ? "summary_large_image" : "summary",
+      title,
+      description,
+      ...(ogImage && { images: [ogImage] }),
     },
   };
 }

@@ -166,12 +166,19 @@ export default function OnboardingPage() {
   return (
     <div className="min-h-screen bg-surface text-on-surface overflow-x-hidden">
       {/* Top Nav */}
-      <header className="w-full sticky top-0 z-50 bg-surface/80 backdrop-blur-md px-6 py-4 flex justify-between items-center">
-        <Link href="/" className="text-2xl font-[var(--font-headline)] font-black tracking-tight text-primary-container">MENUZA AI</Link>
-        <div className="flex items-center gap-4">
-          <span className="text-sm font-medium text-secondary">Need help?</span>
-          <span className="material-symbols-outlined text-secondary hover:text-primary transition-colors cursor-pointer">help</span>
-        </div>
+      <header className="w-full sticky top-0 z-50 bg-surface/95 backdrop-blur-md border-b border-outline-variant/10 px-6 h-16 flex justify-between items-center">
+        <Link href="/" className="flex items-center gap-2.5">
+          <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center shadow-md shadow-primary/20">
+            <span className="material-symbols-outlined text-white icon-fill text-lg">restaurant_menu</span>
+          </div>
+          <span className="font-[var(--font-headline)] font-black text-lg tracking-tight">
+            MENUZA <span className="text-primary">AI</span>
+          </span>
+        </Link>
+        <a href="mailto:hello@ikoranabuhanga.tech" className="flex items-center gap-2 text-sm font-medium text-secondary hover:text-primary transition-colors">
+          <span className="material-symbols-outlined text-base">help</span>
+          Need help?
+        </a>
       </header>
 
       <main className="min-h-[calc(100vh-80px)] flex flex-col items-center justify-center px-6 py-12">
