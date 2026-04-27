@@ -31,9 +31,8 @@ export default function MenusPage() {
   const planMeta = getPlanMeta(plan);
   const unlimited = isUnlimited(plan);
 
-  const draftMenus = menus.filter(m => m.status === "draft");
   const publishedMenus = menus.filter(m => m.status === "published");
-  const atDraftLimit = !unlimited && draftMenus.length >= limits.maxDrafts;
+  const atCreateLimit = !unlimited && menus.length >= limits.maxTotal;
   const atPublishedLimit = !unlimited && publishedMenus.length >= limits.maxPublished;
 
   const loadMenus = async () => {
@@ -58,9 +57,9 @@ export default function MenusPage() {
   };
 
   const handleCreateNew = async () => {
-    if (atDraftLimit) {
-      toast.error("Draft limit reached.", {
-        description: "Upgrade to Pro for unlimited menus, or publish / delete your current draft.",
+    if (atCreateLimit) {
+      toast.error("Menu limit reached.", {
+        description: "Free plan allows 1 menu. Upgrade to Pro for unlimited menus.",
         action: { label: "Upgrade", onClick: () => router.push("/pricing") },
       });
       return;
@@ -146,7 +145,7 @@ export default function MenusPage() {
         </div>
         <button
           onClick={handleCreateNew}
-          disabled={atDraftLimit}
+          disabled={atCreateLimit}
           className="px-6 py-3 bg-gradient-to-tr from-primary to-primary-container text-white font-bold rounded-xl shadow-lg shadow-primary/20 active:scale-95 transition-all flex items-center gap-2 cursor-pointer border-none outline-none disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100"
         >
           <span className="material-symbols-outlined text-sm">add</span> Create New Menu
@@ -166,8 +165,7 @@ export default function MenusPage() {
           </span>
         ) : (
           <>
-            <UsagePill label="Drafts"    used={draftMenus.length}     max={limits.maxDrafts}     atLimit={atDraftLimit} />
-            <UsagePill label="Published" used={publishedMenus.length} max={limits.maxPublished}  atLimit={atPublishedLimit} />
+            <UsagePill label="Menus" used={menus.length} max={limits.maxTotal} atLimit={atCreateLimit} />
             <Link
               href="/pricing"
               className="ml-auto text-xs font-bold text-primary flex items-center gap-1 hover:underline"
@@ -282,14 +280,12 @@ export default function MenusPage() {
             onClick={handleCreateNew}
             className="bg-surface-container-lowest rounded-[2rem] border-2 border-dashed border-outline-variant/40 flex flex-col items-center justify-center min-h-[300px] hover:border-primary/40 hover:bg-primary/5 transition-all cursor-pointer group outline-none"
           >
-            {atDraftLimit ? (
+            {atCreateLimit ? (
               <>
                 <span className="material-symbols-outlined text-amber-500 text-4xl mb-4">lock</span>
-                <p className="font-[var(--font-headline)] font-bold text-on-surface">Draft Limit Reached</p>
+                <p className="font-[var(--font-headline)] font-bold text-on-surface">Menu Limit Reached</p>
                 <p className="text-sm text-secondary mb-4 px-6 text-center">
-                  {limits.maxDrafts === 1
-                    ? "Free plan allows 1 draft menu."
-                    : `You've used all ${limits.maxDrafts} draft slots.`}
+                  Free plan allows 1 menu. Delete yours or upgrade to create more.
                 </p>
                 <span className="px-4 py-2 bg-primary text-white text-xs font-bold rounded-full">
                   Upgrade to Pro →

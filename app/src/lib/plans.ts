@@ -3,6 +3,7 @@ export type Plan = "free" | "pro" | "business";
 interface PlanLimits {
   maxDrafts: number;
   maxPublished: number;
+  maxTotal: number;
 }
 
 interface PlanMeta {
@@ -11,9 +12,9 @@ interface PlanMeta {
 }
 
 const LIMITS: Record<Plan, PlanLimits> = {
-  free:     { maxDrafts: 1, maxPublished: 1 },
-  pro:      { maxDrafts: Infinity, maxPublished: Infinity },
-  business: { maxDrafts: Infinity, maxPublished: Infinity },
+  free:     { maxDrafts: 1, maxPublished: 1, maxTotal: 1 },
+  pro:      { maxDrafts: Infinity, maxPublished: Infinity, maxTotal: Infinity },
+  business: { maxDrafts: Infinity, maxPublished: Infinity, maxTotal: Infinity },
 };
 
 const META: Record<Plan, PlanMeta> = {
