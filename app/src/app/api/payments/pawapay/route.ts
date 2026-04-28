@@ -50,11 +50,12 @@ export async function POST(req: Request) {
     };
 
     // 4. Call pawaPay API
+    // PAWAPAY_BASE_URL should already include the version path (e.g. /v1 or /v2)
     const baseUrl = process.env.PAWAPAY_BASE_URL ??
       (process.env.PAWAPAY_MODE === "sandbox"
-        ? "https://api.sandbox.pawapay.io"
-        : "https://api.pawapay.io");
-    const pawaPayUrl = `${baseUrl}/v1/deposits`;
+        ? "https://api.sandbox.pawapay.io/v1"
+        : "https://api.pawapay.io/v1");
+    const pawaPayUrl = `${baseUrl}/deposits`;
 
     // 5. Store pending transaction in our database (admin client bypasses RLS insert gap)
     const admin = getSupabaseAdmin();
@@ -86,10 +87,15 @@ export async function POST(req: Request) {
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        // Update transaction status to failed if initiation failed
+        const errorText = await response.text();
+        console.error("PawaPay error response:", response.status, errorText);
         await admin.from('transactions').update({ status: 'failed' }).eq('deposit_id', depositId);
-        throw new Error(errorData.message || "Failed to initiate payment with pawaPay");
+        let errorMsg = "Failed to initiate payment with pawaPay";
+        try {
+          const errorData = JSON.parse(errorText);
+          errorMsg = errorData.message || errorData.errorMessage || errorData.description || errorMsg;
+        } catch { /* non-JSON response */ }
+        throw new Error(errorMsg);
       }
 
       const pawaPayData = await response.json();
