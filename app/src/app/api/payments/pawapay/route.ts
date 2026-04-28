@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase-server";
+import { getSupabaseAdmin } from "@/lib/supabase-admin";
 
 export async function POST(req: Request) {
   try {
@@ -55,8 +56,10 @@ export async function POST(req: Request) {
         : "https://api.pawapay.io");
     const pawaPayUrl = `${baseUrl}/v1/deposits`;
 
-    // 5. Store pending transaction in our database
-    const { error: dbError } = await supabase.from('transactions').insert({ 
+    // 5. Store pending transaction in our database (admin client bypasses RLS insert gap)
+    const admin = getSupabaseAdmin();
+    if (!admin) throw new Error("Server configuration error.");
+    const { error: dbError } = await admin.from('transactions').insert({
       deposit_id: depositId, 
       user_id: user.id, 
       restaurant_id: restaurant.id,
@@ -85,7 +88,7 @@ export async function POST(req: Request) {
       if (!response.ok) {
         const errorData = await response.json();
         // Update transaction status to failed if initiation failed
-        await supabase.from('transactions').update({ status: 'failed' }).eq('deposit_id', depositId);
+        await admin.from('transactions').update({ status: 'failed' }).eq('deposit_id', depositId);
         throw new Error(errorData.message || "Failed to initiate payment with pawaPay");
       }
 

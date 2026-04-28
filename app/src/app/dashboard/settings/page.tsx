@@ -5,6 +5,9 @@ import NextImage from "next/image";
 import { useMenu } from "@/context/MenuContext";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
+import { CheckoutModal } from "@/components/CheckoutModal";
+import { confirm } from "@/components/Modals";
+import { pricingPlans } from "@/data/mockData";
 
 const CURRENCIES = [
   { code: "RWF", name: "Rwandan Franc" },
@@ -26,6 +29,7 @@ export default function SettingsPage() {
   const {
     restaurantId,
     plan: restaurantPlan,
+    setPlan,
     restaurantName, setRestaurantName,
     restaurantPhone, setRestaurantPhone,
     restaurantLogoUrl, setRestaurantLogoUrl,
@@ -38,6 +42,43 @@ export default function SettingsPage() {
   const [phone, setPhone] = useState(restaurantPhone);
   const [currency, setCurrency] = useState(menuStyle.currency ?? "RWF");
   const [whatsappEnabled, setWhatsappEnabled] = useState(true);
+
+  const [checkoutOpen, setCheckoutOpen] = useState(false);
+  const [checkoutPlan, setCheckoutPlan] = useState({ name: "", price: 0 });
+  const [changingPlan, setChangingPlan] = useState(false);
+
+  const PLAN_ORDER: Record<string, number> = { free: 0, pro: 1, business: 2 };
+  const currentRank = PLAN_ORDER[restaurantPlan] ?? 0;
+
+  const handleUpgrade = (planName: string, amountRwf: number) => {
+    setCheckoutPlan({ name: planName, price: amountRwf });
+    setCheckoutOpen(true);
+  };
+
+  const handleDowngrade = async (targetPlan: string) => {
+    const ok = await confirm({
+      title: `Downgrade to ${targetPlan.charAt(0).toUpperCase() + targetPlan.slice(1)}?`,
+      message: "You'll lose access to paid features immediately. You can upgrade again at any time.",
+      confirmLabel: "Downgrade",
+      danger: true,
+    });
+    if (!ok) return;
+    setChangingPlan(true);
+    try {
+      const res = await fetch("/api/plan/change", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ plan: targetPlan }),
+      });
+      if (!res.ok) throw new Error((await res.json()).error);
+      setPlan(targetPlan);
+      toast.success(`Plan changed to ${targetPlan}.`);
+    } catch (e: unknown) {
+      toast.error((e as Error).message || "Failed to change plan.");
+    } finally {
+      setChangingPlan(false);
+    }
+  };
 
   const [savingInfo, setSavingInfo] = useState(false);
   const [savedInfo, setSavedInfo] = useState(false);
@@ -165,6 +206,13 @@ export default function SettingsPage() {
 
   return (
     <div className="p-6 lg:p-12 pb-24 lg:pb-12">
+      <CheckoutModal
+        isOpen={checkoutOpen}
+        onClose={() => setCheckoutOpen(false)}
+        planName={checkoutPlan.name}
+        priceAmount={checkoutPlan.price}
+      />
+
       <div className="mb-10">
         <h1 className="text-3xl font-[var(--font-headline)] font-extrabold tracking-tight mb-1">Settings</h1>
         <p className="text-secondary">Manage your restaurant profile and WhatsApp ordering</p>
@@ -174,23 +222,76 @@ export default function SettingsPage() {
 
         {/* Plan & Billing */}
         <div className="bg-surface-container-lowest p-8 rounded-[2rem] border border-surface-container/50 lg:col-span-2">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-            <div>
-              <h3 className="font-[var(--font-headline)] font-bold text-lg mb-2">Subscription & Plan</h3>
-              <p className="text-sm text-secondary">You are currently on the <span className="font-bold text-primary uppercase">{restaurantPlan}</span> plan.</p>
-            </div>
-            {restaurantPlan === "free" ? (
-              <a 
-                href="/pricing"
-                className="px-8 py-3 bg-gradient-to-tr from-primary to-primary-container text-white font-bold rounded-xl shadow-lg shadow-primary-container/20 hover:shadow-xl active:scale-95 transition-all"
-              >
-                Upgrade to Pro
-              </a>
-            ) : (
-              <div className="px-6 py-2 bg-tertiary/10 text-tertiary font-bold rounded-xl text-xs uppercase tracking-widest">
-                Pro Member
-              </div>
-            )}
+          <h3 className="font-[var(--font-headline)] font-bold text-lg mb-2">Subscription & Plan</h3>
+          <p className="text-sm text-secondary mb-6">
+            You are on the{" "}
+            <span className="font-bold text-primary uppercase">{restaurantPlan}</span> plan.
+            Upgrade for more features or downgrade at any time.
+          </p>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {pricingPlans.map((p) => {
+              const planKey = p.name.toLowerCase();
+              const planRank = PLAN_ORDER[planKey] ?? 0;
+              const isCurrent = planKey === restaurantPlan;
+              const isUpgrade = planRank > currentRank;
+              const isDowngrade = planRank < currentRank;
+              const isContactSales = p.cta === "Contact Sales";
+
+              return (
+                <div
+                  key={p.name}
+                  className={`relative flex flex-col p-6 rounded-2xl border transition-all ${isCurrent ? "border-primary bg-primary/5 ring-2 ring-primary ring-offset-2" : "border-surface-container bg-surface-container-lowest"}`}
+                >
+                  {isCurrent && (
+                    <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary text-white text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-widest">
+                      Current Plan
+                    </span>
+                  )}
+                  <div className="mb-4">
+                    <p className="font-[var(--font-headline)] font-bold text-base">{p.name}</p>
+                    <p className="text-2xl font-black mt-1">{p.price}<span className="text-xs font-normal text-secondary">{p.period}</span></p>
+                  </div>
+                  <ul className="space-y-2 mb-6 flex-1">
+                    {p.features.map((f) => (
+                      <li key={f} className="flex items-start gap-2 text-xs text-secondary">
+                        <span className="material-symbols-outlined text-tertiary text-sm shrink-0 mt-0.5">check_circle</span>
+                        {f}
+                      </li>
+                    ))}
+                  </ul>
+                  {isCurrent ? (
+                    <div className="w-full py-2.5 text-center text-xs font-bold text-primary bg-primary/10 rounded-xl">
+                      Active
+                    </div>
+                  ) : isContactSales ? (
+                    <a
+                      href="mailto:support@menuzaai.com"
+                      className="w-full py-2.5 text-center text-xs font-bold text-on-surface bg-surface-container-highest hover:bg-surface-container-high rounded-xl transition-colors block"
+                    >
+                      Contact Sales
+                    </a>
+                  ) : isUpgrade ? (
+                    <button
+                      type="button"
+                      onClick={() => handleUpgrade(p.name, p.amountRwf)}
+                      disabled={changingPlan}
+                      className="w-full py-2.5 text-center text-xs font-bold text-white bg-gradient-to-tr from-primary to-primary-container rounded-xl shadow shadow-primary/20 hover:opacity-90 active:scale-95 transition-all disabled:opacity-50"
+                    >
+                      Upgrade to {p.name}
+                    </button>
+                  ) : isDowngrade ? (
+                    <button
+                      type="button"
+                      onClick={() => handleDowngrade(planKey)}
+                      disabled={changingPlan}
+                      className="w-full py-2.5 text-center text-xs font-bold text-secondary bg-surface-container-high hover:bg-surface-container-highest rounded-xl transition-colors disabled:opacity-50"
+                    >
+                      {changingPlan ? "Changing…" : `Downgrade to ${p.name}`}
+                    </button>
+                  ) : null}
+                </div>
+              );
+            })}
           </div>
         </div>
 

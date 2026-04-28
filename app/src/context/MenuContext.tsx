@@ -20,6 +20,7 @@ interface MenuContextType {
   restaurantLogoUrl: string;
   setRestaurantLogoUrl: (url: string) => void;
   plan: string;
+  setPlan: (plan: string) => void;
   categories: MenuCategory[];
   setCategories: React.Dispatch<React.SetStateAction<MenuCategory[]>>;
   menuItems: MenuItem[];
@@ -644,6 +645,7 @@ export function MenuProvider({ children }: { children: React.ReactNode }) {
       restaurantLogoUrl,
       setRestaurantLogoUrl,
       plan,
+      setPlan,
       categories,
       setCategories,
       menuItems,
