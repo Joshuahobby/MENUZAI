@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { useMenu } from "@/context/MenuContext";
 import { prompt, confirm } from "@/components/Modals";
 import { toast } from "sonner";
@@ -135,7 +136,20 @@ export function MenuSectionsSidebar({ activeCategoryId, setActiveCategoryId }: M
         <span className="material-symbols-outlined group-hover:rotate-90 transition-transform">add</span>
         Add New Section
       </button>
-      <div className="mt-auto pt-8 border-t border-outline-variant/20">
+      <div className="mt-auto pt-8 border-t border-outline-variant/20 space-y-4">
+        <Link
+          href="/upload"
+          className="w-full flex items-center gap-3 p-4 bg-primary/5 hover:bg-primary/10 rounded-2xl border border-primary/10 hover:border-primary/20 transition-all group"
+        >
+          <div className="w-9 h-9 bg-primary/10 rounded-xl flex items-center justify-center shrink-0 group-hover:bg-primary/20 transition-colors">
+            <span className="material-symbols-outlined text-primary text-lg icon-fill">auto_awesome</span>
+          </div>
+          <div className="min-w-0">
+            <p className="font-bold text-sm text-on-surface">Import from Photo</p>
+            <p className="text-[10px] text-secondary leading-tight">AI extracts items from a menu image</p>
+          </div>
+          <span className="material-symbols-outlined text-secondary text-sm ml-auto shrink-0 group-hover:translate-x-0.5 transition-transform">arrow_forward</span>
+        </Link>
         <div className="bg-primary-container/5 rounded-3xl p-5 border border-primary/10">
           <div className="flex items-center gap-2 mb-3">
             <span className="material-symbols-outlined text-sm icon-fill">tips_and_updates</span>

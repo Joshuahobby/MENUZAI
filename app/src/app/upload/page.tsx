@@ -23,7 +23,8 @@ const EXTRACTING_STEPS = [
 ];
 
 export default function UploadPage() {
-  const { setMenuItems, setCategories, setRestaurantName, applyTemplate } = useMenu();
+  const { setMenuItems, setCategories, setRestaurantName, applyTemplate, restaurantId } = useMenu();
+  const backHref = restaurantId ? "/dashboard/editor" : "/onboarding";
   const [state, setState] = useState<UploadState>("idle");
   const [progress, setProgress] = useState(0);
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
@@ -136,9 +137,16 @@ export default function UploadPage() {
 
   return (
     <div className="min-h-screen bg-surface text-on-surface">
-      <header className="w-full sticky top-0 z-50 bg-surface/80 backdrop-blur-md px-6 py-4 flex justify-between items-center">
-        <Link href="/" className="text-2xl font-[var(--font-headline)] font-black tracking-tight text-primary-container">MENUZA AI</Link>
-        <Link href="/onboarding" className="text-sm font-medium text-secondary hover:text-primary transition-colors flex items-center gap-1">
+      <header className="w-full sticky top-0 z-50 bg-surface/80 backdrop-blur-md border-b border-surface-container/50 px-6 h-16 flex justify-between items-center">
+        <Link href="/" className="flex items-center gap-2.5 shrink-0">
+          <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center shadow-md shadow-primary/20">
+            <span className="material-symbols-outlined text-white icon-fill text-lg">restaurant_menu</span>
+          </div>
+          <span className="font-[var(--font-headline)] font-black text-lg tracking-tight text-on-surface">
+            MENUZA <span className="text-primary">AI</span>
+          </span>
+        </Link>
+        <Link href={backHref} className="text-sm font-medium text-secondary hover:text-primary transition-colors flex items-center gap-1">
           <span className="material-symbols-outlined text-sm">arrow_back</span> Back
         </Link>
       </header>
