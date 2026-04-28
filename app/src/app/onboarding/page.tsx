@@ -14,6 +14,7 @@ export default function OnboardingPage() {
     restaurantId,
     setRestaurantName,
     setRestaurantPhone,
+    setOnboarded,
     isLoading: menuLoading,
     user,
   } = useMenu();
@@ -145,6 +146,10 @@ export default function OnboardingPage() {
       .from("restaurants")
       .update({ onboarded: true })
       .eq("user_id", userId!);
+
+    // Sync context so the dashboard guard sees onboarded = true immediately
+    // without waiting for a full re-bootstrap
+    setOnboarded(true);
 
     setSaving(false);
 

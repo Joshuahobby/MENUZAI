@@ -31,6 +31,7 @@ interface MenuContextType {
   menuStatus: "draft" | "published";
   menuSlug: string | null;
   onboarded: boolean;
+  setOnboarded: (value: boolean) => void;
   // Actions
   addCategory: (name: string) => void;
   renameCategory: (categoryId: string, name: string) => void;
@@ -654,6 +655,7 @@ export function MenuProvider({ children }: { children: React.ReactNode }) {
       menuStatus,
       menuSlug,
       onboarded,
+      setOnboarded,
       addCategory,
       renameCategory,
       removeCategory,
