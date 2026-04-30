@@ -1,7 +1,7 @@
 "use client";
 import NextImage from "next/image";
 import { useMenu } from "@/context/MenuContext";
-import { useState, useRef } from "react";
+import { useState, useRef, useMemo } from "react";
 import { useEffect } from "react";
 import Link from "next/link";
 import { StyleEditorSidebar } from "./StyleEditorSidebar";
@@ -9,6 +9,8 @@ import { MenuSectionsSidebar } from "./MenuSectionsSidebar";
 import { ImageUpload } from "@/components/ImageUpload";
 import { prompt, confirm } from "@/components/Modals";
 import { toast } from "sonner";
+import { PrintView } from "../templates/PrintView";
+import { DEMO_DATA, type TplData } from "../templates/TemplatePreview";
 
 type Viewport = "mobile" | "tablet" | "desktop";
 
@@ -44,6 +46,7 @@ export default function MenuEditorPage() {
     isSyncing,
     isLoading,
     user,
+    restaurantName,
   } = useMenu();
 
   const [publishedSlug, setPublishedSlug] = useState<string | null>(null);
@@ -62,6 +65,25 @@ export default function MenuEditorPage() {
 
   // Mobile category action sheet state
   const [catActionSheet, setCatActionSheet] = useState<{ id: string; name: string; hidden?: boolean } | null>(null);
+
+  // Print overlay state
+  const [isPrintOpen, setIsPrintOpen] = useState(false);
+
+  const printData: TplData = useMemo(() => {
+    if (categories.length === 0) return { ...DEMO_DATA, restaurantName: restaurantName || DEMO_DATA.restaurantName };
+    return {
+      restaurantName: restaurantName || DEMO_DATA.restaurantName,
+      currency: menuStyle.currency,
+      categories: categories
+        .filter(c => !c.hidden)
+        .map(cat => ({
+          name: cat.name,
+          items: menuItems
+            .filter(i => i.category === cat.id)
+            .map(i => ({ name: i.name, description: i.description, price: i.price })),
+        })),
+    };
+  }, [categories, menuItems, restaurantName, menuStyle.currency]);
 
   // Default to first category once loaded
   useEffect(() => {
@@ -208,6 +230,16 @@ export default function MenuEditorPage() {
               <span className="hidden sm:inline">/menu/{menuSlug}</span>
             </Link>
           )}
+
+          <button
+            type="button"
+            onClick={() => setIsPrintOpen(true)}
+            className="p-2 rounded-xl transition-all flex items-center gap-2 bg-surface-container-highest text-secondary hover:text-primary"
+            title="Print Menu"
+          >
+            <span className="material-symbols-outlined text-sm">print</span>
+            <span className="text-xs font-bold hidden md:inline">Print</span>
+          </button>
 
           <button
             type="button"
@@ -657,6 +689,15 @@ export default function MenuEditorPage() {
         {/* Right Panel */}
         {isStyleSidebarOpen && <StyleEditorSidebar onClose={() => setIsStyleSidebarOpen(false)} />}
       </div>
+
+      {isPrintOpen && (
+        <PrintView
+          templateId="vintage-parchment"
+          templateName="Print Menu"
+          restaurantData={printData}
+          onClose={() => setIsPrintOpen(false)}
+        />
+      )}
     </div>
   );
 }

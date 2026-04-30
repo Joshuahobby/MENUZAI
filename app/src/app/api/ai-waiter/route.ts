@@ -1,4 +1,3 @@
-import { NextResponse } from "next/server";
 
 export async function POST(request: Request) {
   const apiKey = process.env.OPENROUTER_API_KEY;
@@ -64,25 +63,21 @@ INSTRUCTIONS:
           const content = data.choices[0]?.message?.content || "I'm sorry, I couldn't process that request.";
           console.log(`AI Waiter: Success with ${model}`);
           return Response.json({ content });
-          return NextResponse.json({ content });
         } else {
           const errData = await response.json().catch(() => ({}));
           lastError = errData.error?.message || `Status ${response.status}`;
           console.warn(`AI Waiter: ${model} failed - ${lastError}`);
         }
       } catch (error: unknown) {
-        console.error("AI Assistant Error:", error);
-        return NextResponse.json({ 
-          error: "Failed to fetch AI response",
-          details: error instanceof Error ? error.message : String(error)
-        }, { status: 500 });
+        lastError = error instanceof Error ? error.message : String(error);
+        console.warn(`AI Waiter: ${model} threw - ${lastError}`);
       }
     }
 
     throw new Error(`All AI models failed. Last error: ${lastError}`);
   } catch (error: unknown) {
     console.error("AI Route Error:", error);
-    return NextResponse.json({ 
+    return Response.json({
       error: "Internal Server Error",
       details: error instanceof Error ? error.message : String(error)
     }, { status: 500 });

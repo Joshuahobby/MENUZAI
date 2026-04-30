@@ -331,7 +331,12 @@ export function MenuProvider({ children }: { children: React.ReactNode }) {
           { onConflict: "id" }
         );
 
-      if (!error) setLastSynced(new Date());
+      if (error) {
+        console.error("Auto-save failed:", error);
+        toast.error("Failed to save changes", { description: error.message });
+      } else {
+        setLastSynced(new Date());
+      }
       setIsSyncing(false);
     }, 1000); // Reduced to 1s for better responsiveness, especially in tests
 

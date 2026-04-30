@@ -19,7 +19,7 @@ const CATEGORY_LABELS: Record<"all" | TemplateCategory, string> = {
 
 export default function TemplatesPage() {
   const router = useRouter();
-  const { applyTemplate, plan, restaurantName } = useMenu();
+  const { applyTemplate, plan, restaurantName, categories, menuItems, menuStyle } = useMenu();
   const [tierFilter, setTierFilter] = useState<"all" | "free" | "pro">("all");
   const [catFilter, setCatFilter] = useState<"all" | TemplateCategory>("all");
   const [previewId, setPreviewId] = useState<string | null>(null);
@@ -35,10 +35,24 @@ export default function TemplatesPage() {
   const printTpl = templates.find((t) => t.id === printId);
 
   // Prepare data for the preview
-  const tplData: TplData = useMemo(() => ({
-    ...DEMO_DATA,
-    restaurantName: restaurantName || DEMO_DATA.restaurantName,
-  }), [restaurantName]);
+  const tplData: TplData = useMemo(() => {
+    const hasCats = categories.length > 0;
+    return {
+      ...DEMO_DATA,
+      restaurantName: restaurantName || DEMO_DATA.restaurantName,
+      currency: menuStyle.currency || DEMO_DATA.currency,
+      ...(hasCats && {
+        categories: categories
+          .filter(c => !c.hidden)
+          .map(cat => ({
+            name: cat.name,
+            items: menuItems
+              .filter(i => i.category === cat.id)
+              .map(i => ({ name: i.name, description: i.description, price: i.price })),
+          })),
+      }),
+    };
+  }, [restaurantName, categories, menuItems, menuStyle.currency]);
 
   const applyAndGo = (t: Template) => {
     if (t.tier === "pro" && plan === "free") {
