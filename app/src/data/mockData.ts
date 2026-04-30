@@ -13,12 +13,12 @@ export const restaurant = {
 };
 
 export const categories: MenuCategory[] = [
-  { id: "specials", name: "Specials", itemCount: 4 },
-  { id: "appetizers", name: "Appetizers", itemCount: 8 },
-  { id: "mains", name: "Main Courses", itemCount: 12 },
-  { id: "desserts", name: "Signature Desserts", itemCount: 5 },
-  { id: "drinks", name: "Beverages", itemCount: 6 },
-  { id: "wines", name: "Wine List", itemCount: 24 },
+  { id: "specials", name: "Specials" },
+  { id: "appetizers", name: "Appetizers" },
+  { id: "mains", name: "Main Courses" },
+  { id: "desserts", name: "Signature Desserts" },
+  { id: "drinks", name: "Beverages" },
+  { id: "wines", name: "Wine List" },
 ];
 
 export const menuItems: MenuItem[] = [
@@ -189,7 +189,6 @@ export const templates: Template[] = [
       borderRadius: "0.25rem",
       layoutDensity: "comfortable",
       cardStyle: "flat",
-      layoutStyle: "vintage-parchment",
     },
   },
   {
@@ -209,7 +208,6 @@ export const templates: Template[] = [
       borderRadius: "0.25rem",
       layoutDensity: "compact",
       cardStyle: "flat",
-      layoutStyle: "dark-chalkboard",
     },
   },
   {
@@ -229,7 +227,6 @@ export const templates: Template[] = [
       borderRadius: "0.625rem",
       layoutDensity: "comfortable",
       cardStyle: "elevated",
-      layoutStyle: "photo-gallery",
     },
   },
   // ── PRO ──────────────────────────────────────────────────────
@@ -250,7 +247,6 @@ export const templates: Template[] = [
       borderRadius: "0.5rem",
       layoutDensity: "compact",
       cardStyle: "flat",
-      layoutStyle: "bold-street",
     },
   },
   {
@@ -270,7 +266,6 @@ export const templates: Template[] = [
       borderRadius: "0.25rem",
       layoutDensity: "spacious",
       cardStyle: "flat",
-      layoutStyle: "bistro-split",
     },
   },
   {
@@ -290,7 +285,6 @@ export const templates: Template[] = [
       borderRadius: "0.25rem",
       layoutDensity: "spacious",
       cardStyle: "flat",
-      layoutStyle: "luxury-gold",
     },
   },
 ];

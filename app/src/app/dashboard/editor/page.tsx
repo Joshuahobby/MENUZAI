@@ -1,8 +1,7 @@
 "use client";
 import NextImage from "next/image";
 import { useMenu } from "@/context/MenuContext";
-import { useState, useRef, useMemo } from "react";
-import { useEffect } from "react";
+import { useState, useRef, useMemo, useEffect } from "react";
 import Link from "next/link";
 import { StyleEditorSidebar } from "./StyleEditorSidebar";
 import { MenuSectionsSidebar } from "./MenuSectionsSidebar";
@@ -85,17 +84,14 @@ export default function MenuEditorPage() {
     };
   }, [categories, menuItems, restaurantName, menuStyle.currency]);
 
-  // Default to first category once loaded
+  // Keep activeCategoryId pointing to a valid category
   useEffect(() => {
-    if (!activeCategoryId && categories.length > 0) {
-      setTimeout(() => setActiveCategoryId(categories[0]?.id), 0);
+    if (!activeCategoryId) {
+      if (categories.length > 0) setActiveCategoryId(categories[0].id);
+      return;
     }
-  }, [categories, activeCategoryId]);
-
-  // If active category was deleted, fall back to first
-  useEffect(() => {
-    if (activeCategoryId && !categories.find((c) => c.id === activeCategoryId)) {
-      setTimeout(() => setActiveCategoryId(categories[0]?.id), 0);
+    if (!categories.find((c) => c.id === activeCategoryId)) {
+      setActiveCategoryId(categories.length > 0 ? categories[0].id : undefined);
     }
   }, [categories, activeCategoryId]);
 
@@ -112,8 +108,14 @@ export default function MenuEditorPage() {
     }
   }, [menuStyle]);
 
-  const activeCategory = categories.find((c) => c.id === activeCategoryId);
-  const filteredItems = menuItems.filter((i) => i.category === activeCategoryId);
+  const activeCategory = useMemo(
+    () => categories.find((c) => c.id === activeCategoryId),
+    [categories, activeCategoryId]
+  );
+  const filteredItems = useMemo(
+    () => menuItems.filter((i) => i.category === activeCategoryId),
+    [menuItems, activeCategoryId]
+  );
   const vp = VIEWPORT_CONFIG[viewport];
 
   const handleRenameMenu = async () => {
@@ -490,7 +492,7 @@ export default function MenuEditorPage() {
                             min="0"
                             className="font-[var(--font-headline)] font-bold text-[var(--primary-color)] text-lg bg-transparent border-none p-0 focus:ring-0 w-20 text-right"
                             value={item.price}
-                            onChange={(e) => updateItem(item.id, { price: parseFloat(e.target.value) || 0 })}
+                            onChange={(e) => { const v = parseFloat(e.target.value); if (!isNaN(v) && v >= 0) updateItem(item.id, { price: v }); }}
                             title="Item Price"
                             placeholder="0"
                           />

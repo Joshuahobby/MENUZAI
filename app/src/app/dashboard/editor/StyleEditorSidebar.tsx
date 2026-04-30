@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 import { useMenu } from "@/context/MenuContext";
 
 interface StyleEditorSidebarProps {
@@ -72,16 +72,15 @@ const PRESETS = PRESET_IDS.map((id) => templates.find((t) => t.id === id)!).filt
 
 export function StyleEditorSidebar({ onClose }: StyleEditorSidebarProps) {
   const { menuStyle, setMenuStyle, applyTemplate } = useMenu();
-  const loadedFontsRef = useRef<Set<string>>(new Set());
-
   const densityIndex = DENSITY_VALUES.indexOf(menuStyle.layoutDensity);
 
   useEffect(() => {
     const fonts = [menuStyle.headlineFont, menuStyle.bodyFont].filter(Boolean);
     fonts.forEach((font) => {
-      if (loadedFontsRef.current.has(font)) return;
-      loadedFontsRef.current.add(font);
+      const id = `gfont-${font.replace(/ /g, "-").toLowerCase()}`;
+      if (document.getElementById(id)) return;
       const link = document.createElement("link");
+      link.id = id;
       link.rel = "stylesheet";
       link.href = `https://fonts.googleapis.com/css2?family=${font.replace(/ /g, "+")}:wght@400;600;700;800&display=swap`;
       document.head.appendChild(link);

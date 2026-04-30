@@ -43,7 +43,7 @@ interface MenuContextType {
   updateItem: (itemId: string, updates: Partial<MenuItem>) => void;
   duplicateItem: (itemId: string) => void;
   applyTemplate: (style: Partial<MenuStyle>) => void;
-  publishMenu: () => Promise<string | null>;
+  publishMenu: (targetMenuId?: string) => Promise<string | null>;
   unpublishMenu: () => Promise<void>;
   switchMenu: (menuId: string) => Promise<void>;
   createMenu: (name: string) => Promise<string | null>;
@@ -65,7 +65,6 @@ export const defaultStyle: MenuStyle = {
   layoutDensity: "comfortable",
   cardStyle: "elevated",
   currency: "RWF",
-  layoutStyle: "default",
 };
 
 const MenuContext = createContext<MenuContextType | undefined>(undefined);
@@ -80,7 +79,7 @@ export function MenuProvider({ children }: { children: React.ReactNode }) {
   const [activeMenuName, setActiveMenuName] = useState("My Menu");
   const [menuStatus, setMenuStatus] = useState<"draft" | "published">("draft");
   const [menuSlug, setMenuSlug] = useState<string | null>(null);
-  const [onboarded, setOnboarded] = useState<boolean>(false); // Default false to ensure onboarding guard works
+  const [onboarded, setOnboarded] = useState<boolean>(false);
   const [restaurantId, setRestaurantId] = useState<string | null>(null);
   const [restaurantPhone, setRestaurantPhone] = useState("");
   const [restaurantLogoUrl, setRestaurantLogoUrl] = useState("");
@@ -88,16 +87,20 @@ export function MenuProvider({ children }: { children: React.ReactNode }) {
   const [isSyncing, setIsSyncing] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [lastSynced, setLastSynced] = useState<Date | null>(null);
+
   const menuSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const restaurantSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const isInitialLoad = useRef(true);
   const isBootstrappingRef = useRef(false);
-  const preventBootstrapRef = useRef(false); // Set after auth failure; cleared only on genuine sign-out
+  const preventBootstrapRef = useRef(false);
   const bootstrappedForUserRef = useRef<string | null>(null);
   const [authChecked, setAuthChecked] = useState(false);
 
-  // 1. Track auth state — rely solely on onAuthStateChange (fires INITIAL_SESSION on setup)
-  //    to avoid competing for the gotrue lock with bootstrap's REST calls.
+  // Always-current snapshot of state used by callbacks to avoid stale closures
+  const latestRef = useRef({ categories, menuItems, menuStyle, activeMenuId });
+  latestRef.current = { categories, menuItems, menuStyle, activeMenuId };
+
+  // 1. Track auth state
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
@@ -111,11 +114,6 @@ export function MenuProvider({ children }: { children: React.ReactNode }) {
     if (!authChecked) return;
 
     if (!user) {
-      // Reset to defaults when logged out.
-      // Do NOT clear preventBootstrapRef here — if it was set by handleUnauthorized,
-      // we need it to hold through Supabase's internal SIGNED_OUT→SIGNED_IN cycling
-      // until window.location.replace('/login') completes. After navigation the
-      // component unmounts and all refs reset naturally.
       isBootstrappingRef.current = false;
       bootstrappedForUserRef.current = null;
       isInitialLoad.current = true;
@@ -142,40 +140,22 @@ export function MenuProvider({ children }: { children: React.ReactNode }) {
       setIsLoading(true);
       isInitialLoad.current = true;
 
-      // ─── Auth helpers ──────────────────────────────────────────────────────
-      // Covers both HTTP status codes and Supabase JS error-message patterns.
       const isAuthFailure = (status: number, error: { message?: string } | null) => {
         if (status === 401 || status === 403) return true;
-        const msg = (error?.message ?? '').toLowerCase();
-        return msg.includes('jwt') || msg.includes('api key') || msg.includes('not authenticated');
+        const msg = (error?.message ?? "").toLowerCase();
+        return msg.includes("jwt") || msg.includes("api key") || msg.includes("not authenticated");
       };
 
-      // Set the permanent guard, wipe local session, and hard-navigate so
-      // Supabase's internal SIGNED_OUT→SIGNED_IN cycling cannot restart bootstrap.
       const handleUnauthorized = () => {
         preventBootstrapRef.current = true;
         supabase.auth.signOut({ scope: "local" }).catch(() => {});
-        if (typeof window !== 'undefined') window.location.replace('/login');
+        if (typeof window !== "undefined") window.location.replace("/login");
       };
 
       try {
-        // ─── 0. Serialize with gotrue's navigator.locks ────────────────────
-        // onAuthStateChange's INITIAL_SESSION processing holds the auth lock
-        // while it validates/refreshes the token. If we make REST calls before
-        // it releases, every _getAccessToken() call queues behind it, the 5-second
-        // timeout fires, lock-stealing triggers, concurrent refreshes pile up,
-        // and Supabase rate-limits with 429 → all REST calls get 401.
-        //
-        // Calling getSession() here waits for the lock, ensuring any in-flight
-        // token refresh completes before we make DB queries. After this returns
-        // the token is cached in-memory and all subsequent calls are instantaneous.
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-        if (!session || sessionError) {
-          handleUnauthorized();
-          return;
-        }
+        if (!session || sessionError) { handleUnauthorized(); return; }
 
-        // --- Ensure restaurant row ---
         let restoId: string;
 
         const { data: existingRestaurant, error: selectError, status: selectStatus } = await supabase
@@ -197,7 +177,6 @@ export function MenuProvider({ children }: { children: React.ReactNode }) {
             setOnboarded(existingRestaurant.onboarded ?? false);
           }
         } else {
-          // Atomic upsert to avoid race conditions
           const { data: upsertedRestaurant, error: upsertError, status: upsertStatus } = await supabase
             .from("restaurants")
             .upsert({ user_id: user.id, name: "My Restaurant", onboarded: false }, { onConflict: "user_id", ignoreDuplicates: false })
@@ -207,7 +186,6 @@ export function MenuProvider({ children }: { children: React.ReactNode }) {
           if (isAuthFailure(upsertStatus, upsertError)) { handleUnauthorized(); return; }
 
           if (upsertError || !upsertedRestaurant) {
-            // If conflict, find the one that was just created
             const { data: fallback, error: fallbackError, status: fallbackStatus } = await supabase
               .from("restaurants")
               .select("id")
@@ -215,10 +193,9 @@ export function MenuProvider({ children }: { children: React.ReactNode }) {
               .maybeSingle();
 
             if (isAuthFailure(fallbackStatus, fallbackError)) { handleUnauthorized(); return; }
-
             if (!fallback) {
               console.error("Failed to bootstrap restaurant");
-              preventBootstrapRef.current = true; // don't spin forever on non-auth failures either
+              preventBootstrapRef.current = true;
               return;
             }
             restoId = fallback.id;
@@ -227,11 +204,10 @@ export function MenuProvider({ children }: { children: React.ReactNode }) {
           }
           if (!cancelled) {
             setRestaurantId(restoId);
-            setOnboarded(false); // Newly created are NOT onboarded by default
+            setOnboarded(false);
           }
         }
 
-        // --- Fetch most recent menu ---
         const { data: menu } = await supabase
           .from("menus")
           .select("*")
@@ -250,7 +226,6 @@ export function MenuProvider({ children }: { children: React.ReactNode }) {
           setMenuStyle(menu.style && Object.keys(menu.style).length > 0 ? menu.style : defaultStyle);
           setLastSynced(new Date(menu.updated_at));
         } else if (!menu && !cancelled) {
-          // Create default menu if none exist
           const { data: newMenu, error: insertError } = await supabase
             .from("menus")
             .insert({
@@ -265,7 +240,6 @@ export function MenuProvider({ children }: { children: React.ReactNode }) {
             .maybeSingle();
 
           if (insertError) {
-            // Any insert failure (unique conflict, RLS, etc.) — re-fetch whatever exists
             const { data: lateMenu } = await supabase
               .from("menus")
               .select("*")
@@ -302,14 +276,11 @@ export function MenuProvider({ children }: { children: React.ReactNode }) {
     };
 
     bootstrap();
-
-    return () => {
-      cancelled = true;
-    };
+    return () => { cancelled = true; };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id, authChecked]);
 
-  // 3. Auto-save menu data with debounce (2 s)
+  // 3. Auto-save menu data with debounce (1 s)
   useEffect(() => {
     if (!user || !activeMenuId || isInitialLoad.current) return;
 
@@ -338,13 +309,13 @@ export function MenuProvider({ children }: { children: React.ReactNode }) {
         setLastSynced(new Date());
       }
       setIsSyncing(false);
-    }, 1000); // Reduced to 1s for better responsiveness, especially in tests
+    }, 1000);
 
     return () => { if (menuSaveTimeoutRef.current) clearTimeout(menuSaveTimeoutRef.current); };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [categories, menuItems, menuStyle, user?.id, activeMenuId]);
 
-  // 4. Auto-save restaurant name changes with debounce (1 s)
+  // 4. Auto-save restaurant name with debounce (1 s)
   useEffect(() => {
     if (!user || !restaurantId || isInitialLoad.current) return;
 
@@ -363,15 +334,29 @@ export function MenuProvider({ children }: { children: React.ReactNode }) {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [restaurantName, user?.id, restaurantId]);
 
-  const publishMenu = useCallback(async (): Promise<string | null> => {
-    if (!activeMenuId || !user) return null;
+  // Flush any pending save immediately (used before switching menus)
+  const flushPendingSave = useCallback(async () => {
+    if (!menuSaveTimeoutRef.current) return;
+    clearTimeout(menuSaveTimeoutRef.current);
+    menuSaveTimeoutRef.current = null;
+    const { activeMenuId: menuId, categories: cats, menuItems: items, menuStyle: style } = latestRef.current;
+    if (!user || !menuId) return;
+    await supabase.from("menus").upsert(
+      { id: menuId, user_id: user.id, categories: cats, items, style, updated_at: new Date().toISOString() },
+      { onConflict: "id" }
+    );
+  }, [user]);
+
+  const publishMenu = useCallback(async (targetMenuId?: string): Promise<string | null> => {
+    const menuId = targetMenuId ?? activeMenuId;
+    if (!menuId || !user) return null;
 
     const { data: publishedMenus } = await supabase
       .from("menus")
       .select("id")
       .eq("user_id", user.id)
       .eq("status", "published")
-      .neq("id", activeMenuId);
+      .neq("id", menuId);
 
     const publishCheck = canPublishMenu(plan, publishedMenus?.length ?? 0);
     if (!publishCheck.allowed) {
@@ -380,7 +365,17 @@ export function MenuProvider({ children }: { children: React.ReactNode }) {
     }
 
     setIsSyncing(true);
-    let slug = menuSlug;
+
+    // Get the slug for this specific menu (may differ from active menu)
+    let slug: string | null = menuId === activeMenuId ? menuSlug : null;
+    if (!slug) {
+      const { data: menuData } = await supabase
+        .from("menus")
+        .select("slug")
+        .eq("id", menuId)
+        .maybeSingle();
+      slug = menuData?.slug ?? null;
+    }
     if (!slug) {
       const base = generateSlug(restaurantName || "menu");
       slug = await ensureUniqueSlug(base);
@@ -389,36 +384,32 @@ export function MenuProvider({ children }: { children: React.ReactNode }) {
     const { error } = await supabase
       .from("menus")
       .update({ status: "published", slug })
-      .eq("id", activeMenuId);
+      .eq("id", menuId);
 
-    if (!error) {
+    setIsSyncing(false);
+    if (error) return null;
+
+    if (menuId === activeMenuId) {
       setMenuStatus("published");
       setMenuSlug(slug);
-      setIsSyncing(false);
-      return slug;
     }
-    setIsSyncing(false);
-    return null;
+    return slug;
   }, [activeMenuId, user, menuSlug, restaurantName, plan]);
 
   const unpublishMenu = useCallback(async (): Promise<void> => {
     if (!activeMenuId || !user) return;
     setIsSyncing(true);
-
     const { error } = await supabase
       .from("menus")
       .update({ status: "draft" })
       .eq("id", activeMenuId);
-
-    if (!error) {
-      setMenuStatus("draft");
-    }
+    if (!error) setMenuStatus("draft");
     setIsSyncing(false);
   }, [activeMenuId, user]);
 
   const addCategory = (name: string) => {
-    const id = `${name.toLowerCase().replace(/\s+/g, "-")}-${Date.now()}`;
-    setCategories((prev) => [...prev, { id, name, itemCount: 0 }]);
+    const id = crypto.randomUUID();
+    setCategories((prev) => [...prev, { id, name }]);
   };
 
   const renameCategory = (categoryId: string, name: string) => {
@@ -436,7 +427,7 @@ export function MenuProvider({ children }: { children: React.ReactNode }) {
 
   const addItem = (categoryId: string) => {
     const newItem: MenuItem = {
-      id: Math.random().toString(36).substr(2, 9),
+      id: crypto.randomUUID(),
       name: "New Item",
       description: "Description of your delicious new dish.",
       price: 0,
@@ -445,18 +436,10 @@ export function MenuProvider({ children }: { children: React.ReactNode }) {
       tags: [],
     };
     setMenuItems((prev) => [...prev, newItem]);
-    setCategories((prev) =>
-      prev.map((c) => c.id === categoryId ? { ...c, itemCount: c.itemCount + 1 } : c)
-    );
   };
 
   const removeItem = (itemId: string) => {
-    const item = menuItems.find((i) => i.id === itemId);
-    if (!item) return;
     setMenuItems((prev) => prev.filter((i) => i.id !== itemId));
-    setCategories((prev) =>
-      prev.map((c) => c.id === item.category ? { ...c, itemCount: Math.max(0, c.itemCount - 1) } : c)
-    );
   };
 
   const updateItem = (itemId: string, updates: Partial<MenuItem>) => {
@@ -466,33 +449,24 @@ export function MenuProvider({ children }: { children: React.ReactNode }) {
   const duplicateItem = (itemId: string) => {
     const item = menuItems.find((i) => i.id === itemId);
     if (!item) return;
-    const newItem: MenuItem = { ...item, id: Math.random().toString(36).substr(2, 9), name: `${item.name} (copy)` };
+    const newItem: MenuItem = { ...item, id: crypto.randomUUID(), name: `${item.name} (copy)` };
     setMenuItems((prev) => {
       const idx = prev.findIndex((i) => i.id === itemId);
       const next = [...prev];
       next.splice(idx + 1, 0, newItem);
       return next;
     });
-    setCategories((prev) => prev.map((c) => c.id === item.category ? { ...c, itemCount: c.itemCount + 1 } : c));
   };
 
   const applyTemplate = (style: Partial<MenuStyle>) => {
-    // Overwrite style to feel like a fresh start (Canva-like)
-    setMenuStyle({
-      ...defaultStyle,
-      ...style
-    });
+    setMenuStyle({ ...defaultStyle, ...style });
   };
 
-  // --- Multi-menu: switch to a different menu by ID ---
   const switchMenu = useCallback(async (menuId: string): Promise<void> => {
     if (!user || menuId === activeMenuId) return;
 
-    // Flush any pending save before switching
-    if (menuSaveTimeoutRef.current) {
-      clearTimeout(menuSaveTimeoutRef.current);
-      menuSaveTimeoutRef.current = null;
-    }
+    // Flush any pending save so we don't lose in-flight changes
+    await flushPendingSave();
 
     setIsLoading(true);
     isInitialLoad.current = true;
@@ -517,9 +491,8 @@ export function MenuProvider({ children }: { children: React.ReactNode }) {
 
     isInitialLoad.current = false;
     setIsLoading(false);
-  }, [user, activeMenuId]);
+  }, [user, activeMenuId, flushPendingSave]);
 
-  // --- Multi-menu: create a new blank menu ---
   const createMenu = useCallback(async (name: string): Promise<string | null> => {
     if (!user || !restaurantId) return null;
 
@@ -549,7 +522,6 @@ export function MenuProvider({ children }: { children: React.ReactNode }) {
 
     if (error || !newMenu) return null;
 
-    // Auto-switch to the new menu
     isInitialLoad.current = true;
     setActiveMenuId(newMenu.id);
     setActiveMenuName(name);
@@ -564,7 +536,6 @@ export function MenuProvider({ children }: { children: React.ReactNode }) {
     return newMenu.id;
   }, [user, restaurantId, plan]);
 
-  // --- Multi-menu: delete a menu ---
   const deleteMenu = useCallback(async (menuId: string): Promise<boolean> => {
     if (!user) return false;
 
@@ -576,7 +547,6 @@ export function MenuProvider({ children }: { children: React.ReactNode }) {
 
     if (error) return false;
 
-    // If we deleted the active menu, load the most recent remaining one
     if (menuId === activeMenuId) {
       isInitialLoad.current = true;
       const { data: nextMenu } = await supabase
@@ -597,11 +567,13 @@ export function MenuProvider({ children }: { children: React.ReactNode }) {
         setMenuStyle(nextMenu.style && Object.keys(nextMenu.style).length > 0 ? nextMenu.style : defaultStyle);
       } else {
         // No menus left — create a fresh one
+        const resolvedRestaurantId = restaurantId ?? latestRef.current.activeMenuId; // fallback
+        if (!resolvedRestaurantId) { isInitialLoad.current = false; return true; }
         const { data: freshMenu } = await supabase
           .from("menus")
           .insert({
             user_id: user.id,
-            restaurant_id: restaurantId!,
+            restaurant_id: restaurantId,
             name: "My Menu",
             categories: [],
             items: [],
@@ -626,22 +598,15 @@ export function MenuProvider({ children }: { children: React.ReactNode }) {
     return true;
   }, [user, activeMenuId, restaurantId]);
 
-  // --- Multi-menu: rename a menu ---
   const renameMenu = useCallback(async (menuId: string, name: string): Promise<boolean> => {
     if (!user) return false;
-
     const { error } = await supabase
       .from("menus")
       .update({ name })
       .eq("id", menuId)
       .eq("user_id", user.id);
-
     if (error) return false;
-
-    if (menuId === activeMenuId) {
-      setActiveMenuName(name);
-    }
-
+    if (menuId === activeMenuId) setActiveMenuName(name);
     return true;
   }, [user, activeMenuId]);
 

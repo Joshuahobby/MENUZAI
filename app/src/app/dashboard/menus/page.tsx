@@ -24,7 +24,7 @@ interface MenuRow {
 export default function MenusPage() {
   const [menus, setMenus] = useState<MenuRow[]>([]);
   const [loading, setLoading] = useState(true);
-  const { switchMenu, createMenu, deleteMenu, renameMenu, publishMenu, activeMenuId, plan, user } = useMenu();
+  const { switchMenu, createMenu, deleteMenu, renameMenu, publishMenu, unpublishMenu, activeMenuId, plan, user } = useMenu();
   const router = useRouter();
 
   const limits = getPlanLimits(plan);
@@ -45,7 +45,7 @@ export default function MenusPage() {
       .order("updated_at", { ascending: false });
 
     if (data) setMenus(data);
-    setTimeout(() => setLoading(false), 0);
+    setLoading(false);
   };
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -77,7 +77,7 @@ export default function MenusPage() {
     if (newId) {
       router.push("/dashboard/editor");
     } else {
-      setTimeout(() => setLoading(false), 0);
+      setLoading(false);
       toast.error("Failed to create menu.");
     }
   };
@@ -127,18 +127,11 @@ export default function MenusPage() {
     });
     if (!ok) return;
 
-    const { error } = await supabase
-      .from("menus")
-      .update({ status: "draft" })
-      .eq("id", menuId)
-      .eq("user_id", user!.id);
-
-    if (!error) {
-      toast.success(`"${menuName}" unpublished.`);
-      loadMenus();
-    } else {
-      toast.error("Failed to unpublish.");
-    }
+    // Switch to this menu first if it's not already active, then unpublish via context
+    if (menuId !== activeMenuId) await switchMenu(menuId);
+    await unpublishMenu();
+    toast.success(`"${menuName}" unpublished.`);
+    loadMenus();
   };
 
   const handlePublish = async (menuId: string) => {
@@ -149,8 +142,8 @@ export default function MenusPage() {
       });
       return;
     }
-    await switchMenu(menuId);
-    const slug = await publishMenu();
+    // Pass menuId directly — no switchMenu needed, avoids stale-closure race condition
+    const slug = await publishMenu(menuId);
     if (slug) {
       toast.success("Menu published successfully!");
       loadMenus();
