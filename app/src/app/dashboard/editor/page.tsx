@@ -13,10 +13,10 @@ import { DEMO_DATA, type TplData } from "../templates/TemplatePreview";
 
 type Viewport = "mobile" | "tablet" | "desktop";
 
-const VIEWPORT_CONFIG: Record<Viewport, { width: string; rounded: string; border: string; minH: string }> = {
-  mobile:  { width: "max-w-[420px]",  rounded: "rounded-[3rem]", border: "border-[12px] border-on-surface", minH: "min-h-[600px]" },
-  tablet:  { width: "max-w-[680px]",  rounded: "rounded-[2rem]", border: "border-[8px] border-on-surface/60",  minH: "min-h-[500px]" },
-  desktop: { width: "max-w-[900px]",  rounded: "rounded-xl",     border: "border border-surface-container",    minH: "min-h-[500px]" },
+const VIEWPORT_CONFIG: Record<Viewport, { width: string; rounded: string; border: string }> = {
+  mobile:  { width: "max-w-[390px]",  rounded: "rounded-[2.5rem]", border: "border-[10px] border-on-surface/90" },
+  tablet:  { width: "max-w-[680px]",  rounded: "rounded-[1.75rem]", border: "border-[7px] border-on-surface/60" },
+  desktop: { width: "max-w-[920px]",  rounded: "rounded-xl",        border: "border border-surface-container" },
 };
 
 const BADGES = ["bestseller", "popular", "healthy", "chefs-pick", "new"] as const;
@@ -247,6 +247,23 @@ export default function MenuEditorPage() {
               Saving…
             </span>
           )}
+          {/* Viewport switcher — desktop only */}
+          <div className="hidden lg:flex items-center gap-0.5 bg-surface-container-highest p-0.5 rounded-full ml-3">
+            {(["mobile", "tablet", "desktop"] as Viewport[]).map((v) => {
+              const icons: Record<Viewport, string> = { mobile: "smartphone", tablet: "tablet", desktop: "desktop_windows" };
+              return (
+                <button
+                  key={v}
+                  type="button"
+                  title={v.charAt(0).toUpperCase() + v.slice(1)}
+                  onClick={() => setViewport(v)}
+                  className={`p-1.5 rounded-full transition-all ${viewport === v ? "bg-white shadow-sm text-primary" : "text-on-surface-variant hover:bg-white/50"}`}
+                >
+                  <span className="material-symbols-outlined text-[18px]">{icons[v]}</span>
+                </button>
+              );
+            })}
+          </div>
         </div>
         <div className="flex items-center gap-3">
           {menuStatus === "published" && menuSlug && (
@@ -312,7 +329,7 @@ export default function MenuEditorPage() {
         />
 
         {/* Center: Live Preview */}
-        <section className="flex-1 bg-surface-container-low flex flex-col items-center editor-canvas relative overflow-auto">
+        <section className="flex-1 flex flex-col overflow-hidden editor-canvas relative">
 
           {/* Mobile category tab strip — shown below lg breakpoint */}
           <div className="lg:hidden w-full sticky top-0 z-10 bg-surface-container-low/95 backdrop-blur-sm border-b border-surface-container px-4 py-2.5 flex gap-2 overflow-x-auto hide-scrollbar shrink-0">
@@ -420,12 +437,16 @@ export default function MenuEditorPage() {
           )}
 
           {/* Canvas wrapper */}
-          <div className="flex-1 w-full flex flex-col items-center p-6 lg:p-10 overflow-auto">
+          <div className="flex-1 overflow-auto flex flex-col items-center p-4 lg:p-8">
 
             {/* Phone / Tablet / Desktop Frame */}
             <div
-              className={`w-full ${vp.width} ${vp.rounded} shadow-2xl overflow-y-auto ${vp.border} flex flex-col ${vp.minH} transition-all duration-300 bg-[var(--bg-color)]`}
+              data-viewport={viewport}
+              className={`device-frame w-full ${vp.width} ${vp.rounded} shadow-2xl shadow-black/20 overflow-hidden ${vp.border} flex flex-col transition-all duration-300 bg-[var(--bg-color)]`}
             >
+              {/* Scrollable inner content — simulates device scroll */}
+              <div className="flex-1 overflow-y-auto hide-scrollbar flex flex-col">
+
               {/* Header image — uses category banner if set, else first item image, else default */}
               <div className="w-full h-56 relative overflow-hidden shrink-0">
                 <NextImage
@@ -680,25 +701,7 @@ export default function MenuEditorPage() {
                   </div>
                 )}
               </div>
-            </div>
-
-            {/* Viewport Controls */}
-            <div className="mt-6 mb-6 flex items-center gap-1 bg-surface-container-highest p-1 rounded-full shadow-lg">
-              {(["mobile", "tablet", "desktop"] as Viewport[]).map((v) => {
-                const icons = { mobile: "smartphone", tablet: "tablet", desktop: "desktop_windows" };
-                const isActive = viewport === v;
-                return (
-                  <button
-                    key={v}
-                    type="button"
-                    title={v.charAt(0).toUpperCase() + v.slice(1)}
-                    onClick={() => setViewport(v)}
-                    className={`p-3 rounded-full transition-all ${isActive ? "bg-white shadow-sm text-primary" : "text-on-surface-variant hover:bg-white/50"}`}
-                  >
-                    <span className="material-symbols-outlined">{icons[v]}</span>
-                  </button>
-                );
-              })}
+              </div>{/* end inner scrollable */}
             </div>
           </div>
         </section>

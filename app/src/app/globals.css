@@ -111,6 +111,15 @@ h1, h2, h3, h4, h5, h6 {
   background-size: 24px 24px;
 }
 
+/* Device preview frame in editor — height driven by data-viewport attribute */
+.device-frame[data-viewport="mobile"],
+.device-frame[data-viewport="tablet"] {
+  height: calc(100dvh - 9rem);
+}
+.device-frame[data-viewport="mobile"]  { max-height: 820px; }
+.device-frame[data-viewport="tablet"]  { max-height: 760px; }
+.device-frame[data-viewport="desktop"] { height: auto; }
+
 .hide-scrollbar {
   -ms-overflow-style: none; /* IE and Edge */
 }
