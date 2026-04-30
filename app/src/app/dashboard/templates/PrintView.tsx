@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import { TemplatePreview, type TplData, BASE_W, BASE_H } from "./TemplatePreview";
 import { toast } from "sonner";
 
@@ -23,9 +23,45 @@ const PRESET_COLORS = [
 export function PrintView({ templateId, templateName, restaurantData, onClose }: PrintViewProps) {
   const [primaryColor, setPrimaryColor] = useState("#C5A059");
   const [bgColor] = useState("");
+  const printRef = useRef<HTMLDivElement>(null);
 
   const handlePrint = useCallback(() => {
-    window.print();
+    const el = printRef.current;
+    if (!el) return;
+
+    // Collect Google Font <link> tags loaded by TemplatePreview
+    const fontLinks = Array.from(
+      document.querySelectorAll<HTMLLinkElement>("link[href*='fonts.googleapis.com']")
+    ).map((l) => l.outerHTML).join("\n");
+
+    const win = window.open("", "_blank", `width=${BASE_W + 40},height=${BASE_H + 80}`);
+    if (!win) {
+      toast.error("Pop-up blocked — please allow pop-ups for this site and try again.");
+      return;
+    }
+
+    win.document.write(`<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  ${fontLinks}
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    @page { size: ${BASE_W}px ${BASE_H}px; margin: 0; }
+    html, body { width: ${BASE_W}px; height: ${BASE_H}px; overflow: hidden; background: #fff; }
+  </style>
+</head>
+<body>${el.innerHTML}</body>
+</html>`);
+    win.document.close();
+
+    // Auto-print after fonts have a moment to load
+    const doPrint = () => setTimeout(() => { win.focus(); win.print(); }, 700);
+    if (win.document.readyState === "complete") {
+      doPrint();
+    } else {
+      win.onload = doPrint;
+    }
   }, []);
 
   const handleCopyLink = useCallback(() => {
@@ -36,25 +72,9 @@ export function PrintView({ templateId, templateName, restaurantData, onClose }:
 
   return (
     <>
-      {/* Print CSS — visibility trick lets children override the hidden parent */}
-      <style>{`
-        @page { size: A4 portrait; margin: 0; }
-        @media print {
-          body * { visibility: hidden !important; }
-          #print-content, #print-content * { visibility: visible !important; }
-          #print-content {
-            position: fixed !important;
-            top: 0 !important; left: 0 !important;
-            width: 100% !important; height: 100% !important;
-            overflow: hidden !important;
-            z-index: 99999 !important;
-          }
-        }
-      `}</style>
-
       {/* Fullscreen overlay */}
       <div className="fixed inset-0 z-50 flex bg-black/70 backdrop-blur-md">
-        
+
         {/* Left: Preview panel */}
         <div className="flex-1 flex flex-col items-center justify-center p-8 overflow-hidden">
           {/* Top controls */}
@@ -90,11 +110,10 @@ export function PrintView({ templateId, templateName, restaurantData, onClose }:
             </div>
           </div>
 
-          {/* Template preview — A4 portrait */}
+          {/* Template preview — A4 portrait (screen) */}
           <div
-            id="print-canvas"
             className="shadow-2xl shadow-black/50 rounded-xl overflow-hidden flex-shrink-0"
-            style={{ maxHeight: "calc(100vh - 180px)", aspectRatio: `${BASE_W} / 990` }}
+            style={{ maxHeight: "calc(100vh - 180px)", aspectRatio: `${BASE_W} / ${BASE_H}` }}
           >
             <div className="w-full h-full">
               <TemplatePreview
@@ -157,15 +176,15 @@ export function PrintView({ templateId, templateName, restaurantData, onClose }:
               <p className="text-[10px] font-bold text-secondary uppercase tracking-widest">Print Tips</p>
               <div className="flex items-start gap-2">
                 <span className="material-symbols-outlined text-primary text-sm shrink-0">tips_and_updates</span>
-                <p className="text-xs text-on-surface-variant leading-relaxed">Set your browser to &quot;Background graphics: enabled&quot; for best results.</p>
+                <p className="text-xs text-on-surface-variant leading-relaxed">Enable &quot;Background graphics&quot; in print settings for best results.</p>
               </div>
               <div className="flex items-start gap-2">
                 <span className="material-symbols-outlined text-primary text-sm shrink-0">picture_as_pdf</span>
                 <p className="text-xs text-on-surface-variant leading-relaxed">Choose &quot;Save as PDF&quot; as destination to get a digital file.</p>
               </div>
               <div className="flex items-start gap-2">
-                <span className="material-symbols-outlined text-primary text-sm shrink-0">straighten</span>
-                <p className="text-xs text-on-surface-variant leading-relaxed">For physical printing, use A4 or US Letter paper at 100% scale.</p>
+                <span className="material-symbols-outlined text-primary text-sm shrink-0">open_in_new</span>
+                <p className="text-xs text-on-surface-variant leading-relaxed">A new window opens — allow pop-ups if blocked.</p>
               </div>
             </div>
           </div>
@@ -180,23 +199,25 @@ export function PrintView({ templateId, templateName, restaurantData, onClose }:
               <span className="material-symbols-outlined text-lg">print</span>
               Print Now
             </button>
-            <p className="text-center text-[10px] text-secondary mt-3">Opens browser print dialog</p>
+            <p className="text-center text-[10px] text-secondary mt-3">Opens a clean print window</p>
           </div>
         </div>
       </div>
-      {/* Print-only render at natural 1:1 scale — no transform, fills the page */}
+
+      {/* Hidden off-screen render at 1:1 scale — source for the print window */}
       <div
-        id="print-content"
         aria-hidden="true"
         style={{ position: "fixed", left: "-200vw", top: 0, width: BASE_W, height: BASE_H, overflow: "hidden", pointerEvents: "none", zIndex: -1 }}
       >
-        <TemplatePreview
-          templateId={templateId}
-          containerWidth={BASE_W}
-          data={restaurantData}
-          primaryColor={primaryColor || undefined}
-          backgroundColor={bgColor || undefined}
-        />
+        <div ref={printRef} style={{ width: BASE_W, height: BASE_H }}>
+          <TemplatePreview
+            templateId={templateId}
+            containerWidth={BASE_W}
+            data={restaurantData}
+            primaryColor={primaryColor || undefined}
+            backgroundColor={bgColor || undefined}
+          />
+        </div>
       </div>
     </>
   );
