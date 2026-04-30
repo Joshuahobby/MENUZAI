@@ -1,13 +1,13 @@
 "use client";
 import NextImage from "next/image";
 import { useMenu } from "@/context/MenuContext";
-import { useState, useRef, useMemo, useEffect } from "react";
+import { useState, useRef, useMemo, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { StyleEditorSidebar } from "./StyleEditorSidebar";
 import { MenuSectionsSidebar } from "./MenuSectionsSidebar";
-import { ImageUpload } from "@/components/ImageUpload";
 import { prompt, confirm } from "@/components/Modals";
 import { toast } from "sonner";
+import { supabase } from "@/lib/supabase";
 import { PrintView } from "../templates/PrintView";
 import { DEMO_DATA, type TplData } from "../templates/TemplatePreview";
 
@@ -61,6 +61,29 @@ export default function MenuEditorPage() {
 
   // Drag state for item reordering
   const dragItemIdRef = useRef<string | null>(null);
+
+  // Per-item image file input refs
+  const imgInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
+  const [uploadingItemId, setUploadingItemId] = useState<string | null>(null);
+
+  const handleItemImageUpload = useCallback(async (itemId: string, e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !userId) return;
+    if (!file.type.startsWith("image/")) { toast.error("Please select an image file."); return; }
+    if (file.size > 5 * 1024 * 1024) { toast.error("Image must be under 5 MB."); return; }
+    const ext = file.name.split(".").pop();
+    const path = `${userId}/items/${Date.now()}.${ext}`;
+    setUploadingItemId(itemId);
+    const t = toast.loading("Uploading photo…");
+    const { error } = await supabase.storage.from("menu-images").upload(path, file, { upsert: true });
+    toast.dismiss(t);
+    if (error) { toast.error("Upload failed. Try again."); setUploadingItemId(null); return; }
+    const { data } = supabase.storage.from("menu-images").getPublicUrl(path);
+    updateItem(itemId, { image: data.publicUrl });
+    toast.success("Photo updated!");
+    setUploadingItemId(null);
+    if (imgInputRefs.current[itemId]) imgInputRefs.current[itemId]!.value = "";
+  }, [userId, updateItem]);
 
   // Mobile category action sheet state
   const [catActionSheet, setCatActionSheet] = useState<{ id: string; name: string; hidden?: boolean } | null>(null);
@@ -425,11 +448,12 @@ export default function MenuEditorPage() {
               <div className="p-6 space-y-4">
                 {filteredItems.map((item) => {
                   const isExpanded = expandedItemId === item.id;
+                  const isUploading = uploadingItemId === item.id;
 
-                  const cardClasses =
-                    menuStyle.cardStyle === "elevated" ? "bg-white shadow-sm border border-surface-container/30" :
-                    menuStyle.cardStyle === "glass" ? "bg-white/40 backdrop-blur-md border border-white/20 shadow-lg" :
-                    "bg-transparent border-b border-surface-container/50 rounded-none";
+                  const cardWrap =
+                    menuStyle.cardStyle === "elevated" ? "bg-white shadow-sm border border-surface-container/30 overflow-hidden" :
+                    menuStyle.cardStyle === "glass" ? "bg-white/40 backdrop-blur-md border border-white/20 shadow-lg overflow-hidden" :
+                    "bg-transparent border-b border-surface-container/50";
 
                   return (
                     <div
@@ -438,89 +462,110 @@ export default function MenuEditorPage() {
                       onDragStart={() => handleItemDragStart(item.id)}
                       onDragOver={(e) => handleItemDragOver(e, item.id)}
                       onDrop={handleItemDrop}
-                      className={`relative group cursor-pointer -mx-2 px-4 py-4 rounded-[var(--border-radius)] transition-all ${cardClasses} ${item.available === false ? "opacity-60" : "hover:scale-[1.01]"}`}
+                      className={`relative group rounded-[var(--border-radius)] transition-all ${cardWrap} ${item.available === false ? "opacity-60" : "hover:scale-[1.01]"}`}
                     >
-                      {/* Drag handle */}
-                      <span className="absolute left-1 top-1/2 -translate-y-1/2 material-symbols-outlined text-[16px] text-secondary opacity-0 group-hover:opacity-40 cursor-grab active:cursor-grabbing select-none">
-                        drag_indicator
-                      </span>
-
-                      {/* Header row */}
+                      {/* ── Image banner — click to upload ── */}
                       <div
-                        className="flex justify-between items-start gap-3 mb-1"
-                        onClick={() => setExpandedItemId(isExpanded ? null : item.id)}
+                        className="relative w-full h-44 cursor-pointer group/img shrink-0"
+                        onClick={() => imgInputRefs.current[item.id]?.click()}
+                        title={item.image ? "Click to change photo" : "Click to add photo"}
                       >
-                        <div className="flex-1 min-w-0">
-                          <input
-                            className="font-[var(--font-headline)] font-extrabold text-lg bg-transparent border-none p-0 focus:ring-0 w-full"
-                            value={item.name}
-                            onChange={(e) => { e.stopPropagation(); updateItem(item.id, { name: e.target.value }); }}
-                            onClick={(e) => e.stopPropagation()}
-                            title="Item Name"
-                            placeholder="Item Name"
-                          />
-                          <div className="flex gap-1 flex-wrap mt-0.5">
-                            {item.badge && (
-                              <span className="bg-[var(--primary-color)]/10 text-[var(--primary-color)] text-[10px] font-black px-2 py-0.5 rounded uppercase tracking-tighter">
-                                {item.badge}
-                              </span>
-                            )}
-                            {item.available === false && (
-                              <span className="bg-error/10 text-error text-[10px] font-black px-2 py-0.5 rounded uppercase tracking-tighter">Sold Out</span>
-                            )}
-                          </div>
+                        <NextImage
+                          src={item.image || "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=600&h=400&fit=crop"}
+                          alt={item.name}
+                          fill
+                          sizes="(max-width: 420px) 100vw, 420px"
+                          className="object-cover transition-transform duration-500 group-hover/img:scale-105"
+                        />
+
+                        {/* Upload hover overlay */}
+                        <div className={`absolute inset-0 flex flex-col items-center justify-center gap-1.5 transition-opacity ${isUploading ? "bg-black/60 opacity-100" : "bg-black/45 opacity-0 group-hover/img:opacity-100"}`}>
+                          {isUploading ? (
+                            <div className="w-7 h-7 border-3 border-white border-t-transparent rounded-full animate-spin" />
+                          ) : (
+                            <>
+                              <span className="material-symbols-outlined text-white text-3xl drop-shadow">add_photo_alternate</span>
+                              <span className="text-white text-xs font-bold drop-shadow">{item.image ? "Change Photo" : "Add Photo"}</span>
+                            </>
+                          )}
                         </div>
 
-                        {/* Thumbnail — shown when item has an image and card is collapsed */}
-                        {item.image && !isExpanded && (
-                          <div className="w-14 h-14 rounded-xl overflow-hidden shrink-0 border border-outline-variant/20 shadow-sm">
-                            <NextImage
-                              src={item.image}
-                              alt={item.name}
-                              width={56}
-                              height={56}
-                              className="object-cover w-full h-full"
-                            />
+                        {/* Price badge — top right */}
+                        <div
+                          className="absolute top-3 right-3 bg-white/95 backdrop-blur-sm px-3 py-1.5 rounded-xl shadow-sm flex items-center gap-1"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <span className="font-[var(--font-headline)] font-bold text-[var(--primary-color)] text-[10px] opacity-70">{menuStyle.currency ?? "RWF"}</span>
+                          <input
+                            type="number" step="1" min="0"
+                            className="font-[var(--font-headline)] font-bold text-[var(--primary-color)] text-sm bg-transparent border-none p-0 focus:ring-0 w-16 text-right"
+                            value={item.price}
+                            onChange={(e) => { const v = parseFloat(e.target.value); if (!isNaN(v) && v >= 0) updateItem(item.id, { price: v }); }}
+                            title="Item Price" placeholder="0"
+                          />
+                        </div>
+
+                        {/* Badge chip — bottom left */}
+                        {item.badge && (
+                          <span className="absolute bottom-3 left-3 bg-[var(--primary-color)]/90 backdrop-blur-sm text-white text-[10px] font-black px-2.5 py-0.5 rounded uppercase tracking-tighter">
+                            {item.badge}
+                          </span>
+                        )}
+
+                        {/* Sold out overlay */}
+                        {item.available === false && (
+                          <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                            <span className="bg-error text-white text-xs font-black px-4 py-2 rounded-full uppercase tracking-widest">Sold Out</span>
                           </div>
                         )}
 
-                        <div className="flex items-center gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
-                          <span className="font-[var(--font-headline)] font-bold text-[var(--primary-color)] text-xs opacity-70">{menuStyle.currency ?? "RWF"}</span>
-                          <input
-                            type="number"
-                            step="1"
-                            min="0"
-                            className="font-[var(--font-headline)] font-bold text-[var(--primary-color)] text-lg bg-transparent border-none p-0 focus:ring-0 w-20 text-right"
-                            value={item.price}
-                            onChange={(e) => { const v = parseFloat(e.target.value); if (!isNaN(v) && v >= 0) updateItem(item.id, { price: v }); }}
-                            title="Item Price"
-                            placeholder="0"
-                          />
-                        </div>
+                        {/* Drag handle — top left */}
+                        <span className="absolute left-2 top-2 material-symbols-outlined text-[18px] text-white/80 opacity-0 group-hover:opacity-100 cursor-grab active:cursor-grabbing select-none drop-shadow transition-opacity">
+                          drag_indicator
+                        </span>
+
+                        {/* Hidden file input */}
+                        <input
+                          ref={(el) => { imgInputRefs.current[item.id] = el; }}
+                          type="file"
+                          title="Upload item photo"
+                          accept="image/jpeg,image/png,image/webp,image/gif"
+                          className="hidden"
+                          onChange={(e) => handleItemImageUpload(item.id, e)}
+                        />
                       </div>
 
-                      <textarea
-                        className="text-sm font-medium leading-relaxed italic bg-transparent border-none p-0 focus:ring-0 w-full resize-none overflow-hidden font-[var(--font-body)] text-[var(--secondary-color)]"
-                        value={item.description}
-                        rows={2}
-                        onChange={(e) => updateItem(item.id, { description: e.target.value })}
-                        onClick={(e) => e.stopPropagation()}
-                        title="Item Description"
-                        placeholder="Description…"
-                      />
+                      {/* ── Body ── */}
+                      <div
+                        className="px-4 py-3 cursor-pointer"
+                        onClick={() => setExpandedItemId(isExpanded ? null : item.id)}
+                      >
+                        <input
+                          className="font-[var(--font-headline)] font-extrabold text-base bg-transparent border-none p-0 focus:ring-0 w-full"
+                          value={item.name}
+                          onChange={(e) => { e.stopPropagation(); updateItem(item.id, { name: e.target.value }); }}
+                          onClick={(e) => e.stopPropagation()}
+                          title="Item Name" placeholder="Item Name"
+                        />
+                        <textarea
+                          className="text-sm font-medium leading-relaxed italic bg-transparent border-none p-0 focus:ring-0 w-full resize-none overflow-hidden font-[var(--font-body)] text-[var(--secondary-color)] mt-0.5"
+                          value={item.description} rows={2}
+                          onChange={(e) => updateItem(item.id, { description: e.target.value })}
+                          onClick={(e) => e.stopPropagation()}
+                          title="Item Description" placeholder="Description…"
+                        />
+                        {item.tags.length > 0 && (
+                          <div className="mt-2 flex gap-1 flex-wrap">
+                            {item.tags.map((tag) => (
+                              <span key={tag} className="bg-tertiary/10 text-tertiary text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-widest">{tag}</span>
+                            ))}
+                          </div>
+                        )}
+                      </div>
 
-                      {/* Tags display */}
-                      {item.tags.length > 0 && (
-                        <div className="mt-2 flex gap-1 flex-wrap">
-                          {item.tags.map((tag) => (
-                            <span key={tag} className="bg-tertiary/10 text-tertiary text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-widest">{tag}</span>
-                          ))}
-                        </div>
-                      )}
-
-                      {/* Expanded panel */}
+                      {/* ── Expanded panel ── */}
                       {isExpanded && userId && (
-                        <div className="mt-4 border-t border-outline-variant/20 pt-4 space-y-5" onClick={(e) => e.stopPropagation()}>
+                        <div className="mx-4 mb-4 border-t border-outline-variant/20 pt-4 space-y-5" onClick={(e) => e.stopPropagation()}>
 
                           {/* Availability */}
                           <div className="flex items-center justify-between">
@@ -543,8 +588,7 @@ export default function MenuEditorPage() {
                             <div className="flex flex-wrap gap-1.5">
                               {BADGES.map((b) => (
                                 <button
-                                  key={b}
-                                  type="button"
+                                  key={b} type="button"
                                   onClick={() => updateItem(item.id, { badge: item.badge === b ? undefined : b })}
                                   className={`text-[10px] font-bold px-2.5 py-1 rounded-full capitalize transition-all ${item.badge === b ? "bg-primary text-white" : "bg-surface-container-high text-secondary hover:bg-surface-container-highest"}`}
                                 >
@@ -561,35 +605,15 @@ export default function MenuEditorPage() {
                               {item.tags.map((tag) => (
                                 <span key={tag} className="flex items-center gap-1 bg-tertiary/10 text-tertiary text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-widest">
                                   {tag}
-                                  <button
-                                    type="button"
-                                    onClick={() => handleRemoveTag(item.id, tag)}
-                                    className="hover:text-error transition-colors"
-                                    title={`Remove ${tag}`}
-                                  >
+                                  <button type="button" onClick={() => handleRemoveTag(item.id, tag)} className="hover:text-error transition-colors" title={`Remove ${tag}`}>
                                     <span className="material-symbols-outlined text-[10px]">close</span>
                                   </button>
                                 </span>
                               ))}
-                              <button
-                                type="button"
-                                onClick={() => handleAddTagPrompt(item.id)}
-                                className="flex items-center gap-0.5 text-[10px] font-bold text-primary hover:bg-primary/10 px-2 py-0.5 rounded-full transition-all"
-                              >
+                              <button type="button" onClick={() => handleAddTagPrompt(item.id)} className="flex items-center gap-0.5 text-[10px] font-bold text-primary hover:bg-primary/10 px-2 py-0.5 rounded-full transition-all">
                                 <span className="material-symbols-outlined text-sm">add</span> Add tag
                               </button>
                             </div>
-                          </div>
-
-                          {/* Image upload */}
-                          <div>
-                            <p className="text-xs font-bold text-secondary mb-2">Item Photo</p>
-                            <ImageUpload
-                              currentUrl={item.image || ""}
-                              userId={userId}
-                              folder="items"
-                              onUpload={(url) => updateItem(item.id, { image: url })}
-                            />
                           </div>
 
                           {/* Actions row */}
@@ -615,17 +639,8 @@ export default function MenuEditorPage() {
                         </div>
                       )}
 
-                      {/* Delete button */}
-                      <button
-                        type="button"
-                        onClick={(e) => { e.stopPropagation(); removeItem(item.id); }}
-                        className="absolute -right-2 top-2 opacity-0 group-hover:opacity-100 p-1 text-error hover:bg-error/10 rounded-full transition-all"
-                      >
-                        <span className="material-symbols-outlined text-sm">delete</span>
-                      </button>
-
                       {/* Expand indicator */}
-                      <span className={`absolute right-6 bottom-3 material-symbols-outlined text-sm text-secondary opacity-0 group-hover:opacity-100 transition-all ${isExpanded ? "rotate-180" : ""}`}>
+                      <span className={`absolute right-3 bottom-3 material-symbols-outlined text-sm text-secondary opacity-0 group-hover:opacity-70 transition-all pointer-events-none ${isExpanded ? "rotate-180" : ""}`}>
                         expand_more
                       </span>
                     </div>
