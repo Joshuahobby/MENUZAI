@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { TemplatePreview, type TplData, BASE_W } from "./TemplatePreview";
+import { TemplatePreview, type TplData, BASE_W, BASE_H } from "./TemplatePreview";
 import { toast } from "sonner";
 
 interface PrintViewProps {
@@ -36,12 +36,19 @@ export function PrintView({ templateId, templateName, restaurantData, onClose }:
 
   return (
     <>
-      {/* Print CSS — hides everything but the printable canvas */}
+      {/* Print CSS — visibility trick lets children override the hidden parent */}
       <style>{`
+        @page { size: A4 portrait; margin: 0; }
         @media print {
-          body > * { display: none !important; }
-          #print-canvas { display: block !important; position: fixed !important; inset: 0 !important; z-index: 99999 !important; }
-          #print-canvas > div { transform: none !important; width: 100% !important; height: 100% !important; }
+          body * { visibility: hidden !important; }
+          #print-content, #print-content * { visibility: visible !important; }
+          #print-content {
+            position: fixed !important;
+            top: 0 !important; left: 0 !important;
+            width: 100% !important; height: 100% !important;
+            overflow: hidden !important;
+            z-index: 99999 !important;
+          }
         }
       `}</style>
 
@@ -176,6 +183,20 @@ export function PrintView({ templateId, templateName, restaurantData, onClose }:
             <p className="text-center text-[10px] text-secondary mt-3">Opens browser print dialog</p>
           </div>
         </div>
+      </div>
+      {/* Print-only render at natural 1:1 scale — no transform, fills the page */}
+      <div
+        id="print-content"
+        aria-hidden="true"
+        style={{ position: "fixed", left: "-200vw", top: 0, width: BASE_W, height: BASE_H, overflow: "hidden", pointerEvents: "none", zIndex: -1 }}
+      >
+        <TemplatePreview
+          templateId={templateId}
+          containerWidth={BASE_W}
+          data={restaurantData}
+          primaryColor={primaryColor || undefined}
+          backgroundColor={bgColor || undefined}
+        />
       </div>
     </>
   );
