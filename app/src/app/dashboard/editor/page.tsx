@@ -457,9 +457,9 @@ export default function MenuEditorPage() {
                   sizes="(max-width: 900px) 100vw, 900px"
                   priority
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-white via-transparent to-black/20 z-10" />
-                <div className="absolute bottom-6 left-6 right-6 z-20">
-                  <h1 className="text-white font-[var(--font-headline)] text-3xl font-black tracking-tight drop-shadow-lg">
+                <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-black/10 z-10" />
+                <div className="absolute bottom-0 left-0 right-0 z-20 bg-[var(--primary-color)] px-6 py-3.5">
+                  <h1 className="text-white font-[var(--font-headline)] text-2xl font-black tracking-tight leading-tight">
                     {activeCategory?.name || "Select a Category"}
                   </h1>
                 </div>
