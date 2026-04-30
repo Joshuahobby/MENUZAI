@@ -16,6 +16,7 @@ export interface MenuCategory {
   id: string;
   name: string;
   hidden?: boolean;
+  image?: string;
 }
 
 export interface MenuStyle {

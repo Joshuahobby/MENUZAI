@@ -229,7 +229,7 @@ export default function MenuEditorPage() {
           {menuStatus === "published" && menuSlug && (
             <Link href={`/menu/${menuSlug}`} target="_blank" className="px-4 py-2 bg-tertiary-container/20 text-tertiary rounded-xl font-bold text-xs flex items-center gap-1.5 hover:bg-tertiary-container/30 transition-all">
               <span className="material-symbols-outlined text-sm">open_in_new</span>
-              <span className="hidden sm:inline">/menu/{menuSlug}</span>
+              <span className="hidden sm:inline">View Menu</span>
             </Link>
           )}
 
@@ -403,12 +403,12 @@ export default function MenuEditorPage() {
             <div
               className={`w-full ${vp.width} ${vp.rounded} shadow-2xl overflow-y-auto ${vp.border} flex flex-col ${vp.minH} transition-all duration-300 bg-[var(--bg-color)]`}
             >
-              {/* Header image */}
+              {/* Header image — uses category banner if set, else first item image, else default */}
               <div className="w-full h-56 relative overflow-hidden shrink-0">
                 <NextImage
                   alt="Menu Header"
                   className="object-cover"
-                  src={filteredItems.find((i) => i.image)?.image || "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=600&h=300&fit=crop"}
+                  src={activeCategory?.image || filteredItems.find((i) => i.image)?.image || "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=600&h=300&fit=crop"}
                   fill
                   sizes="(max-width: 900px) 100vw, 900px"
                   priority
