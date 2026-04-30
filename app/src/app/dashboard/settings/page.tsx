@@ -34,6 +34,7 @@ export default function SettingsPage() {
     restaurantPhone, setRestaurantPhone,
     restaurantLogoUrl, setRestaurantLogoUrl,
     menuStyle, setMenuStyle,
+    user,
   } = useMenu();
 
   const [name, setName] = useState(restaurantName);
@@ -78,6 +79,14 @@ export default function SettingsPage() {
     } finally {
       setChangingPlan(false);
     }
+  };
+
+  const [signingOut, setSigningOut] = useState(false);
+
+  const signOut = async () => {
+    setSigningOut(true);
+    await supabase.auth.signOut();
+    window.location.replace("/login");
   };
 
   const [savingInfo, setSavingInfo] = useState(false);
@@ -417,6 +426,31 @@ export default function SettingsPage() {
               onClick={saveCurrency}
               className="w-full py-3 bg-gradient-to-br from-primary to-primary-container rounded-xl font-bold text-sm text-white shadow-lg shadow-primary/20 hover:opacity-90 transition-all active:scale-95">
               Save Currency
+            </button>
+          </div>
+        </div>
+
+        {/* Account */}
+        <div className="bg-surface-container-lowest p-8 rounded-[2rem] border border-surface-container/50 lg:col-span-2">
+          <h3 className="font-[var(--font-headline)] font-bold text-lg mb-6">Account</h3>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary shrink-0">
+                <span className="material-symbols-outlined text-2xl">account_circle</span>
+              </div>
+              <div>
+                <p className="text-sm font-bold text-on-surface">{user?.email ?? "—"}</p>
+                <p className="text-xs text-secondary mt-0.5">Signed in</p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={signOut}
+              disabled={signingOut}
+              className="flex items-center gap-2 px-5 py-3 bg-surface-container-high text-secondary font-bold rounded-xl text-sm hover:bg-error/10 hover:text-error transition-all disabled:opacity-50"
+            >
+              <span className="material-symbols-outlined text-[18px]">logout</span>
+              {signingOut ? "Signing out…" : "Sign Out"}
             </button>
           </div>
         </div>

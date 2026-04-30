@@ -10,7 +10,7 @@ interface MenuSectionsSidebarProps {
 }
 
 export function MenuSectionsSidebar({ activeCategoryId, setActiveCategoryId }: MenuSectionsSidebarProps) {
-  const { categories, menuItems, addCategory, renameCategory, removeCategory, setCategories } = useMenu();
+  const { categories, menuItems, addCategory, renameCategory, removeCategory, toggleCategoryVisibility, setCategories } = useMenu();
   const dragIdRef = useRef<string | null>(null);
 
   const handleDragStart = (id: string) => {
@@ -85,15 +85,27 @@ export function MenuSectionsSidebar({ activeCategoryId, setActiveCategoryId }: M
             className="group cursor-grab active:cursor-grabbing"
             onClick={() => setActiveCategoryId(cat.id)}
           >
-            <div className={`flex items-center justify-between p-4 rounded-2xl transition-all cursor-pointer ${activeCategoryId === cat.id ? "bg-surface-container-low ring-2 ring-primary ring-offset-2" : "bg-surface-container-lowest shadow-sm hover:shadow-md border border-transparent hover:border-primary/10"}`}>
+            <div className={`flex items-center justify-between p-4 rounded-2xl transition-all cursor-pointer ${cat.hidden ? "opacity-50" : ""} ${activeCategoryId === cat.id ? "bg-surface-container-low ring-2 ring-primary ring-offset-2" : "bg-surface-container-lowest shadow-sm hover:shadow-md border border-transparent hover:border-primary/10"}`}>
               <div className="flex items-center gap-3 flex-1 min-w-0">
                 <span className={`material-symbols-outlined shrink-0 ${activeCategoryId === cat.id ? "text-primary" : "text-secondary-container"}`}>
                   {activeCategoryId === cat.id ? "restaurant_menu" : "drag_indicator"}
                 </span>
-                <span className={`font-bold text-sm truncate ${activeCategoryId === cat.id ? "text-primary" : ""}`}>{cat.name}</span>
+                <div className="flex-1 min-w-0">
+                  <span className={`font-bold text-sm truncate block ${activeCategoryId === cat.id ? "text-primary" : ""}`}>{cat.name}</span>
+                  {cat.hidden && <span className="text-[9px] font-bold uppercase tracking-widest text-secondary">Hidden</span>}
+                </div>
               </div>
               <div className="flex items-center gap-1 shrink-0">
-                {/* Rename + delete — visible on hover */}
+                {/* Visibility toggle */}
+                <button
+                  type="button"
+                  title={cat.hidden ? "Show section on public menu" : "Hide section from public menu"}
+                  onClick={(e) => { e.stopPropagation(); toggleCategoryVisibility(cat.id); }}
+                  className="opacity-0 group-hover:opacity-100 p-1 rounded-lg hover:bg-surface-container-high transition-all text-secondary hover:text-on-surface"
+                >
+                  <span className="material-symbols-outlined text-[14px]">{cat.hidden ? "visibility_off" : "visibility"}</span>
+                </button>
+                {/* Rename */}
                 <button
                   type="button"
                   title="Rename section"
@@ -102,6 +114,7 @@ export function MenuSectionsSidebar({ activeCategoryId, setActiveCategoryId }: M
                 >
                   <span className="material-symbols-outlined text-[14px]">edit</span>
                 </button>
+                {/* Delete */}
                 <button
                   type="button"
                   title="Delete section"

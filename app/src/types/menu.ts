@@ -16,6 +16,7 @@ export interface MenuCategory {
   id: string;
   name: string;
   itemCount: number;
+  hidden?: boolean;
 }
 
 export interface MenuStyle {

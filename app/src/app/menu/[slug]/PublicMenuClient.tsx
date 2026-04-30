@@ -32,7 +32,7 @@ export default function PublicMenuClient(props: PublicMenuClientProps) {
     slug,
   } = props;
 
-  const [categories, setCategories] = useState<MenuCategory[]>(props.categories);
+  const [categories, setCategories] = useState<MenuCategory[]>(props.categories.filter(c => !c.hidden));
   const [items, setItems] = useState<MenuItem[]>(props.items);
   const [styleProp, setStyleProp] = useState<Partial<MenuStyle>>(props.style);
 
@@ -135,7 +135,7 @@ export default function PublicMenuClient(props: PublicMenuClientProps) {
             return;
           }
 
-          if (updated.categories) setCategories(updated.categories);
+          if (updated.categories) setCategories(updated.categories.filter((c: MenuCategory) => !c.hidden));
           if (updated.items) setItems(updated.items);
           if (updated.style) setStyleProp(updated.style);
         }
@@ -157,10 +157,12 @@ export default function PublicMenuClient(props: PublicMenuClientProps) {
     }
   }, [menuStyle]);
 
+  const visibleCategoryIds = new Set(categories.map(c => c.id));
   const filtered = searchQuery.trim()
     ? items.filter((i) =>
-        i.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        i.description.toLowerCase().includes(searchQuery.toLowerCase())
+        visibleCategoryIds.has(i.category) &&
+        (i.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+         i.description.toLowerCase().includes(searchQuery.toLowerCase()))
       )
     : items.filter((i) => i.category === activeCategory);
   const totalItems = cart.reduce((s, i) => s + i.quantity, 0);

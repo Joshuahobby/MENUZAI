@@ -72,11 +72,28 @@ export async function GET(request: Request) {
     time: e.created_at,
   }));
 
+  // Build daily views array for the sparkline chart
+  const dailyMap: Record<string, number> = {};
+  events
+    .filter(e => e.event_type === "menu_view")
+    .forEach(e => {
+      const day = e.created_at.split("T")[0];
+      dailyMap[day] = (dailyMap[day] || 0) + 1;
+    });
+  // Fill missing days with 0 so the chart line is continuous
+  const dailyViews: { date: string; views: number }[] = [];
+  for (let i = days - 1; i >= 0; i--) {
+    const d = new Date(Date.now() - i * 24 * 60 * 60 * 1000);
+    const key = d.toISOString().split("T")[0];
+    dailyViews.push({ date: key, views: dailyMap[key] ?? 0 });
+  }
+
   return Response.json({
     kpis: { views, orders: orderCount, revenue, avgOrderValue, conversionRate },
     topItems,
     peakHours,
     recentEvents,
+    dailyViews,
     meta: { days, plan: restaurant?.plan ?? "free" },
   });
 }

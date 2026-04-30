@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { AreaChart, Area, XAxis, Tooltip, ResponsiveContainer } from "recharts";
 import { useMenu } from "@/context/MenuContext";
 import { formatPrice, formatEventType, formatRelativeTime } from "@/lib/utils";
 import { SkeletonKpi, SkeletonRow } from "@/components/Skeleton";
@@ -10,6 +11,7 @@ interface AnalyticsData {
   topItems: { name: string; count: number }[];
   peakHours: { hour: number; count: number }[];
   recentEvents: { type: string; item: string | null; amount: number | null; time: string }[];
+  dailyViews?: { date: string; views: number }[];
   meta?: { days: number; plan: string };
 }
 
@@ -60,6 +62,7 @@ export default function AnalyticsPage() {
   const topItems = data?.topItems ?? [];
   const peakHours = data?.peakHours ?? [];
   const recentEvents = data?.recentEvents ?? [];
+  const dailyViews = data?.dailyViews ?? [];
   const maxHourCount = Math.max(...peakHours.map(h => h.count), 1);
   const peakHour = peakHours.reduce((best, h) => h.count > best.count ? h : best, { hour: 0, count: 0 });
 
@@ -145,6 +148,46 @@ export default function AnalyticsPage() {
           </div>
         ))}
       </div>
+
+      {/* Daily Views Chart */}
+      {dailyViews.length > 0 && (
+        <div className="mb-8 bg-surface-container-lowest p-8 rounded-3xl border border-surface-container/50 shadow-sm">
+          <div className="flex justify-between items-center mb-6">
+            <div>
+              <h3 className="text-xl font-[var(--font-headline)] font-bold">Menu Views</h3>
+              <p className="text-xs text-secondary font-medium mt-1">Daily traffic over the selected period</p>
+            </div>
+            <span className="text-2xl font-extrabold text-primary">{kpis.views.toLocaleString()}</span>
+          </div>
+          <ResponsiveContainer width="100%" height={160}>
+            <AreaChart data={dailyViews} margin={{ top: 4, right: 4, left: -28, bottom: 0 }}>
+              <defs>
+                <linearGradient id="viewsGradient" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#FF6B00" stopOpacity={0.25} />
+                  <stop offset="95%" stopColor="#FF6B00" stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <XAxis
+                dataKey="date"
+                tickFormatter={(d) => {
+                  const dt = new Date(String(d));
+                  return `${dt.getMonth() + 1}/${dt.getDate()}`;
+                }}
+                tick={{ fontSize: 10, fill: "#9CA3AF" }}
+                axisLine={false}
+                tickLine={false}
+                interval={Math.floor(dailyViews.length / 6)}
+              />
+              <Tooltip
+                contentStyle={{ background: "var(--color-surface)", border: "1px solid var(--color-surface-container)", borderRadius: "1rem", fontSize: 12 }}
+                labelFormatter={(l) => new Date(String(l)).toLocaleDateString(undefined, { month: "short", day: "numeric" })}
+                formatter={(v) => [v, "Views"]}
+              />
+              <Area type="monotone" dataKey="views" stroke="#FF6B00" strokeWidth={2} fill="url(#viewsGradient)" dot={false} activeDot={{ r: 4, fill: "#FF6B00" }} />
+            </AreaChart>
+          </ResponsiveContainer>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Popularity Heatmap */}

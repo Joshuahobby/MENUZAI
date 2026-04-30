@@ -37,6 +37,7 @@ interface MenuContextType {
   addCategory: (name: string) => void;
   renameCategory: (categoryId: string, name: string) => void;
   removeCategory: (categoryId: string) => void;
+  toggleCategoryVisibility: (categoryId: string) => void;
   addItem: (categoryId: string) => void;
   removeItem: (itemId: string) => void;
   updateItem: (itemId: string, updates: Partial<MenuItem>) => void;
@@ -419,6 +420,10 @@ export function MenuProvider({ children }: { children: React.ReactNode }) {
     setCategories((prev) => prev.map((c) => c.id === categoryId ? { ...c, name } : c));
   };
 
+  const toggleCategoryVisibility = (categoryId: string) => {
+    setCategories((prev) => prev.map((c) => c.id === categoryId ? { ...c, hidden: !c.hidden } : c));
+  };
+
   const removeCategory = (categoryId: string) => {
     setCategories((prev) => prev.filter((c) => c.id !== categoryId));
     setMenuItems((prev) => prev.filter((i) => i.category !== categoryId));
@@ -661,6 +666,7 @@ export function MenuProvider({ children }: { children: React.ReactNode }) {
       addCategory,
       renameCategory,
       removeCategory,
+      toggleCategoryVisibility,
       addItem,
       removeItem,
       updateItem,
