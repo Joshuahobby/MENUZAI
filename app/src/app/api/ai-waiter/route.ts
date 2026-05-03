@@ -1,8 +1,9 @@
+import Anthropic from "@anthropic-ai/sdk";
 
 export async function POST(request: Request) {
-  const apiKey = process.env.OPENROUTER_API_KEY;
+  const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) {
-    return Response.json({ error: "OPENROUTER_API_KEY not configured" }, { status: 500 });
+    return Response.json({ error: "ANTHROPIC_API_KEY not configured" }, { status: 500 });
   }
 
   try {
@@ -27,54 +28,26 @@ INSTRUCTIONS:
 6. Keep responses under 3 sentences for better mobile viewing.
 7. Use emojis occasionally to be friendly. 🍽️✨`;
 
-    const models = [
-      "google/gemma-4-31b-it:free",
-      "google/gemma-4-26b-a4b-it:free",
-      "google/gemma-3-12b-it:free",
-      "qwen/qwen3-next-80b-a3b-instruct:free",
-      "openai/gpt-oss-20b:free",
-    ];
+    const anthropic = new Anthropic({ apiKey });
 
-    let lastError = "";
-    for (const model of models) {
-      try {
-        console.log(`AI Waiter: Trying model ${model}...`);
-        const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-          method: "POST",
-          headers: {
-            "Authorization": `Bearer ${apiKey}`,
-            "Content-Type": "application/json",
-            "HTTP-Referer": "https://menuzaai.com",
-            "X-Title": "MENUZAI Assistant",
-          },
-          body: JSON.stringify({
-            model: model,
-            messages: [
-              { role: "system", content: systemPrompt },
-              ...messages
-            ],
-            max_tokens: 500,
-            temperature: 0.7,
-          }),
-        });
+    // Ensure we only pass user/assistant messages to Anthropic
+    const anthropicMessages = messages.filter(m => m.role === "user" || m.role === "assistant");
 
-        if (response.ok) {
-          const data = await response.json();
-          const content = data.choices[0]?.message?.content || "I'm sorry, I couldn't process that request.";
-          console.log(`AI Waiter: Success with ${model}`);
-          return Response.json({ content });
-        } else {
-          const errData = await response.json().catch(() => ({}));
-          lastError = errData.error?.message || `Status ${response.status}`;
-          console.warn(`AI Waiter: ${model} failed - ${lastError}`);
-        }
-      } catch (error: unknown) {
-        lastError = error instanceof Error ? error.message : String(error);
-        console.warn(`AI Waiter: ${model} threw - ${lastError}`);
-      }
-    }
+    console.log("AI Waiter: Calling Claude 3.5 Sonnet...");
+    const msg = await anthropic.messages.create({
+      model: "claude-3-5-sonnet-20241022",
+      max_tokens: 500,
+      temperature: 0.7,
+      system: systemPrompt,
+      messages: anthropicMessages,
+    });
 
-    throw new Error(`All AI models failed. Last error: ${lastError}`);
+    // @ts-expect-error Types for content block can be text
+    const content = msg.content[0]?.text || "I'm sorry, I couldn't process that request.";
+    console.log("AI Waiter: Success with Claude 3.5 Sonnet");
+    
+    return Response.json({ content });
+
   } catch (error: unknown) {
     console.error("AI Route Error:", error);
     return Response.json({
