@@ -11,6 +11,15 @@ interface PrintViewProps {
   onClose: () => void;
 }
 
+const TEMPLATE_OPTIONS = [
+  { id: "vintage-parchment", name: "Vintage Parchment" },
+  { id: "dark-chalkboard", name: "Dark Chalkboard" },
+  { id: "bold-street", name: "Bold Street" },
+  { id: "bistro-split", name: "Bistro Split" },
+  { id: "photo-gallery", name: "Photo Gallery" },
+  { id: "luxury-gold", name: "Luxury Gold" },
+];
+
 const PRESET_COLORS = [
   { name: "Amber", hex: "#C5A059" },
   { name: "Orange", hex: "#FF6B00" },
@@ -21,6 +30,8 @@ const PRESET_COLORS = [
 ];
 
 export function PrintView({ templateId, templateName, restaurantData, onClose }: PrintViewProps) {
+  const [activeTemplate, setActiveTemplate] = useState(templateId);
+  const [activeTemplateName, setActiveTemplateName] = useState(templateName);
   const [primaryColor, setPrimaryColor] = useState("#C5A059");
   const [bgColor] = useState("");
   const printRef = useRef<HTMLDivElement>(null);
@@ -62,7 +73,7 @@ export function PrintView({ templateId, templateName, restaurantData, onClose }:
     } else {
       win.onload = doPrint;
     }
-  }, []);
+  }, [restaurantData.restaurantName]);
 
   const handleCopyLink = useCallback(() => {
     navigator.clipboard.writeText(window.location.href).then(() => {
@@ -87,7 +98,7 @@ export function PrintView({ templateId, templateName, restaurantData, onClose }:
               <span className="material-symbols-outlined text-xl">close</span>
             </button>
             <div>
-              <h2 className="text-white font-bold text-lg leading-tight">{templateName}</h2>
+              <h2 className="text-white font-bold text-lg leading-tight">{activeTemplateName}</h2>
               <p className="text-white/50 text-xs">Live preview with your restaurant data</p>
             </div>
             <div className="flex gap-3 ml-auto">
@@ -104,8 +115,8 @@ export function PrintView({ templateId, templateName, restaurantData, onClose }:
                 onClick={handlePrint}
                 className="flex items-center gap-2 px-6 py-2 rounded-xl bg-white text-black text-sm font-bold hover:bg-white/90 active:scale-95 transition-all shadow-lg"
               >
-                <span className="material-symbols-outlined text-base">print</span>
-                Print / Save PDF
+                <span className="material-symbols-outlined text-base">picture_as_pdf</span>
+                Download PDF
               </button>
             </div>
           </div>
@@ -117,7 +128,7 @@ export function PrintView({ templateId, templateName, restaurantData, onClose }:
           >
             <div className="w-full h-full">
               <TemplatePreview
-                templateId={templateId}
+                templateId={activeTemplate}
                 containerWidth={Math.min(520, typeof window !== "undefined" ? window.innerWidth * 0.55 : 520)}
                 data={restaurantData}
                 primaryColor={primaryColor || undefined}
@@ -131,7 +142,28 @@ export function PrintView({ templateId, templateName, restaurantData, onClose }:
         <div className="w-72 bg-surface/95 backdrop-blur-2xl border-l border-surface-container/50 flex flex-col overflow-y-auto">
           <div className="p-6 border-b border-surface-container/50">
             <h3 className="font-[var(--font-headline)] font-bold text-base mb-1">Customise</h3>
-            <p className="text-secondary text-xs">Adjust colors before printing</p>
+            <p className="text-secondary text-xs">Choose template &amp; adjust colors</p>
+          </div>
+
+          {/* Template selector */}
+          <div className="px-6 pt-6">
+            <label className="block text-[10px] font-bold text-secondary uppercase tracking-[0.2em] mb-3" htmlFor="tpl-select">Template</label>
+            <select
+              id="tpl-select"
+              className="w-full bg-surface-container-low border-none rounded-xl py-3 px-4 text-sm font-semibold focus:ring-2 focus:ring-primary/20 cursor-pointer"
+              value={activeTemplate}
+              onChange={(e) => {
+                const opt = TEMPLATE_OPTIONS.find((t) => t.id === e.target.value);
+                setActiveTemplate(e.target.value);
+                setActiveTemplateName(opt?.name ?? e.target.value);
+              }}
+              title="Select template"
+              aria-label="Select template"
+            >
+              {TEMPLATE_OPTIONS.map((t) => (
+                <option key={t.id} value={t.id}>{t.name}</option>
+              ))}
+            </select>
           </div>
 
           <div className="p-6 space-y-8 flex-1">
@@ -211,7 +243,7 @@ export function PrintView({ templateId, templateName, restaurantData, onClose }:
       >
         <div ref={printRef} style={{ width: BASE_W, height: BASE_H }}>
           <TemplatePreview
-            templateId={templateId}
+            templateId={activeTemplate}
             containerWidth={BASE_W}
             data={restaurantData}
             primaryColor={primaryColor || undefined}

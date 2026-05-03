@@ -6,6 +6,7 @@ import { generateSlug, ensureUniqueSlug } from "@/lib/slug";
 import { canCreateMenu, canPublishMenu } from "@/lib/plans";
 import { User } from "@supabase/supabase-js";
 import { toast } from "sonner";
+import { useMenuBootstrap } from "@/hooks/useMenuBootstrap";
 
 // Re-export shared types for backward compatibility
 export type { MenuItem, MenuCategory, MenuStyle } from "@/types/menu";
@@ -70,217 +71,45 @@ export const defaultStyle: MenuStyle = {
 const MenuContext = createContext<MenuContextType | undefined>(undefined);
 
 export function MenuProvider({ children }: { children: React.ReactNode }) {
-  const [restaurantName, setRestaurantName] = useState("My Restaurant");
-  const [categories, setCategories] = useState<MenuCategory[]>([]);
-  const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
-  const [menuStyle, setMenuStyle] = useState<MenuStyle>(defaultStyle);
-  const [user, setUser] = useState<User | null>(null);
-  const [activeMenuId, setActiveMenuId] = useState<string | null>(null);
-  const [activeMenuName, setActiveMenuName] = useState("My Menu");
-  const [menuStatus, setMenuStatus] = useState<"draft" | "published">("draft");
-  const [menuSlug, setMenuSlug] = useState<string | null>(null);
-  const [onboarded, setOnboarded] = useState<boolean>(false);
-  const [restaurantId, setRestaurantId] = useState<string | null>(null);
-  const [restaurantPhone, setRestaurantPhone] = useState("");
-  const [restaurantLogoUrl, setRestaurantLogoUrl] = useState("");
-  const [plan, setPlan] = useState("free");
+  const {
+    user,
+    isLoading, setIsLoading,
+    restaurantId,
+    restaurantName, setRestaurantName,
+    restaurantPhone, setRestaurantPhone,
+    restaurantLogoUrl, setRestaurantLogoUrl,
+    plan, setPlan,
+    onboarded, setOnboarded,
+    activeMenuId, setActiveMenuId,
+    activeMenuName, setActiveMenuName,
+    menuStatus, setMenuStatus,
+    menuSlug, setMenuSlug,
+    categories, setCategories,
+    menuItems, setMenuItems,
+    menuStyle, setMenuStyle,
+    lastSynced, setLastSynced,
+    setRestaurantId,
+  } = useMenuBootstrap();
+
   const [isSyncing, setIsSyncing] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-  const [lastSynced, setLastSynced] = useState<Date | null>(null);
 
   const menuSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const restaurantSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const isInitialLoad = useRef(true);
-  const isBootstrappingRef = useRef(false);
-  const preventBootstrapRef = useRef(false);
-  const bootstrappedForUserRef = useRef<string | null>(null);
-  const [authChecked, setAuthChecked] = useState(false);
+
+  // Mark initial load complete once bootstrap finishes
+  useEffect(() => {
+    if (!isLoading) {
+      // Give a microtick so auto-save effects don't fire on initial data
+      const id = setTimeout(() => { isInitialLoad.current = false; }, 50);
+      return () => clearTimeout(id);
+    }
+  }, [isLoading]);
 
   // Always-current snapshot of state used by callbacks to avoid stale closures
   const latestRef = useRef({ categories, menuItems, menuStyle, activeMenuId });
   latestRef.current = { categories, menuItems, menuStyle, activeMenuId };
 
-  // 1. Track auth state
-  useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
-      setAuthChecked(true);
-    });
-    return () => subscription.unsubscribe();
-  }, []);
-
-  // 2. On login: ensure restaurant row exists, then load the active menu
-  useEffect(() => {
-    if (!authChecked) return;
-
-    if (!user) {
-      isBootstrappingRef.current = false;
-      bootstrappedForUserRef.current = null;
-      isInitialLoad.current = true;
-      setActiveMenuId(null);
-      setRestaurantId(null);
-      setRestaurantName("My Restaurant");
-      setRestaurantPhone("");
-      setRestaurantLogoUrl("");
-      setCategories([]);
-      setMenuItems([]);
-      setMenuStyle(defaultStyle);
-      setPlan("free");
-      setIsLoading(false);
-      return;
-    }
-
-    if (isBootstrappingRef.current || preventBootstrapRef.current) return;
-    if (bootstrappedForUserRef.current === user.id) return;
-    isBootstrappingRef.current = true;
-
-    let cancelled = false;
-
-    const bootstrap = async () => {
-      setIsLoading(true);
-      isInitialLoad.current = true;
-
-      const isAuthFailure = (status: number, error: { message?: string } | null) => {
-        if (status === 401 || status === 403) return true;
-        const msg = (error?.message ?? "").toLowerCase();
-        return msg.includes("jwt") || msg.includes("api key") || msg.includes("not authenticated");
-      };
-
-      const handleUnauthorized = () => {
-        preventBootstrapRef.current = true;
-        supabase.auth.signOut({ scope: "local" }).catch(() => {});
-        if (typeof window !== "undefined") window.location.replace("/login");
-      };
-
-      try {
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-        if (!session || sessionError) { handleUnauthorized(); return; }
-
-        let restoId: string;
-
-        const { data: existingRestaurant, error: selectError, status: selectStatus } = await supabase
-          .from("restaurants")
-          .select("id, name, phone, plan, logo_url, onboarded")
-          .eq("user_id", user.id)
-          .maybeSingle();
-
-        if (isAuthFailure(selectStatus, selectError)) { handleUnauthorized(); return; }
-
-        if (existingRestaurant) {
-          restoId = existingRestaurant.id;
-          if (!cancelled) {
-            setRestaurantId(restoId);
-            setRestaurantName(existingRestaurant.name);
-            setRestaurantPhone(existingRestaurant.phone ?? "");
-            setRestaurantLogoUrl(existingRestaurant.logo_url ?? "");
-            setPlan(existingRestaurant.plan ?? "free");
-            setOnboarded(existingRestaurant.onboarded ?? false);
-          }
-        } else {
-          const { data: upsertedRestaurant, error: upsertError, status: upsertStatus } = await supabase
-            .from("restaurants")
-            .upsert({ user_id: user.id, name: "My Restaurant", onboarded: false }, { onConflict: "user_id", ignoreDuplicates: false })
-            .select("id")
-            .single();
-
-          if (isAuthFailure(upsertStatus, upsertError)) { handleUnauthorized(); return; }
-
-          if (upsertError || !upsertedRestaurant) {
-            const { data: fallback, error: fallbackError, status: fallbackStatus } = await supabase
-              .from("restaurants")
-              .select("id")
-              .eq("user_id", user.id)
-              .maybeSingle();
-
-            if (isAuthFailure(fallbackStatus, fallbackError)) { handleUnauthorized(); return; }
-            if (!fallback) {
-              console.error("Failed to bootstrap restaurant");
-              preventBootstrapRef.current = true;
-              return;
-            }
-            restoId = fallback.id;
-          } else {
-            restoId = upsertedRestaurant.id;
-          }
-          if (!cancelled) {
-            setRestaurantId(restoId);
-            setOnboarded(false);
-          }
-        }
-
-        const { data: menu } = await supabase
-          .from("menus")
-          .select("*")
-          .eq("user_id", user.id)
-          .order("updated_at", { ascending: false })
-          .limit(1)
-          .maybeSingle();
-
-        if (menu && !cancelled) {
-          setActiveMenuId(menu.id);
-          setActiveMenuName(menu.name ?? "My Menu");
-          setMenuStatus(menu.status === "published" ? "published" : "draft");
-          setMenuSlug(menu.slug ?? null);
-          setCategories(menu.categories ?? []);
-          setMenuItems(menu.items ?? []);
-          setMenuStyle(menu.style && Object.keys(menu.style).length > 0 ? menu.style : defaultStyle);
-          setLastSynced(new Date(menu.updated_at));
-        } else if (!menu && !cancelled) {
-          const { data: newMenu, error: insertError } = await supabase
-            .from("menus")
-            .insert({
-              user_id: user.id,
-              restaurant_id: restoId,
-              name: "My Menu",
-              categories: [],
-              items: [],
-              style: defaultStyle,
-            })
-            .select("id")
-            .maybeSingle();
-
-          if (insertError) {
-            const { data: lateMenu } = await supabase
-              .from("menus")
-              .select("*")
-              .eq("user_id", user.id)
-              .order("updated_at", { ascending: false })
-              .limit(1)
-              .maybeSingle();
-
-            if (lateMenu && !cancelled) {
-              setActiveMenuId(lateMenu.id);
-              setActiveMenuName(lateMenu.name ?? "My Menu");
-              setMenuStatus(lateMenu.status === "published" ? "published" : "draft");
-              setMenuSlug(lateMenu.slug ?? null);
-              setCategories(lateMenu.categories ?? []);
-              setMenuItems(lateMenu.items ?? []);
-              setMenuStyle(lateMenu.style && Object.keys(lateMenu.style).length > 0 ? lateMenu.style : defaultStyle);
-            }
-          } else if (newMenu && !cancelled) {
-            setActiveMenuId(newMenu.id);
-            setCategories([]);
-            setMenuItems([]);
-          }
-        }
-      } catch (err) {
-        console.error("Bootstrap error:", err);
-      } finally {
-        if (!cancelled) {
-          bootstrappedForUserRef.current = user.id;
-          isInitialLoad.current = false;
-          setIsLoading(false);
-        }
-        isBootstrappingRef.current = false;
-      }
-    };
-
-    bootstrap();
-    return () => { cancelled = true; };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?.id, authChecked]);
-
-  // 3. Auto-save menu data with debounce (1 s)
   useEffect(() => {
     if (!user || !activeMenuId || isInitialLoad.current) return;
 
