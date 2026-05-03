@@ -20,7 +20,7 @@ You’ll design this  **real SaaS you can hand to a designer or dev team immedia
 
 ## **🔁 DEMO FLOW (What user experiences)**
 
-Scan QR → Opens Menu → Select Dish → Click Order → Opens WhatsApp with pre-filled message
+Scan QR → Opens Menu → Select Dish → Click Order → View Order Summary → Opens WhatsApp with pre-filled message
 
 This flow must feel **instant, frictionless, mobile-first**.
 

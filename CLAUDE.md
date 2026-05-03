@@ -21,7 +21,7 @@ npm run test:watch # Run Vitest in watch mode
 npm start         # Run production server
 ```
 
-No unit test framework is configured. E2E tests use Playwright:
+Unit tests are handled by Vitest. E2E tests use Playwright:
 
 ```bash
 npm run test:e2e            # Run all Playwright tests
@@ -119,6 +119,7 @@ Key tables:
 - **`menus`** — many per restaurant. `categories` and `items` are JSONB arrays. `status` is `'draft' | 'published'`. Has a legacy `restaurant_name` column (nullable, unused — do not rely on it).
 - **`analytics_events`** — fired client-side via `app/src/lib/analytics.ts` (fire-and-forget, no error handling by design).
 - **`orders`** — created via WhatsApp flow, not via API currently.
+- **`platform_settings`** — single row ('global') managing global AI provider and model orchestration.
 
 ### Shared Types
 

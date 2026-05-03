@@ -24,6 +24,8 @@ MENUZAI is an AI-powered SaaS platform designed to transform traditional restaur
 - **Styling:** [Tailwind CSS](https://tailwindcss.com/)
 - **Charts:** [Recharts](https://recharts.org/)
 - **Language:** [TypeScript](https://www.typescriptlang.org/)
+- **Testing:** Playwright (E2E) and Vitest (Unit)
+- **AI Providers:** OpenRouter & Anthropic
 
 ---
 
