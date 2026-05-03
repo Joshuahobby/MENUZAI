@@ -4,6 +4,7 @@ import { useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { buildWhatsAppMessage, buildWhatsAppURL, CartItem } from "@/lib/whatsapp";
+import { formatPrice } from "@/lib/utils";
 import { restaurant } from "@/data/mockData";
 
 function OrderContent() {
@@ -12,9 +13,12 @@ function OrderContent() {
   const [tableNumber, setTableNumber] = useState("");
 
   let items: CartItem[] = [];
+  let currency = "RWF";
   try {
     const raw = searchParams.get("items");
     if (raw) items = JSON.parse(decodeURIComponent(raw));
+    const rawCurrency = searchParams.get("currency");
+    if (rawCurrency) currency = rawCurrency;
   } catch { /* fallback */ }
 
   if (items.length === 0) {
@@ -25,7 +29,7 @@ function OrderContent() {
   }
 
   const total = items.reduce((s, i) => s + i.price * i.quantity, 0);
-  const message = buildWhatsAppMessage(items, customerName, tableNumber);
+  const message = buildWhatsAppMessage(items, customerName, tableNumber, currency);
   const whatsappUrl = buildWhatsAppURL(restaurant.phone, message);
 
   return (
@@ -46,13 +50,13 @@ function OrderContent() {
                   <p className="font-bold text-sm">{item.name}</p>
                   <p className="text-xs text-secondary">x{item.quantity}</p>
                 </div>
-                <span className="font-[var(--font-headline)] font-bold text-primary">${(item.price * item.quantity).toFixed(2)}</span>
+                <span className="font-[var(--font-headline)] font-bold text-primary">{formatPrice(item.price * item.quantity, currency)}</span>
               </div>
             ))}
           </div>
           <div className="mt-6 pt-4 border-t border-surface-container flex justify-between items-center">
             <span className="font-[var(--font-headline)] font-bold text-lg">Total</span>
-            <span className="font-[var(--font-headline)] font-extrabold text-2xl text-primary">${total.toFixed(2)}</span>
+            <span className="font-[var(--font-headline)] font-extrabold text-2xl text-primary">{formatPrice(total, currency)}</span>
           </div>
         </div>
 
