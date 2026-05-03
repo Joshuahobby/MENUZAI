@@ -169,9 +169,20 @@ The editor also integrates a **Print Menu** overlay using `PrintView` from the t
 - **`PrintView.tsx`** — print/PDF overlay with template switcher dropdown (all 6 templates), accent color picker, and a "Download PDF" button that opens the browser print dialog targeting "Save as PDF". Also includes a share link button.
 - **`page.tsx`** — template gallery page for browsing and applying templates.
 
+### AI Provider Stack & Admin Dashboard
+
+The platform uses a dynamic AI provider stack configurable by the platform admin.
+- **Admin Dashboard**: `/admin/settings` allows the super-admin to set the global AI provider (`openrouter` or `anthropic`) and model string. Settings are stored in the `platform_settings` table.
+- **Anthropic Integration**: Uses `@anthropic-ai/sdk` with `claude-3-5-sonnet-20241022` for high-accuracy text extraction and conversational waiter capabilities.
+- **OpenRouter Integration**: Serves as the free tier default, using `google/gemma-4-31b-it:free`.
+
 ### AI Menu Extraction
 
-`POST /api/extract-menu` accepts **up to 5 images** (JPG/PNG/WebP/GIF, max 10MB each — PDF not supported by free models). Submit as `file` (single) or `file_0`…`file_4` (multiple) in multipart form data. It calls OpenRouter using the model in `OPENROUTER_MODEL` (or auto-selects the best free vision model if unset, preferring Gemma-4 > Gemma-3 by param count). Runs extractions in parallel, then merges results via `mergeExtractionResults` in `app/src/lib/ai-extract.ts` (deduplicates categories by normalized name, deduplicates items by name). Rate-limited to 5 requests/IP/minute (in-memory only — resets on server restart). Model selection result is cached for 5 minutes.
+`POST /api/extract-menu` accepts **up to 5 images** (JPG/PNG/WebP/GIF, max 10MB each — PDF not supported). Submit as `file` (single) or `file_0`…`file_4` (multiple) in multipart form data. It dynamically fetches the provider from `platform_settings`. Runs extractions in parallel, then merges results via `mergeExtractionResults` in `app/src/lib/ai-extract.ts` (deduplicates categories by normalized name, deduplicates items by name). Rate-limited to 5 requests/IP/minute (in-memory only — resets on server restart).
+
+### AI Waiter
+
+`POST /api/ai-waiter` handles customer queries via a conversational interface in the public menu. It dynamically routes queries to the configured AI provider, using the restaurant's menu items as context.
 
 ### Styling
 

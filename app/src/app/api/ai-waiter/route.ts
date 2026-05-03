@@ -1,9 +1,19 @@
 import Anthropic from "@anthropic-ai/sdk";
+import { getSupabaseAdmin } from "@/lib/supabase-admin";
 
 export async function POST(request: Request) {
-  const apiKey = process.env.ANTHROPIC_API_KEY;
-  if (!apiKey) {
-    return Response.json({ error: "ANTHROPIC_API_KEY not configured" }, { status: 500 });
+  let provider = "openrouter";
+  let model = "google/gemma-4-31b-it:free";
+  
+  try {
+    const admin = getSupabaseAdmin();
+    if (admin) {
+      const { data } = await admin.from("platform_settings").select("*").eq("id", "global").single();
+      if (data?.ai_provider) provider = data.ai_provider;
+      if (data?.ai_model) model = data.ai_model;
+    }
+  } catch (e) {
+    console.warn("Could not fetch platform settings, falling back to OpenRouter", e);
   }
 
   try {
@@ -28,25 +38,57 @@ INSTRUCTIONS:
 6. Keep responses under 3 sentences for better mobile viewing.
 7. Use emojis occasionally to be friendly. 🍽️✨`;
 
-    const anthropic = new Anthropic({ apiKey });
+    if (provider === "anthropic") {
+      const apiKey = process.env.ANTHROPIC_API_KEY;
+      if (!apiKey) return Response.json({ error: "ANTHROPIC_API_KEY not configured" }, { status: 500 });
+      
+      const anthropic = new Anthropic({ apiKey });
+      const anthropicMessages = messages.filter(m => m.role === "user" || m.role === "assistant");
+      
+      console.log(`AI Waiter: Calling Claude (${model})...`);
+      const msg = await anthropic.messages.create({
+        model: model || "claude-3-5-sonnet-20241022",
+        max_tokens: 500,
+        temperature: 0.7,
+        system: systemPrompt,
+        messages: anthropicMessages,
+      });
 
-    // Ensure we only pass user/assistant messages to Anthropic
-    const anthropicMessages = messages.filter(m => m.role === "user" || m.role === "assistant");
+      // @ts-expect-error Types for content block can be text
+      const content = msg.content[0]?.text || "I'm sorry, I couldn't process that request.";
+      return Response.json({ content });
 
-    console.log("AI Waiter: Calling Claude 3.5 Sonnet...");
-    const msg = await anthropic.messages.create({
-      model: "claude-3-5-sonnet-20241022",
-      max_tokens: 500,
-      temperature: 0.7,
-      system: systemPrompt,
-      messages: anthropicMessages,
-    });
+    } else {
+      // Default to OpenRouter
+      const apiKey = process.env.OPENROUTER_API_KEY;
+      if (!apiKey) return Response.json({ error: "OPENROUTER_API_KEY not configured" }, { status: 500 });
+      
+      console.log(`AI Waiter: Calling OpenRouter (${model})...`);
+      const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${apiKey}`,
+          "Content-Type": "application/json",
+          "HTTP-Referer": "https://menuzaai.com",
+          "X-Title": "MENUZAI Assistant",
+        },
+        body: JSON.stringify({
+          model: model,
+          messages: [{ role: "system", content: systemPrompt }, ...messages],
+          max_tokens: 500,
+          temperature: 0.7,
+        }),
+      });
 
-    // @ts-expect-error Types for content block can be text
-    const content = msg.content[0]?.text || "I'm sorry, I couldn't process that request.";
-    console.log("AI Waiter: Success with Claude 3.5 Sonnet");
-    
-    return Response.json({ content });
+      if (!response.ok) {
+        const errData = await response.json().catch(() => ({}));
+        throw new Error(errData.error?.message || `Status ${response.status}`);
+      }
+      
+      const data = await response.json();
+      const content = data.choices[0]?.message?.content || "I'm sorry, I couldn't process that request.";
+      return Response.json({ content });
+    }
 
   } catch (error: unknown) {
     console.error("AI Route Error:", error);

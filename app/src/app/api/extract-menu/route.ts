@@ -1,5 +1,7 @@
 import { EXTRACTION_PROMPT, parseExtractionResponse, mergeExtractionResults, type ExtractionResult } from "@/lib/ai-extract";
 import { headers } from "next/headers";
+import Anthropic from "@anthropic-ai/sdk";
+import { getSupabaseAdmin } from "@/lib/supabase-admin";
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024;
 const MAX_FILES = 5;
@@ -28,55 +30,9 @@ const MEDIA_TYPES: Record<string, string> = {
   "image/gif": "image/gif",
 };
 
-// Cache the resolved model for 5 minutes to avoid querying the models API on every request
-let modelCache: { id: string; expiresAt: number } | null = null;
-
-async function resolveModel(apiKey: string): Promise<string> {
-  const configured = process.env.OPENROUTER_MODEL?.trim();
-  if (configured) return configured;
-
-  const now = Date.now();
-  if (modelCache && now < modelCache.expiresAt) return modelCache.id;
-
-  try {
-    const res = await fetch("https://openrouter.ai/api/v1/models", {
-      headers: { "Authorization": `Bearer ${apiKey}` },
-    });
-    if (!res.ok) throw new Error("models API unavailable");
-
-    const data = await res.json() as { data: { id: string; architecture?: { input_modalities?: string[] } }[] };
-    const freeVision = data.data.filter(m =>
-      m.id.endsWith(":free") &&
-      (m.architecture?.input_modalities ?? []).includes("image")
-    );
-
-    if (freeVision.length === 0) throw new Error("No free vision models available");
-
-    // Prefer larger/newer models by sorting: gemma-4 > gemma-3, larger param count first
-    const ranked = freeVision.sort((a, b) => {
-      const score = (id: string) => {
-        if (id.includes("gemma-4")) return 40 + (parseInt(id.match(/(\d+)b/i)?.[1] ?? "0") || 0);
-        if (id.includes("gemma-3")) return 30 + (parseInt(id.match(/(\d+)b/i)?.[1] ?? "0") || 0);
-        return parseInt(id.match(/(\d+)b/i)?.[1] ?? "0") || 0;
-      };
-      return score(b.id) - score(a.id);
-    });
-
-    const chosen = ranked[0].id;
-    modelCache = { id: chosen, expiresAt: now + 5 * 60 * 1000 };
-    console.log("Auto-selected model:", chosen);
-    return chosen;
-  } catch (err) {
-    console.warn("Model auto-select failed, using fallback:", err);
-    return "google/gemma-4-31b-it:free";
-  }
-}
-
-async function extractFromFile(file: File, apiKey: string, model: string): Promise<ExtractionResult> {
+async function extractWithOpenRouter(file: File, apiKey: string, model: string): Promise<ExtractionResult> {
   const type = file.type.toLowerCase();
   const mediaType = MEDIA_TYPES[type];
-  if (!mediaType) throw new Error(`Unsupported file type: ${file.type}`);
-
   const bytes = await file.arrayBuffer();
   const base64 = Buffer.from(bytes).toString("base64");
 
@@ -110,12 +66,38 @@ async function extractFromFile(file: File, apiKey: string, model: string): Promi
   return parseExtractionResponse(data.choices[0]?.message?.content ?? "");
 }
 
+async function extractWithAnthropic(file: File, apiKey: string, model: string): Promise<ExtractionResult> {
+  const anthropic = new Anthropic({ apiKey });
+  const type = file.type.toLowerCase();
+  const mediaType = MEDIA_TYPES[type] as "image/jpeg" | "image/png" | "image/gif" | "image/webp";
+  
+  const bytes = await file.arrayBuffer();
+  const base64 = Buffer.from(bytes).toString("base64");
+
+  const msg = await anthropic.messages.create({
+    model: model || "claude-3-5-sonnet-20241022",
+    max_tokens: 4096,
+    system: "You are an expert OCR and data extraction AI. Follow instructions strictly.",
+    messages: [{
+      role: "user",
+      content: [
+        {
+          type: "image",
+          source: { type: "base64", media_type: mediaType, data: base64 },
+        },
+        { type: "text", text: EXTRACTION_PROMPT },
+      ],
+    }],
+  });
+
+  // @ts-expect-error Extracting text block
+  const content = msg.content[0]?.text || "";
+  return parseExtractionResponse(content);
+}
+
 export async function POST(request: Request) {
   const headersList = await headers();
-  const ip =
-    headersList.get("x-forwarded-for")?.split(",")[0]?.trim() ??
-    headersList.get("x-real-ip") ??
-    "unknown";
+  const ip = headersList.get("x-forwarded-for")?.split(",")[0]?.trim() ?? headersList.get("x-real-ip") ?? "unknown";
 
   if (!checkRateLimit(ip)) {
     return Response.json(
@@ -124,9 +106,19 @@ export async function POST(request: Request) {
     );
   }
 
-  const apiKey = process.env.OPENROUTER_API_KEY?.trim();
-  if (!apiKey) {
-    return Response.json({ error: "OPENROUTER_API_KEY not configured" }, { status: 500 });
+  // Fetch admin settings for AI provider
+  let provider = "openrouter";
+  let model = "google/gemma-4-31b-it:free";
+  
+  try {
+    const admin = getSupabaseAdmin();
+    if (admin) {
+      const { data } = await admin.from("platform_settings").select("*").eq("id", "global").single();
+      if (data?.ai_provider) provider = data.ai_provider;
+      if (data?.ai_model) model = data.ai_model;
+    }
+  } catch (e) {
+    console.warn("Could not fetch platform settings, falling back to OpenRouter");
   }
 
   let formData: FormData;
@@ -136,7 +128,6 @@ export async function POST(request: Request) {
     return Response.json({ error: "Invalid form data" }, { status: 400 });
   }
 
-  // Collect files: supports single "file" key or indexed "file_0", "file_1", ...
   const files: File[] = [];
   const single = formData.get("file");
   if (single instanceof File) {
@@ -148,23 +139,15 @@ export async function POST(request: Request) {
     }
   }
 
-  if (files.length === 0) {
-    return Response.json({ error: "No file provided" }, { status: 400 });
-  }
-
-  if (files.length > MAX_FILES) {
-    return Response.json({ error: `Maximum ${MAX_FILES} images allowed` }, { status: 400 });
-  }
+  if (files.length === 0) return Response.json({ error: "No file provided" }, { status: 400 });
+  if (files.length > MAX_FILES) return Response.json({ error: `Maximum ${MAX_FILES} images allowed` }, { status: 400 });
 
   for (const file of files) {
     if (file.size > MAX_FILE_SIZE) {
       return Response.json({ error: `File "${file.name}" exceeds 10MB limit` }, { status: 400 });
     }
     if (file.type === "application/pdf") {
-      return Response.json(
-        { error: "PDF is not supported. Please upload an image (JPG, PNG, WebP, GIF)." },
-        { status: 400 }
-      );
+      return Response.json({ error: "PDF is not supported. Please upload an image (JPG, PNG, WebP, GIF)." }, { status: 400 });
     }
     if (!MEDIA_TYPES[file.type.toLowerCase()]) {
       return Response.json({ error: `Unsupported file type: ${file.type}. Use JPG, PNG, WebP, or GIF.` }, { status: 400 });
@@ -172,8 +155,20 @@ export async function POST(request: Request) {
   }
 
   try {
-    const model = await resolveModel(apiKey);
-    const results = await Promise.all(files.map(f => extractFromFile(f, apiKey, model)));
+    let results: ExtractionResult[] = [];
+    
+    if (provider === "anthropic") {
+      const apiKey = process.env.ANTHROPIC_API_KEY;
+      if (!apiKey) return Response.json({ error: "ANTHROPIC_API_KEY not configured" }, { status: 500 });
+      console.log(`Extracting with Anthropic (${model})...`);
+      results = await Promise.all(files.map(f => extractWithAnthropic(f, apiKey, model)));
+    } else {
+      const apiKey = process.env.OPENROUTER_API_KEY;
+      if (!apiKey) return Response.json({ error: "OPENROUTER_API_KEY not configured" }, { status: 500 });
+      console.log(`Extracting with OpenRouter (${model})...`);
+      results = await Promise.all(files.map(f => extractWithOpenRouter(f, apiKey, model)));
+    }
+
     const merged = mergeExtractionResults(results);
     return Response.json(merged);
   } catch (err: unknown) {
