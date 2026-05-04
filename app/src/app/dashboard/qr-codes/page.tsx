@@ -73,7 +73,9 @@ export default function QRCodesPage() {
     try {
       const dataUrl = await toPng(posterRef.current, { 
         quality: 1.0,
-        pixelRatio: 3, // Very high res for PDF
+        pixelRatio: 4,
+        skipFonts: false,
+        fontEmbedCSS: true,
         cacheBust: true,
       });
       
@@ -381,13 +383,15 @@ export default function QRCodesPage() {
             <div className="relative group transition-all duration-700 hover:rotate-y-2 hover:scale-[1.01] h-full flex items-center justify-center">
 
               
-              <div className="h-full max-h-[80vh] aspect-[1/1.414] bg-white shadow-[0_40px_100px_rgba(0,0,0,0.12)] rounded-[1.5rem] relative border border-white/50 flex flex-col">
-                <QRPosterRenderer
-                  id="printable-poster"
-                  data={posterData}
-                  url={menuUrl || "https://menuzai.com"}
-                  className="flex-1"
-                />
+              <div className="w-full h-full flex items-center justify-center p-4 lg:p-8">
+                <div className="relative aspect-[1/1.414] max-h-full max-w-full bg-white shadow-[0_40px_100px_rgba(0,0,0,0.12)] rounded-[1.5rem] overflow-hidden border border-white/50 flex flex-col">
+                  <QRPosterRenderer
+                    id="printable-poster"
+                    data={posterData}
+                    url={menuUrl || "https://menuzai.com"}
+                    className="flex-1"
+                  />
+                </div>
               </div>
 
 
