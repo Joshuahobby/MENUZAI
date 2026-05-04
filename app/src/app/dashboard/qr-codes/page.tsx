@@ -74,8 +74,6 @@ export default function QRCodesPage() {
       const dataUrl = await toPng(posterRef.current, { 
         quality: 1.0,
         pixelRatio: 4,
-        skipFonts: false,
-        fontEmbedCSS: true,
         cacheBust: true,
       });
       
