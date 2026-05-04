@@ -346,15 +346,6 @@ export default function QRCodesPage() {
             </section>
           </div>
 
-          <div className="p-6 border-t border-[#F0EBE8] bg-surface-container-lowest/50 shrink-0">
-             <button
-              onClick={() => window.print()}
-              className="w-full py-3.5 bg-white text-black border border-surface-container rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl shadow-black/5 hover:bg-surface-container-low active:scale-95 transition-all flex items-center justify-center gap-2"
-            >
-              <span className="material-symbols-outlined text-[16px]">print</span>
-              Print Poster
-            </button>
-          </div>
         </aside>
 
         {/* Right: Canvas Area */}
