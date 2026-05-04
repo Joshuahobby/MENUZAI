@@ -28,9 +28,9 @@ export function QRPosterRenderer({ data, url, className = "", id }: QRPosterRend
     switch (templateId) {
       case "classic-frame":
         return (
-          <div className="w-full h-full bg-white flex flex-col relative overflow-hidden" style={{ color: textColor }}>
+          <div className="w-full h-full bg-white flex flex-col relative" style={{ color: textColor }}>
             {/* Food Image with Curved Bottom */}
-            <div className="h-[45%] w-full relative overflow-hidden">
+            <div className="h-[40%] w-full relative overflow-hidden shrink-0">
               {backgroundImage ? (
                 <img src={backgroundImage} alt="Background" className="w-full h-full object-cover" />
               ) : (
@@ -47,7 +47,7 @@ export function QRPosterRenderer({ data, url, className = "", id }: QRPosterRend
               </div>
             </div>
             
-            <div className="flex-1 flex flex-col items-center justify-between p-10 text-center relative z-10 bg-white">
+            <div className="flex-1 flex flex-col items-center justify-between p-6 lg:p-8 text-center relative z-10 bg-white">
               <div className="relative w-full">
                 {/* Logo in Circle */}
                 {logoUrl ? (
@@ -70,14 +70,14 @@ export function QRPosterRenderer({ data, url, className = "", id }: QRPosterRend
               </div>
 
               {/* QR Section with Sparkles */}
-              <div className="relative p-6 bg-white rounded-[3rem] shadow-2xl shadow-black/5 border border-surface-container/50">
+              <div className="relative p-5 bg-white rounded-[2.5rem] shadow-2xl shadow-black/5 border border-surface-container/50">
                 {/* Decorative Sparkles */}
                 <span className="material-symbols-outlined absolute -top-4 -left-4 text-primary opacity-30 text-2xl">star_rate</span>
                 <span className="material-symbols-outlined absolute -bottom-4 -right-4 text-primary opacity-30 text-2xl">star_rate</span>
                 
                 <QRCodeSVG
                   value={url}
-                  size={180}
+                  size={160}
                   fgColor={qrColor}
                   level="H"
                   includeMargin={true}
@@ -174,7 +174,7 @@ export function QRPosterRenderer({ data, url, className = "", id }: QRPosterRend
                 <div className="relative bg-white p-8 rounded-[3rem] shadow-xl border border-surface-container/50">
                   <QRCodeSVG
                     value={url}
-                    size={240}
+                    size={200}
                     fgColor={qrColor}
                     level="H"
                     includeMargin={false}

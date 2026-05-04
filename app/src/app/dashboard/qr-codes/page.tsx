@@ -262,13 +262,9 @@ export default function QRCodesPage() {
         <main className="flex-1 bg-[#FDFCFB] relative overflow-hidden flex flex-col">
           {/* Canvas Toolbar */}
           <div className="absolute top-8 left-1/2 -translate-x-1/2 z-10 flex items-center gap-2 px-4 py-2 bg-white/90 backdrop-blur-xl rounded-full shadow-2xl shadow-black/5 border border-white/50">
-             <div className="flex items-center gap-1 border-r border-surface-container pr-2">
+             <div className="flex items-center gap-1 px-2">
                 <button className="p-2 hover:bg-surface-container rounded-full text-secondary hover:text-[#1A1009] transition-colors"><span className="material-symbols-outlined text-lg">zoom_in</span></button>
                 <button className="p-2 hover:bg-surface-container rounded-full text-secondary hover:text-[#1A1009] transition-colors"><span className="material-symbols-outlined text-lg">zoom_out</span></button>
-             </div>
-             <div className="px-3 flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-                <span className="text-[10px] font-black uppercase tracking-widest text-secondary">Live Rendering</span>
              </div>
           </div>
 
@@ -279,11 +275,12 @@ export default function QRCodesPage() {
               {/* Table Stand Mockup Visual */}
               <div className="absolute -bottom-10 left-1/2 -translate-x-1/2 w-[110%] h-8 bg-surface-container-highest/30 blur-2xl rounded-full -z-10 group-hover:bg-primary/10" />
               
-              <div className="w-[380px] lg:w-[450px] aspect-[1/1.414] bg-white shadow-[0_40px_100px_rgba(0,0,0,0.12)] rounded-[1.5rem] overflow-hidden relative border border-white/50">
+              <div className="w-[380px] lg:w-[450px] aspect-[1/1.414] bg-white shadow-[0_40px_100px_rgba(0,0,0,0.12)] rounded-[1.5rem] relative border border-white/50 flex flex-col">
                 <QRPosterRenderer
                   id="printable-poster"
                   data={posterData}
                   url={menuUrl || "https://menuzai.com"}
+                  className="flex-1"
                 />
               </div>
 
@@ -314,19 +311,50 @@ export default function QRCodesPage() {
         .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         
         @media print {
-          header, aside, .absolute.top-8 { display: none !important; }
-          body, main, #__next { background: white !important; }
-          .flex-1 { padding: 0 !important; margin: 0 !important; overflow: visible !important; }
+          /* Hide everything first */
+          header, aside, main > div:not(.perspective-1000), .absolute, button, nav, .bottom-nav { 
+            display: none !important; 
+          }
+          
+          /* Ensure parent containers don't clip or have background */
+          html, body, #__next, .h-screen, .flex-1, main { 
+            height: auto !important;
+            overflow: visible !important;
+            background: white !important;
+            margin: 0 !important;
+            padding: 0 !important;
+          }
+
+          /* Reset layout styles */
+          .flex, .grid { display: block !important; }
+
+          .perspective-1000 {
+            perspective: none !important;
+            padding: 0 !important;
+            display: block !important;
+          }
+
+          .relative.group {
+            transform: none !important;
+            display: block !important;
+          }
+
           #printable-poster {
-            position: fixed !important;
+            position: relative !important;
+            width: 210mm !important; /* A4 Width */
+            height: 297mm !important; /* A4 Height */
             left: 0 !important;
             top: 0 !important;
-            width: 100% !important;
-            height: 100% !important;
             border: none !important;
             box-shadow: none !important;
             border-radius: 0 !important;
             transform: none !important;
+            page-break-after: always !important;
+          }
+
+          /* Hide mockup elements */
+          .bg-surface-container-highest\/30, .shadow-\[0_40px_100px_rgba\(0\,0\,0\,0\.12\)\], .rounded-\[1\.5rem\], .border-white\/50 {
+            display: none !important;
           }
         }
       `}} />
