@@ -260,13 +260,7 @@ export default function QRCodesPage() {
 
         {/* Right: Canvas Area */}
         <main className="flex-1 bg-[#FDFCFB] relative overflow-hidden flex flex-col">
-          {/* Canvas Toolbar */}
-          <div className="absolute top-8 left-1/2 -translate-x-1/2 z-10 flex items-center gap-2 px-4 py-2 bg-white/90 backdrop-blur-xl rounded-full shadow-2xl shadow-black/5 border border-white/50">
-             <div className="flex items-center gap-1 px-2">
-                <button className="p-2 hover:bg-surface-container rounded-full text-secondary hover:text-[#1A1009] transition-colors"><span className="material-symbols-outlined text-lg">zoom_in</span></button>
-                <button className="p-2 hover:bg-surface-container rounded-full text-secondary hover:text-[#1A1009] transition-colors"><span className="material-symbols-outlined text-lg">zoom_out</span></button>
-             </div>
-          </div>
+
 
           {/* Canvas Context */}
           <div className="flex-1 flex items-center justify-center p-20 perspective-1000 overflow-auto hide-scrollbar">
