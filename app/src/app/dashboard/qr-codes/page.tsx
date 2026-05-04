@@ -1,183 +1,266 @@
 "use client";
 
-import { useState, useRef } from "react";
-import { QRCodeSVG } from "qrcode.react";
+import { useState, useRef, useEffect } from "react";
 import { useMenu } from "@/context/MenuContext";
+import { QRPosterRenderer } from "./QRPosterRenderer";
+import type { QRPosterData, QRTemplate } from "@/types/menu";
+import { toast } from "sonner";
+import { toPng } from "html-to-image";
+
+const TEMPLATES: QRTemplate[] = [
+  { id: "classic-frame", name: "Classic Poster", thumbnail: "", layout: "portrait" },
+  { id: "dark-premium", name: "Dark Premium", thumbnail: "", layout: "portrait" },
+  { id: "elegant-minimal", name: "Elegant Minimal", thumbnail: "", layout: "portrait" },
+];
+
+const PRESET_IMAGES = [
+  "https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?auto=format&fit=crop&q=80&w=800",
+  "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&q=80&w=800",
+  "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&q=80&w=800",
+  "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?auto=format&fit=crop&q=80&w=800",
+];
 
 export default function QRCodesPage() {
-  const { menuSlug, menuStatus } = useMenu();
+  const { menuSlug, menuStatus, menuStyle, restaurantName } = useMenu();
   const baseUrl = typeof window !== "undefined" ? window.location.origin : "https://menuzai.com";
+  
   const [tableNumber, setTableNumber] = useState("");
   const menuUrl = menuSlug && menuStatus === "published" 
-    ? `${baseUrl}/menu/${menuSlug}${tableNumber ? `?table=${encodeURIComponent(tableNumber)}` : ''}` 
+    ? `${baseUrl}/menu/${menuSlug}${tableNumber ? `?table=${encodeURIComponent(tableNumber)}` : ''}?src=qr` 
     : "";
-    
-  const [qrColor, setQrColor] = useState("#FF6B00");
-  const [bgColor] = useState("#ffffff");
-  const [showTableNum, setShowTableNum] = useState(true);
-  const qrRef = useRef<HTMLDivElement>(null);
 
-  const downloadPNG = () => {
-    const svg = document.getElementById("qr-code-svg");
-    if (!svg) return;
-    const svgData = new XMLSerializer().serializeToString(svg);
-    const canvas = document.createElement("canvas");
-    const ctx = canvas.getContext("2d");
-    const img = new Image();
-    img.onload = () => {
-      // Create a canvas large enough for the QR code and text
-      canvas.width = img.width + 40;
-      canvas.height = img.height + (showTableNum && tableNumber ? 80 : 40);
-      
-      if (!ctx) return;
-      ctx.fillStyle = bgColor;
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-      ctx.drawImage(img, 20, 20);
+  const [posterData, setPosterData] = useState<QRPosterData>({
+    templateId: "classic-frame",
+    headline: "Scan to View Our Menu",
+    subheadline: "Healthy & Delicious Food Delivered to Your Table",
+    footer: "Thank you for visiting us! We hope you enjoy your meal.",
+    backgroundImage: PRESET_IMAGES[0],
+    primaryColor: menuStyle.primaryColor || "#FF6B00",
+    textColor: "#1A1009",
+    qrColor: "#000000",
+  });
 
-      // Add text if needed
-      if (showTableNum && tableNumber) {
-        ctx.fillStyle = qrColor;
-        ctx.font = "bold 24px sans-serif";
-        ctx.textAlign = "center";
-        ctx.fillText(`Table ${tableNumber}`, canvas.width / 2, canvas.height - 20);
-      }
+  const posterRef = useRef<HTMLDivElement>(null);
+  const [isExporting, setIsExporting] = useState(false);
 
-      const pngFile = canvas.toDataURL("image/png");
-      const downloadLink = document.createElement("a");
-      downloadLink.download = `menu-qr${tableNumber ? `-table-${tableNumber}` : ""}.png`;
-      downloadLink.href = pngFile;
-      downloadLink.click();
-    };
-    img.src = "data:image/svg+xml;base64," + btoa(svgData);
+  const downloadPoster = async () => {
+    if (!posterRef.current) return;
+    setIsExporting(true);
+    try {
+      const dataUrl = await toPng(posterRef.current, { 
+        quality: 1.0,
+        pixelRatio: 2, // High resolution for print
+        cacheBust: true,
+      });
+      const link = document.createElement("a");
+      link.download = `${restaurantName || 'menu'}-qr-poster.png`;
+      link.href = dataUrl;
+      link.click();
+      toast.success("Poster exported successfully!");
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to export poster. Please try again.");
+    } finally {
+      setIsExporting(false);
+    }
   };
 
   return (
-    <div className="p-6 lg:p-12 pb-24 lg:pb-12">
-      <div className="mb-10">
-        <h1 className="text-3xl font-[var(--font-headline)] font-extrabold tracking-tight mb-1">QR Code Generator</h1>
-        <p className="text-secondary">Generate a branded QR code for your digital menu</p>
+    <div className="p-6 lg:p-12 pb-24 lg:pb-12 h-screen flex flex-col overflow-hidden">
+      <div className="flex justify-between items-end mb-8 shrink-0">
+        <div>
+          <h1 className="text-3xl font-[var(--font-headline)] font-extrabold tracking-tight mb-1">Printable QR Designs</h1>
+          <p className="text-secondary">Create and customize ready-to-print menu posters</p>
+        </div>
+        {!menuUrl && (
+          <div className="bg-amber-50 border border-amber-200 px-4 py-2 rounded-xl flex items-center gap-2 text-amber-700 text-xs font-bold">
+            <span className="material-symbols-outlined text-sm">warning</span>
+            Publish menu first to link QR code
+          </div>
+        )}
       </div>
 
-      {!menuUrl && (
-        <div className="mb-8 bg-primary/5 border border-primary/20 rounded-2xl p-6 text-center">
-          <span className="material-symbols-outlined text-primary text-3xl mb-2 block">info</span>
-          <p className="font-bold text-sm">Publish your menu first to generate a QR code.</p>
-          <p className="text-secondary text-xs mt-1">Go to the Menu Editor and click &quot;Publish Menu&quot;.</p>
-        </div>
-      )}
+      <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-12 gap-12 overflow-hidden">
+        {/* Left: Customization Sidebar */}
+        <div className="lg:col-span-5 xl:col-span-4 flex flex-col gap-6 overflow-y-auto pr-4 hide-scrollbar">
+          
+          <section className="bg-surface-container-lowest p-6 rounded-[2rem] border border-surface-container/50">
+            <h3 className="text-xs font-black uppercase tracking-[0.2em] text-secondary mb-4">Choose Template</h3>
+            <div className="grid grid-cols-3 gap-3">
+              {TEMPLATES.map((t) => (
+                <button
+                  key={t.id}
+                  onClick={() => setPosterData({ ...posterData, templateId: t.id })}
+                  className={`flex flex-col items-center gap-2 p-2 rounded-2xl transition-all ${posterData.templateId === t.id ? "bg-primary/5 ring-2 ring-primary" : "bg-surface-container-low hover:bg-surface-container-high"}`}
+                >
+                  <div className={`w-full aspect-[1/1.4] rounded-lg border border-outline-variant/20 flex items-center justify-center ${t.id === 'classic-frame' ? 'bg-white' : t.id === 'dark-premium' ? 'bg-black' : 'bg-surface-container'}`}>
+                    <span className="material-symbols-outlined opacity-30">description</span>
+                  </div>
+                  <span className="text-[10px] font-bold truncate w-full text-center">{t.name}</span>
+                </button>
+              ))}
+            </div>
+          </section>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-        {/* QR Preview */}
-        <div className="flex flex-col items-center">
-          <div ref={qrRef} className="bg-surface-container-lowest p-8 rounded-[2rem] shadow-lg border border-surface-container/50 mb-8 flex flex-col items-center">
-            <QRCodeSVG
-              id="qr-code-svg"
-              value={menuUrl || "https://menuzai.com"}
-              size={280}
-              fgColor={qrColor}
-              bgColor={bgColor}
-              level="H"
-              includeMargin={true}
-            />
-            {showTableNum && tableNumber && (
-              <p className="mt-4 text-2xl font-bold font-[var(--font-headline)] tracking-tight" style={{ color: qrColor }}>
-                Table {tableNumber}
-              </p>
-            )}
-            {showTableNum && !tableNumber && (
-              <p className="mt-4 text-xl font-bold font-[var(--font-headline)] tracking-tight" style={{ color: qrColor }}>
-                Scan to Order
-              </p>
-            )}
-          </div>
-          <p className="text-sm text-secondary text-center mb-6">
-            &quot;Print this and place it on your tables&quot;
-          </p>
-          <div className="flex gap-4 w-full max-w-sm">
-            <button onClick={downloadPNG} disabled={!menuUrl} className="flex-1 py-4 bg-gradient-to-br from-primary to-primary-container rounded-2xl font-bold text-white shadow-lg shadow-primary/20 active:scale-95 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed border-none">
-              <span className="material-symbols-outlined text-sm">download</span> Download PNG
-            </button>
-            <button onClick={() => window.print()} disabled={!menuUrl} className="flex-1 py-4 bg-surface-container-highest rounded-2xl font-bold text-on-surface hover:bg-surface-variant transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed border-none">
-              <span className="material-symbols-outlined text-sm">print</span> Print
-            </button>
-          </div>
-        </div>
-
-        {/* Customization */}
-        <div className="space-y-8">
-          <div className="bg-surface-container-lowest p-8 rounded-[2rem] border border-surface-container/50">
-            <h3 className="font-[var(--font-headline)] font-bold text-lg mb-6">Customization</h3>
-            <div className="space-y-6">
+          <section className="bg-surface-container-lowest p-6 rounded-[2rem] border border-surface-container/50 space-y-6">
+            <h3 className="text-xs font-black uppercase tracking-[0.2em] text-secondary">Content</h3>
+            
+            <div className="space-y-4">
               <div>
-                <label className="text-xs font-bold text-secondary uppercase tracking-[0.2em] mb-3 block">QR Code Color</label>
-                <div className="grid grid-cols-4 gap-3">
-                {["#FF6B00", "#1B5E20", "#0D47A1", "#3E2723"].map((color) => {
-                  const colorClasses: Record<string, string> = {
-                    "#FF6B00": "bg-[#FF6B00]",
-                    "#1B5E20": "bg-[#1B5E20]",
-                    "#0D47A1": "bg-[#0D47A1]",
-                    "#3E2723": "bg-[#3E2723]",
-                  };
-                  return (
-                    <button key={color} onClick={() => setQrColor(color)}
-                      className={`aspect-square rounded-full border-4 transition-all ${colorClasses[color]} ${qrColor === color ? "border-primary-container scale-110" : "border-transparent hover:scale-105"}`}
-                      title={`Select QR Color ${color}`}
-                      aria-label={`Select QR Color ${color}`} />
-                  );
-                })}
-              </div>
+                <label className="text-[10px] font-bold text-secondary uppercase tracking-widest mb-1.5 block">Headline</label>
+                <input
+                  className="w-full bg-surface-container-low border-none rounded-xl py-3 px-4 text-sm focus:ring-2 focus:ring-primary/20"
+                  value={posterData.headline}
+                  onChange={(e) => setPosterData({ ...posterData, headline: e.target.value })}
+                />
               </div>
               
               <div>
-                <label className="text-xs font-bold text-secondary uppercase tracking-[0.2em] mb-3 block">Table Number (Optional)</label>
-                <input 
-                  className="w-full bg-surface-container-low border-none rounded-xl py-3 px-4 text-sm focus:ring-2 focus:ring-primary/20"
-                  placeholder="e.g. 12" 
-                  value={tableNumber} 
-                  onChange={(e) => setTableNumber(e.target.value)} 
+                <label className="text-[10px] font-bold text-secondary uppercase tracking-widest mb-1.5 block">Sub-headline</label>
+                <textarea
+                  className="w-full bg-surface-container-low border-none rounded-xl py-3 px-4 text-sm focus:ring-2 focus:ring-primary/20 h-20 resize-none"
+                  value={posterData.subheadline}
+                  onChange={(e) => setPosterData({ ...posterData, subheadline: e.target.value })}
                 />
               </div>
 
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="font-bold text-sm">Show Text Label</p>
-                  <p className="text-xs text-secondary mt-0.5">Display table number below QR code</p>
-                </div>
-                <button
-                  onClick={() => setShowTableNum(!showTableNum)}
-                  className={`w-12 h-7 rounded-full transition-all relative ${showTableNum ? "bg-primary" : "bg-surface-container-highest"}`}
-                >
-                  <div className={`w-5 h-5 bg-white rounded-full absolute top-1 transition-all shadow-sm ${showTableNum ? "right-1" : "left-1"}`} />
-                </button>
+              <div>
+                <label className="text-[10px] font-bold text-secondary uppercase tracking-widest mb-1.5 block">Footer / Address</label>
+                <input
+                  className="w-full bg-surface-container-low border-none rounded-xl py-3 px-4 text-sm focus:ring-2 focus:ring-primary/20"
+                  value={posterData.footer}
+                  onChange={(e) => setPosterData({ ...posterData, footer: e.target.value })}
+                />
               </div>
 
               <div>
-                <label className="text-xs font-bold text-secondary uppercase tracking-[0.2em] mb-3 block">Menu URL</label>
-                <div className="flex items-center gap-2 bg-surface-container-low rounded-xl p-3">
-                  <span className="material-symbols-outlined text-secondary text-sm">link</span>
-                  <input className="w-full bg-surface-container-low border-none py-1 px-2 text-sm focus:outline-none"
-                placeholder="Publish menu first" value={menuUrl} readOnly 
-                title="QR Code Link" aria-label="QR Code Link" />
-                  <button onClick={() => navigator.clipboard.writeText(menuUrl)} className="text-primary text-xs font-bold hover:bg-primary/5 px-2 py-1 rounded-lg transition-colors border-none cursor-pointer">Copy</button>
+                <label className="text-[10px] font-bold text-secondary uppercase tracking-widest mb-1.5 block">Table Number (URL Param)</label>
+                <input
+                  className="w-full bg-surface-container-low border-none rounded-xl py-3 px-4 text-sm focus:ring-2 focus:ring-primary/20"
+                  placeholder="e.g. 05"
+                  value={tableNumber}
+                  onChange={(e) => setTableNumber(e.target.value)}
+                />
+              </div>
+            </div>
+          </section>
+
+          <section className="bg-surface-container-lowest p-6 rounded-[2rem] border border-surface-container/50 space-y-6">
+            <h3 className="text-xs font-black uppercase tracking-[0.2em] text-secondary">Style</h3>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-[10px] font-bold text-secondary uppercase tracking-widest mb-1.5 block">Brand Color</label>
+                <div className="flex gap-2">
+                  <input
+                    type="color"
+                    className="w-8 h-8 rounded-full border-none p-0 overflow-hidden cursor-pointer"
+                    value={posterData.primaryColor}
+                    onChange={(e) => setPosterData({ ...posterData, primaryColor: e.target.value })}
+                  />
+                  <span className="text-xs font-mono font-bold self-center">{posterData.primaryColor}</span>
+                </div>
+              </div>
+              <div>
+                <label className="text-[10px] font-bold text-secondary uppercase tracking-widest mb-1.5 block">QR Color</label>
+                <div className="flex gap-2">
+                  <input
+                    type="color"
+                    className="w-8 h-8 rounded-full border-none p-0 overflow-hidden cursor-pointer"
+                    value={posterData.qrColor}
+                    onChange={(e) => setPosterData({ ...posterData, qrColor: e.target.value })}
+                  />
+                  <span className="text-xs font-mono font-bold self-center">{posterData.qrColor}</span>
                 </div>
               </div>
             </div>
+
+            <div>
+              <label className="text-[10px] font-bold text-secondary uppercase tracking-widest mb-3 block">Background Image</label>
+              <div className="grid grid-cols-4 gap-2">
+                {PRESET_IMAGES.map((img, i) => (
+                  <button
+                    key={i}
+                    onClick={() => setPosterData({ ...posterData, backgroundImage: img })}
+                    className={`aspect-square rounded-lg overflow-hidden border-2 transition-all ${posterData.backgroundImage === img ? "border-primary scale-105" : "border-transparent opacity-60 hover:opacity-100"}`}
+                  >
+                    <img src={img} alt="Preset" className="w-full h-full object-cover" />
+                  </button>
+                ))}
+                <button className="aspect-square rounded-lg border-2 border-dashed border-outline-variant flex items-center justify-center text-secondary hover:text-primary hover:border-primary transition-all">
+                  <span className="material-symbols-outlined text-sm">add</span>
+                </button>
+              </div>
+            </div>
+          </section>
+        </div>
+
+        {/* Right: Preview & Actions */}
+        <div className="lg:col-span-7 xl:col-span-8 flex flex-col items-center justify-center bg-surface-container/30 rounded-[3rem] p-8 lg:p-12 relative overflow-hidden">
+          <div className="absolute top-8 left-8 flex items-center gap-4">
+             <span className="px-3 py-1 bg-white/50 backdrop-blur-md rounded-full text-[10px] font-black uppercase tracking-widest border border-white/20">Preview</span>
+          </div>
+          
+          <div className="w-full h-full flex flex-col items-center justify-center gap-8">
+            <div className="w-full max-w-[400px] transform scale-90 lg:scale-100 transition-transform origin-center">
+              <QRPosterRenderer
+                id="printable-poster"
+                data={posterData}
+                url={menuUrl || "https://menuzai.com"}
+              />
+              {/* Hidden copy for high-res export */}
+              <div className="fixed -left-[10000px] top-0">
+                 <div ref={posterRef} className="w-[800px] h-[1131px]">
+                   <QRPosterRenderer
+                    data={posterData}
+                    url={menuUrl || "https://menuzai.com"}
+                    className="!shadow-none !rounded-none"
+                  />
+                 </div>
+              </div>
+            </div>
+
+            <div className="flex gap-4 w-full max-w-sm shrink-0">
+              <button
+                onClick={downloadPoster}
+                disabled={isExporting}
+                className="flex-1 py-4 bg-black text-white rounded-2xl font-bold text-sm shadow-xl shadow-black/20 hover:opacity-90 active:scale-95 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+              >
+                {isExporting ? (
+                  <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+                ) : (
+                  <span className="material-symbols-outlined text-[18px]">download</span>
+                )}
+                <span>Download PNG</span>
+              </button>
+              <button
+                onClick={() => window.print()}
+                className="flex-1 py-4 bg-white text-black rounded-2xl font-bold text-sm shadow-xl shadow-black/5 hover:bg-surface-container-low active:scale-95 transition-all flex items-center justify-center gap-2 border border-surface-container"
+              >
+                <span className="material-symbols-outlined text-[18px]">print</span>
+                <span>Print Poster</span>
+              </button>
+            </div>
+            
+            <p className="text-[10px] font-bold text-secondary uppercase tracking-[0.2em] opacity-50">Recommended: A4 or A5 Portrait</p>
           </div>
         </div>
       </div>
-      <style dangerouslySetInnerHTML={{__html: `
+
+      <style dangerouslySetInnerHTML={{ __html: `
         @media print {
           body * { visibility: hidden; }
-          #qr-code-svg, #qr-code-svg * { visibility: visible; }
-          .font-\\[var\\(--font-headline\\)\\] { visibility: visible; }
-          .bg-surface-container-lowest.p-8 {
-            visibility: visible;
-            position: absolute;
-            left: 50%;
-            top: 50%;
-            transform: translate(-50%, -50%);
+          #printable-poster, #printable-poster * { visibility: visible; }
+          #printable-poster {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
             border: none;
             box-shadow: none;
+            border-radius: 0;
+            transform: none !important;
           }
         }
       `}} />

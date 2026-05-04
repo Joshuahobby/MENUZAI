@@ -55,3 +55,22 @@ export interface MenuStyle {
 export interface CartItem extends MenuItem {
   quantity: number;
 }
+
+export interface QRTemplate {
+  id: string;
+  name: string;
+  thumbnail: string;
+  layout: "portrait" | "square" | "landscape";
+}
+
+export interface QRPosterData {
+  templateId: string;
+  headline: string;
+  subheadline: string;
+  footer?: string;
+  backgroundImage?: string;
+  logoUrl?: string;
+  primaryColor: string;
+  textColor: string;
+  qrColor: string;
+}
