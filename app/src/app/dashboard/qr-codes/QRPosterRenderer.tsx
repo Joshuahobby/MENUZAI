@@ -12,6 +12,15 @@ interface QRPosterRendererProps {
 }
 
 export function QRPosterRenderer({ data, url, className = "", id }: QRPosterRendererProps) {
+  const {
+    templateId,
+    headline,
+    subheadline,
+    footer,
+    backgroundImage,
+    logoUrl,
+    primaryColor,
+    textColor,
     qrColor,
     pageSize,
   } = data;
