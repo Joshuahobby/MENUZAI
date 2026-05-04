@@ -108,24 +108,23 @@ export default function QRCodesPage() {
 
       <div className="flex-1 flex min-h-0 overflow-hidden">
         {/* Left Sidebar: Controls */}
-        <aside className="w-[380px] border-r border-[#F0EBE8] bg-white flex flex-col overflow-hidden">
+        <aside className="w-[320px] border-r border-[#F0EBE8] bg-white flex flex-col overflow-hidden">
           <div className="flex-1 overflow-y-auto p-8 space-y-10 hide-scrollbar">
             
             {/* Template Selection */}
             <section>
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-[#1A1009]">Choose Layout</h3>
-                <span className="px-2 py-0.5 bg-surface-container rounded-full text-[8px] font-black opacity-40 uppercase">3 Ready</span>
+              <div className="mb-4">
+                <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-[#1A1009]">Layout</h3>
               </div>
               <div className="grid grid-cols-1 gap-3">
                 {TEMPLATES.map((t) => (
                   <button
                     key={t.id}
                     onClick={() => setPosterData({ ...posterData, templateId: t.id })}
-                    className={`group relative flex items-center gap-4 p-4 rounded-3xl transition-all border-2 ${
+                    className={`group relative flex items-center gap-3 p-3 rounded-2xl transition-all border-2 ${
                       posterData.templateId === t.id 
                         ? "bg-[#1A1009]/5 border-[#1A1009]" 
-                        : "bg-transparent border-transparent hover:bg-surface-container/30"
+                        : "bg-transparent border-transparent hover:bg-surface-container/20"
                     }`}
                   >
                     <div className={`w-12 h-16 rounded-lg border-2 overflow-hidden flex-shrink-0 transition-transform group-hover:scale-105 ${
@@ -140,12 +139,11 @@ export default function QRCodesPage() {
                         <div className="h-2 w-full bg-current opacity-10 rounded-sm" />
                       </div>
                     </div>
-                    <div className="text-left">
-                      <p className="text-xs font-black text-[#1A1009] uppercase tracking-wider">{t.name}</p>
-                      <p className="text-[9px] font-bold text-secondary opacity-60">Best for: {t.id === 'classic-frame' ? 'Casual Dining' : t.id === 'dark-premium' ? 'Fine Dining' : 'Modern Cafes'}</p>
+                    <div className="text-left flex-1 min-w-0">
+                      <p className="text-[10px] font-black text-[#1A1009] uppercase tracking-wider truncate">{t.name}</p>
                     </div>
                     {posterData.templateId === t.id && (
-                      <span className="material-symbols-outlined absolute right-4 text-primary text-lg">check_circle</span>
+                      <span className="material-symbols-outlined text-primary text-base">check_circle</span>
                     )}
                   </button>
                 ))}
@@ -247,13 +245,13 @@ export default function QRCodesPage() {
             </section>
           </div>
 
-          <div className="p-8 border-t border-[#F0EBE8] bg-surface-container-lowest/50 shrink-0">
+          <div className="p-6 border-t border-[#F0EBE8] bg-surface-container-lowest/50 shrink-0">
              <button
               onClick={() => window.print()}
-              className="w-full py-4 bg-white text-black border border-surface-container rounded-3xl font-black text-[11px] uppercase tracking-widest shadow-xl shadow-black/5 hover:bg-surface-container-low active:scale-95 transition-all flex items-center justify-center gap-2"
+              className="w-full py-3.5 bg-white text-black border border-surface-container rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl shadow-black/5 hover:bg-surface-container-low active:scale-95 transition-all flex items-center justify-center gap-2"
             >
-              <span className="material-symbols-outlined text-[18px]">print</span>
-              Open Print Menu
+              <span className="material-symbols-outlined text-[16px]">print</span>
+              Print Poster
             </button>
           </div>
         </aside>
@@ -266,10 +264,9 @@ export default function QRCodesPage() {
           <div className="flex-1 flex items-center justify-center p-8 lg:p-12 perspective-1000 overflow-hidden">
             {/* The Poster Mockup */}
             <div className="relative group transition-all duration-700 hover:rotate-y-2 hover:scale-[1.01] h-full flex items-center justify-center">
-              {/* Table Stand Mockup Visual */}
-              <div className="absolute -bottom-10 left-1/2 -translate-x-1/2 w-[110%] h-8 bg-surface-container-highest/30 blur-2xl rounded-full -z-10 group-hover:bg-primary/10" />
+
               
-              <div className="h-full max-h-[85vh] aspect-[1/1.414] bg-white shadow-[0_40px_100px_rgba(0,0,0,0.12)] rounded-[1.5rem] relative border border-white/50 flex flex-col">
+              <div className="h-full max-h-[80vh] aspect-[1/1.414] bg-white shadow-[0_40px_100px_rgba(0,0,0,0.12)] rounded-[1.5rem] relative border border-white/50 flex flex-col">
                 <QRPosterRenderer
                   id="printable-poster"
                   data={posterData}
@@ -278,10 +275,7 @@ export default function QRCodesPage() {
                 />
               </div>
 
-              {/* Resolution Badge */}
-              <div className="absolute -right-12 top-1/2 -translate-y-1/2 -rotate-90">
-                 <span className="text-[10px] font-black text-secondary uppercase tracking-[0.5em] opacity-30">Portrait A4 Canvas</span>
-              </div>
+
             </div>
 
             {/* Hidden copy for high-res export */}

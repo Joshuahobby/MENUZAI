@@ -60,12 +60,12 @@ export function QRPosterRenderer({ data, url, className = "", id }: QRPosterRend
                   </div>
                 )}
                 
-                <div className="mt-2 space-y-2">
-                  <h2 className="text-xl lg:text-2xl font-[var(--font-headline)] font-black uppercase tracking-tight leading-none" style={{ color: primaryColor }}>
+                <div className="mt-1 space-y-1">
+                  <h2 className="text-xl lg:text-xl font-[var(--font-headline)] font-black uppercase tracking-tight leading-none" style={{ color: primaryColor }}>
                     {headline}
                   </h2>
-                  <div className="h-0.5 w-12 bg-primary/20 mx-auto rounded-full" />
-                  <p className="text-[10px] lg:text-xs font-bold opacity-80 max-w-[85%] mx-auto leading-tight">{subheadline}</p>
+                  <div className="h-0.5 w-10 bg-primary/20 mx-auto rounded-full" />
+                  <p className="text-[9px] lg:text-[10px] font-bold opacity-80 max-w-[85%] mx-auto leading-tight">{subheadline}</p>
                 </div>
               </div>
 
@@ -84,9 +84,9 @@ export function QRPosterRenderer({ data, url, className = "", id }: QRPosterRend
               </div>
 
               {footer && (
-                <div className="space-y-1">
-                  <div className="h-[1px] w-8 bg-outline-variant/30 mx-auto mb-3" />
-                  <p className="text-[10px] font-bold opacity-60 tracking-wider">
+                <div className="space-y-0.5">
+                  <div className="h-[1px] w-6 bg-outline-variant/30 mx-auto mb-2" />
+                  <p className="text-[9px] font-bold opacity-60 tracking-wider leading-tight px-4">
                     {footer}
                   </p>
                 </div>
@@ -97,7 +97,7 @@ export function QRPosterRenderer({ data, url, className = "", id }: QRPosterRend
 
       case "dark-premium":
         return (
-          <div className="w-full h-full relative overflow-hidden flex flex-col items-center justify-between p-10 lg:p-12 text-center bg-black">
+          <div className="w-full h-full relative overflow-hidden flex flex-col items-center justify-between p-8 text-center bg-black">
             {backgroundImage && (
               <>
                 <img src={backgroundImage} alt="Background" className="absolute inset-0 w-full h-full object-cover opacity-60 scale-110" />
@@ -105,17 +105,17 @@ export function QRPosterRenderer({ data, url, className = "", id }: QRPosterRend
               </>
             )}
             
-            <div className="relative z-10 flex flex-col items-center gap-10 w-full">
-              <div className="space-y-4">
+            <div className="relative z-10 flex flex-col items-center gap-6 w-full">
+              <div className="space-y-2">
                 <div className="flex items-center justify-center gap-3">
                   <div className="h-[1px] w-6 bg-white/30" />
                   <span className="text-[10px] font-black text-white/50 uppercase tracking-[0.4em]">Restaurant</span>
                   <div className="h-[1px] w-6 bg-white/30" />
                 </div>
-                <h2 className="text-4xl font-[var(--font-headline)] font-black text-white uppercase tracking-tighter leading-none">
+                <h2 className="text-3xl font-[var(--font-headline)] font-black text-white uppercase tracking-tighter leading-none">
                   {headline}
                 </h2>
-                <p className="text-sm font-bold text-white/80 tracking-wide">{subheadline}</p>
+                <p className="text-[11px] font-bold text-white/80 tracking-wide">{subheadline}</p>
               </div>
 
               <div className="relative group">
@@ -125,23 +125,23 @@ export function QRPosterRenderer({ data, url, className = "", id }: QRPosterRend
                 <div className="absolute -bottom-3 -left-3 w-10 h-10 border-b-4 border-l-4 border-white rounded-bl-2xl opacity-80" />
                 <div className="absolute -bottom-3 -right-3 w-10 h-10 border-b-4 border-r-4 border-white rounded-br-2xl opacity-80" />
                 
-                <div className="p-6 bg-white/95 backdrop-blur-2xl rounded-[2.5rem] shadow-[0_0_80px_rgba(255,255,255,0.15)]">
+                <div className="p-5 bg-white/95 backdrop-blur-2xl rounded-[2rem] shadow-[0_0_80px_rgba(255,255,255,0.15)]">
                   <QRCodeSVG
                     value={url}
-                    size={160}
+                    size={150}
                     fgColor={qrColor}
                     level="H"
                     includeMargin={true}
                   />
-                  <div className="mt-4 py-2 px-6 bg-black rounded-full shadow-lg shadow-black/20 group-hover:scale-105 transition-transform">
-                    <span className="text-[9px] font-black text-white uppercase tracking-[0.3em]">Scan Now</span>
+                  <div className="mt-3 py-1.5 px-5 bg-black rounded-full shadow-lg shadow-black/20 group-hover:scale-105 transition-transform">
+                    <span className="text-[8px] font-black text-white uppercase tracking-[0.3em]">Scan Now</span>
                   </div>
                 </div>
               </div>
 
               {footer && (
-                <div className="mt-4">
-                  <p className="text-[10px] font-bold text-white/40 uppercase tracking-widest max-w-[80%] mx-auto leading-loose">
+                <div className="mt-2">
+                  <p className="text-[9px] font-bold text-white/40 uppercase tracking-widest max-w-[80%] mx-auto leading-tight">
                     {footer}
                   </p>
                 </div>
@@ -159,13 +159,13 @@ export function QRPosterRenderer({ data, url, className = "", id }: QRPosterRend
               <div className="text-center">
                 <div className="flex items-center justify-center gap-2 mb-2">
                   <div className="w-8 h-[1px] bg-outline-variant" />
-                  <span className="text-[10px] font-black uppercase tracking-[0.3em] text-secondary">Welcome</span>
+                  <span className="text-[9px] font-black uppercase tracking-[0.3em] text-secondary">Welcome</span>
                   <div className="w-8 h-[1px] bg-outline-variant" />
                 </div>
-                <h2 className="text-3xl font-[var(--font-headline)] font-extrabold tracking-tight mb-2">
+                <h2 className="text-2xl font-[var(--font-headline)] font-extrabold tracking-tight mb-2">
                   {headline}
                 </h2>
-                <p className="text-sm font-medium text-secondary">{subheadline}</p>
+                <p className="text-xs font-medium text-secondary">{subheadline}</p>
               </div>
 
               <div className="relative">
@@ -173,7 +173,7 @@ export function QRPosterRenderer({ data, url, className = "", id }: QRPosterRend
                 <div className="relative bg-white p-8 rounded-[3rem] shadow-xl border border-surface-container/50">
                   <QRCodeSVG
                     value={url}
-                    size={200}
+                    size={160}
                     fgColor={qrColor}
                     level="H"
                     includeMargin={false}
@@ -187,9 +187,9 @@ export function QRPosterRenderer({ data, url, className = "", id }: QRPosterRend
               </div>
 
               <div className="text-center">
-                <p className="text-sm font-bold mb-4" style={{ color: primaryColor }}>SCAN ME</p>
+                <p className="text-xs font-black mb-3" style={{ color: primaryColor }}>SCAN TO VIEW</p>
                 {footer && (
-                  <p className="text-[10px] font-medium opacity-60">
+                  <p className="text-[9px] font-medium opacity-60 leading-tight px-6">
                     {footer}
                   </p>
                 )}
