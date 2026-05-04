@@ -50,6 +50,7 @@ export interface MenuStyle {
   currency: string;
   showImages?: boolean;
   templateId?: string;
+  logoUrl?: string;
 }
 
 export interface CartItem extends MenuItem {
