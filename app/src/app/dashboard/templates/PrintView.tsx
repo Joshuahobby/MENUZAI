@@ -19,6 +19,8 @@ const TEMPLATE_OPTIONS = [
   { id: "bistro-split", name: "Bistro Split" },
   { id: "photo-gallery", name: "Photo Gallery" },
   { id: "luxury-gold", name: "Luxury Gold" },
+  { id: "organic-clean", name: "Organic Clean" },
+  { id: "midnight-luxe", name: "Midnight Luxe" },
 ];
 
 export function PrintView({ templateId, templateName, restaurantData, onClose }: PrintViewProps) {

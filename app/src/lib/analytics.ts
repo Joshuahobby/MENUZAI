@@ -39,3 +39,11 @@ export function trackOrderClick(menuId: string, restaurantId: string, total: num
     session_id: getSessionId(),
   }).then(() => {});
 }
+export function trackQRScan(menuId: string, restaurantId: string) {
+  supabase.from("analytics_events").insert({
+    menu_id: menuId,
+    restaurant_id: restaurantId,
+    event_type: "qr_scan",
+    session_id: getSessionId(),
+  }).then(() => {});
+}
