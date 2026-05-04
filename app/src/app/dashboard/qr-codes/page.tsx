@@ -6,6 +6,7 @@ import { QRPosterRenderer } from "./QRPosterRenderer";
 import type { QRPosterData, QRTemplate } from "@/types/menu";
 import { toast } from "sonner";
 import { toPng } from "html-to-image";
+import jsPDF from "jspdf";
 
 const TEMPLATES: QRTemplate[] = [
   { id: "classic-frame", name: "Classic Poster", thumbnail: "", layout: "portrait" },
@@ -53,6 +54,45 @@ export default function QRCodesPage() {
   const posterRef = useRef<HTMLDivElement>(null);
   const [isExporting, setIsExporting] = useState(false);
 
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPosterData({ ...posterData, backgroundImage: reader.result as string });
+        toast.success("Custom image uploaded!");
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const downloadPDF = async () => {
+    if (!posterRef.current) return;
+    setIsExporting(true);
+    try {
+      const dataUrl = await toPng(posterRef.current, { 
+        quality: 1.0,
+        pixelRatio: 3, // Very high res for PDF
+        cacheBust: true,
+      });
+      
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4'
+      });
+      
+      pdf.addImage(dataUrl, 'PNG', 0, 0, 210, 297);
+      pdf.save(`${restaurantName || 'menu'}-qr-poster.pdf`);
+      toast.success("PDF exported successfully!");
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to export PDF.");
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
   const downloadPoster = async () => {
     if (!posterRef.current) return;
     setIsExporting(true);
@@ -94,14 +134,22 @@ export default function QRCodesPage() {
           <button
             onClick={downloadPoster}
             disabled={isExporting}
+            className="px-6 py-2.5 bg-white text-[#1A1009] border border-[#F0EBE8] rounded-full font-black text-[11px] uppercase tracking-widest shadow-sm hover:bg-surface-container/20 transition-all flex items-center gap-2 disabled:opacity-50"
+          >
+            <span className="material-symbols-outlined text-[16px]">image</span>
+            PNG
+          </button>
+          <button
+            onClick={downloadPDF}
+            disabled={isExporting}
             className="px-6 py-2.5 bg-[#1A1009] text-white rounded-full font-black text-[11px] uppercase tracking-widest shadow-lg shadow-black/10 hover:scale-105 active:scale-95 transition-all flex items-center gap-2 disabled:opacity-50"
           >
             {isExporting ? (
               <div className="w-3 h-3 border-2 border-white/20 border-t-white rounded-full animate-spin" />
             ) : (
-              <span className="material-symbols-outlined text-[16px]">download</span>
+              <span className="material-symbols-outlined text-[16px]">picture_as_pdf</span>
             )}
-            Save Image
+            Download PDF
           </button>
         </div>
       </header>
@@ -187,9 +235,19 @@ export default function QRCodesPage() {
                 <div>
                   <label className="text-[9px] font-black text-secondary uppercase tracking-widest mb-2 block">Sub-headline</label>
                   <textarea
-                    className="w-full bg-surface-container/50 border-none rounded-2xl py-3 px-4 text-xs font-bold focus:ring-2 focus:ring-primary/20 h-20 resize-none transition-all"
+                    className="w-full bg-surface-container/50 border-none rounded-2xl py-3 px-4 text-xs font-bold focus:ring-2 focus:ring-primary/20 h-16 resize-none transition-all"
                     value={posterData.subheadline}
                     onChange={(e) => setPosterData({ ...posterData, subheadline: e.target.value })}
+                  />
+                </div>
+
+                <div>
+                  <label className="text-[9px] font-black text-secondary uppercase tracking-widest mb-2 block">Footer Message</label>
+                  <textarea
+                    className="w-full bg-surface-container/50 border-none rounded-2xl py-3 px-4 text-xs font-bold focus:ring-2 focus:ring-primary/20 h-16 resize-none transition-all"
+                    placeholder="e.g. Thank you for visiting!"
+                    value={posterData.footer}
+                    onChange={(e) => setPosterData({ ...posterData, footer: e.target.value })}
                   />
                 </div>
 
@@ -221,24 +279,37 @@ export default function QRCodesPage() {
             <section className="space-y-6">
               <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-[#1A1009]">Visual Branding</h3>
               
-              <div className="flex items-center justify-between p-4 bg-surface-container/30 rounded-3xl border border-surface-container/50">
-                <div>
-                  <p className="text-[10px] font-black uppercase tracking-wider text-[#1A1009]">Theme Colors</p>
-                  <p className="text-[9px] font-bold text-secondary opacity-60">Sync with Brand Kit</p>
+              <div className="space-y-4">
+                <div className="flex flex-wrap gap-2">
+                  {["#FF6B00", "#1A1009", "#D4AF37", "#004d40", "#b71c1c"].map((color) => (
+                    <button
+                      key={color}
+                      onClick={() => setPosterData({ ...posterData, primaryColor: color })}
+                      className={`w-6 h-6 rounded-full border-2 ${posterData.primaryColor === color ? 'border-primary' : 'border-white'} shadow-sm transition-transform hover:scale-110`}
+                      style={{ backgroundColor: color }}
+                    />
+                  ))}
                 </div>
-                <div className="flex items-center gap-2">
-                  <input
-                    type="color"
-                    className="w-8 h-8 rounded-full border-2 border-white shadow-sm p-0 overflow-hidden cursor-pointer hover:scale-110 transition-transform"
-                    value={posterData.primaryColor}
-                    onChange={(e) => setPosterData({ ...posterData, primaryColor: e.target.value })}
-                  />
-                  <input
-                    type="color"
-                    className="w-8 h-8 rounded-full border-2 border-white shadow-sm p-0 overflow-hidden cursor-pointer hover:scale-110 transition-transform"
-                    value={posterData.qrColor}
-                    onChange={(e) => setPosterData({ ...posterData, qrColor: e.target.value })}
-                  />
+                
+                <div className="flex items-center justify-between p-4 bg-surface-container/30 rounded-3xl border border-surface-container/50">
+                  <div>
+                    <p className="text-[10px] font-black uppercase tracking-wider text-[#1A1009]">Custom Theme</p>
+                    <p className="text-[9px] font-bold text-secondary opacity-60">Accent & QR Colors</p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="color"
+                      className="w-8 h-8 rounded-full border-2 border-white shadow-sm p-0 overflow-hidden cursor-pointer hover:scale-110 transition-transform"
+                      value={posterData.primaryColor}
+                      onChange={(e) => setPosterData({ ...posterData, primaryColor: e.target.value })}
+                    />
+                    <input
+                      type="color"
+                      className="w-8 h-8 rounded-full border-2 border-white shadow-sm p-0 overflow-hidden cursor-pointer hover:scale-110 transition-transform"
+                      value={posterData.qrColor}
+                      onChange={(e) => setPosterData({ ...posterData, qrColor: e.target.value })}
+                    />
+                  </div>
                 </div>
               </div>
 
@@ -256,9 +327,19 @@ export default function QRCodesPage() {
                       <img src={img} alt="Preset" className="w-full h-full object-cover" />
                     </button>
                   ))}
-                  <button className="aspect-[3/4] rounded-xl border-2 border-dashed border-outline-variant flex flex-col items-center justify-center text-secondary hover:text-primary hover:border-primary transition-all gap-1">
+                  <button 
+                    onClick={() => document.getElementById('image-upload')?.click()}
+                    className="aspect-[3/4] rounded-xl border-2 border-dashed border-outline-variant flex flex-col items-center justify-center text-secondary hover:text-primary hover:border-primary transition-all gap-1"
+                  >
                     <span className="material-symbols-outlined text-sm">add</span>
                     <span className="text-[8px] font-black uppercase">Upload</span>
+                    <input 
+                      id="image-upload"
+                      type="file" 
+                      className="hidden" 
+                      accept="image/*"
+                      onChange={handleImageUpload}
+                    />
                   </button>
                 </div>
               </div>
