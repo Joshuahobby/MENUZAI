@@ -60,12 +60,25 @@ export const defaultStyle: MenuStyle = {
   primaryColor: "#FF6B00",
   secondaryColor: "#1E1E1E",
   backgroundColor: "#FFFFFF",
+  accentColor: "#FF6B00",
+  titleColor: "#1A1009",
+  sectionTitleColor: "#3D2410",
+  itemTextColor: "#4A3318",
+  priceTextColor: "#FF6B00",
+  dividerColor: "#B89060",
   headlineFont: "Plus Jakarta Sans",
   bodyFont: "Inter",
+  titleSize: 82,
+  sectionTitleSize: 18,
+  itemTextSize: 13,
   borderRadius: "2rem",
   layoutDensity: "comfortable",
   cardStyle: "elevated",
+  pagePadding: 44,
+  itemSpacing: 26,
   currency: "RWF",
+  showImages: true,
+  templateId: "vintage-parchment",
 };
 
 const MenuContext = createContext<MenuContextType | undefined>(undefined);
@@ -288,7 +301,7 @@ export function MenuProvider({ children }: { children: React.ReactNode }) {
   };
 
   const applyTemplate = (style: Partial<MenuStyle>) => {
-    setMenuStyle({ ...defaultStyle, ...style });
+    setMenuStyle((prev) => ({ ...prev, ...style }));
   };
 
   const switchMenu = useCallback(async (menuId: string): Promise<void> => {

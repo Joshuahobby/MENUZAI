@@ -86,12 +86,16 @@ export default function MenuEditorPage() {
 
   // Keep activeCategoryId pointing to a valid category
   useEffect(() => {
-    if (!activeCategoryId) {
-      if (categories.length > 0) setActiveCategoryId(categories[0].id);
+    if (!categories.length) {
+      if (activeCategoryId) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setActiveCategoryId(undefined);
+      }
       return;
     }
-    if (!categories.find((c) => c.id === activeCategoryId)) {
-      setActiveCategoryId(categories.length > 0 ? categories[0].id : undefined);
+    const currentIsValid = categories.some(c => c.id === activeCategoryId);
+    if (!activeCategoryId || !currentIsValid) {
+      setActiveCategoryId(categories[0].id);
     }
   }, [categories, activeCategoryId]);
 
@@ -99,12 +103,17 @@ export default function MenuEditorPage() {
   useEffect(() => {
     const el = containerRef.current;
     if (el) {
-      el.style.setProperty("--primary-color", menuStyle.primaryColor);
-      el.style.setProperty("--secondary-color", menuStyle.secondaryColor);
       el.style.setProperty("--bg-color", menuStyle.backgroundColor);
+      el.style.setProperty("--title-color", menuStyle.titleColor ?? "#1A1009");
+      el.style.setProperty("--section-title-color", menuStyle.sectionTitleColor ?? "#3D2410");
+      el.style.setProperty("--item-text-color", menuStyle.itemTextColor ?? "#4A3318");
+      el.style.setProperty("--price-text-color", menuStyle.priceTextColor ?? menuStyle.primaryColor);
+      el.style.setProperty("--divider-color", menuStyle.dividerColor ?? "#B89060");
       el.style.setProperty("--font-headline", menuStyle.headlineFont);
       el.style.setProperty("--font-body", menuStyle.bodyFont);
       el.style.setProperty("--border-radius", menuStyle.borderRadius);
+      el.style.setProperty("--page-padding", `${menuStyle.pagePadding ?? 44}px`);
+      el.style.setProperty("--item-spacing", `${menuStyle.itemSpacing ?? 26}px`);
     }
   }, [menuStyle]);
 
@@ -235,14 +244,13 @@ export default function MenuEditorPage() {
             </Link>
           )}
 
+          {/* Print Action */}
           <button
-            type="button"
             onClick={() => setIsPrintOpen(true)}
-            className="p-2 rounded-xl transition-all flex items-center gap-2 bg-surface-container-highest text-secondary hover:text-primary"
-            title="Print Menu"
+            className="flex items-center justify-center gap-2 px-6 h-11 rounded-full bg-on-surface text-surface hover:bg-on-surface/90 transition-all font-bold text-sm shadow-lg shadow-on-surface/10 group"
           >
-            <span className="material-symbols-outlined text-sm">print</span>
-            <span className="text-xs font-bold hidden md:inline">Print</span>
+            <span className="material-symbols-outlined text-[20px] group-hover:scale-110 transition-transform">visibility</span>
+            <span>Preview & Print</span>
           </button>
 
           <button
@@ -493,7 +501,7 @@ export default function MenuEditorPage() {
 
       {isPrintOpen && (
         <PrintView
-          templateId="vintage-parchment"
+          templateId={menuStyle.templateId ?? "vintage-parchment"}
           templateName="Print Menu"
           restaurantData={printData}
           onClose={() => setIsPrintOpen(false)}

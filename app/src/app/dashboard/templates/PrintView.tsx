@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useCallback, useRef } from "react";
+import { useCallback, useRef, useState } from "react";
 import { TemplatePreview, type TplData, BASE_W, BASE_H } from "./TemplatePreview";
 import { toast } from "sonner";
+import { useMenu } from "@/context/MenuContext";
 
 interface PrintViewProps {
   templateId: string;
@@ -20,20 +21,10 @@ const TEMPLATE_OPTIONS = [
   { id: "luxury-gold", name: "Luxury Gold" },
 ];
 
-const PRESET_COLORS = [
-  { name: "Amber", hex: "#C5A059" },
-  { name: "Orange", hex: "#FF6B00" },
-  { name: "Crimson", hex: "#C0392B" },
-  { name: "Ink", hex: "#1E1E1E" },
-  { name: "Forest", hex: "#27AE60" },
-  { name: "Ocean", hex: "#2980B9" },
-];
-
 export function PrintView({ templateId, templateName, restaurantData, onClose }: PrintViewProps) {
+  const { menuStyle, setMenuStyle } = useMenu();
   const [activeTemplate, setActiveTemplate] = useState(templateId);
   const [activeTemplateName, setActiveTemplateName] = useState(templateName);
-  const [primaryColor, setPrimaryColor] = useState("#C5A059");
-  const [bgColor] = useState("");
   const printRef = useRef<HTMLDivElement>(null);
 
   const handlePrint = useCallback(() => {
@@ -131,8 +122,7 @@ export function PrintView({ templateId, templateName, restaurantData, onClose }:
                 templateId={activeTemplate}
                 containerWidth={Math.min(520, typeof window !== "undefined" ? window.innerWidth * 0.55 : 520)}
                 data={restaurantData}
-                primaryColor={primaryColor || undefined}
-                backgroundColor={bgColor || undefined}
+                style={menuStyle}
               />
             </div>
           </div>
@@ -171,16 +161,17 @@ export function PrintView({ templateId, templateName, restaurantData, onClose }:
             <div>
               <label className="block text-[10px] font-bold text-secondary uppercase tracking-[0.2em] mb-4">Accent Color</label>
               <div className="grid grid-cols-6 gap-2 mb-3">
-                {PRESET_COLORS.map((color) => {
-                  const isActive = primaryColor.toLowerCase() === color.hex.toLowerCase();
+                {[
+                  "#C5A059", "#FF6B00", "#C0392B", "#1E1E1E", "#27AE60", "#2980B9"
+                ].map((hex) => {
+                  const isActive = menuStyle.primaryColor.toLowerCase() === hex.toLowerCase();
                   return (
                     <button
-                      key={color.hex}
+                      key={hex}
                       type="button"
-                      onClick={() => setPrimaryColor(color.hex)}
+                      onClick={() => setMenuStyle({ ...menuStyle, primaryColor: hex, accentColor: hex, priceTextColor: hex })}
                       className={`w-full aspect-square rounded-full flex items-center justify-center transition-all ${isActive ? "ring-4 ring-primary/20 ring-offset-2 scale-110" : "hover:scale-110"}`}
-                      style={{ backgroundColor: color.hex }}
-                      title={color.name}
+                      style={{ backgroundColor: hex }}
                     >
                       {isActive && <span className="material-symbols-outlined text-white text-xs">check</span>}
                     </button>
@@ -189,17 +180,17 @@ export function PrintView({ templateId, templateName, restaurantData, onClose }:
               </div>
               <label className="flex items-center gap-3 cursor-pointer group">
                 <div className="relative w-8 h-8 rounded-full overflow-hidden border-2 border-outline-variant/30 group-hover:border-primary/40 transition-all shrink-0">
-                  <div className="absolute inset-0" style={{ backgroundColor: primaryColor }} />
+                  <div className="absolute inset-0" style={{ backgroundColor: menuStyle.primaryColor }} />
                   <input
                     type="color"
-                    value={primaryColor}
-                    onChange={(e) => setPrimaryColor(e.target.value)}
+                    value={menuStyle.primaryColor}
+                    onChange={(e) => setMenuStyle({ ...menuStyle, primaryColor: e.target.value, accentColor: e.target.value, priceTextColor: e.target.value })}
                     className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
                     title="Pick custom accent"
                   />
                 </div>
                 <span className="text-xs font-bold text-secondary group-hover:text-primary transition-colors">Custom accent</span>
-                <span className="text-[10px] font-mono text-secondary ml-auto">{primaryColor}</span>
+                <span className="text-[10px] font-mono text-secondary ml-auto">{menuStyle.primaryColor}</span>
               </label>
             </div>
 
@@ -246,8 +237,7 @@ export function PrintView({ templateId, templateName, restaurantData, onClose }:
             templateId={activeTemplate}
             containerWidth={BASE_W}
             data={restaurantData}
-            primaryColor={primaryColor || undefined}
-            backgroundColor={bgColor || undefined}
+            style={menuStyle}
           />
         </div>
       </div>

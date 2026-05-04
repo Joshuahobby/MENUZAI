@@ -1,13 +1,19 @@
 "use client";
 import { useEffect } from "react";
 import { useMenu } from "@/context/MenuContext";
+import { MenuStyle } from "@/types/menu";
+import { templates } from "@/data/mockData";
 
 interface StyleEditorSidebarProps {
   onClose: () => void;
 }
 
-const DENSITY_VALUES: Array<"compact" | "comfortable" | "spacious"> = ["compact", "comfortable", "spacious"];
-const DENSITY_LABELS: Record<string, string> = { compact: "Compact", comfortable: "Relaxed", spacious: "Spacious" };
+interface MagicVibe {
+  name: string;
+  icon: string;
+  config: Partial<MenuStyle>;
+}
+
 
 const HEADLINE_FONTS = [
   "Plus Jakarta Sans",
@@ -49,15 +55,6 @@ const CURRENCIES = [
   { code: "XAF", name: "Central African CFA" },
 ];
 
-const PRESET_COLORS = [
-  { name: "Orange",  hex: "#FF6B00" },
-  { name: "Onyx",   hex: "#1E1E1E" },
-  { name: "Green",  hex: "#00C853" },
-  { name: "Blue",   hex: "#0070F3" },
-  { name: "Purple", hex: "#7928CA" },
-  { name: "Rose",   hex: "#E11D48" },
-];
-
 const RADIUS_PRESETS = [
   { label: "Sharp", value: "0" },
   { label: "Soft",  value: "0.75rem" },
@@ -65,14 +62,94 @@ const RADIUS_PRESETS = [
   { label: "Pill",  value: "2rem" },
 ];
 
-import { templates } from "@/data/mockData";
+const LAYOUTS = [
+  { id: "vintage-parchment", name: "Vintage", icon: "menu_book" },
+  { id: "dark-chalkboard",    name: "Bistro",  icon: "restaurant" },
+  { id: "bold-street",       name: "Street",  icon: "fastfood" },
+  { id: "bistro-split",      name: "Split",   icon: "view_sidebar" },
+  { id: "photo-gallery",     name: "Gallery", icon: "photo_library" },
+  { id: "luxury-gold",       name: "Luxury",  icon: "star" },
+  { id: "organic-clean",     name: "Organic", icon: "eco" },
+  { id: "midnight-luxe",     name: "Midnight",icon: "dark_mode" },
+];
 
-const PRESET_IDS = ["t1", "t2", "t3", "t4", "t7", "t9", "t10", "t11", "t12"];
-const PRESETS = PRESET_IDS.map((id) => templates.find((t) => t.id === id)!).filter(Boolean);
+const MAGIC_VIBES: MagicVibe[] = [
+  {
+    name: "Luxe Gold",
+    icon: "workspace_premium",
+    config: {
+      primaryColor: "#C5A059",
+      backgroundColor: "#0F0F0F",
+      titleColor: "#FFFFFF",
+      sectionTitleColor: "#C5A059",
+      itemTextColor: "#AAAAAA",
+      priceTextColor: "#C5A059",
+      dividerColor: "#2A2A2A",
+      headlineFont: "Playfair Display",
+      bodyFont: "Inter",
+      cardStyle: "glass",
+      borderRadius: "0.5rem",
+      templateId: "luxury-gold"
+    }
+  },
+  {
+    name: "Neon Night",
+    icon: "nightlight",
+    config: {
+      primaryColor: "#FF007A",
+      backgroundColor: "#050505",
+      titleColor: "#00FFF0",
+      sectionTitleColor: "#FF007A",
+      itemTextColor: "#E0E0E0",
+      priceTextColor: "#00FFF0",
+      dividerColor: "#222222",
+      headlineFont: "Bebas Neue",
+      bodyFont: "Montserrat",
+      cardStyle: "elevated",
+      borderRadius: "0",
+      templateId: "neon-modern"
+    }
+  },
+  {
+    name: "Organic",
+    icon: "eco",
+    config: {
+      primaryColor: "#4C6B5E",
+      backgroundColor: "#FDFBF7",
+      titleColor: "#2D3E36",
+      sectionTitleColor: "#4C6B5E",
+      itemTextColor: "#5C5C5C",
+      priceTextColor: "#4C6B5E",
+      dividerColor: "#E2DED0",
+      headlineFont: "Fraunces",
+      bodyFont: "Work Sans",
+      cardStyle: "glass",
+      borderRadius: "2rem",
+      templateId: "organic-clean"
+    }
+  },
+  {
+    name: "Classic",
+    icon: "restaurant",
+    config: {
+      primaryColor: "#FF6B00",
+      backgroundColor: "#FFFFFF",
+      titleColor: "#1A1009",
+      sectionTitleColor: "#3D2410",
+      itemTextColor: "#4A3318",
+      priceTextColor: "#FF6B00",
+      dividerColor: "#B89060",
+      headlineFont: "Plus Jakarta Sans",
+      bodyFont: "Inter",
+      cardStyle: "elevated",
+      borderRadius: "2rem",
+      templateId: "vintage-parchment"
+    }
+  }
+];
 
 export function StyleEditorSidebar({ onClose }: StyleEditorSidebarProps) {
   const { menuStyle, setMenuStyle, applyTemplate } = useMenu();
-  const densityIndex = DENSITY_VALUES.indexOf(menuStyle.layoutDensity);
 
   useEffect(() => {
     const fonts = [menuStyle.headlineFont, menuStyle.bodyFont].filter(Boolean);
@@ -118,6 +195,74 @@ export function StyleEditorSidebar({ onClose }: StyleEditorSidebarProps) {
         </div>
 
         <div className="px-6 py-6 space-y-8">
+          
+          {/* Design Assistant Tip */}
+          <div className="bg-primary/5 rounded-2xl p-4 border border-primary/10">
+            <div className="flex gap-3">
+              <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                <span className="material-symbols-outlined text-primary text-sm">auto_awesome</span>
+              </div>
+              <div>
+                <p className="text-[11px] font-bold text-primary uppercase tracking-wider">Design Tip</p>
+                <p className="text-xs text-secondary leading-relaxed mt-1">Try one of our <b>Magic Themes</b> to instantly transform your menu with curated font & color pairs.</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Magic Vibes */}
+          <div>
+            <div className="flex items-center justify-between mb-4">
+              <label className="text-[10px] font-bold text-secondary uppercase tracking-[0.2em]">Magic Themes</label>
+              <button 
+                onClick={() => {
+                  const vibes = ["#FF6B00", "#00C853", "#0070F3", "#7928CA", "#E11D48", "#C5A059"];
+                  const fonts = ["Playfair Display", "Bebas Neue", "Fraunces", "Plus Jakarta Sans", "Montserrat"];
+                  setMenuStyle({
+                    ...menuStyle,
+                    primaryColor: vibes[Math.floor(Math.random() * vibes.length)],
+                    headlineFont: fonts[Math.floor(Math.random() * fonts.length)],
+                    borderRadius: ["0", "0.75rem", "1.5rem", "2rem"][Math.floor(Math.random() * 4)]
+                  });
+                }}
+                className="text-[10px] font-bold text-primary flex items-center gap-1 hover:underline"
+              >
+                <span className="material-symbols-outlined text-[14px]">refresh</span>
+                Randomize
+              </button>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              {MAGIC_VIBES.map((vibe) => (
+                <button
+                  key={vibe.name}
+                  onClick={() => applyTemplate(vibe.config)}
+                  className="flex flex-col items-center gap-2 p-3 rounded-2xl bg-surface-container-low border border-outline-variant/30 hover:border-primary/50 hover:bg-surface-container-high transition-all group"
+                >
+                  <div className="w-10 h-10 rounded-full flex items-center justify-center text-primary bg-primary/10 group-hover:scale-110 transition-transform">
+                    <span className="material-symbols-outlined">{vibe.icon}</span>
+                  </div>
+                  <span className="text-[11px] font-bold text-secondary">{vibe.name}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Print Layouts */}
+          <div>
+            <label className="block text-[10px] font-bold text-secondary uppercase tracking-[0.2em] mb-4">Print Layouts</label>
+            <div className="grid grid-cols-4 gap-2">
+              {LAYOUTS.map((layout) => (
+                <button
+                  key={layout.id}
+                  onClick={() => setMenuStyle({ ...menuStyle, templateId: layout.id })}
+                  className={`flex flex-col items-center gap-1.5 p-2 rounded-xl transition-all ${menuStyle.templateId === layout.id ? "bg-primary text-white" : "bg-surface-container-low text-secondary hover:bg-surface-container-high border border-outline-variant/20"}`}
+                  title={layout.name}
+                >
+                  <span className="material-symbols-outlined text-[18px]">{layout.icon}</span>
+                  <span className="text-[9px] font-bold uppercase tracking-wider">{layout.name}</span>
+                </button>
+              ))}
+            </div>
+          </div>
 
           {/* Typography */}
           <div>
@@ -138,6 +283,19 @@ export function StyleEditorSidebar({ onClose }: StyleEditorSidebarProps) {
                 >
                   {HEADLINE_FONTS.map((f) => <option key={f} value={f} style={{ fontFamily: f }}>{f}</option>)}
                 </select>
+                <div className="mt-2 flex items-center gap-4">
+                  <span className="text-[10px] font-bold text-secondary uppercase">Size</span>
+                  <input
+                    type="range"
+                    min={20}
+                    max={120}
+                    value={menuStyle.titleSize ?? 82}
+                    onChange={(e) => setMenuStyle({ ...menuStyle, titleSize: parseInt(e.target.value) })}
+                    title="Adjust Headline Font Size"
+                    className="flex-1 h-1 bg-surface-container-low rounded-full appearance-none cursor-pointer accent-primary"
+                  />
+                  <span className="text-xs font-mono font-bold text-primary w-8">{menuStyle.titleSize ?? 82}</span>
+                </div>
               </div>
               <div>
                 <label className="text-xs font-bold text-on-surface-variant mb-2 block" htmlFor="body-font">
@@ -154,6 +312,19 @@ export function StyleEditorSidebar({ onClose }: StyleEditorSidebarProps) {
                 >
                   {BODY_FONTS.map((f) => <option key={f} value={f} style={{ fontFamily: f }}>{f}</option>)}
                 </select>
+                <div className="mt-2 flex items-center gap-4">
+                  <span className="text-[10px] font-bold text-secondary uppercase">Size</span>
+                  <input
+                    type="range"
+                    min={8}
+                    max={24}
+                    value={menuStyle.itemTextSize ?? 13}
+                    onChange={(e) => setMenuStyle({ ...menuStyle, itemTextSize: parseInt(e.target.value) })}
+                    title="Adjust Body Text Size"
+                    className="flex-1 h-1 bg-surface-container-low rounded-full appearance-none cursor-pointer accent-primary"
+                  />
+                  <span className="text-xs font-mono font-bold text-primary w-8">{menuStyle.itemTextSize ?? 13}</span>
+                </div>
               </div>
             </div>
           </div>
@@ -161,72 +332,200 @@ export function StyleEditorSidebar({ onClose }: StyleEditorSidebarProps) {
           {/* Colors */}
           <div className="space-y-6">
             <div>
-              <label className="block text-[10px] font-bold text-secondary uppercase tracking-[0.2em] mb-4">Primary Accent</label>
-              <div className="grid grid-cols-6 gap-2 mb-3">
-                {PRESET_COLORS.map((color) => {
-                  const isActive = menuStyle.primaryColor.toLowerCase() === color.hex.toLowerCase();
-                  return (
-                    <button
-                      key={color.hex}
-                      type="button"
-                      className={`w-full aspect-square rounded-full flex items-center justify-center transition-all ${isActive ? "ring-4 ring-primary/20 ring-offset-2 scale-110" : "hover:scale-110"}`}
-                      style={{ backgroundColor: color.hex }}
-                      onClick={() => setMenuStyle({ ...menuStyle, primaryColor: color.hex })}
-                      title={color.name}
-                      aria-label={color.name}
-                    >
-                      {isActive && <span className="material-symbols-outlined text-white text-xs">check</span>}
-                    </button>
-                  );
-                })}
-              </div>
-              <label className="flex items-center gap-3 cursor-pointer group" title="Pick a custom color">
-                <div className="relative w-8 h-8 rounded-full overflow-hidden border-2 border-outline-variant/30 group-hover:border-primary/40 transition-all shrink-0 shadow-sm">
-                  <div className="absolute inset-0" style={{ backgroundColor: menuStyle.primaryColor }} />
-                  <input
-                    type="color"
-                    value={menuStyle.primaryColor}
-                    onChange={(e) => setMenuStyle({ ...menuStyle, primaryColor: e.target.value })}
-                    className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
-                    title="Pick custom color"
-                    aria-label="Pick custom color"
-                  />
+              <label className="block text-[10px] font-bold text-secondary uppercase tracking-[0.2em] mb-4">Color Palette</label>
+              <div className="space-y-3">
+                {/* Primary Accent */}
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-on-surface-variant">Accent</span>
+                  <label className="flex items-center gap-3 cursor-pointer group">
+                    <div className="relative w-6 h-6 rounded-full overflow-hidden border border-outline-variant/30 group-hover:border-primary/40 transition-all shrink-0 shadow-sm">
+                      <div className="absolute inset-0" style={{ backgroundColor: menuStyle.primaryColor }} />
+                      <input
+                        type="color"
+                        value={menuStyle.primaryColor}
+                        onChange={(e) => setMenuStyle({ ...menuStyle, primaryColor: e.target.value, accentColor: e.target.value, priceTextColor: e.target.value })}
+                        className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                      />
+                    </div>
+                    <span className="text-[10px] font-mono text-secondary">{menuStyle.primaryColor}</span>
+                  </label>
                 </div>
-                <span className="text-xs font-bold text-secondary group-hover:text-primary transition-colors">Custom accent</span>
-                <span className="text-[10px] font-mono text-secondary ml-auto">{menuStyle.primaryColor}</span>
-              </label>
-            </div>
 
-            <div>
-              <label className="block text-[10px] font-bold text-secondary uppercase tracking-[0.2em] mb-4">Background</label>
-              <div className="grid grid-cols-4 gap-2 mb-3">
-                {["#FFFFFF", "#F9F9FB", "#111111", "#FAF3E0"].map((hex) => (
-                  <button
-                    key={hex}
-                    type="button"
-                    className={`w-full h-8 rounded-lg border-2 transition-all ${menuStyle.backgroundColor.toLowerCase() === hex.toLowerCase() ? "border-primary" : "border-outline-variant/20"}`}
-                    style={{ backgroundColor: hex }}
-                    onClick={() => setMenuStyle({ ...menuStyle, backgroundColor: hex })}
-                    title={hex}
-                    aria-label={`Set background to ${hex}`}
-                  />
-                ))}
+                {/* Title Color */}
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-on-surface-variant">Title Text</span>
+                  <label className="flex items-center gap-3 cursor-pointer group">
+                    <div className="relative w-6 h-6 rounded-full overflow-hidden border border-outline-variant/30 group-hover:border-primary/40 transition-all shrink-0 shadow-sm">
+                      <div className="absolute inset-0" style={{ backgroundColor: menuStyle.titleColor ?? "#1A1009" }} />
+                      <input
+                        type="color"
+                        value={menuStyle.titleColor ?? "#1A1009"}
+                        onChange={(e) => setMenuStyle({ ...menuStyle, titleColor: e.target.value })}
+                        className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                      />
+                    </div>
+                    <span className="text-[10px] font-mono text-secondary">{menuStyle.titleColor ?? "#1A1009"}</span>
+                  </label>
+                </div>
+
+                {/* Background */}
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-on-surface-variant">Background</span>
+                  <label className="flex items-center gap-3 cursor-pointer group">
+                    <div className="relative w-6 h-6 rounded-full overflow-hidden border border-outline-variant/30 group-hover:border-primary/40 transition-all shrink-0 shadow-sm">
+                      <div className="absolute inset-0" style={{ backgroundColor: menuStyle.backgroundColor }} />
+                      <input
+                        type="color"
+                        value={menuStyle.backgroundColor}
+                        onChange={(e) => setMenuStyle({ ...menuStyle, backgroundColor: e.target.value })}
+                        className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                      />
+                    </div>
+                    <span className="text-[10px] font-mono text-secondary">{menuStyle.backgroundColor}</span>
+                  </label>
+                </div>
+
+                {/* Divider */}
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-on-surface-variant">Dividers</span>
+                  <label className="flex items-center gap-3 cursor-pointer group">
+                    <div className="relative w-6 h-6 rounded-full overflow-hidden border border-outline-variant/30 group-hover:border-primary/40 transition-all shrink-0 shadow-sm">
+                      <div className="absolute inset-0" style={{ backgroundColor: menuStyle.dividerColor ?? "#B89060" }} />
+                      <input
+                        type="color"
+                        value={menuStyle.dividerColor ?? "#B89060"}
+                        onChange={(e) => setMenuStyle({ ...menuStyle, dividerColor: e.target.value })}
+                        className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                      />
+                    </div>
+                    <span className="text-[10px] font-mono text-secondary">{menuStyle.dividerColor ?? "#B89060"}</span>
+                  </label>
+                </div>
               </div>
-              <label className="flex items-center gap-3 cursor-pointer group" title="Pick a custom background color">
-                <div className="relative w-8 h-8 rounded-full overflow-hidden border-2 border-outline-variant/30 group-hover:border-primary/40 transition-all shrink-0 shadow-sm">
-                  <div className="absolute inset-0" style={{ backgroundColor: menuStyle.backgroundColor }} />
+            </div>
+          </div>
+
+          {/* Layout & Spacing */}
+          <div className="space-y-6">
+            <div>
+              <label className="block text-[10px] font-bold text-secondary uppercase tracking-[0.2em] mb-4">Layout & Spacing</label>
+              
+              <div className="space-y-4">
+                {/* Page Padding */}
+                <div>
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="text-xs font-bold text-on-surface-variant">Page Padding</span>
+                    <span className="text-xs font-mono text-primary font-bold">{menuStyle.pagePadding ?? 44}px</span>
+                  </div>
                   <input
-                    type="color"
-                    value={menuStyle.backgroundColor}
-                    onChange={(e) => setMenuStyle({ ...menuStyle, backgroundColor: e.target.value })}
-                    className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
-                    title="Pick custom background"
-                    aria-label="Pick custom background"
+                    type="range"
+                    min={20}
+                    max={100}
+                    value={menuStyle.pagePadding ?? 44}
+                    onChange={(e) => setMenuStyle({ ...menuStyle, pagePadding: parseInt(e.target.value) })}
+                    title="Adjust Page Padding"
+                    className="w-full h-1 bg-surface-container-low rounded-full appearance-none cursor-pointer accent-primary"
                   />
                 </div>
-                <span className="text-xs font-bold text-secondary group-hover:text-primary transition-colors">Surface color</span>
-                <span className="text-[10px] font-mono text-secondary ml-auto">{menuStyle.backgroundColor}</span>
-              </label>
+
+                {/* Item Spacing */}
+                <div>
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="text-xs font-bold text-on-surface-variant">Item Spacing</span>
+                    <span className="text-xs font-mono text-primary font-bold">{menuStyle.itemSpacing ?? 26}px</span>
+                  </div>
+                  <input
+                    type="range"
+                    min={10}
+                    max={60}
+                    value={menuStyle.itemSpacing ?? 26}
+                    onChange={(e) => setMenuStyle({ ...menuStyle, itemSpacing: parseInt(e.target.value) })}
+                    title="Adjust Item Spacing"
+                    className="w-full h-1 bg-surface-container-low rounded-full appearance-none cursor-pointer accent-primary"
+                  />
+                </div>
+
+                {/* Corner Radius */}
+                <div>
+                  <span className="text-xs font-bold text-on-surface-variant mb-2 block">Corner Radius</span>
+                  <div className="grid grid-cols-4 gap-2">
+                    {RADIUS_PRESETS.map((opt) => {
+                      const isActive = menuStyle.borderRadius === opt.value;
+                      return (
+                        <button
+                          key={opt.value}
+                          type="button"
+                          onClick={() => setMenuStyle({ ...menuStyle, borderRadius: opt.value })}
+                          className={`p-2 rounded-xl flex flex-col items-center gap-1.5 border-2 transition-all ${isActive ? "bg-primary/5 border-primary text-primary" : "bg-surface-container-low border-transparent text-secondary hover:bg-surface-container-high"}`}
+                        >
+                          <div
+                            className="w-5 h-4 border-2 border-current"
+                            style={{ borderRadius: opt.value }}
+                          />
+                          <span className="text-[9px] font-bold uppercase leading-none">{opt.label}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Show Images Toggle */}
+                <div className="flex items-center justify-between py-2">
+                  <span className="text-xs font-bold text-on-surface-variant">Show Menu Photos</span>
+                  <button
+                    type="button"
+                    onClick={() => setMenuStyle({ ...menuStyle, showImages: !menuStyle.showImages })}
+                    title={menuStyle.showImages ? "Hide Menu Photos" : "Show Menu Photos"}
+                    className={`w-10 h-6 rounded-full transition-all relative ${menuStyle.showImages ? "bg-primary" : "bg-surface-container-high"}`}
+                  >
+                    <div className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-all ${menuStyle.showImages ? "left-5" : "left-1"}`} />
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Layout Templates */}
+          <div>
+            <label className="block text-[10px] font-bold text-secondary uppercase tracking-[0.2em] mb-4">Print Layouts</label>
+            <div className="grid grid-cols-2 gap-3">
+              {templates.slice(0, 4).map((t) => {
+                const isActive = menuStyle.templateId === t.id;
+                return (
+                  <button
+                    key={t.id}
+                    type="button"
+                    onClick={() => setMenuStyle({ ...menuStyle, ...t.config, templateId: t.id })}
+                    className={`relative aspect-[3/4] rounded-xl overflow-hidden border-2 transition-all group ${
+                      isActive ? "border-primary ring-4 ring-primary/10 scale-95" : "border-outline-variant/30 hover:border-primary/40"
+                    }`}
+                  >
+                    {/* Mock Layout Preview */}
+                    <div className="absolute inset-0 bg-surface-container-low flex flex-col p-2 gap-1.5">
+                       <div className="w-2/3 h-1.5 rounded-full bg-secondary/20" />
+                       <div className="w-full h-1 rounded-full bg-secondary/10" />
+                       <div className="w-full h-1 rounded-full bg-secondary/10" />
+                       <div className="mt-auto flex justify-between">
+                         <div className="w-8 h-8 rounded-lg bg-primary/20" />
+                         <div className="w-8 h-8 rounded-lg bg-primary/20" />
+                       </div>
+                    </div>
+                    
+                    {/* Active Check */}
+                    {isActive && (
+                      <div className="absolute inset-0 bg-primary/10 flex items-center justify-center">
+                        <div className="bg-primary text-white rounded-full p-1 shadow-lg">
+                          <span className="material-symbols-outlined text-sm">check</span>
+                        </div>
+                      </div>
+                    )}
+                    
+                    <div className="absolute bottom-0 inset-x-0 bg-black/60 backdrop-blur-md py-1.5 px-2">
+                      <span className="text-[9px] font-bold text-white uppercase tracking-tighter truncate block">{t.name}</span>
+                    </div>
+                  </button>
+                );
+              })}
             </div>
           </div>
 
@@ -245,119 +544,6 @@ export function StyleEditorSidebar({ onClose }: StyleEditorSidebarProps) {
                 <option key={c.code} value={c.code}>{c.code} — {c.name}</option>
               ))}
             </select>
-          </div>
-
-          {/* Style Presets */}
-          <div>
-            <label className="block text-[10px] font-bold text-secondary uppercase tracking-[0.2em] mb-4">Style Presets</label>
-            <div className="grid grid-cols-3 gap-2">
-              {PRESETS.map((t) => {
-                const isActive =
-                  menuStyle.headlineFont === t.config?.headlineFont &&
-                  menuStyle.primaryColor === t.config?.primaryColor;
-                return (
-                  <button
-                    key={t.id}
-                    type="button"
-                    title={t.name}
-                    aria-label={`Apply ${t.name} preset`}
-                    onClick={() => applyTemplate(t.config || {})}
-                    className={`h-12 rounded-xl flex flex-col items-center justify-center gap-1 text-[9px] font-bold uppercase tracking-widest active:scale-95 transition-all border-2 overflow-hidden ${
-                      isActive
-                        ? "border-primary/40 bg-primary/5 text-primary"
-                        : "bg-surface-container-low text-on-surface-variant border-transparent hover:bg-surface-container-high"
-                    }`}
-                  >
-                    <div
-                      className="w-4 h-1.5 rounded-full"
-                      style={{ backgroundColor: t.config?.primaryColor ?? "#FF6B00" }}
-                    />
-                    {t.name.split(" ")[0]}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Card Style */}
-          <div>
-            <label className="block text-[10px] font-bold text-secondary uppercase tracking-[0.2em] mb-4">Card Style</label>
-            <div className="grid grid-cols-3 gap-2 mb-6">
-              {(["flat", "elevated", "glass"] as const).map((style) => (
-                <button
-                  key={style}
-                  type="button"
-                  onClick={() => setMenuStyle({ ...menuStyle, cardStyle: style })}
-                  className={`p-2 rounded-xl flex flex-col items-center gap-1 border-2 transition-all ${menuStyle.cardStyle === style ? "bg-primary/5 border-primary text-primary" : "bg-surface-container-low border-transparent text-secondary hover:bg-surface-container-high"}`}
-                >
-                  <span className="material-symbols-outlined text-sm">
-                    {style === "flat" ? "rectangle" : style === "elevated" ? "layers" : "opacity"}
-                  </span>
-                  <span className="text-[9px] font-bold uppercase">{style}</span>
-                </button>
-              ))}
-            </div>
-
-            {/* Corner Radius */}
-            <label className="block text-[10px] font-bold text-secondary uppercase tracking-[0.2em] mb-4">Corner Radius</label>
-            <div className="grid grid-cols-4 gap-2 mb-6">
-              {RADIUS_PRESETS.map((opt) => {
-                const isActive = menuStyle.borderRadius === opt.value;
-                return (
-                  <button
-                    key={opt.value}
-                    type="button"
-                    onClick={() => setMenuStyle({ ...menuStyle, borderRadius: opt.value })}
-                    className={`p-2 rounded-xl flex flex-col items-center gap-1.5 border-2 transition-all ${isActive ? "bg-primary/5 border-primary text-primary" : "bg-surface-container-low border-transparent text-secondary hover:bg-surface-container-high"}`}
-                  >
-                    <div
-                      className="w-5 h-4 border-2 border-current"
-                      style={{ borderRadius: opt.value }}
-                    />
-                    <span className="text-[9px] font-bold uppercase leading-none">{opt.label}</span>
-                  </button>
-                );
-              })}
-            </div>
-
-            {/* Grid Layout */}
-            <label className="block text-[10px] font-bold text-secondary uppercase tracking-[0.2em] mb-4">Grid Layout</label>
-            <div className="grid grid-cols-2 gap-3 mb-4">
-              <button
-                type="button"
-                onClick={() => setMenuStyle({ ...menuStyle, layoutDensity: "comfortable" })}
-                className={`p-3 rounded-xl flex flex-col items-center gap-2 border-2 transition-all ${menuStyle.layoutDensity === "comfortable" ? "bg-surface-container-high border-primary" : "bg-surface-container-low border-transparent hover:bg-surface-container-high"}`}
-              >
-                <span className={`material-symbols-outlined ${menuStyle.layoutDensity === "comfortable" ? "text-primary" : "text-secondary"}`}>view_stream</span>
-                <span className="text-[10px] font-bold uppercase tracking-tighter">Single</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setMenuStyle({ ...menuStyle, layoutDensity: "compact" })}
-                className={`p-3 rounded-xl flex flex-col items-center gap-2 border-2 transition-all ${menuStyle.layoutDensity === "compact" ? "bg-surface-container-high border-primary" : "bg-surface-container-low border-transparent hover:bg-surface-container-high"}`}
-              >
-                <span className={`material-symbols-outlined ${menuStyle.layoutDensity === "compact" ? "text-primary" : "text-secondary"}`}>view_module</span>
-                <span className="text-[10px] font-bold uppercase tracking-tighter">Compact</span>
-              </button>
-            </div>
-
-            {/* Spacing slider */}
-            <div className="flex justify-between items-center mb-2">
-              <label className="text-[10px] font-bold text-secondary uppercase tracking-[0.2em]" htmlFor="density-slider">Spacing</label>
-              <span className="text-xs font-bold text-primary">{DENSITY_LABELS[menuStyle.layoutDensity]}</span>
-            </div>
-            <input
-              id="density-slider"
-              type="range"
-              min={0}
-              max={2}
-              step={1}
-              value={densityIndex === -1 ? 1 : densityIndex}
-              onChange={(e) => setMenuStyle({ ...menuStyle, layoutDensity: DENSITY_VALUES[parseInt(e.target.value)] })}
-              className="w-full h-1.5 bg-surface-container-low rounded-full appearance-none cursor-pointer accent-primary"
-              title="Layout spacing"
-              aria-label="Layout spacing"
-            />
           </div>
 
         </div>

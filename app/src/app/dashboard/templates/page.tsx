@@ -137,13 +137,12 @@ export default function TemplatesPage() {
             {/* Live Preview Thumbnail */}
             <div className="relative h-64 overflow-hidden bg-surface-container-low">
               <div className="absolute inset-0 group-hover:scale-105 transition-transform duration-500 origin-top">
-                <TemplatePreview 
-                  templateId={t.id} 
-                  containerWidth={400} 
-                  data={tplData}
-                  primaryColor={t.config.primaryColor}
-                  backgroundColor={t.config.backgroundColor}
-                />
+                  <TemplatePreview 
+                    templateId={t.id} 
+                    containerWidth={400} 
+                    data={tplData}
+                    style={{ primaryColor: t.config.primaryColor, backgroundColor: t.config.backgroundColor }}
+                  />
               </div>
               
               {/* Overlay Gradient */}
@@ -218,8 +217,7 @@ export default function TemplatesPage() {
                     templateId={preview.id} 
                     containerWidth={450} 
                     data={tplData}
-                    primaryColor={preview.config.primaryColor}
-                    backgroundColor={preview.config.backgroundColor}
+                    style={{ primaryColor: preview.config.primaryColor, backgroundColor: preview.config.backgroundColor }}
                   />
                </div>
                <button
