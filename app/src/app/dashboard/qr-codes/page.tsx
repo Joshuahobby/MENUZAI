@@ -121,14 +121,13 @@ export default function QRCodesPage() {
                   <button
                     key={t.id}
                     onClick={() => setPosterData({ ...posterData, templateId: t.id })}
-                    title={t.name}
                     className={`group relative flex-1 aspect-square rounded-2xl transition-all border-2 flex flex-col items-center justify-center p-2 ${
                       posterData.templateId === t.id 
                         ? "bg-[#1A1009]/5 border-[#1A1009]" 
                         : "bg-transparent border-transparent hover:bg-surface-container/20"
                     }`}
                   >
-                    <div className={`w-full h-full rounded-lg border overflow-hidden transition-transform group-hover:scale-105 ${
+                    <div className={`w-full flex-1 rounded-lg border overflow-hidden transition-transform group-hover:scale-105 mb-1 ${
                       t.id === 'classic-frame' ? 'bg-white border-primary/20' : 
                       t.id === 'dark-premium' ? 'bg-black border-white/10' : 
                       'bg-surface-container-low border-outline-variant/20'
@@ -156,6 +155,11 @@ export default function QRCodesPage() {
                         </div>
                       )}
                     </div>
+                    
+                    <span className={`text-[7px] font-black uppercase tracking-widest ${posterData.templateId === t.id ? 'text-[#1A1009]' : 'text-secondary opacity-60'}`}>
+                      {t.name.split(' ')[0]}
+                    </span>
+
                     {posterData.templateId === t.id && (
                       <div className="absolute -top-1 -right-1 w-4 h-4 bg-[#1A1009] rounded-full flex items-center justify-center border-2 border-white">
                         <span className="material-symbols-outlined text-[10px] text-white">check</span>
