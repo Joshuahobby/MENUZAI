@@ -116,34 +116,50 @@ export default function QRCodesPage() {
               <div className="mb-4">
                 <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-[#1A1009]">Layout</h3>
               </div>
-              <div className="grid grid-cols-1 gap-3">
+              <div className="flex gap-2">
                 {TEMPLATES.map((t) => (
                   <button
                     key={t.id}
                     onClick={() => setPosterData({ ...posterData, templateId: t.id })}
-                    className={`group relative flex items-center gap-3 p-3 rounded-2xl transition-all border-2 ${
+                    title={t.name}
+                    className={`group relative flex-1 aspect-square rounded-2xl transition-all border-2 flex flex-col items-center justify-center p-2 ${
                       posterData.templateId === t.id 
                         ? "bg-[#1A1009]/5 border-[#1A1009]" 
                         : "bg-transparent border-transparent hover:bg-surface-container/20"
                     }`}
                   >
-                    <div className={`w-12 h-16 rounded-lg border-2 overflow-hidden flex-shrink-0 transition-transform group-hover:scale-105 ${
+                    <div className={`w-full h-full rounded-lg border overflow-hidden transition-transform group-hover:scale-105 ${
                       t.id === 'classic-frame' ? 'bg-white border-primary/20' : 
                       t.id === 'dark-premium' ? 'bg-black border-white/10' : 
                       'bg-surface-container-low border-outline-variant/20'
                     }`}>
-                      {/* Mini Preview Visuals */}
-                      <div className="w-full h-1/2 bg-surface-container opacity-20" />
-                      <div className="p-1 space-y-1">
-                        <div className="h-1 w-1/2 bg-current opacity-20 rounded-full" />
-                        <div className="h-2 w-full bg-current opacity-10 rounded-sm" />
-                      </div>
-                    </div>
-                    <div className="text-left flex-1 min-w-0">
-                      <p className="text-[10px] font-black text-[#1A1009] uppercase tracking-wider truncate">{t.name}</p>
+                      {/* Abstract Icon for Template */}
+                      {t.id === 'classic-frame' && (
+                        <div className="w-full h-full flex flex-col">
+                           <div className="h-2/5 bg-primary/20" />
+                           <div className="flex-1 p-1 space-y-0.5">
+                              <div className="h-0.5 w-full bg-black/10 rounded-full" />
+                              <div className="h-2 w-2 bg-black/5 mx-auto rounded-full" />
+                           </div>
+                        </div>
+                      )}
+                      {t.id === 'dark-premium' && (
+                        <div className="w-full h-full bg-black flex flex-col items-center justify-center p-1 space-y-1">
+                           <div className="h-0.5 w-2/3 bg-white/20 rounded-full" />
+                           <div className="h-3 w-3 border border-white/20 rounded-sm" />
+                        </div>
+                      )}
+                      {t.id === 'elegant-minimal' && (
+                        <div className="w-full h-full bg-white flex flex-col items-center justify-center p-1 space-y-1">
+                           <div className="h-3 w-3 border-2 border-primary/20 rounded-lg" />
+                           <div className="h-0.5 w-1/2 bg-black/10 rounded-full" />
+                        </div>
+                      )}
                     </div>
                     {posterData.templateId === t.id && (
-                      <span className="material-symbols-outlined text-primary text-base">check_circle</span>
+                      <div className="absolute -top-1 -right-1 w-4 h-4 bg-[#1A1009] rounded-full flex items-center justify-center border-2 border-white">
+                        <span className="material-symbols-outlined text-[10px] text-white">check</span>
+                      </div>
                     )}
                   </button>
                 ))}
