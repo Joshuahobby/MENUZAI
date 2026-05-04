@@ -395,9 +395,8 @@ export default function QRCodesPage() {
 
             </div>
 
-            {/* Hidden copy for high-res export */}
             <div className="fixed -left-[10000px] top-0 pointer-events-none">
-                <div ref={posterRef} className="w-[800px] h-[1131px]">
+                <div ref={posterRef} className="w-[1200px] h-[1697px]">
                   <QRPosterRenderer
                   data={posterData}
                   url={menuUrl || "https://menuzai.com"}

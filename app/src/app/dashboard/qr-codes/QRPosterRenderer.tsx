@@ -33,7 +33,7 @@ export function QRPosterRenderer({ data, url, className = "", id }: QRPosterRend
         return (
           <div className="w-full h-full bg-white flex flex-col relative" style={{ color: textColor }}>
             {/* Food Image with Curved Bottom */}
-            <div className="h-[35%] w-full relative overflow-hidden shrink-0">
+            <div className={`${isA4 ? 'h-[30%]' : 'h-[35%]'} w-full relative overflow-hidden shrink-0`}>
               {backgroundImage ? (
                 <img src={backgroundImage} alt="Background" className="w-full h-full object-cover" />
               ) : (
@@ -63,12 +63,12 @@ export function QRPosterRenderer({ data, url, className = "", id }: QRPosterRend
                   </div>
                 )}
                 
-                <div className={`${isA4 ? 'mt-8 space-y-6' : 'mt-1 space-y-2'}`}>
-                  <h2 className={`${isA4 ? 'text-8xl' : 'text-xl'} font-[var(--font-headline)] font-black uppercase tracking-tight leading-tight`} style={{ color: primaryColor }}>
+                <div className={`${isA4 ? 'mt-6 space-y-4' : 'mt-1 space-y-2'}`}>
+                  <h2 className={`${isA4 ? 'text-7xl' : 'text-xl'} font-[var(--font-headline)] font-black uppercase tracking-tight leading-tight`} style={{ color: primaryColor }}>
                     {headline}
                   </h2>
-                  <div className={`${isA4 ? 'h-2 w-24' : 'h-1 w-12'} bg-primary/20 mx-auto rounded-full`} />
-                  <p className={`${isA4 ? 'text-4xl' : 'text-[10px]'} font-bold opacity-80 max-w-[90%] mx-auto leading-tight`}>{subheadline}</p>
+                  <div className={`${isA4 ? 'h-1.5 w-20' : 'h-1 w-12'} bg-primary/20 mx-auto rounded-full`} />
+                  <p className={`${isA4 ? 'text-2xl' : 'text-[10px]'} font-bold opacity-80 max-w-[90%] mx-auto leading-tight`}>{subheadline}</p>
                 </div>
               </div>
 
@@ -79,7 +79,7 @@ export function QRPosterRenderer({ data, url, className = "", id }: QRPosterRend
                 
                 <QRCodeSVG
                   value={url}
-                  size={isA4 ? 400 : 140}
+                  size={isA4 ? 350 : 140}
                   fgColor={qrColor}
                   level="H"
                   includeMargin={true}
@@ -100,7 +100,7 @@ export function QRPosterRenderer({ data, url, className = "", id }: QRPosterRend
 
       case "dark-premium":
         return (
-          <div className={`w-full h-full relative overflow-hidden flex flex-col items-center justify-between ${isA4 ? 'p-20' : 'p-8'} text-center bg-black`}>
+          <div className={`w-full h-full relative overflow-hidden flex flex-col items-center justify-between ${isA4 ? 'p-16' : 'p-8'} text-center bg-black`}>
             {backgroundImage && (
               <>
                 <img src={backgroundImage} alt="Background" className="absolute inset-0 w-full h-full object-cover opacity-60 scale-110" />
@@ -111,32 +111,32 @@ export function QRPosterRenderer({ data, url, className = "", id }: QRPosterRend
             <div className="relative z-10 w-full space-y-4">
               <div className="flex items-center justify-center gap-4">
                 <div className="h-[1px] w-8 bg-white/30" />
-                <span className={`${isA4 ? 'text-xl' : 'text-[10px]'} font-black text-white/50 uppercase tracking-[0.4em]`}>Restaurant</span>
+                <span className={`${isA4 ? 'text-lg' : 'text-[10px]'} font-black text-white/50 uppercase tracking-[0.4em]`}>Restaurant</span>
                 <div className="h-[1px] w-8 bg-white/30" />
               </div>
-              <h2 className={`${isA4 ? 'text-9xl' : 'text-3xl'} font-[var(--font-headline)] font-black text-white uppercase tracking-tighter leading-none`}>
+              <h2 className={`${isA4 ? 'text-8xl' : 'text-3xl'} font-[var(--font-headline)] font-black text-white uppercase tracking-tighter leading-none`}>
                 {headline}
               </h2>
-              <p className={`${isA4 ? 'text-4xl' : 'text-[11px]'} font-bold text-white/80 tracking-wide`}>{subheadline}</p>
+              <p className={`${isA4 ? 'text-2xl' : 'text-[11px]'} font-bold text-white/80 tracking-wide`}>{subheadline}</p>
             </div>
 
             <div className="relative group z-10">
               {/* Dynamic corner brackets */}
-              <div className="absolute -top-6 -left-6 w-16 h-16 border-t-[12px] border-l-[12px] border-white rounded-tl-3xl opacity-80" />
-              <div className="absolute -top-6 -right-6 w-16 h-16 border-t-[12px] border-r-[12px] border-white rounded-tr-3xl opacity-80" />
-              <div className="absolute -bottom-6 -left-6 w-16 h-16 border-b-[12px] border-l-[12px] border-white rounded-bl-3xl opacity-80" />
-              <div className="absolute -bottom-6 -right-6 w-16 h-16 border-b-[12px] border-r-[12px] border-white rounded-br-3xl opacity-80" />
+              <div className="absolute -top-4 -left-4 w-12 h-12 border-t-[8px] border-l-[8px] border-white rounded-tl-2xl opacity-80" />
+              <div className="absolute -top-4 -right-4 w-12 h-12 border-t-[8px] border-r-[8px] border-white rounded-tr-2xl opacity-80" />
+              <div className="absolute -bottom-4 -left-4 w-12 h-12 border-b-[8px] border-l-[8px] border-white rounded-bl-2xl opacity-80" />
+              <div className="absolute -bottom-4 -right-4 w-12 h-12 border-b-[8px] border-r-[8px] border-white rounded-br-2xl opacity-80" />
               
-              <div className={`${isA4 ? 'p-12' : 'p-5'} bg-white/95 backdrop-blur-2xl rounded-[3rem] shadow-[0_0_100px_rgba(255,255,255,0.2)]`}>
+              <div className={`${isA4 ? 'p-10' : 'p-5'} bg-white/95 backdrop-blur-2xl rounded-[3rem] shadow-[0_0_100px_rgba(255,255,255,0.2)]`}>
                 <QRCodeSVG
                   value={url}
-                  size={isA4 ? 450 : 150}
+                  size={isA4 ? 380 : 150}
                   fgColor={qrColor}
                   level="H"
                   includeMargin={true}
                 />
-                <div className={`${isA4 ? 'mt-10 py-4 px-12' : 'mt-5 py-2 px-8'} bg-black rounded-full shadow-lg shadow-black/20 group-hover:scale-105 transition-transform`}>
-                  <span className={`${isA4 ? 'text-2xl' : 'text-[8px]'} font-black text-white uppercase tracking-[0.3em]`}>Scan Now</span>
+                <div className={`${isA4 ? 'mt-8 py-3 px-10' : 'mt-5 py-2 px-8'} bg-black rounded-full shadow-lg shadow-black/20 group-hover:scale-105 transition-transform`}>
+                  <span className={`${isA4 ? 'text-lg' : 'text-[8px]'} font-black text-white uppercase tracking-[0.3em]`}>Scan Now</span>
                 </div>
               </div>
             </div>
@@ -163,18 +163,18 @@ export function QRPosterRenderer({ data, url, className = "", id }: QRPosterRend
                   <span className="text-[9px] font-black uppercase tracking-[0.3em] text-secondary">Welcome</span>
                   <div className="w-8 h-[1px] bg-outline-variant" />
                 </div>
-                <h2 className={`${isA4 ? 'text-8xl' : 'text-2xl'} font-[var(--font-headline)] font-extrabold tracking-tight mb-6`}>
+                <h2 className={`${isA4 ? 'text-7xl' : 'text-2xl'} font-[var(--font-headline)] font-extrabold tracking-tight mb-4`}>
                   {headline}
                 </h2>
-                <p className={`${isA4 ? 'text-4xl' : 'text-xs'} font-medium text-secondary`}>{subheadline}</p>
+                <p className={`${isA4 ? 'text-2xl' : 'text-xs'} font-medium text-secondary`}>{subheadline}</p>
               </div>
 
               <div className="relative">
-                <div className="absolute -inset-12 bg-primary/5 rounded-[5rem] blur-3xl" />
-                <div className="relative bg-white p-16 rounded-[5rem] shadow-xl border border-surface-container/50">
+                <div className="absolute -inset-10 bg-primary/5 rounded-[4rem] blur-3xl" />
+                <div className="relative bg-white p-14 rounded-[4rem] shadow-xl border border-surface-container/50">
                   <QRCodeSVG
                     value={url}
-                    size={isA4 ? 480 : 160}
+                    size={isA4 ? 400 : 160}
                     fgColor={qrColor}
                     level="H"
                     includeMargin={false}
