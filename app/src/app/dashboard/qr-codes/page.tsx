@@ -263,13 +263,13 @@ export default function QRCodesPage() {
 
 
           {/* Canvas Context */}
-          <div className="flex-1 flex items-center justify-center p-20 perspective-1000 overflow-auto hide-scrollbar">
+          <div className="flex-1 flex items-center justify-center p-8 lg:p-12 perspective-1000 overflow-hidden">
             {/* The Poster Mockup */}
-            <div className="relative group transition-all duration-700 hover:rotate-y-2 hover:scale-[1.02]">
+            <div className="relative group transition-all duration-700 hover:rotate-y-2 hover:scale-[1.01] h-full flex items-center justify-center">
               {/* Table Stand Mockup Visual */}
               <div className="absolute -bottom-10 left-1/2 -translate-x-1/2 w-[110%] h-8 bg-surface-container-highest/30 blur-2xl rounded-full -z-10 group-hover:bg-primary/10" />
               
-              <div className="w-[380px] lg:w-[450px] aspect-[1/1.414] bg-white shadow-[0_40px_100px_rgba(0,0,0,0.12)] rounded-[1.5rem] relative border border-white/50 flex flex-col">
+              <div className="h-full max-h-[85vh] aspect-[1/1.414] bg-white shadow-[0_40px_100px_rgba(0,0,0,0.12)] rounded-[1.5rem] relative border border-white/50 flex flex-col">
                 <QRPosterRenderer
                   id="printable-poster"
                   data={posterData}
