@@ -12,17 +12,11 @@ interface QRPosterRendererProps {
 }
 
 export function QRPosterRenderer({ data, url, className = "", id }: QRPosterRendererProps) {
-  const {
-    templateId,
-    headline,
-    subheadline,
-    footer,
-    backgroundImage,
-    logoUrl,
-    primaryColor,
-    textColor,
     qrColor,
+    pageSize,
   } = data;
+
+  const isA4 = pageSize === "A4";
 
   const renderTemplate = () => {
     switch (templateId) {
@@ -60,12 +54,12 @@ export function QRPosterRenderer({ data, url, className = "", id }: QRPosterRend
                   </div>
                 )}
                 
-                <div className="mt-1 space-y-1">
-                  <h2 className="text-xl lg:text-xl font-[var(--font-headline)] font-black uppercase tracking-tight leading-none" style={{ color: primaryColor }}>
+                <div className="mt-1 space-y-2">
+                  <h2 className={`${isA4 ? 'text-4xl' : 'text-xl'} font-[var(--font-headline)] font-black uppercase tracking-tight leading-tight`} style={{ color: primaryColor }}>
                     {headline}
                   </h2>
-                  <div className="h-0.5 w-10 bg-primary/20 mx-auto rounded-full" />
-                  <p className="text-[9px] lg:text-[10px] font-bold opacity-80 max-w-[85%] mx-auto leading-tight">{subheadline}</p>
+                  <div className="h-1 w-12 bg-primary/20 mx-auto rounded-full" />
+                  <p className={`${isA4 ? 'text-sm' : 'text-[10px]'} font-bold opacity-80 max-w-[85%] mx-auto leading-tight`}>{subheadline}</p>
                 </div>
               </div>
 
@@ -76,7 +70,7 @@ export function QRPosterRenderer({ data, url, className = "", id }: QRPosterRend
                 
                 <QRCodeSVG
                   value={url}
-                  size={140}
+                  size={isA4 ? 200 : 140}
                   fgColor={qrColor}
                   level="H"
                   includeMargin={true}
@@ -112,10 +106,10 @@ export function QRPosterRenderer({ data, url, className = "", id }: QRPosterRend
                   <span className="text-[10px] font-black text-white/50 uppercase tracking-[0.4em]">Restaurant</span>
                   <div className="h-[1px] w-6 bg-white/30" />
                 </div>
-                <h2 className="text-3xl font-[var(--font-headline)] font-black text-white uppercase tracking-tighter leading-none">
+                <h2 className={`${isA4 ? 'text-5xl' : 'text-3xl'} font-[var(--font-headline)] font-black text-white uppercase tracking-tighter leading-none`}>
                   {headline}
                 </h2>
-                <p className="text-[11px] font-bold text-white/80 tracking-wide">{subheadline}</p>
+                <p className={`${isA4 ? 'text-lg' : 'text-[11px]'} font-bold text-white/80 tracking-wide`}>{subheadline}</p>
               </div>
 
               <div className="relative group">
@@ -128,13 +122,13 @@ export function QRPosterRenderer({ data, url, className = "", id }: QRPosterRend
                 <div className="p-5 bg-white/95 backdrop-blur-2xl rounded-[2rem] shadow-[0_0_80px_rgba(255,255,255,0.15)]">
                   <QRCodeSVG
                     value={url}
-                    size={150}
+                    size={isA4 ? 220 : 150}
                     fgColor={qrColor}
                     level="H"
                     includeMargin={true}
                   />
                   <div className="mt-3 py-1.5 px-5 bg-black rounded-full shadow-lg shadow-black/20 group-hover:scale-105 transition-transform">
-                    <span className="text-[8px] font-black text-white uppercase tracking-[0.3em]">Scan Now</span>
+                    <span className={`${isA4 ? 'text-[10px]' : 'text-[8px]'} font-black text-white uppercase tracking-[0.3em]`}>Scan Now</span>
                   </div>
                 </div>
               </div>
@@ -162,10 +156,10 @@ export function QRPosterRenderer({ data, url, className = "", id }: QRPosterRend
                   <span className="text-[9px] font-black uppercase tracking-[0.3em] text-secondary">Welcome</span>
                   <div className="w-8 h-[1px] bg-outline-variant" />
                 </div>
-                <h2 className="text-2xl font-[var(--font-headline)] font-extrabold tracking-tight mb-2">
+                <h2 className={`${isA4 ? 'text-4xl' : 'text-2xl'} font-[var(--font-headline)] font-extrabold tracking-tight mb-2`}>
                   {headline}
                 </h2>
-                <p className="text-xs font-medium text-secondary">{subheadline}</p>
+                <p className={`${isA4 ? 'text-base' : 'text-xs'} font-medium text-secondary`}>{subheadline}</p>
               </div>
 
               <div className="relative">
@@ -173,7 +167,7 @@ export function QRPosterRenderer({ data, url, className = "", id }: QRPosterRend
                 <div className="relative bg-white p-8 rounded-[3rem] shadow-xl border border-surface-container/50">
                   <QRCodeSVG
                     value={url}
-                    size={160}
+                    size={isA4 ? 240 : 160}
                     fgColor={qrColor}
                     level="H"
                     includeMargin={false}

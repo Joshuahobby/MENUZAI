@@ -40,6 +40,7 @@ export default function QRCodesPage() {
     primaryColor: menuStyle.primaryColor || "#FF6B00",
     textColor: "#1A1009",
     qrColor: "#000000",
+    pageSize: "A4",
   });
 
   // Update poster data when menu style changes
@@ -76,15 +77,19 @@ export default function QRCodesPage() {
         cacheBust: true,
       });
       
+      const isA4 = posterData.pageSize === "A4";
       const pdf = new jsPDF({
         orientation: 'portrait',
         unit: 'mm',
-        format: 'a4'
+        format: isA4 ? 'a4' : 'a5'
       });
       
-      pdf.addImage(dataUrl, 'PNG', 0, 0, 210, 297);
-      pdf.save(`${restaurantName || 'menu'}-qr-poster.pdf`);
-      toast.success("PDF exported successfully!");
+      const width = isA4 ? 210 : 148;
+      const height = isA4 ? 297 : 210;
+      
+      pdf.addImage(dataUrl, 'PNG', 0, 0, width, height);
+      pdf.save(`${restaurantName || 'menu'}-qr-${posterData.pageSize.toLowerCase()}.pdf`);
+      toast.success(`${posterData.pageSize} PDF exported successfully!`);
     } catch (err) {
       console.error(err);
       toast.error("Failed to export PDF.");
@@ -262,13 +267,31 @@ export default function QRCodesPage() {
                     />
                   </div>
                   <div>
-                    <label className="text-[9px] font-black text-secondary uppercase tracking-widest mb-2 block text-right">Preview Size</label>
+                    <label className="text-[9px] font-black text-secondary uppercase tracking-widest mb-2 block text-right">Print Size</label>
                     <div className="flex items-center justify-end h-10 gap-2">
-                       <span className="text-[10px] font-black opacity-40">A5</span>
-                       <div className="w-12 h-6 bg-surface-container rounded-full p-1 relative cursor-not-allowed">
-                          <div className="absolute right-1 top-1 w-4 h-4 bg-primary rounded-full shadow-sm" />
-                       </div>
-                       <span className="text-[10px] font-black">A4</span>
+                       <button 
+                        onClick={() => setPosterData({ ...posterData, pageSize: 'A5' })}
+                        className={`text-[10px] font-black transition-colors ${posterData.pageSize === 'A5' ? 'text-primary' : 'opacity-40'}`}
+                       >
+                         A5
+                       </button>
+                       <button 
+                        onClick={() => setPosterData({ 
+                          ...posterData, 
+                          pageSize: posterData.pageSize === 'A4' ? 'A5' : 'A4' 
+                        })}
+                        className="w-12 h-6 bg-surface-container rounded-full p-1 relative cursor-pointer"
+                       >
+                          <div className={`absolute top-1 w-4 h-4 bg-primary rounded-full shadow-sm transition-all ${
+                            posterData.pageSize === 'A4' ? 'right-1' : 'left-1'
+                          }`} />
+                       </button>
+                       <button 
+                        onClick={() => setPosterData({ ...posterData, pageSize: 'A4' })}
+                        className={`text-[10px] font-black transition-colors ${posterData.pageSize === 'A4' ? 'text-primary' : 'opacity-40'}`}
+                       >
+                         A4
+                       </button>
                     </div>
                   </div>
                 </div>
