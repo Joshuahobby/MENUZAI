@@ -30,7 +30,7 @@ export function QRPosterRenderer({ data, url, className = "", id }: QRPosterRend
         return (
           <div className="w-full h-full bg-white flex flex-col relative" style={{ color: textColor }}>
             {/* Food Image with Curved Bottom */}
-            <div className="h-[40%] w-full relative overflow-hidden shrink-0">
+            <div className="h-[35%] w-full relative overflow-hidden shrink-0">
               {backgroundImage ? (
                 <img src={backgroundImage} alt="Background" className="w-full h-full object-cover" />
               ) : (
@@ -60,24 +60,23 @@ export function QRPosterRenderer({ data, url, className = "", id }: QRPosterRend
                   </div>
                 )}
                 
-                <div className="mt-4 space-y-3">
-                  <h2 className="text-2xl font-[var(--font-headline)] font-black uppercase tracking-tight leading-none" style={{ color: primaryColor }}>
+                <div className="mt-2 space-y-2">
+                  <h2 className="text-xl lg:text-2xl font-[var(--font-headline)] font-black uppercase tracking-tight leading-none" style={{ color: primaryColor }}>
                     {headline}
                   </h2>
-                  <div className="h-0.5 w-16 bg-primary/20 mx-auto rounded-full" />
-                  <p className="text-xs font-bold opacity-80 max-w-[80%] mx-auto leading-relaxed">{subheadline}</p>
+                  <div className="h-0.5 w-12 bg-primary/20 mx-auto rounded-full" />
+                  <p className="text-[10px] lg:text-xs font-bold opacity-80 max-w-[85%] mx-auto leading-tight">{subheadline}</p>
                 </div>
               </div>
 
-              {/* QR Section with Sparkles */}
-              <div className="relative p-5 bg-white rounded-[2.5rem] shadow-2xl shadow-black/5 border border-surface-container/50">
+              <div className="relative p-4 bg-white rounded-[2rem] shadow-2xl shadow-black/5 border border-surface-container/50">
                 {/* Decorative Sparkles */}
-                <span className="material-symbols-outlined absolute -top-4 -left-4 text-primary opacity-30 text-2xl">star_rate</span>
-                <span className="material-symbols-outlined absolute -bottom-4 -right-4 text-primary opacity-30 text-2xl">star_rate</span>
+                <span className="material-symbols-outlined absolute -top-4 -left-4 text-primary opacity-30 text-xl">star_rate</span>
+                <span className="material-symbols-outlined absolute -bottom-4 -right-4 text-primary opacity-30 text-xl">star_rate</span>
                 
                 <QRCodeSVG
                   value={url}
-                  size={160}
+                  size={140}
                   fgColor={qrColor}
                   level="H"
                   includeMargin={true}
@@ -98,7 +97,7 @@ export function QRPosterRenderer({ data, url, className = "", id }: QRPosterRend
 
       case "dark-premium":
         return (
-          <div className="w-full h-full relative overflow-hidden flex flex-col items-center justify-center p-10 text-center bg-black">
+          <div className="w-full h-full relative overflow-hidden flex flex-col items-center justify-between p-10 lg:p-12 text-center bg-black">
             {backgroundImage && (
               <>
                 <img src={backgroundImage} alt="Background" className="absolute inset-0 w-full h-full object-cover opacity-60 scale-110" />
@@ -121,21 +120,21 @@ export function QRPosterRenderer({ data, url, className = "", id }: QRPosterRend
 
               <div className="relative group">
                 {/* Dynamic corner brackets */}
-                <div className="absolute -top-4 -left-4 w-12 h-12 border-t-4 border-l-4 border-white rounded-tl-3xl opacity-80" />
-                <div className="absolute -top-4 -right-4 w-12 h-12 border-t-4 border-r-4 border-white rounded-tr-3xl opacity-80" />
-                <div className="absolute -bottom-4 -left-4 w-12 h-12 border-b-4 border-l-4 border-white rounded-bl-3xl opacity-80" />
-                <div className="absolute -bottom-4 -right-4 w-12 h-12 border-b-4 border-r-4 border-white rounded-br-3xl opacity-80" />
+                <div className="absolute -top-3 -left-3 w-10 h-10 border-t-4 border-l-4 border-white rounded-tl-2xl opacity-80" />
+                <div className="absolute -top-3 -right-3 w-10 h-10 border-t-4 border-r-4 border-white rounded-tr-2xl opacity-80" />
+                <div className="absolute -bottom-3 -left-3 w-10 h-10 border-b-4 border-l-4 border-white rounded-bl-2xl opacity-80" />
+                <div className="absolute -bottom-3 -right-3 w-10 h-10 border-b-4 border-r-4 border-white rounded-br-2xl opacity-80" />
                 
-                <div className="p-8 bg-white/95 backdrop-blur-2xl rounded-[3rem] shadow-[0_0_80px_rgba(255,255,255,0.15)]">
+                <div className="p-6 bg-white/95 backdrop-blur-2xl rounded-[2.5rem] shadow-[0_0_80px_rgba(255,255,255,0.15)]">
                   <QRCodeSVG
                     value={url}
-                    size={200}
+                    size={160}
                     fgColor={qrColor}
                     level="H"
                     includeMargin={true}
                   />
-                  <div className="mt-6 py-3 px-8 bg-black rounded-full shadow-lg shadow-black/20 group-hover:scale-105 transition-transform">
-                    <span className="text-[10px] font-black text-white uppercase tracking-[0.3em]">Scan Now</span>
+                  <div className="mt-4 py-2 px-6 bg-black rounded-full shadow-lg shadow-black/20 group-hover:scale-105 transition-transform">
+                    <span className="text-[9px] font-black text-white uppercase tracking-[0.3em]">Scan Now</span>
                   </div>
                 </div>
               </div>
