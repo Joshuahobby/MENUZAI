@@ -2,6 +2,7 @@
 
 import React from "react";
 import { QRCodeSVG } from "qrcode.react";
+import NextImage from "next/image";
 import type { QRPosterData } from "@/types/menu";
 
 interface QRPosterRendererProps {
@@ -31,11 +32,11 @@ export function QRPosterRenderer({ data, url, className = "", id }: QRPosterRend
     switch (templateId) {
       case "classic-frame":
         return (
-          <div className="w-full h-full bg-white flex flex-col relative" style={{ color: textColor }}>
+          <div className="w-full h-full bg-white flex flex-col relative qp-text-color">
             {/* Food Image with Curved Bottom */}
             <div className={`${isA4 ? 'h-[30%]' : 'h-[35%]'} w-full relative overflow-hidden shrink-0`}>
               {backgroundImage ? (
-                <img src={backgroundImage} alt="Background" className="w-full h-full object-cover" />
+                <NextImage src={backgroundImage} alt="Background" fill className="object-cover" />
               ) : (
                 <div className="w-full h-full bg-surface-container-highest flex items-center justify-center">
                   <span className="material-symbols-outlined text-secondary text-5xl">restaurant</span>
@@ -55,7 +56,7 @@ export function QRPosterRenderer({ data, url, className = "", id }: QRPosterRend
                 {/* Logo in Circle */}
                 {logoUrl ? (
                   <div className="w-24 h-24 bg-white rounded-full p-2 shadow-2xl absolute -top-24 left-1/2 -translate-x-1/2 border-4 border-white overflow-hidden z-20">
-                    <img src={logoUrl} alt="Logo" className="w-full h-full object-contain" />
+                    <NextImage src={logoUrl} alt="Logo" fill className="object-contain p-2" />
                   </div>
                 ) : (
                    <div className="w-24 h-24 bg-white rounded-full p-4 shadow-2xl absolute -top-24 left-1/2 -translate-x-1/2 border-4 border-white flex items-center justify-center z-20">
@@ -64,7 +65,7 @@ export function QRPosterRenderer({ data, url, className = "", id }: QRPosterRend
                 )}
                 
                 <div className={`${isA4 ? 'mt-6 space-y-4' : 'mt-1 space-y-2'}`}>
-                  <h2 className={`${isA4 ? 'text-7xl' : 'text-xl'} font-[var(--font-headline)] font-black uppercase tracking-tight leading-tight`} style={{ color: primaryColor }}>
+                  <h2 className={`${isA4 ? 'text-7xl' : 'text-xl'} font-[var(--font-headline)] font-black uppercase tracking-tight leading-tight qp-primary-color`}>
                     {headline}
                   </h2>
                   <div className={`${isA4 ? 'h-1.5 w-20' : 'h-1 w-12'} bg-primary/20 mx-auto rounded-full`} />
@@ -103,7 +104,7 @@ export function QRPosterRenderer({ data, url, className = "", id }: QRPosterRend
           <div className={`w-full h-full relative overflow-hidden flex flex-col items-center justify-between ${isA4 ? 'p-16' : 'p-8'} text-center bg-black`}>
             {backgroundImage && (
               <>
-                <img src={backgroundImage} alt="Background" className="absolute inset-0 w-full h-full object-cover opacity-60 scale-110" />
+                <NextImage src={backgroundImage} alt="Background" fill className="object-cover opacity-60 scale-110" />
                 <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-transparent to-black/90" />
               </>
             )}
@@ -153,7 +154,7 @@ export function QRPosterRenderer({ data, url, className = "", id }: QRPosterRend
 
       case "elegant-minimal":
         return (
-          <div className="w-full h-full bg-surface-container-lowest flex flex-col items-center justify-center p-12 relative overflow-hidden" style={{ color: textColor }}>
+          <div className="w-full h-full bg-surface-container-lowest flex flex-col items-center justify-center p-12 relative overflow-hidden qp-text-color">
             <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-primary to-primary-container" />
             
             <div className="flex flex-col items-center gap-8 w-full">
@@ -188,7 +189,7 @@ export function QRPosterRenderer({ data, url, className = "", id }: QRPosterRend
               </div>
 
               <div className="text-center">
-                <p className="text-xs font-black mb-3" style={{ color: primaryColor }}>SCAN TO VIEW</p>
+                <p className="text-xs font-black mb-3 qp-primary-color">SCAN TO VIEW</p>
                 {footer && (
                   <p className="text-[9px] font-medium opacity-60 leading-tight px-6">
                     {footer}
@@ -207,6 +208,10 @@ export function QRPosterRenderer({ data, url, className = "", id }: QRPosterRend
   return (
     <div id={id} className={`aspect-[1/1.414] shadow-2xl rounded-3xl overflow-hidden bg-white ${className}`}>
       {renderTemplate()}
+      <style jsx>{`
+        .qp-text-color { color: ${textColor}; }
+        .qp-primary-color { color: ${primaryColor}; }
+      `}</style>
     </div>
   );
 }

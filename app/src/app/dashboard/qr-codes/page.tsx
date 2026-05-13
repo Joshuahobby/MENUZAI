@@ -7,6 +7,7 @@ import type { QRPosterData, QRTemplate } from "@/types/menu";
 import { toast } from "sonner";
 import { toPng } from "html-to-image";
 import jsPDF from "jspdf";
+import NextImage from "next/image";
 
 const TEMPLATES: QRTemplate[] = [
   { id: "classic-frame", name: "Classic Poster", thumbnail: "", layout: "portrait" },
@@ -229,41 +230,49 @@ export default function QRCodesPage() {
               
               <div className="space-y-5">
                 <div className="group">
-                  <label className="text-[9px] font-black text-secondary uppercase tracking-widest mb-2 block group-focus-within:text-primary transition-colors">Headline Text</label>
+                  <label htmlFor="headline-text" className="text-[9px] font-black text-secondary uppercase tracking-widest mb-2 block group-focus-within:text-primary transition-colors">Headline Text</label>
                   <input
+                    id="headline-text"
                     className="w-full bg-surface-container/50 border-none rounded-2xl py-3 px-4 text-xs font-bold focus:ring-2 focus:ring-primary/20 transition-all placeholder:opacity-30"
                     value={posterData.headline}
                     onChange={(e) => setPosterData({ ...posterData, headline: e.target.value })}
+                    title="Headline Text"
                   />
                 </div>
                 
                 <div>
-                  <label className="text-[9px] font-black text-secondary uppercase tracking-widest mb-2 block">Sub-headline</label>
+                  <label htmlFor="subheadline-text" className="text-[9px] font-black text-secondary uppercase tracking-widest mb-2 block">Sub-headline</label>
                   <textarea
+                    id="subheadline-text"
                     className="w-full bg-surface-container/50 border-none rounded-2xl py-3 px-4 text-xs font-bold focus:ring-2 focus:ring-primary/20 h-16 resize-none transition-all"
                     value={posterData.subheadline}
                     onChange={(e) => setPosterData({ ...posterData, subheadline: e.target.value })}
+                    title="Sub-headline"
                   />
                 </div>
 
                 <div>
-                  <label className="text-[9px] font-black text-secondary uppercase tracking-widest mb-2 block">Footer Message</label>
+                  <label htmlFor="footer-text" className="text-[9px] font-black text-secondary uppercase tracking-widest mb-2 block">Footer Message</label>
                   <textarea
+                    id="footer-text"
                     className="w-full bg-surface-container/50 border-none rounded-2xl py-3 px-4 text-xs font-bold focus:ring-2 focus:ring-primary/20 h-16 resize-none transition-all"
                     placeholder="e.g. Thank you for visiting!"
                     value={posterData.footer}
                     onChange={(e) => setPosterData({ ...posterData, footer: e.target.value })}
+                    title="Footer Message"
                   />
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="text-[9px] font-black text-secondary uppercase tracking-widest mb-2 block">Table #</label>
+                    <label htmlFor="table-number" className="text-[9px] font-black text-secondary uppercase tracking-widest mb-2 block">Table #</label>
                     <input
+                      id="table-number"
                       className="w-full bg-surface-container/50 border-none rounded-2xl py-3 px-4 text-xs font-bold focus:ring-2 focus:ring-primary/20 transition-all"
                       placeholder="e.g. 05"
                       value={tableNumber}
                       onChange={(e) => setTableNumber(e.target.value)}
+                      title="Table Number"
                     />
                   </div>
                   <div>
@@ -281,6 +290,7 @@ export default function QRCodesPage() {
                           pageSize: posterData.pageSize === 'A4' ? 'A5' : 'A4' 
                         })}
                         className="w-12 h-6 bg-surface-container rounded-full p-1 relative cursor-pointer"
+                        title={`Switch to ${posterData.pageSize === 'A4' ? 'A5' : 'A4'}`}
                        >
                           <div className={`absolute top-1 w-4 h-4 bg-primary rounded-full shadow-sm transition-all ${
                             posterData.pageSize === 'A4' ? 'right-1' : 'left-1'
@@ -308,8 +318,8 @@ export default function QRCodesPage() {
                     <button
                       key={color}
                       onClick={() => setPosterData({ ...posterData, primaryColor: color })}
-                      className={`w-6 h-6 rounded-full border-2 ${posterData.primaryColor === color ? 'border-primary' : 'border-white'} shadow-sm transition-transform hover:scale-110`}
-                      style={{ backgroundColor: color }}
+                      className={`w-6 h-6 rounded-full border-2 ${posterData.primaryColor === color ? 'border-primary' : 'border-white'} shadow-sm transition-transform hover:scale-110 color-btn-${color.replace('#', '')}`}
+                      title={`Set primary color to ${color}`}
                     />
                   ))}
                 </div>
@@ -325,12 +335,14 @@ export default function QRCodesPage() {
                       className="w-8 h-8 rounded-full border-2 border-white shadow-sm p-0 overflow-hidden cursor-pointer hover:scale-110 transition-transform"
                       value={posterData.primaryColor}
                       onChange={(e) => setPosterData({ ...posterData, primaryColor: e.target.value })}
+                      title="Custom Primary Color"
                     />
                     <input
                       type="color"
                       className="w-8 h-8 rounded-full border-2 border-white shadow-sm p-0 overflow-hidden cursor-pointer hover:scale-110 transition-transform"
                       value={posterData.qrColor}
                       onChange={(e) => setPosterData({ ...posterData, qrColor: e.target.value })}
+                      title="Custom QR Code Color"
                     />
                   </div>
                 </div>
@@ -343,27 +355,30 @@ export default function QRCodesPage() {
                     <button
                       key={i}
                       onClick={() => setPosterData({ ...posterData, backgroundImage: img })}
-                      className={`aspect-[3/4] rounded-xl overflow-hidden border-2 transition-all ${
+                      className={`aspect-[3/4] rounded-xl overflow-hidden border-2 transition-all relative ${
                         posterData.backgroundImage === img ? "border-primary scale-105 shadow-lg shadow-primary/10" : "border-transparent grayscale opacity-40 hover:opacity-100 hover:grayscale-0"
                       }`}
+                      title={`Select background style ${i + 1}`}
                     >
-                      <img src={img} alt="Preset" className="w-full h-full object-cover" />
+                      <NextImage src={img} alt="Preset" fill className="object-cover" />
                     </button>
                   ))}
                   <button 
                     onClick={() => document.getElementById('image-upload')?.click()}
                     className="aspect-[3/4] rounded-xl border-2 border-dashed border-outline-variant flex flex-col items-center justify-center text-secondary hover:text-primary hover:border-primary transition-all gap-1"
+                    title="Upload custom background image"
                   >
                     <span className="material-symbols-outlined text-sm">add</span>
                     <span className="text-[8px] font-black uppercase">Upload</span>
-                    <input 
-                      id="image-upload"
-                      type="file" 
-                      className="hidden" 
-                      accept="image/*"
-                      onChange={handleImageUpload}
-                    />
                   </button>
+                  <input 
+                    id="image-upload"
+                    type="file" 
+                    className="hidden" 
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                    title="Upload image"
+                  />
                 </div>
               </div>
             </section>
@@ -414,6 +429,10 @@ export default function QRCodesPage() {
         .hide-scrollbar::-webkit-scrollbar { display: none; }
         .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         
+        ${["#FF6B00", "#1A1009", "#D4AF37", "#004d40", "#b71c1c"].map(color => `
+          .color-btn-${color.replace('#', '')} { background-color: ${color}; }
+        `).join('')}
+
         @media print {
           /* Hide everything first */
           header, aside, main > div:not(.perspective-1000), .absolute, button, nav, .bottom-nav { 

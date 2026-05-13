@@ -53,8 +53,6 @@ export function EditorItemCard({
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
-    opacity: isDragging ? 0.5 : 1,
-    zIndex: isDragging ? 10 : 1,
   };
 
   const handleItemImageUpload = useCallback(
@@ -145,8 +143,7 @@ export function EditorItemCard({
   return (
     <div
       ref={setNodeRef}
-      style={style}
-      className={`group relative rounded-3xl transition-all duration-300 ${cardWrap} ${isExpanded ? "ring-2 ring-primary bg-surface-container-low" : ""}`}
+      className={`group relative rounded-3xl transition-all duration-300 dnd-item-style ${cardWrap} ${isExpanded ? "ring-2 ring-primary bg-surface-container-low" : ""} ${isDragging ? "opacity-50 z-10" : "opacity-100 z-[1]"}`}
     >
       <div
         {...attributes}
@@ -325,7 +322,7 @@ export function EditorItemCard({
               >
                 <span className="material-symbols-outlined">add</span>
               </button>
-              <input ref={galleryInputRef} type="file" multiple accept="image/*" className="hidden" onChange={handleGalleryUpload} />
+              <input ref={galleryInputRef} type="file" multiple accept="image/*" className="hidden" onChange={handleGalleryUpload} title="Upload gallery photos" />
             </div>
           </div>
 
@@ -425,6 +422,12 @@ export function EditorItemCard({
       >
         expand_more
       </span>
+      <style jsx>{`
+        .dnd-item-style {
+          transform: ${style.transform};
+          transition: ${style.transition};
+        }
+      `}</style>
     </div>
   );
 }
