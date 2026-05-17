@@ -36,6 +36,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const saved = localStorage.getItem("sidebar-collapsed");
+    // eslint-disable-next-line
     if (saved === "true") setCollapsed(true);
   }, []);
 

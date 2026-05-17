@@ -10,6 +10,24 @@ import { prompt, confirm } from "@/components/Modals";
 import { toast } from "sonner";
 import { PrintView } from "../templates/PrintView";
 import { DEMO_DATA, type TplData } from "../templates/TemplatePreview";
+import { QRCodeModal } from "@/components/QRCodeModal";
+import {
+  DndContext, 
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+  TouchSensor,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { restrictToVerticalAxis, restrictToWindowEdges } from "@dnd-kit/modifiers";
 
 type Viewport = "mobile" | "tablet" | "desktop";
 
@@ -58,7 +76,15 @@ export default function MenuEditorPage() {
   const [activeCategoryId, setActiveCategoryId] = useState<string | undefined>(undefined);
 
   // Drag state for item reordering
-  const dragItemIdRef = useRef<string | null>(null);
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: { distance: 5 },
+    }),
+    useSensor(TouchSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
 
   const [uploadingItemId, setUploadingItemId] = useState<string | null>(null);
 
@@ -67,6 +93,7 @@ export default function MenuEditorPage() {
 
   // Print overlay state
   const [isPrintOpen, setIsPrintOpen] = useState(false);
+  const [isQRModalOpen, setIsQRModalOpen] = useState(false);
 
   const printData: TplData = useMemo(() => {
     if (categories.length === 0) return { ...DEMO_DATA, restaurantName: restaurantName || DEMO_DATA.restaurantName };
@@ -86,12 +113,16 @@ export default function MenuEditorPage() {
 
   // Keep activeCategoryId pointing to a valid category
   useEffect(() => {
-    if (!activeCategoryId) {
-      if (categories.length > 0) setActiveCategoryId(categories[0].id);
+    if (!categories.length) {
+      if (activeCategoryId) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setActiveCategoryId(undefined);
+      }
       return;
     }
-    if (!categories.find((c) => c.id === activeCategoryId)) {
-      setActiveCategoryId(categories.length > 0 ? categories[0].id : undefined);
+    const currentIsValid = categories.some(c => c.id === activeCategoryId);
+    if (!activeCategoryId || !currentIsValid) {
+      setActiveCategoryId(categories[0].id);
     }
   }, [categories, activeCategoryId]);
 
@@ -99,12 +130,17 @@ export default function MenuEditorPage() {
   useEffect(() => {
     const el = containerRef.current;
     if (el) {
-      el.style.setProperty("--primary-color", menuStyle.primaryColor);
-      el.style.setProperty("--secondary-color", menuStyle.secondaryColor);
       el.style.setProperty("--bg-color", menuStyle.backgroundColor);
+      el.style.setProperty("--title-color", menuStyle.titleColor ?? "#1A1009");
+      el.style.setProperty("--section-title-color", menuStyle.sectionTitleColor ?? "#3D2410");
+      el.style.setProperty("--item-text-color", menuStyle.itemTextColor ?? "#4A3318");
+      el.style.setProperty("--price-text-color", menuStyle.priceTextColor ?? menuStyle.primaryColor);
+      el.style.setProperty("--divider-color", menuStyle.dividerColor ?? "#B89060");
       el.style.setProperty("--font-headline", menuStyle.headlineFont);
       el.style.setProperty("--font-body", menuStyle.bodyFont);
       el.style.setProperty("--border-radius", menuStyle.borderRadius);
+      el.style.setProperty("--page-padding", `${menuStyle.pagePadding ?? 44}px`);
+      el.style.setProperty("--item-spacing", `${menuStyle.itemSpacing ?? 26}px`);
     }
   }, [menuStyle]);
 
@@ -130,29 +166,19 @@ export default function MenuEditorPage() {
   };
 
 
-  // Item drag-to-reorder handlers
-  const handleItemDragStart = (id: string) => {
-    dragItemIdRef.current = id;
-    setExpandedItemId(null); // collapse expanded panel while dragging
-  };
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
 
-  const handleItemDragOver = (e: React.DragEvent, overId: string) => {
-    e.preventDefault();
-    if (!dragItemIdRef.current || dragItemIdRef.current === overId) return;
     setMenuItems((prev) => {
-      const from = prev.findIndex((i) => i.id === dragItemIdRef.current);
-      const to = prev.findIndex((i) => i.id === overId);
-      if (from === -1 || to === -1) return prev;
-      const next = [...prev];
-      const [moved] = next.splice(from, 1);
-      next.splice(to, 0, moved);
+      const oldIndex = prev.findIndex((item) => item.id === active.id);
+      const newIndex = prev.findIndex((item) => item.id === over.id);
+      if (oldIndex === -1 || newIndex === -1) return prev;
+      
+      const next = arrayMove(prev, oldIndex, newIndex);
       return next;
     });
-    dragItemIdRef.current = overId;
-  };
-
-  const handleItemDrop = () => {
-    dragItemIdRef.current = null;
+    toast.success("Order updated");
   };
 
   if (isLoading) {
@@ -229,20 +255,28 @@ export default function MenuEditorPage() {
         </div>
         <div className="flex items-center gap-3">
           {menuStatus === "published" && menuSlug && (
-            <Link href={`/menu/${menuSlug}`} target="_blank" className="px-4 py-2 bg-tertiary-container/20 text-tertiary rounded-xl font-bold text-xs flex items-center gap-1.5 hover:bg-tertiary-container/30 transition-all">
-              <span className="material-symbols-outlined text-sm">open_in_new</span>
-              <span className="hidden sm:inline">View Menu</span>
-            </Link>
+            <div className="flex items-center gap-1.5">
+              <Link href={`/menu/${menuSlug}`} target="_blank" className="px-4 py-2 bg-tertiary-container/20 text-tertiary rounded-xl font-bold text-xs flex items-center gap-1.5 hover:bg-tertiary-container/30 transition-all">
+                <span className="material-symbols-outlined text-sm">open_in_new</span>
+                <span className="hidden sm:inline">View Menu</span>
+              </Link>
+              <button 
+                onClick={() => setIsQRModalOpen(true)}
+                className="p-2 bg-tertiary-container/20 text-tertiary rounded-xl hover:bg-tertiary-container/30 transition-all"
+                title="Share QR Code"
+              >
+                <span className="material-symbols-outlined text-sm">qr_code_2</span>
+              </button>
+            </div>
           )}
 
+          {/* Print Action */}
           <button
-            type="button"
             onClick={() => setIsPrintOpen(true)}
-            className="p-2 rounded-xl transition-all flex items-center gap-2 bg-surface-container-highest text-secondary hover:text-primary"
-            title="Print Menu"
+            className="flex items-center justify-center gap-2 px-6 h-11 rounded-full bg-on-surface text-surface hover:bg-on-surface/90 transition-all font-bold text-sm shadow-lg shadow-on-surface/10 group"
           >
-            <span className="material-symbols-outlined text-sm">print</span>
-            <span className="text-xs font-bold hidden md:inline">Print</span>
+            <span className="material-symbols-outlined text-[20px] group-hover:scale-110 transition-transform">visibility</span>
+            <span>Preview & Print</span>
           </button>
 
           <button
@@ -429,25 +463,34 @@ export default function MenuEditorPage() {
 
               {/* Items */}
               <div className="p-6 space-y-4">
-                {filteredItems.map((item) => (
-                  <EditorItemCard
-                    key={item.id}
-                    item={item}
-                    menuStyle={menuStyle}
-                    isExpanded={expandedItemId === item.id}
-                    isUploading={uploadingItemId === item.id}
-                    userId={userId}
-                    onToggleExpand={() => setExpandedItemId(expandedItemId === item.id ? null : item.id)}
-                    onUpdateItem={updateItem}
-                    onDuplicateItem={(id) => { duplicateItem(id); setExpandedItemId(null); }}
-                    onRemoveItem={removeItem}
-                    onDragStart={handleItemDragStart}
-                    onDragOver={handleItemDragOver}
-                    onDrop={handleItemDrop}
-                    onUploadStart={(id) => setUploadingItemId(id)}
-                    onUploadEnd={() => setUploadingItemId(null)}
-                  />
-                ))}
+                <DndContext
+                  sensors={sensors}
+                  collisionDetection={closestCenter}
+                  onDragEnd={handleDragEnd}
+                  modifiers={[restrictToVerticalAxis, restrictToWindowEdges]}
+                >
+                  <SortableContext
+                    items={filteredItems.map(i => i.id)}
+                    strategy={verticalListSortingStrategy}
+                  >
+                    {filteredItems.map((item) => (
+                      <EditorItemCard
+                        key={item.id}
+                        item={item}
+                        menuStyle={menuStyle}
+                        isExpanded={expandedItemId === item.id}
+                        isUploading={uploadingItemId === item.id}
+                        userId={userId}
+                        onToggleExpand={() => setExpandedItemId(expandedItemId === item.id ? null : item.id)}
+                        onUpdateItem={updateItem}
+                        onDuplicateItem={(id) => { duplicateItem(id); setExpandedItemId(null); }}
+                        onRemoveItem={removeItem}
+                        onUploadStart={(id) => setUploadingItemId(id)}
+                        onUploadEnd={() => setUploadingItemId(null)}
+                      />
+                    ))}
+                  </SortableContext>
+                </DndContext>
 
                 {activeCategoryId ? (
                   <div
@@ -493,10 +536,18 @@ export default function MenuEditorPage() {
 
       {isPrintOpen && (
         <PrintView
-          templateId="vintage-parchment"
+          templateId={menuStyle.templateId ?? "vintage-parchment"}
           templateName="Print Menu"
           restaurantData={printData}
           onClose={() => setIsPrintOpen(false)}
+        />
+      )}
+
+      {isQRModalOpen && menuSlug && (
+        <QRCodeModal 
+          url={`${window.location.origin}/menu/${menuSlug}?src=qr`}
+          isOpen={isQRModalOpen}
+          onClose={() => setIsQRModalOpen(false)}
         />
       )}
     </div>

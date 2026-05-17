@@ -1,183 +1,483 @@
 "use client";
 
-import { useState, useRef } from "react";
-import { QRCodeSVG } from "qrcode.react";
+import { useState, useRef, useEffect } from "react";
 import { useMenu } from "@/context/MenuContext";
+import { QRPosterRenderer } from "./QRPosterRenderer";
+import type { QRPosterData, QRTemplate } from "@/types/menu";
+import { toast } from "sonner";
+import { toPng } from "html-to-image";
+import jsPDF from "jspdf";
+import NextImage from "next/image";
+
+const TEMPLATES: QRTemplate[] = [
+  { id: "classic-frame", name: "Classic Poster", thumbnail: "", layout: "portrait" },
+  { id: "dark-premium", name: "Dark Premium", thumbnail: "", layout: "portrait" },
+  { id: "elegant-minimal", name: "Elegant Minimal", thumbnail: "", layout: "portrait" },
+];
+
+const PRESET_IMAGES = [
+  "https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?auto=format&fit=crop&q=80&w=800",
+  "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&q=80&w=800",
+  "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&q=80&w=800",
+  "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?auto=format&fit=crop&q=80&w=800",
+];
 
 export default function QRCodesPage() {
-  const { menuSlug, menuStatus } = useMenu();
+  const { menuSlug, menuStatus, menuStyle, restaurantName } = useMenu();
   const baseUrl = typeof window !== "undefined" ? window.location.origin : "https://menuzai.com";
+  
   const [tableNumber, setTableNumber] = useState("");
   const menuUrl = menuSlug && menuStatus === "published" 
-    ? `${baseUrl}/menu/${menuSlug}${tableNumber ? `?table=${encodeURIComponent(tableNumber)}` : ''}` 
+    ? `${baseUrl}/menu/${menuSlug}${tableNumber ? `?table=${encodeURIComponent(tableNumber)}` : ''}?src=qr` 
     : "";
-    
-  const [qrColor, setQrColor] = useState("#FF6B00");
-  const [bgColor] = useState("#ffffff");
-  const [showTableNum, setShowTableNum] = useState(true);
-  const qrRef = useRef<HTMLDivElement>(null);
 
-  const downloadPNG = () => {
-    const svg = document.getElementById("qr-code-svg");
-    if (!svg) return;
-    const svgData = new XMLSerializer().serializeToString(svg);
-    const canvas = document.createElement("canvas");
-    const ctx = canvas.getContext("2d");
-    const img = new Image();
-    img.onload = () => {
-      // Create a canvas large enough for the QR code and text
-      canvas.width = img.width + 40;
-      canvas.height = img.height + (showTableNum && tableNumber ? 80 : 40);
+  const [posterData, setPosterData] = useState<QRPosterData>({
+    templateId: "classic-frame",
+    headline: "Scan to View Our Menu",
+    subheadline: "Healthy & Delicious Food Delivered to Your Table",
+    footer: "Thank you for visiting us! We hope you enjoy your meal.",
+    backgroundImage: PRESET_IMAGES[0],
+    logoUrl: menuStyle.logoUrl || "",
+    primaryColor: menuStyle.primaryColor || "#FF6B00",
+    textColor: "#1A1009",
+    qrColor: "#000000",
+    pageSize: "A4",
+  });
+
+  // Update poster data when menu style changes
+  useEffect(() => {
+    setPosterData(prev => ({
+      ...prev,
+      logoUrl: menuStyle.logoUrl || "",
+      primaryColor: menuStyle.primaryColor || "#FF6B00",
+    }));
+  }, [menuStyle.logoUrl, menuStyle.primaryColor]);
+
+  const posterRef = useRef<HTMLDivElement>(null);
+  const [isExporting, setIsExporting] = useState(false);
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPosterData({ ...posterData, backgroundImage: reader.result as string });
+        toast.success("Custom image uploaded!");
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const downloadPDF = async () => {
+    if (!posterRef.current) return;
+    setIsExporting(true);
+    try {
+      const dataUrl = await toPng(posterRef.current, { 
+        quality: 1.0,
+        pixelRatio: 4,
+        cacheBust: true,
+      });
       
-      if (!ctx) return;
-      ctx.fillStyle = bgColor;
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-      ctx.drawImage(img, 20, 20);
+      const isA4 = posterData.pageSize === "A4";
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: isA4 ? 'a4' : 'a5'
+      });
+      
+      const width = isA4 ? 210 : 148;
+      const height = isA4 ? 297 : 210;
+      
+      pdf.addImage(dataUrl, 'PNG', 0, 0, width, height);
+      pdf.save(`${restaurantName || 'menu'}-qr-${posterData.pageSize.toLowerCase()}.pdf`);
+      toast.success(`${posterData.pageSize} PDF exported successfully!`);
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to export PDF.");
+    } finally {
+      setIsExporting(false);
+    }
+  };
 
-      // Add text if needed
-      if (showTableNum && tableNumber) {
-        ctx.fillStyle = qrColor;
-        ctx.font = "bold 24px sans-serif";
-        ctx.textAlign = "center";
-        ctx.fillText(`Table ${tableNumber}`, canvas.width / 2, canvas.height - 20);
-      }
-
-      const pngFile = canvas.toDataURL("image/png");
-      const downloadLink = document.createElement("a");
-      downloadLink.download = `menu-qr${tableNumber ? `-table-${tableNumber}` : ""}.png`;
-      downloadLink.href = pngFile;
-      downloadLink.click();
-    };
-    img.src = "data:image/svg+xml;base64," + btoa(svgData);
+  const downloadPoster = async () => {
+    if (!posterRef.current) return;
+    setIsExporting(true);
+    try {
+      const dataUrl = await toPng(posterRef.current, { 
+        quality: 1.0,
+        pixelRatio: 2, // High resolution for print
+        cacheBust: true,
+      });
+      const link = document.createElement("a");
+      link.download = `${restaurantName || 'menu'}-qr-poster.png`;
+      link.href = dataUrl;
+      link.click();
+      toast.success("Poster exported successfully!");
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to export poster. Please try again.");
+    } finally {
+      setIsExporting(false);
+    }
   };
 
   return (
-    <div className="p-6 lg:p-12 pb-24 lg:pb-12">
-      <div className="mb-10">
-        <h1 className="text-3xl font-[var(--font-headline)] font-extrabold tracking-tight mb-1">QR Code Generator</h1>
-        <p className="text-secondary">Generate a branded QR code for your digital menu</p>
-      </div>
-
-      {!menuUrl && (
-        <div className="mb-8 bg-primary/5 border border-primary/20 rounded-2xl p-6 text-center">
-          <span className="material-symbols-outlined text-primary text-3xl mb-2 block">info</span>
-          <p className="font-bold text-sm">Publish your menu first to generate a QR code.</p>
-          <p className="text-secondary text-xs mt-1">Go to the Menu Editor and click &quot;Publish Menu&quot;.</p>
+    <div className="h-screen flex flex-col bg-[#FDFCFB] overflow-hidden">
+      {/* Header */}
+      <header className="px-8 py-4 border-b border-[#F0EBE8] bg-white/80 backdrop-blur-md flex justify-between items-center shrink-0 z-20">
+        <div>
+          <h1 className="text-xl font-[var(--font-headline)] font-black tracking-tight text-[#1A1009]">QR Design Studio</h1>
+          <p className="text-[10px] font-bold text-secondary uppercase tracking-[0.2em] opacity-60">Create & Print Professional Menu Posters</p>
         </div>
-      )}
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-        {/* QR Preview */}
-        <div className="flex flex-col items-center">
-          <div ref={qrRef} className="bg-surface-container-lowest p-8 rounded-[2rem] shadow-lg border border-surface-container/50 mb-8 flex flex-col items-center">
-            <QRCodeSVG
-              id="qr-code-svg"
-              value={menuUrl || "https://menuzai.com"}
-              size={280}
-              fgColor={qrColor}
-              bgColor={bgColor}
-              level="H"
-              includeMargin={true}
-            />
-            {showTableNum && tableNumber && (
-              <p className="mt-4 text-2xl font-bold font-[var(--font-headline)] tracking-tight" style={{ color: qrColor }}>
-                Table {tableNumber}
-              </p>
+        
+        <div className="flex items-center gap-3">
+          {!menuUrl && (
+            <div className="bg-amber-50 border border-amber-100 px-3 py-1.5 rounded-full flex items-center gap-2 text-amber-700 text-[10px] font-black uppercase tracking-wider">
+              <span className="material-symbols-outlined text-sm">warning</span>
+              Menu Unscheduled
+            </div>
+          )}
+          <button
+            onClick={downloadPoster}
+            disabled={isExporting}
+            className="px-6 py-2.5 bg-white text-[#1A1009] border border-[#F0EBE8] rounded-full font-black text-[11px] uppercase tracking-widest shadow-sm hover:bg-surface-container/20 transition-all flex items-center gap-2 disabled:opacity-50"
+          >
+            <span className="material-symbols-outlined text-[16px]">image</span>
+            PNG
+          </button>
+          <button
+            onClick={downloadPDF}
+            disabled={isExporting}
+            className="px-6 py-2.5 bg-[#1A1009] text-white rounded-full font-black text-[11px] uppercase tracking-widest shadow-lg shadow-black/10 hover:scale-105 active:scale-95 transition-all flex items-center gap-2 disabled:opacity-50"
+          >
+            {isExporting ? (
+              <div className="w-3 h-3 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+            ) : (
+              <span className="material-symbols-outlined text-[16px]">picture_as_pdf</span>
             )}
-            {showTableNum && !tableNumber && (
-              <p className="mt-4 text-xl font-bold font-[var(--font-headline)] tracking-tight" style={{ color: qrColor }}>
-                Scan to Order
-              </p>
-            )}
-          </div>
-          <p className="text-sm text-secondary text-center mb-6">
-            &quot;Print this and place it on your tables&quot;
-          </p>
-          <div className="flex gap-4 w-full max-w-sm">
-            <button onClick={downloadPNG} disabled={!menuUrl} className="flex-1 py-4 bg-gradient-to-br from-primary to-primary-container rounded-2xl font-bold text-white shadow-lg shadow-primary/20 active:scale-95 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed border-none">
-              <span className="material-symbols-outlined text-sm">download</span> Download PNG
-            </button>
-            <button onClick={() => window.print()} disabled={!menuUrl} className="flex-1 py-4 bg-surface-container-highest rounded-2xl font-bold text-on-surface hover:bg-surface-variant transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed border-none">
-              <span className="material-symbols-outlined text-sm">print</span> Print
-            </button>
-          </div>
+            Download PDF
+          </button>
         </div>
+      </header>
 
-        {/* Customization */}
-        <div className="space-y-8">
-          <div className="bg-surface-container-lowest p-8 rounded-[2rem] border border-surface-container/50">
-            <h3 className="font-[var(--font-headline)] font-bold text-lg mb-6">Customization</h3>
-            <div className="space-y-6">
-              <div>
-                <label className="text-xs font-bold text-secondary uppercase tracking-[0.2em] mb-3 block">QR Code Color</label>
-                <div className="grid grid-cols-4 gap-3">
-                {["#FF6B00", "#1B5E20", "#0D47A1", "#3E2723"].map((color) => {
-                  const colorClasses: Record<string, string> = {
-                    "#FF6B00": "bg-[#FF6B00]",
-                    "#1B5E20": "bg-[#1B5E20]",
-                    "#0D47A1": "bg-[#0D47A1]",
-                    "#3E2723": "bg-[#3E2723]",
-                  };
-                  return (
-                    <button key={color} onClick={() => setQrColor(color)}
-                      className={`aspect-square rounded-full border-4 transition-all ${colorClasses[color]} ${qrColor === color ? "border-primary-container scale-110" : "border-transparent hover:scale-105"}`}
-                      title={`Select QR Color ${color}`}
-                      aria-label={`Select QR Color ${color}`} />
-                  );
-                })}
+      <div className="flex-1 flex min-h-0 overflow-hidden">
+        {/* Left Sidebar: Controls */}
+        <aside className="w-[320px] border-r border-[#F0EBE8] bg-white flex flex-col overflow-hidden">
+          <div className="flex-1 overflow-y-auto p-8 space-y-10 hide-scrollbar">
+            
+            {/* Template Selection */}
+            <section>
+              <div className="mb-4">
+                <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-[#1A1009]">Layout</h3>
               </div>
+              <div className="flex gap-2">
+                {TEMPLATES.map((t) => (
+                  <button
+                    key={t.id}
+                    onClick={() => setPosterData({ ...posterData, templateId: t.id })}
+                    className={`group relative flex-1 aspect-square rounded-2xl transition-all border-2 flex flex-col items-center justify-center p-2 ${
+                      posterData.templateId === t.id 
+                        ? "bg-[#1A1009]/5 border-[#1A1009]" 
+                        : "bg-transparent border-transparent hover:bg-surface-container/20"
+                    }`}
+                  >
+                    <div className={`w-full flex-1 rounded-lg border overflow-hidden transition-transform group-hover:scale-105 mb-1 ${
+                      t.id === 'classic-frame' ? 'bg-white border-primary/20' : 
+                      t.id === 'dark-premium' ? 'bg-black border-white/10' : 
+                      'bg-surface-container-low border-outline-variant/20'
+                    }`}>
+                      {/* Abstract Icon for Template */}
+                      {t.id === 'classic-frame' && (
+                        <div className="w-full h-full flex flex-col">
+                           <div className="h-2/5 bg-primary/20" />
+                           <div className="flex-1 p-1 space-y-0.5">
+                              <div className="h-0.5 w-full bg-black/10 rounded-full" />
+                              <div className="h-2 w-2 bg-black/5 mx-auto rounded-full" />
+                           </div>
+                        </div>
+                      )}
+                      {t.id === 'dark-premium' && (
+                        <div className="w-full h-full bg-black flex flex-col items-center justify-center p-1 space-y-1">
+                           <div className="h-0.5 w-2/3 bg-white/20 rounded-full" />
+                           <div className="h-3 w-3 border border-white/20 rounded-sm" />
+                        </div>
+                      )}
+                      {t.id === 'elegant-minimal' && (
+                        <div className="w-full h-full bg-white flex flex-col items-center justify-center p-1 space-y-1">
+                           <div className="h-3 w-3 border-2 border-primary/20 rounded-lg" />
+                           <div className="h-0.5 w-1/2 bg-black/10 rounded-full" />
+                        </div>
+                      )}
+                    </div>
+                    
+                    <span className={`text-[7px] font-black uppercase tracking-widest ${posterData.templateId === t.id ? 'text-[#1A1009]' : 'text-secondary opacity-60'}`}>
+                      {t.name.split(' ')[0]}
+                    </span>
+
+                    {posterData.templateId === t.id && (
+                      <div className="absolute -top-1 -right-1 w-4 h-4 bg-[#1A1009] rounded-full flex items-center justify-center border-2 border-white">
+                        <span className="material-symbols-outlined text-[10px] text-white">check</span>
+                      </div>
+                    )}
+                  </button>
+                ))}
               </div>
+            </section>
+
+            {/* Content Customization */}
+            <section className="space-y-6">
+              <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-[#1A1009]">Customize Content</h3>
               
-              <div>
-                <label className="text-xs font-bold text-secondary uppercase tracking-[0.2em] mb-3 block">Table Number (Optional)</label>
-                <input 
-                  className="w-full bg-surface-container-low border-none rounded-xl py-3 px-4 text-sm focus:ring-2 focus:ring-primary/20"
-                  placeholder="e.g. 12" 
-                  value={tableNumber} 
-                  onChange={(e) => setTableNumber(e.target.value)} 
-                />
-              </div>
-
-              <div className="flex items-center justify-between">
+              <div className="space-y-5">
+                <div className="group">
+                  <label htmlFor="headline-text" className="text-[9px] font-black text-secondary uppercase tracking-widest mb-2 block group-focus-within:text-primary transition-colors">Headline Text</label>
+                  <input
+                    id="headline-text"
+                    className="w-full bg-surface-container/50 border-none rounded-2xl py-3 px-4 text-xs font-bold focus:ring-2 focus:ring-primary/20 transition-all placeholder:opacity-30"
+                    value={posterData.headline}
+                    onChange={(e) => setPosterData({ ...posterData, headline: e.target.value })}
+                    title="Headline Text"
+                  />
+                </div>
+                
                 <div>
-                  <p className="font-bold text-sm">Show Text Label</p>
-                  <p className="text-xs text-secondary mt-0.5">Display table number below QR code</p>
+                  <label htmlFor="subheadline-text" className="text-[9px] font-black text-secondary uppercase tracking-widest mb-2 block">Sub-headline</label>
+                  <textarea
+                    id="subheadline-text"
+                    className="w-full bg-surface-container/50 border-none rounded-2xl py-3 px-4 text-xs font-bold focus:ring-2 focus:ring-primary/20 h-16 resize-none transition-all"
+                    value={posterData.subheadline}
+                    onChange={(e) => setPosterData({ ...posterData, subheadline: e.target.value })}
+                    title="Sub-headline"
+                  />
                 </div>
-                <button
-                  onClick={() => setShowTableNum(!showTableNum)}
-                  className={`w-12 h-7 rounded-full transition-all relative ${showTableNum ? "bg-primary" : "bg-surface-container-highest"}`}
-                >
-                  <div className={`w-5 h-5 bg-white rounded-full absolute top-1 transition-all shadow-sm ${showTableNum ? "right-1" : "left-1"}`} />
-                </button>
+
+                <div>
+                  <label htmlFor="footer-text" className="text-[9px] font-black text-secondary uppercase tracking-widest mb-2 block">Footer Message</label>
+                  <textarea
+                    id="footer-text"
+                    className="w-full bg-surface-container/50 border-none rounded-2xl py-3 px-4 text-xs font-bold focus:ring-2 focus:ring-primary/20 h-16 resize-none transition-all"
+                    placeholder="e.g. Thank you for visiting!"
+                    value={posterData.footer}
+                    onChange={(e) => setPosterData({ ...posterData, footer: e.target.value })}
+                    title="Footer Message"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label htmlFor="table-number" className="text-[9px] font-black text-secondary uppercase tracking-widest mb-2 block">Table #</label>
+                    <input
+                      id="table-number"
+                      className="w-full bg-surface-container/50 border-none rounded-2xl py-3 px-4 text-xs font-bold focus:ring-2 focus:ring-primary/20 transition-all"
+                      placeholder="e.g. 05"
+                      value={tableNumber}
+                      onChange={(e) => setTableNumber(e.target.value)}
+                      title="Table Number"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[9px] font-black text-secondary uppercase tracking-widest mb-2 block text-right">Print Size</label>
+                    <div className="flex items-center justify-end h-10 gap-2">
+                       <button 
+                        onClick={() => setPosterData({ ...posterData, pageSize: 'A5' })}
+                        className={`text-[10px] font-black transition-colors ${posterData.pageSize === 'A5' ? 'text-primary' : 'opacity-40'}`}
+                       >
+                         A5
+                       </button>
+                       <button 
+                        onClick={() => setPosterData({ 
+                          ...posterData, 
+                          pageSize: posterData.pageSize === 'A4' ? 'A5' : 'A4' 
+                        })}
+                        className="w-12 h-6 bg-surface-container rounded-full p-1 relative cursor-pointer"
+                        title={`Switch to ${posterData.pageSize === 'A4' ? 'A5' : 'A4'}`}
+                       >
+                          <div className={`absolute top-1 w-4 h-4 bg-primary rounded-full shadow-sm transition-all ${
+                            posterData.pageSize === 'A4' ? 'right-1' : 'left-1'
+                          }`} />
+                       </button>
+                       <button 
+                        onClick={() => setPosterData({ ...posterData, pageSize: 'A4' })}
+                        className={`text-[10px] font-black transition-colors ${posterData.pageSize === 'A4' ? 'text-primary' : 'opacity-40'}`}
+                       >
+                         A4
+                       </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            {/* Visual Branding */}
+            <section className="space-y-6">
+              <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-[#1A1009]">Visual Branding</h3>
+              
+              <div className="space-y-4">
+                <div className="flex flex-wrap gap-2">
+                  {["#FF6B00", "#1A1009", "#D4AF37", "#004d40", "#b71c1c"].map((color) => (
+                    <button
+                      key={color}
+                      onClick={() => setPosterData({ ...posterData, primaryColor: color })}
+                      className={`w-6 h-6 rounded-full border-2 ${posterData.primaryColor === color ? 'border-primary' : 'border-white'} shadow-sm transition-transform hover:scale-110 color-btn-${color.replace('#', '')}`}
+                      title={`Set primary color to ${color}`}
+                    />
+                  ))}
+                </div>
+                
+                <div className="flex items-center justify-between p-4 bg-surface-container/30 rounded-3xl border border-surface-container/50">
+                  <div>
+                    <p className="text-[10px] font-black uppercase tracking-wider text-[#1A1009]">Custom Theme</p>
+                    <p className="text-[9px] font-bold text-secondary opacity-60">Accent & QR Colors</p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="color"
+                      className="w-8 h-8 rounded-full border-2 border-white shadow-sm p-0 overflow-hidden cursor-pointer hover:scale-110 transition-transform"
+                      value={posterData.primaryColor}
+                      onChange={(e) => setPosterData({ ...posterData, primaryColor: e.target.value })}
+                      title="Custom Primary Color"
+                    />
+                    <input
+                      type="color"
+                      className="w-8 h-8 rounded-full border-2 border-white shadow-sm p-0 overflow-hidden cursor-pointer hover:scale-110 transition-transform"
+                      value={posterData.qrColor}
+                      onChange={(e) => setPosterData({ ...posterData, qrColor: e.target.value })}
+                      title="Custom QR Code Color"
+                    />
+                  </div>
+                </div>
               </div>
 
               <div>
-                <label className="text-xs font-bold text-secondary uppercase tracking-[0.2em] mb-3 block">Menu URL</label>
-                <div className="flex items-center gap-2 bg-surface-container-low rounded-xl p-3">
-                  <span className="material-symbols-outlined text-secondary text-sm">link</span>
-                  <input className="w-full bg-surface-container-low border-none py-1 px-2 text-sm focus:outline-none"
-                placeholder="Publish menu first" value={menuUrl} readOnly 
-                title="QR Code Link" aria-label="QR Code Link" />
-                  <button onClick={() => navigator.clipboard.writeText(menuUrl)} className="text-primary text-xs font-bold hover:bg-primary/5 px-2 py-1 rounded-lg transition-colors border-none cursor-pointer">Copy</button>
+                <label className="text-[9px] font-black text-secondary uppercase tracking-widest mb-3 block">Background Mood</label>
+                <div className="grid grid-cols-4 gap-2">
+                  {PRESET_IMAGES.map((img, i) => (
+                    <button
+                      key={i}
+                      onClick={() => setPosterData({ ...posterData, backgroundImage: img })}
+                      className={`aspect-[3/4] rounded-xl overflow-hidden border-2 transition-all relative ${
+                        posterData.backgroundImage === img ? "border-primary scale-105 shadow-lg shadow-primary/10" : "border-transparent grayscale opacity-40 hover:opacity-100 hover:grayscale-0"
+                      }`}
+                      title={`Select background style ${i + 1}`}
+                    >
+                      <NextImage src={img} alt="Preset" fill className="object-cover" />
+                    </button>
+                  ))}
+                  <button 
+                    onClick={() => document.getElementById('image-upload')?.click()}
+                    className="aspect-[3/4] rounded-xl border-2 border-dashed border-outline-variant flex flex-col items-center justify-center text-secondary hover:text-primary hover:border-primary transition-all gap-1"
+                    title="Upload custom background image"
+                  >
+                    <span className="material-symbols-outlined text-sm">add</span>
+                    <span className="text-[8px] font-black uppercase">Upload</span>
+                  </button>
+                  <input 
+                    id="image-upload"
+                    type="file" 
+                    className="hidden" 
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                    title="Upload image"
+                  />
                 </div>
               </div>
+            </section>
+          </div>
+
+        </aside>
+
+        {/* Right: Canvas Area */}
+        <main className="flex-1 bg-[#FDFCFB] relative overflow-hidden flex flex-col">
+
+
+          {/* Canvas Context */}
+          <div className="flex-1 flex items-center justify-center p-8 lg:p-12 perspective-1000 overflow-hidden">
+            {/* The Poster Mockup */}
+            <div className="relative group transition-all duration-700 hover:rotate-y-2 hover:scale-[1.01] h-full flex items-center justify-center">
+
+              
+              <div className="w-full h-full flex items-center justify-center p-4 lg:p-8">
+                <div className="relative aspect-[1/1.414] max-h-full max-w-full bg-white shadow-[0_40px_100px_rgba(0,0,0,0.12)] rounded-[1.5rem] overflow-hidden border border-white/50 flex flex-col">
+                  <QRPosterRenderer
+                    id="printable-poster"
+                    data={posterData}
+                    url={menuUrl || "https://menuzai.com"}
+                    className="flex-1"
+                  />
+                </div>
+              </div>
+
+
+            </div>
+
+            <div className="fixed -left-[10000px] top-0 pointer-events-none">
+                <div ref={posterRef} className="w-[1200px] h-[1697px]">
+                  <QRPosterRenderer
+                  data={posterData}
+                  url={menuUrl || "https://menuzai.com"}
+                  className="!shadow-none !rounded-none"
+                />
+                </div>
             </div>
           </div>
-        </div>
+        </main>
       </div>
-      <style dangerouslySetInnerHTML={{__html: `
+
+      <style dangerouslySetInnerHTML={{ __html: `
+        .perspective-1000 { perspective: 1000px; }
+        .rotate-y-2 { transform: rotateY(2deg); }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        
+        ${["#FF6B00", "#1A1009", "#D4AF37", "#004d40", "#b71c1c"].map(color => `
+          .color-btn-${color.replace('#', '')} { background-color: ${color}; }
+        `).join('')}
+
         @media print {
-          body * { visibility: hidden; }
-          #qr-code-svg, #qr-code-svg * { visibility: visible; }
-          .font-\\[var\\(--font-headline\\)\\] { visibility: visible; }
-          .bg-surface-container-lowest.p-8 {
-            visibility: visible;
-            position: absolute;
-            left: 50%;
-            top: 50%;
-            transform: translate(-50%, -50%);
-            border: none;
-            box-shadow: none;
+          /* Hide everything first */
+          header, aside, main > div:not(.perspective-1000), .absolute, button, nav, .bottom-nav { 
+            display: none !important; 
+          }
+          
+          /* Ensure parent containers don't clip or have background */
+          html, body, #__next, .h-screen, .flex-1, main { 
+            height: auto !important;
+            overflow: visible !important;
+            background: white !important;
+            margin: 0 !important;
+            padding: 0 !important;
+          }
+
+          /* Reset layout styles */
+          .flex, .grid { display: block !important; }
+
+          .perspective-1000 {
+            perspective: none !important;
+            padding: 0 !important;
+            display: block !important;
+          }
+
+          .relative.group {
+            transform: none !important;
+            display: block !important;
+          }
+
+          #printable-poster {
+            position: relative !important;
+            width: 210mm !important; /* A4 Width */
+            height: 297mm !important; /* A4 Height */
+            left: 0 !important;
+            top: 0 !important;
+            border: none !important;
+            box-shadow: none !important;
+            border-radius: 0 !important;
+            transform: none !important;
+            page-break-after: always !important;
+          }
+
+          /* Hide mockup elements */
+          .bg-surface-container-highest\/30, .shadow-\[0_40px_100px_rgba\(0\,0\,0\,0\.12\)\], .rounded-\[1\.5rem\], .border-white\/50 {
+            display: none !important;
           }
         }
       `}} />

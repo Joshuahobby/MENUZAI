@@ -58,7 +58,6 @@ interface MenuContextType {
   userRole: "owner" | "manager" | "staff" | null;
 }
 
-
 const MenuContext = createContext<MenuContextType | undefined>(undefined);
 
 export function MenuProvider({ children }: { children: React.ReactNode }) {
@@ -282,7 +281,7 @@ export function MenuProvider({ children }: { children: React.ReactNode }) {
   };
 
   const applyTemplate = (style: Partial<MenuStyle>) => {
-    setMenuStyle({ ...defaultStyle, ...style });
+    setMenuStyle((prev) => ({ ...prev, ...style }));
   };
 
   const switchMenu = useCallback(async (menuId: string): Promise<void> => {

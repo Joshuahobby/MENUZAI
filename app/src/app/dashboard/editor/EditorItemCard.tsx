@@ -6,6 +6,8 @@ import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { prompt, confirm } from "@/components/Modals";
 import type { MenuItem, MenuStyle } from "@/types/menu";
+import { useSortable } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 
 const BADGES = ["bestseller", "popular", "healthy", "chefs-pick", "new"] as const;
 
@@ -27,9 +29,6 @@ interface EditorItemCardProps {
   onUpdateItem: (itemId: string, updates: Partial<MenuItem>) => void;
   onDuplicateItem: (itemId: string) => void;
   onRemoveItem: (itemId: string) => void;
-  onDragStart: (id: string) => void;
-  onDragOver: (e: React.DragEvent, overId: string) => void;
-  onDrop: () => void;
   onUploadStart: (itemId: string) => void;
   onUploadEnd: () => void;
 }
@@ -44,13 +43,25 @@ export function EditorItemCard({
   onUpdateItem,
   onDuplicateItem,
   onRemoveItem,
-  onDragStart,
-  onDragOver,
-  onDrop,
   onUploadStart,
   onUploadEnd,
 }: EditorItemCardProps) {
   const imgInputRef = useRef<HTMLInputElement | null>(null);
+  const galleryInputRef = useRef<HTMLInputElement | null>(null);
+
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: item.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
 
   const handleItemImageUpload = useCallback(
     async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -84,6 +95,34 @@ export function EditorItemCard({
       if (imgInputRef.current) imgInputRef.current.value = "";
     },
     [userId, item.id, onUpdateItem, onUploadStart, onUploadEnd]
+  );
+
+  const handleGalleryUpload = useCallback(
+    async (e: React.ChangeEvent<HTMLInputElement>) => {
+      const files = Array.from(e.target.files || []);
+      if (files.length === 0 || !userId) return;
+      
+      onUploadStart(item.id);
+      const t = toast.loading(`Uploading ${files.length} photos…`);
+      
+      const newUrls: string[] = [];
+      for (const file of files) {
+        const ext = file.name.split(".").pop();
+        const path = `${userId}/gallery/${Date.now()}-${Math.random().toString(36).substring(7)}.${ext}`;
+        const { error } = await supabase.storage.from("menu-images").upload(path, file);
+        if (!error) {
+          const { data } = supabase.storage.from("menu-images").getPublicUrl(path);
+          newUrls.push(data.publicUrl);
+        }
+      }
+
+      onUpdateItem(item.id, { gallery: [...(item.gallery || []), ...newUrls] });
+      toast.dismiss(t);
+      toast.success(`${newUrls.length} photos added to gallery!`);
+      onUploadEnd();
+      if (galleryInputRef.current) galleryInputRef.current.value = "";
+    },
+    [userId, item.id, item.gallery, onUpdateItem, onUploadStart, onUploadEnd]
   );
 
   const handleRemoveTag = (tag: string) => {
@@ -126,14 +165,18 @@ export function EditorItemCard({
 
   return (
     <div
-      draggable
-      onDragStart={() => onDragStart(item.id)}
-      onDragOver={(e) => onDragOver(e, item.id)}
-      onDrop={onDrop}
-      className={`relative group rounded-[var(--border-radius)] transition-all ${cardWrap} ${
-        item.available === false ? "opacity-60" : "hover:scale-[1.01]"
-      }`}
+      ref={setNodeRef}
+      className={`group relative rounded-3xl transition-all duration-300 dnd-item-style ${cardWrap} ${isExpanded ? "ring-2 ring-primary bg-surface-container-low" : ""} ${isDragging ? "opacity-50 z-10" : "opacity-100 z-[1]"}`}
     >
+      <div
+        {...attributes}
+        {...listeners}
+        className="absolute top-3 right-3 opacity-0 group-hover:opacity-40 hover:opacity-100 transition-all cursor-grab active:cursor-grabbing z-20"
+        title="Drag to reorder"
+      >
+        <span className="material-symbols-outlined text-[18px]">drag_indicator</span>
+      </div>
+
       {/* ── Image banner — click to upload ── */}
       <div
         className="relative w-full h-44 cursor-pointer group/img shrink-0"
@@ -151,7 +194,6 @@ export function EditorItemCard({
           className="object-cover transition-transform duration-500 group-hover/img:scale-105"
         />
 
-        {/* Upload hover overlay */}
         <div
           className={`absolute inset-0 flex flex-col items-center justify-center gap-1.5 transition-opacity ${
             isUploading
@@ -173,9 +215,8 @@ export function EditorItemCard({
           )}
         </div>
 
-        {/* Price badge — top right */}
         <div
-          className="absolute top-3 right-3 bg-white/95 backdrop-blur-sm px-3 py-1.5 rounded-xl shadow-sm flex items-center gap-1"
+          className="absolute top-3 right-3 bg-white/95 backdrop-blur-sm px-3 py-1.5 rounded-xl shadow-sm flex items-center gap-1 z-10"
           onClick={(e) => e.stopPropagation()}
         >
           <span className="font-[var(--font-headline)] font-bold text-[var(--primary-color)] text-[10px] opacity-70">
@@ -196,14 +237,12 @@ export function EditorItemCard({
           />
         </div>
 
-        {/* Badge chip — bottom left */}
         {item.badge && (
           <span className="absolute bottom-3 left-3 bg-[var(--primary-color)]/90 backdrop-blur-sm text-white text-[10px] font-black px-2.5 py-0.5 rounded uppercase tracking-tighter">
             {item.badge}
           </span>
         )}
 
-        {/* Sold out overlay */}
         {item.available === false && (
           <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
             <span className="bg-error text-white text-xs font-black px-4 py-2 rounded-full uppercase tracking-widest">
@@ -212,12 +251,6 @@ export function EditorItemCard({
           </div>
         )}
 
-        {/* Drag handle — top left */}
-        <span className="absolute left-2 top-2 material-symbols-outlined text-[18px] text-white/80 opacity-0 group-hover:opacity-100 cursor-grab active:cursor-grabbing select-none drop-shadow transition-opacity">
-          drag_indicator
-        </span>
-
-        {/* Hidden file input */}
         <input
           ref={imgInputRef}
           type="file"
@@ -228,7 +261,6 @@ export function EditorItemCard({
         />
       </div>
 
-      {/* ── Body ── */}
       <div className="px-4 py-3 cursor-pointer" onClick={onToggleExpand}>
         <input
           className="font-[var(--font-headline)] font-extrabold text-base bg-transparent border-none p-0 focus:ring-0 w-full"
@@ -264,13 +296,11 @@ export function EditorItemCard({
         )}
       </div>
 
-      {/* ── Expanded panel ── */}
       {isExpanded && userId && (
         <div
           className="mx-4 mb-4 border-t border-outline-variant/20 pt-4 space-y-5"
           onClick={(e) => e.stopPropagation()}
         >
-          {/* Availability */}
           <div className="flex items-center justify-between">
             <div>
               <p className="text-xs font-bold text-secondary">Availability</p>
@@ -295,7 +325,32 @@ export function EditorItemCard({
             </button>
           </div>
 
-          {/* Badge picker */}
+          <div>
+            <p className="text-xs font-bold text-secondary mb-2">Gallery</p>
+            <div className="flex flex-wrap gap-2">
+              {item.gallery?.map((url, i) => (
+                <div key={i} className="relative w-16 h-16 rounded-lg overflow-hidden border border-surface-container">
+                  <NextImage src={url} alt="Gallery" fill className="object-cover" />
+                  <button
+                    type="button"
+                    onClick={() => onUpdateItem(item.id, { gallery: item.gallery?.filter((_, idx) => idx !== i) })}
+                    className="absolute top-0 right-0 p-0.5 bg-black/50 text-white"
+                  >
+                    <span className="material-symbols-outlined text-xs">close</span>
+                  </button>
+                </div>
+              ))}
+              <button
+                type="button"
+                onClick={() => galleryInputRef.current?.click()}
+                className="w-16 h-16 border-2 border-dashed border-outline-variant flex items-center justify-center rounded-lg text-secondary hover:text-primary transition-colors"
+              >
+                <span className="material-symbols-outlined">add</span>
+              </button>
+              <input ref={galleryInputRef} type="file" multiple accept="image/*" className="hidden" onChange={handleGalleryUpload} title="Upload gallery photos" />
+            </div>
+          </div>
+
           <div>
             <p className="text-xs font-bold text-secondary mb-2">Badge</p>
             <div className="flex flex-wrap gap-1.5">
@@ -356,7 +411,6 @@ export function EditorItemCard({
                   if (!isNaN(n) && n >= 0) {
                     onUpdateItem(item.id, {
                       stock_count: n,
-                      // If count > 0, ensure item is available
                       available: n > 0 ? true : false,
                     });
                   }
@@ -395,7 +449,6 @@ export function EditorItemCard({
             </div>
           </div>
 
-          {/* Tags editor */}
           <div>
             <p className="text-xs font-bold text-secondary mb-2">Custom Tags</p>
             <div className="flex flex-wrap gap-1.5 items-center">
@@ -468,6 +521,12 @@ export function EditorItemCard({
       >
         expand_more
       </span>
+      <style jsx>{`
+        .dnd-item-style {
+          transform: ${style.transform};
+          transition: ${style.transition};
+        }
+      `}</style>
     </div>
   );
 }

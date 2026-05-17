@@ -5,7 +5,7 @@ import Link from "next/link";
 import NextImage from "next/image";
 import { useSearchParams, useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
-import { trackMenuView, trackItemView, trackOrderClick } from "@/lib/analytics";
+import { trackMenuView, trackItemView, trackOrderClick, trackQRScan } from "@/lib/analytics";
 import type { MenuItem, MenuCategory, MenuStyle, CartItem } from "@/types/menu";
 import { defaultStyle } from "@/store/menuStore";
 import { formatPrice, getOptimizedImageUrl } from "@/lib/utils";
@@ -151,7 +151,10 @@ export default function PublicMenuClient(props: PublicMenuClientProps) {
   // Track menu view once per session
   useEffect(() => {
     trackMenuView(menuId, restaurantId);
-  }, [menuId, restaurantId]);
+    if (searchParams.get("src") === "qr") {
+      trackQRScan(menuId, restaurantId);
+    }
+  }, [menuId, restaurantId, searchParams]);
 
   // Real-time synchronization
   useEffect(() => {
@@ -434,7 +437,25 @@ export default function PublicMenuClient(props: PublicMenuClientProps) {
                       <span className="bg-error text-white text-xs font-black px-4 py-2 rounded-full uppercase tracking-widest">Sold Out</span>
                     </div>
                   )}
+                  {/* Gallery Indicator */}
+                  {item.gallery && item.gallery.length > 0 && (
+                    <div className="absolute bottom-3 right-3 bg-black/60 backdrop-blur-sm text-white text-[10px] font-bold px-2 py-1 rounded-lg flex items-center gap-1 z-20">
+                      <span className="material-symbols-outlined text-[12px]">collections</span>
+                      <span>+{item.gallery.length}</span>
+                    </div>
+                  )}
                 </div>
+
+                {/* Extra Gallery Photos (Horizontal Scroll) */}
+                {item.gallery && item.gallery.length > 0 && (
+                  <div className="flex gap-2 overflow-x-auto px-4 py-3 bg-surface-container-low hide-scrollbar">
+                    {item.gallery.map((url, idx) => (
+                      <div key={idx} className="relative w-20 h-20 rounded-xl overflow-hidden shrink-0 border border-outline-variant/10">
+                        <NextImage src={url} alt={`${item.name} gallery ${idx}`} fill className="object-cover" />
+                      </div>
+                    ))}
+                  </div>
+                )}
 
                 {/* Body — less padding in compact, more in spacious */}
                 <div className={`flex flex-col ${menuStyle.layoutDensity === "compact" ? "p-4" : menuStyle.layoutDensity === "spacious" ? "p-8" : "p-6"}`}>
