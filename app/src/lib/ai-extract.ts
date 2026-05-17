@@ -23,16 +23,20 @@ Return ONLY valid JSON in this exact format (no markdown):
       "description": "Short appealing description",
       "price": 12.50,
       "category": "category-slug",
-      "tags": ["Vegetarian", "Spicy"],
+      "tags": ["vegan", "spicy"],
       "badge": "bestseller"
     }
   ]
 }
 
 Heuristics for tags and badges:
-- If you see a leaf icon or "V", add "Vegetarian" or "Vegan" to tags.
-- If you see a chili icon or "Hot", add "Spicy" to tags.
-- If you see "GF", add "Gluten-Free" to tags.
+- Detect dietary attributes and spicy indicators from item names, icons, and descriptions:
+  - If you see a leaf icon, "V", "VEGAN", or "100% plant-based", add "vegan" to tags.
+  - If you see "V" (where not specifically vegan), a green dot, "VEGETARIAN", or "meat-free", add "vegetarian" to tags.
+  - If you see "GF", "GLUTEN FREE", "GLUTEN-FREE", or "coeliac-friendly", add "gluten-free" to tags.
+  - If you see a chili icon, "SPICY", "HOT", "chili", or heat level indicators, add "spicy" to tags.
+  - If you see "HALAL", a halal certified mark, or "kosher-style", add "halal" to tags.
+- Use only lowercase standardized values: "vegan", "vegetarian", "gluten-free", "halal", "spicy" for these tags.
 - If an item is boxed, has a star, or says "Chef's Special", set badge to "chefs-pick".
 - If an item says "Most Popular" or "Best Seller", set badge to "bestseller".
 - All other items should have empty tags [] and badge "" unless clearly indicated otherwise.

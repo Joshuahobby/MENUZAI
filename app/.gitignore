@@ -47,6 +47,16 @@ next-env.d.ts
 /test-results/
 /e2e/.auth/
 
+# local dev utility scripts (not part of the app)
+/apply_migration.js
+/apply_migration.ts
+/apply_all_migrations.js
+/inspect.js
+/inspect_rpc.js
+
+# supabase temp files
+/supabase/.temp/
+
 .vercel
 
 .vercel

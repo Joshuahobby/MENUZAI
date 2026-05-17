@@ -1,0 +1,115 @@
+import { createClient } from "@supabase/supabase-js";
+import { NextResponse } from "next/server";
+import type { MenuItem } from "@/types/menu";
+
+/**
+ * POST /api/orders/confirm
+ *
+ * Body: { orderId: string, restaurantId: string }
+ *
+ * When a restaurant confirms an order:
+ * 1. Marks the order status as "confirmed".
+ * 2. For each ordered item that has a stock_count, decrements it by the ordered quantity.
+ * 3. If stock_count reaches 0, sets available = false (auto sold-out) on the menu item.
+ */
+export async function POST(req: Request) {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+
+  if (!supabaseUrl || !serviceKey) {
+    return NextResponse.json({ error: "Supabase not configured" }, { status: 500 });
+  }
+
+  const admin = createClient(supabaseUrl, serviceKey, {
+    auth: { persistSession: false },
+  });
+
+  let body: { orderId?: string; restaurantId?: string };
+  try {
+    body = await req.json();
+  } catch {
+    return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
+  }
+
+  const { orderId, restaurantId } = body;
+  if (!orderId || !restaurantId) {
+    return NextResponse.json({ error: "orderId and restaurantId are required" }, { status: 400 });
+  }
+
+  // 1. Fetch the order
+  const { data: order, error: orderErr } = await admin
+    .from("orders")
+    .select("id, items, menu_id, status, restaurant_id")
+    .eq("id", orderId)
+    .eq("restaurant_id", restaurantId)
+    .single();
+
+  if (orderErr || !order) {
+    return NextResponse.json({ error: "Order not found" }, { status: 404 });
+  }
+
+  if (order.status === "confirmed" || order.status === "completed") {
+    return NextResponse.json({ message: "Order already confirmed" }, { status: 200 });
+  }
+
+  // 2. Mark order as confirmed
+  const { error: updateOrderErr } = await admin
+    .from("orders")
+    .update({ status: "confirmed" })
+    .eq("id", orderId);
+
+  if (updateOrderErr) {
+    return NextResponse.json({ error: "Failed to update order status" }, { status: 500 });
+  }
+
+  // 3. Decrement stock for each item
+  if (!order.menu_id) {
+    return NextResponse.json({ success: true, stockUpdated: false });
+  }
+
+  const { data: menu, error: menuErr } = await admin
+    .from("menus")
+    .select("items")
+    .eq("id", order.menu_id)
+    .single();
+
+  if (menuErr || !menu) {
+    // Non-critical — order is already confirmed, just skip stock update
+    return NextResponse.json({ success: true, stockUpdated: false });
+  }
+
+  const menuItems: MenuItem[] = Array.isArray(menu.items) ? menu.items : [];
+  const orderedItems: { id: string; quantity: number }[] = Array.isArray(order.items)
+    ? order.items
+    : [];
+
+  let changed = false;
+  const updatedItems = menuItems.map((menuItem) => {
+    const ordered = orderedItems.find((o) => o.id === menuItem.id);
+    if (!ordered) return menuItem;
+
+    // Only decrement if stock_count is a non-null number
+    if (typeof menuItem.stock_count !== "number" || menuItem.stock_count === null) {
+      return menuItem;
+    }
+
+    const newStock = Math.max(0, menuItem.stock_count - ordered.quantity);
+    changed = true;
+
+    return {
+      ...menuItem,
+      stock_count: newStock,
+      // Auto sold-out when stock hits zero
+      available: newStock > 0 ? menuItem.available : false,
+    };
+  });
+
+  if (changed) {
+    await admin
+      .from("menus")
+      .update({ items: updatedItems })
+      .eq("id", order.menu_id);
+  }
+
+  return NextResponse.json({ success: true, stockUpdated: changed });
+}

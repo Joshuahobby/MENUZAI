@@ -9,6 +9,14 @@ import type { MenuItem, MenuStyle } from "@/types/menu";
 
 const BADGES = ["bestseller", "popular", "healthy", "chefs-pick", "new"] as const;
 
+const QUICK_DIETARY_TAGS = [
+  { id: "vegan", label: "Vegan", icon: "eco", color: "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/20 dark:text-emerald-400 border-emerald-500/20" },
+  { id: "vegetarian", label: "Vegetarian", icon: "spa", color: "bg-green-50 text-green-700 dark:bg-green-950/20 dark:text-green-400 border-green-500/20" },
+  { id: "gluten-free", label: "Gluten-Free", icon: "grass", color: "bg-amber-50 text-amber-700 dark:bg-amber-950/20 dark:text-amber-400 border-amber-500/20" },
+  { id: "spicy", label: "Spicy", icon: "whatshot", color: "bg-rose-50 text-rose-700 dark:bg-rose-950/20 dark:text-rose-400 border-rose-500/20" },
+  { id: "halal", label: "Halal", icon: "verified", color: "bg-indigo-50 text-indigo-700 dark:bg-indigo-950/20 dark:text-indigo-400 border-indigo-500/20" },
+];
+
 interface EditorItemCardProps {
   item: MenuItem;
   menuStyle: MenuStyle;
@@ -80,6 +88,21 @@ export function EditorItemCard({
 
   const handleRemoveTag = (tag: string) => {
     onUpdateItem(item.id, { tags: item.tags.filter((t) => t !== tag) });
+  };
+
+  const toggleDietaryTag = (tagId: string) => {
+    const normId = tagId.toLowerCase().trim();
+    const hasTag = item.tags.some(t => t.toLowerCase().trim() === normId);
+    let newTags: string[];
+    if (hasTag) {
+      newTags = item.tags.filter(t => t.toLowerCase().trim() !== normId);
+      toast.success(`Removed tag "${tagId}"`);
+    } else {
+      const properLabel = QUICK_DIETARY_TAGS.find(q => q.id === tagId)?.label || tagId;
+      newTags = [...item.tags, properLabel];
+      toast.success(`Added tag "${properLabel}"`);
+    }
+    onUpdateItem(item.id, { tags: newTags });
   };
 
   const handleAddTagPrompt = async () => {
@@ -297,9 +320,84 @@ export function EditorItemCard({
             </div>
           </div>
 
+          {/* Stock Count */}
+          <div>
+            <div className="flex items-center justify-between mb-1">
+              <div>
+                <p className="text-xs font-bold text-secondary">Stock Count</p>
+                <p className="text-[10px] text-secondary opacity-70">
+                  Leave empty for unlimited. Reaches 0 → auto Sold Out.
+                </p>
+              </div>
+              {typeof item.stock_count === "number" && (
+                <button
+                  type="button"
+                  onClick={() => onUpdateItem(item.id, { stock_count: null })}
+                  className="text-[10px] font-bold text-secondary hover:text-error transition-colors"
+                  title="Clear stock limit"
+                >
+                  Clear
+                </button>
+              )}
+            </div>
+            <input
+              type="number"
+              min="0"
+              step="1"
+              placeholder="Unlimited"
+              title="Stock Count"
+              value={item.stock_count ?? ""}
+              onChange={(e) => {
+                const v = e.target.value;
+                if (v === "") {
+                  onUpdateItem(item.id, { stock_count: null });
+                } else {
+                  const n = parseInt(v, 10);
+                  if (!isNaN(n) && n >= 0) {
+                    onUpdateItem(item.id, {
+                      stock_count: n,
+                      // If count > 0, ensure item is available
+                      available: n > 0 ? true : false,
+                    });
+                  }
+                }
+              }}
+              className="w-full bg-surface-container-low rounded-xl px-4 py-2.5 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-primary/20"
+            />
+          </div>
+
+          {/* Quick Dietary Toggles */}
+          <div>
+            <p className="text-xs font-bold text-secondary mb-2">Dietary & Allergen Quick Toggles</p>
+            <div className="flex flex-wrap gap-2">
+              {QUICK_DIETARY_TAGS.map((tag) => {
+                const isActive = item.tags.some(
+                  (t) => t.toLowerCase().trim() === tag.id
+                );
+                return (
+                  <button
+                    key={tag.id}
+                    type="button"
+                    onClick={() => toggleDietaryTag(tag.id)}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wider transition-all duration-200 border cursor-pointer active:scale-95 ${
+                      isActive
+                        ? `${tag.color} border-transparent shadow-sm font-extrabold`
+                        : "bg-surface-container-low text-secondary border-outline-variant/20 hover:bg-surface-container-high"
+                    }`}
+                  >
+                    <span className="material-symbols-outlined text-[14px]">
+                      {tag.icon}
+                    </span>
+                    {tag.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
           {/* Tags editor */}
           <div>
-            <p className="text-xs font-bold text-secondary mb-2">Tags</p>
+            <p className="text-xs font-bold text-secondary mb-2">Custom Tags</p>
             <div className="flex flex-wrap gap-1.5 items-center">
               {item.tags.map((tag) => (
                 <span

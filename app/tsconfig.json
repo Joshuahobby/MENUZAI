@@ -31,5 +31,11 @@
     ".next/dev/types/**/*.ts",
     "**/*.mts"
   ],
-  "exclude": ["node_modules"]
+  "exclude": [
+    "node_modules",
+    "apply_migration.ts",
+    "apply_migration.js",
+    "apply_all_migrations.js",
+    "init_db.ts"
+  ]
 }

@@ -53,7 +53,7 @@ NEXT_PUBLIC_SITE_URL=http://localhost:3000     # set to production domain on Ver
 
 ## Architecture
 
-MENUZAI is an AI-powered SaaS platform for restaurant menu digitization. Stack: **Next.js 16 App Router**, **Supabase** (Postgres + auth + RLS), **React Context API**, **OpenRouter** for AI vision, **Tailwind CSS v4**.
+MENUZAI is an AI-powered SaaS platform for restaurant menu digitization. Stack: **Next.js 16 App Router**, **Supabase** (Postgres + auth + RLS), **React Context API + Zustand**, **OpenRouter** for AI vision, **Tailwind CSS v4**.
 
 ### Route Map
 
@@ -89,6 +89,9 @@ MENUZAI is an AI-powered SaaS platform for restaurant menu digitization. Stack: 
 | `/api/ai-waiter` | POST | AI-powered waiter/recommendation feature |
 | `/api/notifications/order` | POST | Order notification handler |
 | `/api/plan/change` | POST | Subscription plan upgrade/downgrade |
+| `/api/orders/confirm` | POST | Confirms order, decrements `stock_count` on each item, auto-sets `available=false` when stock hits 0; requires `SUPABASE_SERVICE_ROLE_KEY` |
+| `/api/staff` | GET/POST/DELETE | List/add/remove `restaurant_staff` entries; owner-only writes, owner+manager reads; uses admin client to resolve emails via `auth.admin.listUsers` |
+| `/api/reviews` | POST | Submit a customer review (unauthenticated); writes to `reviews` table via admin client |
 
 ### Supabase: Three Clients
 
@@ -112,27 +115,35 @@ Migrations live in `app/supabase/migrations/` — run them in order in the Supab
 | `004_restaurants_schema_fix.sql` | Schema fixes for the `restaurants` table |
 | `005_strict_rls_lockdown.sql` | Stricter RLS policy hardening |
 | `006_drop_menus_user_id_unique.sql` | Drops unique constraint on `menus.user_id` to allow multiple menus |
+| `007_staff_roles.sql` | `restaurant_staff` table (owner/manager/staff roles), RLS, backfills existing restaurant owners |
+| `008_get_user_by_email.sql` | `get_user_id_by_email()` RPC (security definer); callable by `authenticated` and `service_role` only |
+| `009_customer_reviews.sql` | `reviews` table — public insert, staff-only select via RLS |
 
 Key tables:
 
 - **`restaurants`** — one row per user, created on first login. Has `onboarded boolean` checked by dashboard layout.
 - **`menus`** — many per restaurant. `categories` and `items` are JSONB arrays. `status` is `'draft' | 'published'`. Has a legacy `restaurant_name` column (nullable, unused — do not rely on it).
 - **`analytics_events`** — fired client-side via `app/src/lib/analytics.ts` (fire-and-forget, no error handling by design).
-- **`orders`** — created via WhatsApp flow, not via API currently.
+- **`orders`** — created via WhatsApp flow. `status` can be `confirmed` or `completed`; use `POST /api/orders/confirm` to transition.
 - **`platform_settings`** — single row ('global') managing global AI provider and model orchestration.
+- **`restaurant_staff`** — RBAC join table: `(restaurant_id, user_id, role)`. Roles: `owner`, `manager`, `staff`. Unique per `(restaurant_id, user_id)`. Backfilled from `restaurants.user_id` on migration.
+- **`reviews`** — customer reviews: `(restaurant_id, rating 1–5, customer_name?, comment?, order_id?)`. Open insert, staff-only read.
 
 ### Shared Types
 
 `app/src/types/menu.ts` is the canonical source for `MenuItem`, `MenuCategory`, `MenuStyle`, and `CartItem`. `MenuContext` re-exports them for backward compatibility — import from `@/types/menu` directly in new code.
 
 `MenuItem` fields:
+
 - `available`: `undefined` or `true` = available; `false` = sold out. Optional — absence means available.
 - `badge`: optional string from `["bestseller", "popular", "healthy", "chefs-pick", "new"]`.
 - `image`: URL string (Supabase Storage or Unsplash placeholder).
 - `tags`: `string[]` — user-defined dietary/attribute tags.
 - `margin`, `orders`: optional numeric fields for analytics.
+- `stock_count`: optional number. When set, `/api/orders/confirm` decrements it and sets `available=false` at zero.
 
 `MenuCategory` fields:
+
 - `hidden`: optional boolean — when true, category is excluded from public menu and print.
 - `image`: optional string — category banner image URL, displayed in editor canvas header and sidebar thumbnail.
 
@@ -147,6 +158,8 @@ Key tables:
 Key actions exposed: `addCategory`, `renameCategory`, `removeCategory`, `toggleCategoryVisibility`, `addItem`, `removeItem`, `updateItem`, `duplicateItem`, `applyTemplate`, `publishMenu`, `unpublishMenu`, `switchMenu`, `createMenu`, `deleteMenu`, `renameMenu`.
 
 The dashboard auth guard lives in `app/src/app/dashboard/layout.tsx` and runs **client-side** — it reads `onboarded` from `MenuContext` and redirects to `/onboarding` if false. There is no server-side middleware. The layout waits for `isLoading` to be false before evaluating auth state.
+
+**`useMenuStore`** (`app/src/store/menuStore.ts`) — Zustand store (with `subscribeWithSelector`) that holds the high-frequency editor state: `categories`, `menuItems`, `menuStyle`, `isSyncing`, `isLoading`, `userRole`, and restaurant metadata. `MenuContext` remains the public API for all actions and side-effects; it reads/writes this store internally. Components should subscribe with granular selectors (e.g. `useMenuStore(s => s.menuItems)`) to avoid broad re-renders. Convenience selector hooks exported: `useMenuItems`, `useCategories`, `useMenuStyle`, `useIsSyncing`, `useIsLoading`, `useActiveMenuId`, `useRestaurantName`, `useUserRole`. Includes a `hydrate(data)` action for bulk initial load and a `updateItem(id, updates)` action for in-place item patching without full array replacement.
 
 **`CartContext`** (`app/src/contexts/CartContext.tsx`) — ephemeral cart for the public ordering flow. Contents are serialized into a WhatsApp message via `app/src/lib/whatsapp.ts` and opened via `wa.me` URL — no WhatsApp API key needed.
 
@@ -173,6 +186,7 @@ The editor also integrates a **Print Menu** overlay using `PrintView` from the t
 ### AI Provider Stack & Admin Dashboard
 
 The platform uses a dynamic AI provider stack configurable by the platform admin.
+
 - **Admin Dashboard**: `/admin/settings` allows the super-admin to set the global AI provider (`openrouter` or `anthropic`) and model string. Settings are stored in the `platform_settings` table.
 - **Anthropic Integration**: Uses `@anthropic-ai/sdk` with `claude-3-5-sonnet-20241022` for high-accuracy text extraction and conversational waiter capabilities.
 - **OpenRouter Integration**: Serves as the free tier default, using `google/gemma-4-31b-it:free`.
@@ -220,6 +234,7 @@ The `restaurants` table stores the current plan tier; check `canCreateMenu()`, `
 | `PublicMenuClient` | `app/src/app/menu/[slug]/PublicMenuClient.tsx` | Client-side public menu renderer (~27KB) |
 | `EditorItemCard` | `app/src/app/dashboard/editor/EditorItemCard.tsx` | Self-contained menu item card with image upload, tags, badges |
 | `useMenuBootstrap` | `app/src/hooks/useMenuBootstrap.ts` | Auth + restaurant/menu bootstrap hook used by MenuProvider |
+| `StaffManager` | `app/src/app/dashboard/settings/StaffManager.tsx` | Staff invite/remove UI in dashboard settings; calls `/api/staff` |
 
 ### Key Dependencies
 
@@ -227,8 +242,9 @@ The `restaurants` table stores the current plan tier; check `canCreateMenu()`, `
 - `qrcode.react` — QR code generation in `/dashboard/qr-codes`
 - `sonner` — toast notifications (Toaster registered in root layout)
 - `vitest` — unit test framework (56 tests across 5 suites)
-- `@anthropic-ai/sdk` — present in package.json for future Claude AI features (not currently wired to routes)
+- `@anthropic-ai/sdk` — used by `/api/extract-menu` and `/api/ai-waiter` when platform is configured for Anthropic
 - `@supabase/ssr` — PKCE-compatible Supabase client creation
+- `zustand` — Zustand store (`useMenuStore`) with `subscribeWithSelector` middleware; backs `MenuContext` for granular component subscriptions
 
 ### Path Alias
 
@@ -257,6 +273,7 @@ Single branch: `main`. All development happens on main. Repository has 45+ commi
 ### CI/CD
 
 GitHub Actions workflow at `.github/workflows/ci.yml` runs on every push/PR to `main`:
+
 1. **Lint** — `npm run lint`
 2. **Type-check** — `npx tsc --noEmit`
 3. **Unit tests** — `npm run test` (Vitest, 56 tests across 5 suites)

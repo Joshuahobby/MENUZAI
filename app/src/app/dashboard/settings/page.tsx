@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { CheckoutModal } from "@/components/CheckoutModal";
 import { confirm } from "@/components/Modals";
 import { pricingPlans } from "@/data/mockData";
+import { StaffManager } from "./StaffManager";
 
 const CURRENCIES = [
   { code: "RWF", name: "Rwandan Franc" },
@@ -454,6 +455,9 @@ export default function SettingsPage() {
             </button>
           </div>
         </div>
+
+        {/* Staff Management */}
+        <StaffManager />
 
         {/* WhatsApp Settings */}
         <div className="bg-surface-container-lowest p-8 rounded-[2rem] border border-surface-container/50 lg:col-span-2">

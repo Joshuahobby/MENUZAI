@@ -7,8 +7,8 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { trackMenuView, trackItemView, trackOrderClick } from "@/lib/analytics";
 import type { MenuItem, MenuCategory, MenuStyle, CartItem } from "@/types/menu";
-import { defaultStyle } from "@/context/MenuContext";
-import { formatPrice } from "@/lib/utils";
+import { defaultStyle } from "@/store/menuStore";
+import { formatPrice, getOptimizedImageUrl } from "@/lib/utils";
 
 interface PublicMenuClientProps {
   menuId: string;
@@ -21,6 +21,24 @@ interface PublicMenuClientProps {
   items: MenuItem[];
   style: Partial<MenuStyle>;
 }
+
+const DIETARY_FILTERS = [
+  { id: "vegan", label: "Vegan", icon: "eco" },
+  { id: "vegetarian", label: "Vegetarian", icon: "spa" },
+  { id: "gluten-free", label: "Gluten-Free", icon: "grass" },
+  { id: "spicy", label: "Spicy", icon: "whatshot" },
+  { id: "halal", label: "Halal", icon: "verified" },
+];
+
+const getTagMeta = (tag: string) => {
+  const t = tag.toLowerCase().trim();
+  if (t === "vegan") return { icon: "eco", color: "text-emerald-600 bg-emerald-50 dark:bg-emerald-950/20 dark:text-emerald-400 border border-emerald-500/10" };
+  if (t === "vegetarian") return { icon: "spa", color: "text-green-600 bg-green-50 dark:bg-green-950/20 dark:text-green-400 border border-green-500/10" };
+  if (t === "gluten-free" || t === "gluten free" || t === "gf") return { icon: "grass", color: "text-amber-600 bg-amber-50 dark:bg-amber-950/20 dark:text-amber-400 border border-amber-500/10" };
+  if (t === "spicy" || t === "hot") return { icon: "whatshot", color: "text-rose-600 bg-rose-50 dark:bg-rose-950/20 dark:text-rose-400 border border-rose-500/10" };
+  if (t === "halal") return { icon: "verified", color: "text-indigo-600 bg-indigo-50 dark:bg-indigo-950/20 dark:text-indigo-400 border border-indigo-500/10" };
+  return { icon: "sell", color: "text-secondary bg-surface-container-high border border-outline-variant/10" };
+};
 
 export default function PublicMenuClient(props: PublicMenuClientProps) {
   const {
@@ -45,6 +63,7 @@ export default function PublicMenuClient(props: PublicMenuClientProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [searchOpen, setSearchOpen] = useState(false);
   const [isOffline, setIsOffline] = useState(false);
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
 
   useEffect(() => {
     const handleOnline = () => setIsOffline(false);
@@ -81,23 +100,50 @@ export default function PublicMenuClient(props: PublicMenuClientProps) {
     setAssistantMessages(prev => [...prev, { role: "user", content: userMsg }]);
     setIsAssistantLoading(true);
 
+    // Add an empty assistant message placeholder that we will stream into
+    setAssistantMessages(prev => [...prev, { role: "assistant", content: "" }]);
+
     try {
       const res = await fetch("/api/ai-waiter", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          messages: [...assistantMessages, { role: "user", content: userMsg }].slice(-5), // Only last 5 for context
+          messages: [...assistantMessages, { role: "user", content: userMsg }].slice(-5),
           menuItems: items.map(i => ({ name: i.name, description: i.description, price: i.price, tags: i.tags })),
-          restaurantName
-        })
+          restaurantName,
+        }),
       });
-      const data = await res.json();
-      if (data.content) {
-        setAssistantMessages(prev => [...prev, { role: "assistant", content: data.content }]);
+
+      if (!res.ok || !res.body) throw new Error("Stream unavailable");
+
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        const chunk = decoder.decode(value, { stream: true });
+        // Append each chunk to the last assistant message in-place
+        setAssistantMessages(prev => {
+          const next = [...prev];
+          next[next.length - 1] = {
+            role: "assistant",
+            content: next[next.length - 1].content + chunk,
+          };
+          return next;
+        });
       }
-      } catch {
-        setAssistantMessages(prev => [...prev, { role: "assistant", content: "I'm having a little trouble connecting. Can I help you with something else?" }]);
-      } finally {
+    } catch {
+      setAssistantMessages(prev => {
+        const next = [...prev];
+        // Replace the empty placeholder with the fallback message
+        next[next.length - 1] = {
+          role: "assistant",
+          content: "I'm having a little trouble connecting. Can I help you with something else?",
+        };
+        return next;
+      });
+    } finally {
       setIsAssistantLoading(false);
     }
   };
@@ -158,13 +204,25 @@ export default function PublicMenuClient(props: PublicMenuClientProps) {
   }, [menuStyle]);
 
   const visibleCategoryIds = new Set(categories.map(c => c.id));
-  const filtered = searchQuery.trim()
-    ? items.filter((i) =>
-        visibleCategoryIds.has(i.category) &&
-        (i.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-         i.description.toLowerCase().includes(searchQuery.toLowerCase()))
-      )
-    : items.filter((i) => i.category === activeCategory);
+  const filtered = items.filter((i) => {
+    // 1. Category check
+    const matchesCategory = searchQuery.trim()
+      ? visibleCategoryIds.has(i.category)
+      : i.category === activeCategory;
+
+    // 2. Search check
+    const matchesSearch = !searchQuery.trim() ||
+      i.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      i.description.toLowerCase().includes(searchQuery.toLowerCase());
+
+    // 3. Tags check
+    const matchesTags = selectedTags.length === 0 ||
+      selectedTags.every(selTag => 
+        i.tags && i.tags.some(itemTag => itemTag.toLowerCase().trim() === selTag.toLowerCase().trim())
+      );
+
+    return matchesCategory && matchesSearch && matchesTags;
+  });
   const totalItems = cart.reduce((s, i) => s + i.quantity, 0);
   const totalPrice = cart.reduce((s, i) => s + i.price * i.quantity, 0);
 
@@ -251,8 +309,8 @@ export default function PublicMenuClient(props: PublicMenuClientProps) {
         )}
       </header>
 
-      {/* Category Tabs */}
-      <nav className="sticky top-20 z-40 bg-surface/95 backdrop-blur-sm py-4 overflow-x-auto hide-scrollbar">
+      {/* Category Tabs & Dietary Filters */}
+      <nav className="sticky top-20 z-40 bg-surface/95 backdrop-blur-sm pt-4 pb-2.5 overflow-x-auto hide-scrollbar border-b border-outline-variant/5">
         <div className="flex px-6 gap-3">
           {categories.map((cat) => (
             <button key={cat.id} onClick={() => setActiveCategory(cat.id)}
@@ -264,6 +322,48 @@ export default function PublicMenuClient(props: PublicMenuClientProps) {
             </button>
           ))}
         </div>
+
+        {/* Dietary Filters horizontal scroll */}
+        <div className="flex px-6 gap-2 mt-3 overflow-x-auto hide-scrollbar">
+          {DIETARY_FILTERS.map((filter) => {
+            const isSelected = selectedTags.includes(filter.id);
+            let activeClass = "";
+            if (isSelected) {
+              if (filter.id === "vegan") activeClass = "bg-emerald-600 text-white border-emerald-600 shadow-md shadow-emerald-600/10";
+              else if (filter.id === "vegetarian") activeClass = "bg-green-600 text-white border-green-600 shadow-md shadow-green-600/10";
+              else if (filter.id === "gluten-free") activeClass = "bg-amber-50 text-white border-amber-50 shadow-md shadow-amber-50/10";
+              else if (filter.id === "spicy") activeClass = "bg-rose-600 text-white border-rose-600 shadow-md shadow-rose-600/10";
+              else if (filter.id === "halal") activeClass = "bg-indigo-600 text-white border-indigo-600 shadow-md shadow-indigo-600/10";
+            } else {
+              activeClass = "bg-surface-container-low/60 text-on-surface-variant hover:bg-surface-container-high border border-outline-variant/10";
+            }
+            return (
+              <button
+                key={filter.id}
+                onClick={() => {
+                  setSelectedTags(prev => 
+                    prev.includes(filter.id) 
+                      ? prev.filter(t => t !== filter.id) 
+                      : [...prev, filter.id]
+                  );
+                }}
+                className={`px-4 py-2 font-[var(--font-headline)] font-bold text-xs flex items-center gap-1.5 whitespace-nowrap transition-all duration-300 rounded-full cursor-pointer select-none active:scale-95 ${activeClass}`}
+              >
+                <span className="material-symbols-outlined text-[16px]">{filter.icon}</span>
+                {filter.label}
+              </button>
+            );
+          })}
+          {selectedTags.length > 0 && (
+            <button
+              onClick={() => setSelectedTags([])}
+              className="px-3 py-2 font-[var(--font-headline)] font-bold text-xs flex items-center gap-1 whitespace-nowrap transition-all duration-300 rounded-full cursor-pointer select-none text-error bg-error/10 hover:bg-error/15 active:scale-95"
+            >
+              <span className="material-symbols-outlined text-[16px]">clear_all</span>
+              Clear
+            </button>
+          )}
+        </div>
       </nav>
 
       <main className="px-6 pt-4 space-y-8">
@@ -273,7 +373,7 @@ export default function PublicMenuClient(props: PublicMenuClientProps) {
             <NextImage
               alt="Featured Dish"
               className="object-cover transition-transform duration-700 group-hover:scale-105"
-              src={filtered[0].image || "https://images.unsplash.com/photo-1600891964092-4316c288032e?w=800&h=400&fit=crop"}
+              src={getOptimizedImageUrl(filtered[0].image || "https://images.unsplash.com/photo-1600891964092-4316c288032e?w=800&h=400&fit=crop", 800)}
               fill
               sizes="(max-width: 1024px) 100vw, 800px"
               priority
@@ -322,7 +422,7 @@ export default function PublicMenuClient(props: PublicMenuClientProps) {
                   <NextImage
                     alt={item.name}
                     className="object-cover"
-                    src={item.image || "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=600&h=400&fit=crop"}
+                    src={getOptimizedImageUrl(item.image || "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=600&h=400&fit=crop", 600)}
                     fill
                     sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 400px"
                   />
@@ -349,6 +449,23 @@ export default function PublicMenuClient(props: PublicMenuClientProps) {
                       </div>
                     )}
                   </div>
+                  {/* Dietary Tags for the item */}
+                  {item.tags && item.tags.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5 mb-3.5 mt-1">
+                      {item.tags.map((tag) => {
+                        const meta = getTagMeta(tag);
+                        return (
+                          <span 
+                            key={tag} 
+                            className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider ${meta.color}`}
+                          >
+                            <span className="material-symbols-outlined text-[11px]">{meta.icon}</span>
+                            {tag}
+                          </span>
+                        );
+                      })}
+                    </div>
+                  )}
                   {/* Hide description in compact mode to save space */}
                   {menuStyle.layoutDensity !== "compact" && (
                     <p className="text-on-surface-variant text-sm leading-relaxed mb-6 font-medium opacity-80 font-[var(--font-body)]">{item.description}</p>

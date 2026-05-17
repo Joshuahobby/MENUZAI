@@ -10,6 +10,7 @@ export interface MenuItem {
   margin?: number;
   orders?: number;
   available?: boolean; // undefined / true = available; false = sold out
+  stock_count?: number | null; // null = unlimited; 0 = auto sold-out
 }
 
 export interface MenuCategory {

@@ -30,6 +30,11 @@ const MEDIA_TYPES: Record<string, string> = {
   "image/gif": "image/gif",
 };
 
+// Helper to encode an SSE event
+function sseEvent(data: object): string {
+  return `data: ${JSON.stringify(data)}\n\n`;
+}
+
 async function extractWithOpenRouter(file: File, apiKey: string, model: string): Promise<ExtractionResult> {
   const type = file.type.toLowerCase();
   const mediaType = MEDIA_TYPES[type];
@@ -118,7 +123,7 @@ export async function POST(request: Request) {
       if (data?.ai_model) model = data.ai_model;
     }
   } catch (e) {
-    console.warn("Could not fetch platform settings, falling back to OpenRouter");
+    console.warn("Could not fetch platform settings, falling back to OpenRouter", e);
   }
 
   let formData: FormData;
@@ -154,26 +159,65 @@ export async function POST(request: Request) {
     }
   }
 
-  try {
-    let results: ExtractionResult[] = [];
-    
-    if (provider === "anthropic") {
-      const apiKey = process.env.ANTHROPIC_API_KEY;
-      if (!apiKey) return Response.json({ error: "ANTHROPIC_API_KEY not configured" }, { status: 500 });
-      console.log(`Extracting with Anthropic (${model})...`);
-      results = await Promise.all(files.map(f => extractWithAnthropic(f, apiKey, model)));
-    } else {
-      const apiKey = process.env.OPENROUTER_API_KEY;
-      if (!apiKey) return Response.json({ error: "OPENROUTER_API_KEY not configured" }, { status: 500 });
-      console.log(`Extracting with OpenRouter (${model})...`);
-      results = await Promise.all(files.map(f => extractWithOpenRouter(f, apiKey, model)));
-    }
+  // ── SSE streaming response ──────────────────────────────────────────────
+  const sseHeaders: HeadersInit = {
+    "Content-Type": "text/event-stream; charset=utf-8",
+    "Cache-Control": "no-cache, no-transform",
+    "X-Accel-Buffering": "no", // Disable nginx buffering
+  };
 
-    const merged = mergeExtractionResults(results);
-    return Response.json(merged);
-  } catch (err: unknown) {
-    const errorMessage = err instanceof Error ? err.message : "AI extraction failed";
-    console.error("Extract menu error:", errorMessage);
-    return Response.json({ error: errorMessage }, { status: 500 });
-  }
+  const stream = new ReadableStream({
+    async start(controller) {
+      const enc = new TextEncoder();
+      const send = (data: object) => controller.enqueue(enc.encode(sseEvent(data)));
+
+      try {
+        send({ type: "progress", step: "Preparing extraction...", pct: 5 });
+
+        const results: ExtractionResult[] = [];
+
+        if (provider === "anthropic") {
+          const apiKey = process.env.ANTHROPIC_API_KEY;
+          if (!apiKey) throw new Error("ANTHROPIC_API_KEY not configured");
+          
+          for (let i = 0; i < files.length; i++) {
+            const label = files.length === 1
+              ? "Analysing menu with AI..."
+              : `Analysing image ${i + 1} of ${files.length}...`;
+            const pct = Math.round(10 + ((i / files.length) * 75));
+            send({ type: "progress", step: label, pct });
+            console.log(`Extracting with Anthropic (${model}) — image ${i + 1}/${files.length}`);
+            results.push(await extractWithAnthropic(files[i], apiKey, model));
+          }
+        } else {
+          const apiKey = process.env.OPENROUTER_API_KEY;
+          if (!apiKey) throw new Error("OPENROUTER_API_KEY not configured");
+
+          for (let i = 0; i < files.length; i++) {
+            const label = files.length === 1
+              ? "Analysing menu with AI..."
+              : `Analysing image ${i + 1} of ${files.length}...`;
+            const pct = Math.round(10 + ((i / files.length) * 75));
+            send({ type: "progress", step: label, pct });
+            console.log(`Extracting with OpenRouter (${model}) — image ${i + 1}/${files.length}`);
+            results.push(await extractWithOpenRouter(files[i], apiKey, model));
+          }
+        }
+
+        send({ type: "progress", step: "Merging results...", pct: 90 });
+        const merged = mergeExtractionResults(results);
+
+        send({ type: "progress", step: "Done!", pct: 100 });
+        send({ type: "result", data: merged });
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : "AI extraction failed";
+        console.error("Extract menu error:", msg);
+        send({ type: "error", error: msg });
+      } finally {
+        controller.close();
+      }
+    },
+  });
+
+  return new Response(stream, { headers: sseHeaders });
 }

@@ -7,19 +7,20 @@ import { usePathname, useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { useMenu } from "@/context/MenuContext";
 
-const navLinks = [
-  { href: "/dashboard", icon: "dashboard", label: "Dashboard" },
-  { href: "/dashboard/orders", icon: "receipt_long", label: "Orders" },
-  { href: "/dashboard/menus", icon: "restaurant_menu", label: "My Menus" },
-  { href: "/dashboard/analytics", icon: "analytics", label: "Analytics" },
-  { href: "/dashboard/templates", icon: "style", label: "Templates" },
-  { href: "/dashboard/qr-codes", icon: "qr_code_2", label: "QR Codes" },
-  { href: "/dashboard/editor", icon: "edit_note", label: "Editor" },
-  { href: "/dashboard/settings", icon: "settings", label: "Settings" },
-];
-
-const mobileNavLinks = navLinks.slice(0, 4);
-const mobileMoreLinks = navLinks.slice(4);
+const getNavLinks = (role: "owner" | "manager" | "staff" | null) => {
+  const allLinks = [
+    { href: "/dashboard", icon: "dashboard", label: "Dashboard", roles: ["owner", "manager", "staff"] },
+    { href: "/dashboard/orders", icon: "receipt_long", label: "Orders", roles: ["owner", "manager", "staff"] },
+    { href: "/dashboard/menus", icon: "restaurant_menu", label: "My Menus", roles: ["owner", "manager"] },
+    { href: "/dashboard/analytics", icon: "analytics", label: "Analytics", roles: ["owner", "manager"] },
+    { href: "/dashboard/reviews", icon: "star", label: "Reviews", roles: ["owner", "manager"] },
+    { href: "/dashboard/templates", icon: "style", label: "Templates", roles: ["owner"] },
+    { href: "/dashboard/qr-codes", icon: "qr_code_2", label: "QR Codes", roles: ["owner", "manager"] },
+    { href: "/dashboard/editor", icon: "edit_note", label: "Editor", roles: ["owner", "manager"] },
+    { href: "/dashboard/settings", icon: "settings", label: "Settings", roles: ["owner"] },
+  ];
+  return allLinks.filter(link => !role || link.roles.includes(role));
+};
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
@@ -27,7 +28,11 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   const [moreOpen, setMoreOpen] = useState(false);
   const [authReady, setAuthReady] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
-  const { restaurantLogoUrl, restaurantName, onboarded, isLoading, user } = useMenu();
+  const { restaurantLogoUrl, restaurantName, onboarded, isLoading, user, userRole } = useMenu();
+
+  const navLinks = getNavLinks(userRole);
+  const mobileNavLinks = navLinks.slice(0, Math.min(4, navLinks.length));
+  const mobileMoreLinks = navLinks.slice(mobileNavLinks.length);
 
   useEffect(() => {
     const saved = localStorage.getItem("sidebar-collapsed");
@@ -45,7 +50,12 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (isLoading) return;
     if (!user) { router.push("/login"); return; }
-    if (!onboarded && pathname !== "/dashboard/onboarding") { router.replace("/onboarding"); return; }
+    // Only owners go through onboarding. Staff/managers access the dashboard directly
+    // (the employer's onboarded state doesn't gate their access).
+    if (!onboarded && (userRole === "owner" || userRole === null) && pathname !== "/dashboard/onboarding") {
+      router.replace("/onboarding");
+      return;
+    }
     setAuthReady(true);
   }, [router, isLoading, onboarded, pathname, user]);
 
@@ -115,8 +125,11 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
             </div>
             {!collapsed && (
               <div className="overflow-hidden">
-                <p className="text-[10px] font-bold truncate">{restaurantName || user?.email?.split("@")[0] || "My Restaurant"}</p>
-                <button onClick={handleSignOut} className="text-[10px] opacity-60 hover:text-primary transition-colors block">Sign Out</button>
+                <p className="text-[10px] font-bold truncate">
+                  {restaurantName || user?.email?.split("@")[0] || "My Restaurant"}
+                  {userRole && <span className="ml-1 text-[8px] uppercase opacity-70 bg-primary/10 px-1 py-0.5 rounded">[{userRole}]</span>}
+                </p>
+                <button type="button" onClick={handleSignOut} className="text-[10px] opacity-60 hover:text-primary transition-colors block">Sign Out</button>
               </div>
             )}
           </div>
@@ -176,14 +189,16 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
               </Link>
             );
           })}
-          <button
-            type="button"
-            onClick={() => setMoreOpen(!moreOpen)}
-            className={`flex flex-col items-center justify-center p-2 ${moreOpen ? "text-primary" : "text-secondary"}`}
-          >
-            <span className={`material-symbols-outlined text-sm ${moreOpen ? "icon-fill" : ""}`}>more_horiz</span>
-            <span className="text-[9px] font-bold uppercase mt-1">More</span>
-          </button>
+          {mobileMoreLinks.length > 0 && (
+            <button
+              type="button"
+              onClick={() => setMoreOpen(!moreOpen)}
+              className={`flex flex-col items-center justify-center p-2 ${moreOpen ? "text-primary" : "text-secondary"}`}
+            >
+              <span className={`material-symbols-outlined text-sm ${moreOpen ? "icon-fill" : ""}`}>more_horiz</span>
+              <span className="text-[9px] font-bold uppercase mt-1">More</span>
+            </button>
+          )}
         </div>
       </>
     </div>

@@ -19,6 +19,13 @@ function OrderContent({ slug }: { slug: string }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [orderPlaced, setOrderPlaced] = useState(false);
 
+  // Review states
+  const [rating, setRating] = useState(0);
+  const [hoverRating, setHoverRating] = useState(0);
+  const [reviewComment, setReviewComment] = useState("");
+  const [reviewSubmitted, setReviewSubmitted] = useState(false);
+  const [isSubmittingReview, setIsSubmittingReview] = useState(false);
+
   const menuId = searchParams.get("menuId") || null;
   const restaurantId = searchParams.get("restaurantId") || null;
   const phone = searchParams.get("phone") || "";
@@ -72,18 +79,50 @@ function OrderContent({ slug }: { slug: string }) {
     window.open(whatsappUrl, "_blank", "noopener,noreferrer");
   };
 
+  const handleSubmittingReview = async () => {
+    if (rating === 0 || !restaurantId) return;
+    setIsSubmittingReview(true);
+    try {
+      const res = await fetch("/api/reviews", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          restaurantId,
+          rating,
+          customerName: customerName || "Guest",
+          comment: reviewComment,
+          orderId: null,
+        }),
+      });
+      if (res.ok) {
+        setReviewSubmitted(true);
+        toast.success("Thank you for your feedback! ❤️");
+      } else {
+        toast.error("Failed to submit feedback. Please try again.");
+      }
+    } catch {
+      toast.error("An error occurred while submitting feedback.");
+    } finally {
+      setIsSubmittingReview(false);
+    }
+  };
+
   // H6: Order confirmation screen
   if (orderPlaced) {
     return (
-      <div className="min-h-screen bg-surface text-on-surface flex items-center justify-center px-6">
+      <div className="min-h-screen bg-surface text-on-surface flex items-center justify-center py-10 px-6">
         <div className="max-w-md w-full text-center space-y-6">
-          <div className="w-24 h-24 bg-tertiary/10 rounded-full flex items-center justify-center mx-auto">
-            <span className="material-symbols-outlined text-tertiary text-5xl icon-fill">check_circle</span>
+          <div className="w-20 h-20 bg-tertiary/10 rounded-full flex items-center justify-center mx-auto">
+            <span className="material-symbols-outlined text-tertiary text-4xl icon-fill">check_circle</span>
           </div>
-          <h1 className="font-[var(--font-headline)] font-extrabold text-2xl">Order Sent!</h1>
-          <p className="text-secondary text-sm leading-relaxed">
-            Your order has been sent to the restaurant via WhatsApp. They will confirm it shortly.
-          </p>
+          <div>
+            <h1 className="font-[var(--font-headline)] font-extrabold text-2xl">Order Sent!</h1>
+            <p className="text-secondary text-xs leading-relaxed mt-1">
+              Your order has been sent to the restaurant via WhatsApp. They will confirm it shortly.
+            </p>
+          </div>
+
+          {/* Order Details */}
           <div className="bg-surface-container-lowest rounded-[2rem] p-6 border border-surface-container/50 text-left space-y-2">
             {items.map((item) => (
               <div key={item.id} className="flex justify-between text-sm">
@@ -96,9 +135,66 @@ function OrderContent({ slug }: { slug: string }) {
               <span className="text-primary">{formatPrice(total, currency)}</span>
             </div>
           </div>
+
+          {/* Rate your experience interactive container */}
+          <div className="bg-surface-container-lowest rounded-[2rem] p-6 border border-surface-container/50 text-left space-y-4 shadow-sm">
+            <h3 className="font-[var(--font-headline)] font-black text-center text-sm tracking-tight">Rate your dining experience!</h3>
+            {reviewSubmitted ? (
+              <div className="text-center py-4 space-y-2 animate-fadeIn">
+                <span className="material-symbols-outlined text-emerald-500 text-4xl block">celebration</span>
+                <p className="text-sm font-bold text-emerald-600">Review Submitted!</p>
+                <p className="text-xs text-secondary">Thank you! Your feedback helps us improve.</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {/* 5-Star Row */}
+                <div className="flex justify-center gap-3">
+                  {[1, 2, 3, 4, 5].map((star) => {
+                    const isActive = (hoverRating || rating) >= star;
+                    return (
+                      <button
+                        key={star}
+                        type="button"
+                        onClick={() => setRating(star)}
+                        onMouseEnter={() => setHoverRating(star)}
+                        onMouseLeave={() => setHoverRating(0)}
+                        className={`transition-all duration-150 transform hover:scale-125 focus:outline-none cursor-pointer border-none bg-transparent ${
+                          isActive ? "text-amber-500" : "text-surface-container-highest dark:text-neutral-700"
+                        }`}
+                      >
+                        <span className="material-symbols-outlined text-[32px] icon-fill select-none">
+                          star
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {rating > 0 && (
+                  <div className="space-y-3 pt-2">
+                    <textarea
+                      value={reviewComment}
+                      onChange={(e) => setReviewComment(e.target.value)}
+                      placeholder="Optional: Tell us what you liked or what we can improve..."
+                      className="w-full bg-surface-container-low border-none rounded-2xl py-3 px-4 text-xs focus:ring-2 focus:ring-primary/20 resize-none h-20 outline-none text-on-surface"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleSubmittingReview}
+                      disabled={isSubmittingReview}
+                      className="w-full py-3.5 bg-primary text-white font-[var(--font-headline)] font-bold rounded-2xl text-xs active:scale-95 transition-all disabled:opacity-50 border-none cursor-pointer hover:opacity-90"
+                    >
+                      {isSubmittingReview ? "Submitting..." : "Submit Review"}
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
           <Link
             href={`/menu/${slug}`}
-            className="block w-full py-4 bg-surface-container-lowest border border-surface-container rounded-2xl font-bold text-sm hover:bg-surface-container-low transition-all"
+            className="block w-full py-4 bg-surface-container-lowest border border-surface-container rounded-2xl font-bold text-sm hover:bg-surface-container-low transition-all text-on-surface"
           >
             Back to Menu
           </Link>
@@ -144,19 +240,19 @@ function OrderContent({ slug }: { slug: string }) {
           <h3 className="font-[var(--font-headline)] font-bold mb-2">Your Details (Optional)</h3>
           <div>
             <label className="text-xs font-bold text-secondary uppercase tracking-[0.2em] mb-2 block">Name</label>
-            <input className="w-full bg-surface-container-low border-none rounded-xl py-3 px-4 text-sm focus:ring-2 focus:ring-primary/20"
+            <input className="w-full bg-surface-container-low border-none rounded-xl py-3 px-4 text-sm focus:ring-2 focus:ring-primary/20 text-on-surface"
               placeholder="Your name" value={customerName} onChange={(e) => setCustomerName(e.target.value)} />
           </div>
           <div>
             <label className="text-xs font-bold text-secondary uppercase tracking-[0.2em] mb-2 block">Table Number</label>
-            <input className="w-full bg-surface-container-low border-none rounded-xl py-3 px-4 text-sm focus:ring-2 focus:ring-primary/20"
+            <input className="w-full bg-surface-container-low border-none rounded-xl py-3 px-4 text-sm focus:ring-2 focus:ring-primary/20 text-on-surface"
               placeholder="e.g. Table 5" value={tableNumber} onChange={(e) => setTableNumber(e.target.value)} />
           </div>
         </div>
 
         <div className="bg-surface-container-lowest rounded-[2rem] p-6 border border-surface-container/50">
           <h3 className="font-[var(--font-headline)] font-bold mb-3">WhatsApp Message Preview</h3>
-          <div className="bg-surface-container-low rounded-2xl p-4 text-sm whitespace-pre-wrap text-on-surface-variant">
+          <div className="bg-surface-container-low rounded-2xl p-4 text-sm whitespace-pre-wrap text-on-surface-variant font-medium">
             {message}
           </div>
         </div>

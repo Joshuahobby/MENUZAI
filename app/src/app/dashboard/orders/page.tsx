@@ -7,29 +7,32 @@ import { formatPrice, formatRelativeTime, formatTimeOnly } from "@/lib/utils";
 import { toast } from "sonner";
 import type { CartItem } from "@/types/menu";
 import { Skeleton } from "@/components/Skeleton";
+import { ResponsiveContainer, AreaChart, Area } from "recharts";
 
 interface OrderRow {
   id: string;
   customer_name: string | null;
   table_number: string | null;
   total: number;
-  status: "pending" | "confirmed" | "cancelled";
+  status: "pending" | "confirmed" | "preparing" | "cancelled";
   created_at: string;
   items: CartItem[];
   whatsapp_sent: boolean;
 }
 
-type StatusFilter = "all" | "pending" | "confirmed" | "cancelled";
+type StatusFilter = "all" | "pending" | "preparing" | "confirmed" | "cancelled";
 
 const STATUS_TABS: { value: StatusFilter; label: string }[] = [
   { value: "all", label: "All" },
   { value: "pending", label: "Pending" },
-  { value: "confirmed", label: "Confirmed" },
+  { value: "preparing", label: "Preparing" },
+  { value: "confirmed", label: "Ready" },
   { value: "cancelled", label: "Cancelled" },
 ];
 
 const STATUS_STYLE = {
   pending:   { badge: "bg-amber-100 text-amber-700",   dot: "bg-amber-400",   icon: "pending" },
+  preparing: { badge: "bg-blue-100 text-blue-700",     dot: "bg-blue-400",    icon: "skillet" },
   confirmed: { badge: "bg-tertiary/10 text-tertiary",  dot: "bg-tertiary",    icon: "check_circle" },
   cancelled: { badge: "bg-error/10 text-error",        dot: "bg-error",       icon: "cancel" },
 };
@@ -62,7 +65,7 @@ function SkeletonOrder() {
 }
 
 export default function OrdersPage() {
-  const { restaurantId, menuStyle } = useMenu();
+  const { restaurantId, menuStyle, restaurantName } = useMenu();
   const currency = menuStyle.currency ?? "RWF";
 
   const [orders, setOrders] = useState<OrderRow[]>([]);
@@ -70,7 +73,24 @@ export default function OrdersPage() {
   const [filter, setFilter] = useState<StatusFilter>("all");
   const [isLive, setIsLive] = useState(false);
   const [now, setNow] = useState(0);
+  const [soundEnabled, setSoundEnabled] = useState(true);
+  const [printingOrder, setPrintingOrder] = useState<OrderRow | null>(null);
   const initialLoadDone = useRef(false);
+  const soundEnabledRef = useRef(soundEnabled);
+
+  useEffect(() => {
+    soundEnabledRef.current = soundEnabled;
+  }, [soundEnabled]);
+
+  useEffect(() => {
+    if (printingOrder) {
+      const timer = setTimeout(() => {
+        window.print();
+        setPrintingOrder(null);
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [printingOrder]);
 
   // Initialize 'now' and update periodically to refresh 'new' badges
   useEffect(() => {
@@ -127,9 +147,11 @@ export default function OrdersPage() {
             // Don't fire toast on first load
             if (initialLoadDone.current) {
               // Play notification sound
-              audio.play().catch(() => {
-                console.log("Audio playback blocked by browser. User must interact with the page first.");
-              });
+              if (soundEnabledRef.current) {
+                audio.play().catch(() => {
+                  console.log("Audio playback blocked by browser. User must interact with the page first.");
+                });
+              }
 
               toast("New order received!", {
                 description: newOrder.customer_name
@@ -161,7 +183,6 @@ export default function OrdersPage() {
 
   // ── Status update (optimistic) ─────────────────────────
   const updateStatus = async (orderId: string, newStatus: OrderRow["status"]) => {
-    // Optimistically update local state immediately
     setOrders((prev) =>
       prev.map((o) => (o.id === orderId ? { ...o, status: newStatus } : o))
     );
@@ -173,7 +194,6 @@ export default function OrdersPage() {
 
     if (error) {
       toast.error("Failed to update order status.");
-      // Roll back
       const { data } = await supabase
         .from("orders")
         .select("*")
@@ -185,8 +205,47 @@ export default function OrdersPage() {
         );
       }
     } else {
-      const labels = { confirmed: "accepted", cancelled: "declined", pending: "restored" };
+      const labels = { confirmed: "ready", cancelled: "declined", pending: "restored", preparing: "preparing" };
       toast.success(`Order ${labels[newStatus]}.`);
+
+      if (newStatus === "preparing") {
+        const orderToPrint = orders.find(o => o.id === orderId);
+        if (orderToPrint) {
+          setPrintingOrder({ ...orderToPrint, status: "preparing" });
+        }
+      }
+    }
+  };
+
+  // ── Confirm order — calls API to also decrement stock ──
+  const confirmOrder = async (orderId: string) => {
+    setOrders((prev) =>
+      prev.map((o) => (o.id === orderId ? { ...o, status: "confirmed" } : o))
+    );
+
+    try {
+      const res = await fetch("/api/orders/confirm", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ orderId, restaurantId }),
+      });
+
+      if (!res.ok) {
+        throw new Error("API error");
+      }
+      toast.success("Order ready.");
+    } catch {
+      toast.error("Failed to confirm order.");
+      const { data } = await supabase
+        .from("orders")
+        .select("*")
+        .eq("id", orderId)
+        .single();
+      if (data) {
+        setOrders((prev) =>
+          prev.map((o) => (o.id === orderId ? (data as OrderRow) : o))
+        );
+      }
     }
   };
 
@@ -202,6 +261,19 @@ export default function OrdersPage() {
     .filter((o) => o.status !== "cancelled")
     .reduce((s, o) => s + o.total, 0);
 
+  // Sparkline data (hourly revenue for today)
+  const hourlyData = Array.from({ length: 24 }).map((_, i) => ({
+    hour: `${i.toString().padStart(2, '0')}:00`,
+    revenue: 0,
+  }));
+  
+  todayOrders.forEach(o => {
+    if (o.status !== "cancelled") {
+      const h = new Date(o.created_at).getHours();
+      hourlyData[h].revenue += o.total;
+    }
+  });
+
   // ── Filter ─────────────────────────────────────────────
   const filtered =
     filter === "all" ? orders : orders.filter((o) => o.status === filter);
@@ -214,15 +286,30 @@ export default function OrdersPage() {
           <h1 className="text-3xl font-[var(--font-headline)] font-extrabold tracking-tight mb-1">Orders</h1>
           <p className="text-secondary">Real-time view of incoming customer orders</p>
         </div>
-        {/* Live indicator */}
-        <div className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold ${isLive ? "bg-tertiary/10 text-tertiary" : "bg-surface-container text-secondary"}`}>
-          <span className={`w-2 h-2 rounded-full ${isLive ? "bg-tertiary animate-pulse" : "bg-secondary"}`} />
-          {isLive ? "Live" : "Connecting…"}
+        
+        <div className="flex items-center gap-4">
+          <button
+            onClick={() => setSoundEnabled(!soundEnabled)}
+            className={`flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-bold transition-colors ${
+              soundEnabled ? "bg-surface-container-high text-on-surface" : "bg-surface-container text-secondary"
+            }`}
+            title={soundEnabled ? "Mute notifications" : "Enable notifications"}
+          >
+            <span className="material-symbols-outlined text-lg">
+              {soundEnabled ? "volume_up" : "volume_off"}
+            </span>
+          </button>
+          
+          {/* Live indicator */}
+          <div className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold ${isLive ? "bg-tertiary/10 text-tertiary" : "bg-surface-container text-secondary"}`}>
+            <span className={`w-2 h-2 rounded-full ${isLive ? "bg-tertiary animate-pulse" : "bg-secondary"}`} />
+            {isLive ? "Live" : "Connecting…"}
+          </div>
         </div>
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-3 gap-4 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
         <div className="bg-surface-container-lowest rounded-2xl p-5 border border-surface-container/50">
           <div className="flex items-center gap-2 mb-2">
             <span className="material-symbols-outlined text-primary icon-fill text-lg">today</span>
@@ -239,13 +326,24 @@ export default function OrdersPage() {
           <p className="text-2xl font-extrabold">{pendingCount}</p>
           <p className="text-[10px] text-secondary mt-0.5">need action</p>
         </div>
-        <div className="bg-surface-container-lowest rounded-2xl p-5 border border-surface-container/50">
-          <div className="flex items-center gap-2 mb-2">
-            <span className="material-symbols-outlined text-tertiary icon-fill text-lg">payments</span>
-            <p className="text-[10px] font-bold text-secondary uppercase tracking-widest">Revenue</p>
+        <div className="bg-surface-container-lowest rounded-2xl p-5 border border-surface-container/50 relative overflow-hidden">
+          <div className="relative z-10">
+            <div className="flex items-center gap-2 mb-2">
+              <span className="material-symbols-outlined text-tertiary icon-fill text-lg">payments</span>
+              <p className="text-[10px] font-bold text-secondary uppercase tracking-widest">Revenue</p>
+            </div>
+            <p className="text-2xl font-extrabold leading-none">{formatPrice(todayRevenue, currency)}</p>
+            <p className="text-[10px] text-secondary mt-0.5">today</p>
           </div>
-          <p className="text-2xl font-extrabold leading-none">{formatPrice(todayRevenue, currency)}</p>
-          <p className="text-[10px] text-secondary mt-0.5">today</p>
+          {todayRevenue > 0 && (
+            <div className="absolute inset-x-0 bottom-0 h-16 opacity-30 pointer-events-none">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={hourlyData} margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
+                  <Area type="monotone" dataKey="revenue" stroke="var(--color-tertiary)" fill="var(--color-tertiary)" strokeWidth={2} />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+          )}
         </div>
       </div>
 
@@ -339,10 +437,23 @@ export default function OrdersPage() {
                       )}
                     </div>
                   </div>
-                  <span className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest shrink-0 ${s.badge}`}>
-                    <span className={`w-1.5 h-1.5 rounded-full ${s.dot}`} />
-                    {order.status}
-                  </span>
+                  <div className="flex flex-col items-end gap-2">
+                    <span className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest shrink-0 ${s.badge}`}>
+                      <span className={`w-1.5 h-1.5 rounded-full ${s.dot}`} />
+                      {order.status}
+                    </span>
+                    {order.status !== "pending" && (
+                      <button
+                        type="button"
+                        onClick={() => setPrintingOrder(order)}
+                        className="text-secondary hover:text-primary transition-colors p-1 flex items-center gap-1 opacity-60 hover:opacity-100"
+                        title="Print Receipt"
+                      >
+                        <span className="material-symbols-outlined text-[16px]">print</span>
+                        <span className="text-[10px] font-bold uppercase">Print</span>
+                      </button>
+                    )}
+                  </div>
                 </div>
 
                 {/* Items */}
@@ -381,11 +492,30 @@ export default function OrdersPage() {
                       </button>
                       <button
                         type="button"
-                        onClick={() => updateStatus(order.id, "confirmed")}
+                        onClick={() => updateStatus(order.id, "preparing")}
+                        className="py-3 px-4 rounded-xl font-bold text-sm bg-tertiary/10 text-tertiary hover:bg-tertiary/20 transition-colors flex items-center justify-center gap-1.5"
+                      >
+                        <span className="material-symbols-outlined text-sm">skillet</span>
+                        Prepare
+                      </button>
+                    </>
+                  )}
+                  {order.status === "preparing" && (
+                    <>
+                      <button
+                        type="button"
+                        onClick={() => updateStatus(order.id, "cancelled")}
+                        className="py-3 px-4 rounded-xl font-bold text-sm bg-surface-container-high text-secondary hover:bg-error/10 hover:text-error transition-colors"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => confirmOrder(order.id)}
                         className="py-3 px-4 rounded-xl font-bold text-sm bg-tertiary/10 text-tertiary hover:bg-tertiary/20 transition-colors flex items-center justify-center gap-1.5"
                       >
                         <span className="material-symbols-outlined text-sm">check</span>
-                        Accept
+                        Done
                       </button>
                     </>
                   )}
@@ -400,7 +530,7 @@ export default function OrdersPage() {
                       </button>
                       <div className="py-3 px-4 rounded-xl font-bold text-sm bg-tertiary/10 text-tertiary flex items-center justify-center gap-1.5">
                         <span className="material-symbols-outlined text-sm icon-fill">check_circle</span>
-                        Accepted
+                        Ready
                       </div>
                     </>
                   )}
@@ -420,6 +550,92 @@ export default function OrdersPage() {
           })}
         </div>
       )}
+
+      {/* Printable Receipt */}
+      <style dangerouslySetInnerHTML={{
+        __html: `
+          @media print {
+            body * {
+              visibility: hidden;
+            }
+            #printable-receipt, #printable-receipt * {
+              visibility: visible;
+            }
+            #printable-receipt {
+              position: absolute;
+              left: 0;
+              top: 0;
+              width: 80mm;
+              padding: 0;
+              margin: 0;
+            }
+          }
+        `
+      }} />
+      <div id="printable-receipt" className="hidden print:block bg-white text-black p-4 z-[9999]">
+        {printingOrder && (
+          <div className="font-mono text-sm">
+            <div className="text-center mb-4">
+              <h2 className="font-bold text-xl uppercase mb-1">{restaurantName || "MENUZA AI"}</h2>
+              <p className="text-xs">Receipt / Kitchen Ticket</p>
+            </div>
+            
+            <div className="border-t border-b border-black border-dashed py-2 mb-4 text-xs space-y-1">
+              <div className="flex justify-between">
+                <span>Date:</span>
+                <span>{new Date(printingOrder.created_at).toLocaleDateString()} {formatTimeOnly(printingOrder.created_at)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Order ID:</span>
+                <span>{printingOrder.id.split("-")[0]}</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Customer:</span>
+                <span>{printingOrder.customer_name || "Guest"}</span>
+              </div>
+              {printingOrder.table_number && (
+                <div className="flex justify-between font-bold text-sm mt-1">
+                  <span>Table:</span>
+                  <span>{printingOrder.table_number}</span>
+                </div>
+              )}
+            </div>
+
+            <div className="mb-4">
+              <table className="w-full text-xs">
+                <thead>
+                  <tr className="border-b border-black">
+                    <th className="text-left pb-1">Qty</th>
+                    <th className="text-left pb-1">Item</th>
+                    <th className="text-right pb-1">Amt</th>
+                  </tr>
+                </thead>
+                <tbody className="align-top">
+                  {printingOrder.items.map((item, idx) => (
+                    <tr key={idx} className="border-b border-gray-300 border-dotted last:border-0">
+                      <td className="py-2 pr-2 font-bold">{item.quantity}</td>
+                      <td className="py-2 pr-2">{item.name}</td>
+                      <td className="py-2 text-right whitespace-nowrap">{formatPrice(item.price * item.quantity, currency)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            <div className="border-t border-black pt-2 mb-6">
+              <div className="flex justify-between font-bold text-base">
+                <span>TOTAL</span>
+                <span>{formatPrice(printingOrder.total, currency)}</span>
+              </div>
+            </div>
+            
+            <div className="text-center text-xs pb-8">
+              <p>Powered by MENUZA AI</p>
+              <p>www.menuza.ai</p>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

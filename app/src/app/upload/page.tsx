@@ -12,14 +12,12 @@ type UploadState = "idle" | "extracting" | "done" | "error";
 const MAX_FILES = 5;
 const MAX_SIZE = 10 * 1024 * 1024;
 const VALID_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+// Mutable — SSE events overwrite index 0 with live server step labels
 const EXTRACTING_STEPS = [
-  "Reading menu text...",
-  "Analyzing dish details...",
-  "Organizing categories...",
-  "Identifying ingredients...",
-  "Detecting prices...",
-  "Picking a color theme...",
-  "Finalizing your menu..."
+  "Preparing extraction...",
+  "Analysing menu with AI...",
+  "Merging results...",
+  "Done!",
 ];
 
 export default function UploadPage() {
@@ -77,7 +75,7 @@ export default function UploadPage() {
     }
 
     setState("extracting");
-    setProgress(20);
+    setProgress(5);
 
     const formData = new FormData();
     if (selectedFiles.length === 1) {
@@ -86,31 +84,86 @@ export default function UploadPage() {
       selectedFiles.forEach((f, i) => formData.append(`file_${i}`, f));
     }
 
-    setProgress(40);
-
     try {
       const res = await fetch("/api/extract-menu", { method: "POST", body: formData });
-      setProgress(80);
 
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error || "Extraction failed");
+      if (!res.ok || !res.body) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error((data as { error?: string }).error || "Extraction failed");
       }
 
-      const result = await res.json();
-      setRestaurantName(result.restaurantName);
-      setCategories(result.categories);
-      setMenuItems(result.items as MenuItem[]);
-      setExtractedCount({ items: result.items.length, categories: result.categories.length });
+      // Consume SSE stream
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
 
-      if (result.suggestedTheme) {
-        const match = templates.find(t => t.name.toLowerCase() === result.suggestedTheme.toLowerCase());
-        if (match) applyTemplate(match.config);
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split("\n");
+        buffer = lines.pop() ?? "";
+
+        for (const line of lines) {
+          if (!line.startsWith("data: ")) continue;
+          try {
+            const event = JSON.parse(line.slice(6)) as {
+              type: "progress" | "result" | "error";
+              step?: string;
+              pct?: number;
+              data?: {
+                restaurantName?: string;
+                categories?: { id: string; name: string }[];
+                items?: MenuItem[];
+                suggestedTheme?: string;
+              };
+              error?: string;
+            };
+
+            if (event.type === "progress") {
+              if (event.pct !== undefined) setProgress(event.pct);
+              if (event.step) setCurrentStepIndex(EXTRACTING_STEPS.indexOf(event.step) >= 0
+                ? EXTRACTING_STEPS.indexOf(event.step)
+                : currentStepIndex);
+              // Display server step directly in the rotating label slot
+              if (event.step) {
+                // Override the label by storing it at index 0 and locking to index 0
+                EXTRACTING_STEPS[0] = event.step;
+                setCurrentStepIndex(0);
+              }
+            } else if (event.type === "result" && event.data) {
+              const result = event.data;
+              if (result.restaurantName) setRestaurantName(result.restaurantName);
+              if (result.categories) setCategories(result.categories as Parameters<typeof setCategories>[0]);
+              if (result.items) {
+                setMenuItems(result.items as MenuItem[]);
+                setExtractedCount({
+                  items: result.items.length,
+                  categories: result.categories?.length ?? 0,
+                });
+              }
+              if (result.suggestedTheme) {
+                const match = templates.find(t =>
+                  t.name.toLowerCase() === result.suggestedTheme!.toLowerCase()
+                );
+                if (match) applyTemplate(match.config);
+              }
+              setProgress(100);
+              setState("done");
+              setTimeout(() => router.push("/ai-result"), 1200);
+            } else if (event.type === "error") {
+              throw new Error(event.error ?? "Extraction failed");
+            }
+          } catch (parseErr) {
+            // Skip malformed SSE lines but re-throw actual errors
+            if (parseErr instanceof Error && parseErr.message !== "Extraction failed") {
+              // JSON parse error — ignore
+            } else {
+              throw parseErr;
+            }
+          }
+        }
       }
-
-      setProgress(100);
-      setState("done");
-      setTimeout(() => router.push("/ai-result"), 1200);
     } catch (err) {
       setErrorMsg(err instanceof Error ? err.message : "Something went wrong");
       setState("error");

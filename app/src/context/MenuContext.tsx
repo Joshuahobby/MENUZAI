@@ -7,6 +7,7 @@ import { canCreateMenu, canPublishMenu } from "@/lib/plans";
 import { User } from "@supabase/supabase-js";
 import { toast } from "sonner";
 import { useMenuBootstrap } from "@/hooks/useMenuBootstrap";
+import { useMenuStore, defaultStyle } from "@/store/menuStore";
 
 // Re-export shared types for backward compatibility
 export type { MenuItem, MenuCategory, MenuStyle } from "@/types/menu";
@@ -23,11 +24,11 @@ interface MenuContextType {
   plan: string;
   setPlan: (plan: string) => void;
   categories: MenuCategory[];
-  setCategories: React.Dispatch<React.SetStateAction<MenuCategory[]>>;
+  setCategories: (cats: MenuCategory[] | ((prev: MenuCategory[]) => MenuCategory[])) => void;
   menuItems: MenuItem[];
-  setMenuItems: React.Dispatch<React.SetStateAction<MenuItem[]>>;
+  setMenuItems: (items: MenuItem[] | ((prev: MenuItem[]) => MenuItem[])) => void;
   menuStyle: MenuStyle;
-  setMenuStyle: React.Dispatch<React.SetStateAction<MenuStyle>>;
+  setMenuStyle: (style: MenuStyle | ((prev: MenuStyle) => MenuStyle)) => void;
   activeMenuId: string | null;
   activeMenuName: string;
   menuStatus: "draft" | "published";
@@ -54,25 +55,18 @@ interface MenuContextType {
   lastSynced: Date | null;
   isLoading: boolean;
   user: User | null;
+  userRole: "owner" | "manager" | "staff" | null;
 }
 
-export const defaultStyle: MenuStyle = {
-  primaryColor: "#FF6B00",
-  secondaryColor: "#1E1E1E",
-  backgroundColor: "#FFFFFF",
-  headlineFont: "Plus Jakarta Sans",
-  bodyFont: "Inter",
-  borderRadius: "2rem",
-  layoutDensity: "comfortable",
-  cardStyle: "elevated",
-  currency: "RWF",
-};
 
 const MenuContext = createContext<MenuContextType | undefined>(undefined);
 
 export function MenuProvider({ children }: { children: React.ReactNode }) {
+  // Bootstrap handles auth + initial data load → writes to Zustand store
+  const { user } = useMenuBootstrap();
+
+  // Read everything from Zustand store (fine-grained subscriptions in components)
   const {
-    user,
     isLoading, setIsLoading,
     restaurantId,
     restaurantName, setRestaurantName,
@@ -88,10 +82,10 @@ export function MenuProvider({ children }: { children: React.ReactNode }) {
     menuItems, setMenuItems,
     menuStyle, setMenuStyle,
     lastSynced, setLastSynced,
-    setRestaurantId,
-  } = useMenuBootstrap();
-
-  const [isSyncing, setIsSyncing] = useState(false);
+    isSyncing, setIsSyncing,
+    updateItem: storeUpdateItem,
+    userRole,
+  } = useMenuStore();
 
   const menuSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const restaurantSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -100,7 +94,6 @@ export function MenuProvider({ children }: { children: React.ReactNode }) {
   // Mark initial load complete once bootstrap finishes
   useEffect(() => {
     if (!isLoading) {
-      // Give a microtick so auto-save effects don't fire on initial data
       const id = setTimeout(() => { isInitialLoad.current = false; }, 50);
       return () => clearTimeout(id);
     }
@@ -110,6 +103,7 @@ export function MenuProvider({ children }: { children: React.ReactNode }) {
   const latestRef = useRef({ categories, menuItems, menuStyle, activeMenuId });
   latestRef.current = { categories, menuItems, menuStyle, activeMenuId };
 
+  // Auto-save menu content with debounce (1 s)
   useEffect(() => {
     if (!user || !activeMenuId || isInitialLoad.current) return;
 
@@ -144,7 +138,7 @@ export function MenuProvider({ children }: { children: React.ReactNode }) {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [categories, menuItems, menuStyle, user?.id, activeMenuId]);
 
-  // 4. Auto-save restaurant name with debounce (1 s)
+  // Auto-save restaurant name with debounce (1 s)
   useEffect(() => {
     if (!user || !restaurantId || isInitialLoad.current) return;
 
@@ -195,7 +189,6 @@ export function MenuProvider({ children }: { children: React.ReactNode }) {
 
     setIsSyncing(true);
 
-    // Get the slug for this specific menu (may differ from active menu)
     let slug: string | null = menuId === activeMenuId ? menuSlug : null;
     if (!slug) {
       const { data: menuData } = await supabase
@@ -271,8 +264,9 @@ export function MenuProvider({ children }: { children: React.ReactNode }) {
     setMenuItems((prev) => prev.filter((i) => i.id !== itemId));
   };
 
+  // Use the Zustand store's granular updateItem to avoid full-array replacement
   const updateItem = (itemId: string, updates: Partial<MenuItem>) => {
-    setMenuItems((prev) => prev.map((i) => i.id === itemId ? { ...i, ...updates } : i));
+    storeUpdateItem(itemId, updates);
   };
 
   const duplicateItem = (itemId: string) => {
@@ -294,7 +288,6 @@ export function MenuProvider({ children }: { children: React.ReactNode }) {
   const switchMenu = useCallback(async (menuId: string): Promise<void> => {
     if (!user || menuId === activeMenuId) return;
 
-    // Flush any pending save so we don't lose in-flight changes
     await flushPendingSave();
 
     setIsLoading(true);
@@ -395,9 +388,6 @@ export function MenuProvider({ children }: { children: React.ReactNode }) {
         setMenuItems(nextMenu.items ?? []);
         setMenuStyle(nextMenu.style && Object.keys(nextMenu.style).length > 0 ? nextMenu.style : defaultStyle);
       } else {
-        // No menus left — create a fresh one
-        const resolvedRestaurantId = restaurantId ?? latestRef.current.activeMenuId; // fallback
-        if (!resolvedRestaurantId) { isInitialLoad.current = false; return true; }
         const { data: freshMenu } = await supabase
           .from("menus")
           .insert({
@@ -481,6 +471,7 @@ export function MenuProvider({ children }: { children: React.ReactNode }) {
       lastSynced,
       isLoading,
       user,
+      userRole,
     }}>
       {children}
     </MenuContext.Provider>
