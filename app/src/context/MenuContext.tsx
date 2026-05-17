@@ -99,12 +99,12 @@ export function MenuProvider({ children }: { children: React.ReactNode }) {
   }, [isLoading]);
 
   // Always-current snapshot of state used by callbacks to avoid stale closures
-  const latestRef = useRef({ categories, menuItems, menuStyle, activeMenuId });
-  latestRef.current = { categories, menuItems, menuStyle, activeMenuId };
+  const latestRef = useRef({ categories, menuItems, menuStyle, activeMenuId, restaurantId });
+  latestRef.current = { categories, menuItems, menuStyle, activeMenuId, restaurantId };
 
   // Auto-save menu content with debounce (1 s)
   useEffect(() => {
-    if (!user || !activeMenuId || isInitialLoad.current) return;
+    if (!user || !activeMenuId || !restaurantId || isInitialLoad.current) return;
 
     if (menuSaveTimeoutRef.current) clearTimeout(menuSaveTimeoutRef.current);
     setIsSyncing(true);
@@ -116,6 +116,7 @@ export function MenuProvider({ children }: { children: React.ReactNode }) {
           {
             id: activeMenuId,
             user_id: user.id,
+            restaurant_id: restaurantId, // Required: RLS WITH CHECK calls check_staff_role(restaurant_id,...)
             categories,
             items: menuItems,
             style: menuStyle,
@@ -135,7 +136,7 @@ export function MenuProvider({ children }: { children: React.ReactNode }) {
 
     return () => { if (menuSaveTimeoutRef.current) clearTimeout(menuSaveTimeoutRef.current); };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [categories, menuItems, menuStyle, user?.id, activeMenuId]);
+  }, [categories, menuItems, menuStyle, user?.id, activeMenuId, restaurantId]);
 
   // Auto-save restaurant name with debounce (1 s)
   useEffect(() => {
@@ -161,10 +162,10 @@ export function MenuProvider({ children }: { children: React.ReactNode }) {
     if (!menuSaveTimeoutRef.current) return;
     clearTimeout(menuSaveTimeoutRef.current);
     menuSaveTimeoutRef.current = null;
-    const { activeMenuId: menuId, categories: cats, menuItems: items, menuStyle: style } = latestRef.current;
-    if (!user || !menuId) return;
+    const { activeMenuId: menuId, categories: cats, menuItems: items, menuStyle: style, restaurantId: rId } = latestRef.current;
+    if (!user || !menuId || !rId) return;
     await supabase.from("menus").upsert(
-      { id: menuId, user_id: user.id, categories: cats, items, style, updated_at: new Date().toISOString() },
+      { id: menuId, user_id: user.id, restaurant_id: rId, categories: cats, items, style, updated_at: new Date().toISOString() },
       { onConflict: "id" }
     );
   }, [user]);
