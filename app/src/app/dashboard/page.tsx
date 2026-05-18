@@ -13,7 +13,7 @@ interface AnalyticsData {
 }
 
 export default function DashboardPage() {
-  const { restaurantId, lastSynced, menuStyle, menuItems, menuStatus, restaurantLogoUrl } = useMenu();
+  const { restaurantId, lastSynced, menuStyle, menuItems, menuStatus, restaurantLogoUrl, userRole, menuSlug } = useMenu();
   const currency = menuStyle.currency ?? "RWF";
   const [data, setData] = useState<AnalyticsData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -66,6 +66,174 @@ export default function DashboardPage() {
   const allStepsDone = hasLogo && hasItems && isPublished;
 
   const isNewUser = kpis.views === 0 && kpis.orders === 0;
+
+  if (userRole === "staff") {
+    return (
+      <div className="p-6 lg:p-12 pb-24 lg:pb-12 text-on-surface">
+        {/* Header */}
+        <header className="flex flex-col md:flex-row justify-between items-start md:items-end mb-10 gap-4">
+          <div>
+            <h1 className="text-3xl font-[var(--font-headline)] font-extrabold tracking-tight text-on-surface mb-1">
+              Live Staff Station
+            </h1>
+            <p className="text-secondary font-medium">Real-time order monitoring and dispatch terminal.</p>
+          </div>
+          <div className="flex items-center gap-3">
+            <div className="bg-tertiary/10 text-tertiary px-4 py-2.5 rounded-xl border border-tertiary/20 flex items-center gap-2 shadow-sm font-bold text-xs uppercase tracking-wider">
+              <span className="w-2.5 h-2.5 rounded-full bg-tertiary animate-pulse shrink-0"></span>
+              Live Connected
+            </div>
+            <Link
+              href="/dashboard/orders"
+              className="bg-primary hover:opacity-90 text-white px-5 py-2.5 rounded-xl font-bold transition-all flex items-center gap-2 shadow-lg shadow-primary/20"
+            >
+              <span className="material-symbols-outlined text-sm">receipt_long</span> Orders Board
+            </Link>
+          </div>
+        </header>
+
+        {/* Operational Metrics Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-8">
+          {/* Menu status */}
+          <div className="bg-surface-container-lowest p-6 rounded-3xl shadow-sm border border-surface-container/50 flex flex-col justify-between min-h-[140px]">
+            <div>
+              <p className="text-secondary text-xs font-bold uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                <span className="material-symbols-outlined text-primary text-sm icon-fill">restaurant_menu</span>
+                Menu Status
+              </p>
+              <h3 className={`text-2xl font-extrabold ${menuStatus === "published" ? "text-tertiary" : "text-amber-600"}`}>
+                {menuStatus === "published" ? "Published (Online)" : "Draft (Offline)"}
+              </h3>
+            </div>
+            {menuSlug && menuStatus === "published" ? (
+              <Link
+                href={`/menu/${menuSlug}`}
+                target="_blank"
+                className="text-xs font-bold text-primary flex items-center gap-1 mt-4 hover:underline"
+              >
+                View Customer Menu <span className="material-symbols-outlined text-xs">arrow_forward</span>
+              </Link>
+            ) : (
+              <p className="text-[10px] text-secondary mt-4">Publish menu to allow table orders.</p>
+            )}
+          </div>
+
+          {/* Total Orders processed last 30 days */}
+          <div className="bg-surface-container-lowest p-6 rounded-3xl shadow-sm border border-surface-container/50 flex flex-col justify-between min-h-[140px]">
+            <div>
+              <p className="text-secondary text-xs font-bold uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                <span className="material-symbols-outlined text-primary text-sm icon-fill">shopping_bag</span>
+                Orders Processed
+              </p>
+              <h3 className="text-2xl font-extrabold">{kpis.orders.toLocaleString()}</h3>
+            </div>
+            <p className="text-[10px] text-secondary mt-4">Processed orders in the last 30 days.</p>
+          </div>
+
+          {/* Menu Views */}
+          <div className="bg-surface-container-lowest p-6 rounded-3xl shadow-sm border border-surface-container/50 flex flex-col justify-between min-h-[140px]">
+            <div>
+              <p className="text-secondary text-xs font-bold uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                <span className="material-symbols-outlined text-primary text-sm icon-fill">visibility</span>
+                Menu Interactions
+              </p>
+              <h3 className="text-2xl font-extrabold">{kpis.views.toLocaleString()}</h3>
+            </div>
+            <p className="text-[10px] text-secondary mt-4">Total visual impressions of the menu.</p>
+          </div>
+        </div>
+
+        {/* Large Quick Access Card & Staff Rules */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-8">
+          <div className="lg:col-span-7 bg-primary-container p-8 rounded-3xl shadow-xl shadow-primary-container/10 relative overflow-hidden flex flex-col md:flex-row items-center gap-8">
+            <div className="absolute -top-12 -right-12 w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
+            <div className="z-10 bg-white/20 backdrop-blur-md p-5 rounded-2xl">
+              <span className="material-symbols-outlined text-white text-4xl icon-fill">notifications_active</span>
+            </div>
+            <div className="z-10 text-white flex-1">
+              <h3 className="text-xl font-[var(--font-headline)] font-bold mb-2">Live Orders Monitor</h3>
+              <p className="text-base opacity-90 leading-snug">
+                Open the interactive order processing terminal to manage table requests, accept new orders, and print guest receipts.
+              </p>
+            </div>
+            <Link
+              href="/dashboard/orders"
+              className="z-10 bg-white text-primary-container px-6 py-3 rounded-xl font-bold hover:shadow-lg transition-all active:scale-95 whitespace-nowrap text-center block w-full md:w-auto"
+            >
+              Open Terminal
+            </Link>
+          </div>
+
+          {/* Kitchen Staff Reminders / Rules */}
+          <div className="lg:col-span-5 bg-surface-container-lowest p-6 rounded-3xl border border-surface-container/50 shadow-sm">
+            <h3 className="font-[var(--font-headline)] font-bold mb-4 flex items-center gap-2 text-on-surface">
+              <span className="material-symbols-outlined text-primary">assignment_turned_in</span>
+              Kitchen Best Practices
+            </h3>
+            <ul className="space-y-3 text-xs font-semibold text-secondary">
+              <li className="flex items-start gap-2.5">
+                <span className="material-symbols-outlined text-tertiary text-base icon-fill">check_circle</span>
+                <span>Acknowledge incoming order sound instantly.</span>
+              </li>
+              <li className="flex items-start gap-2.5">
+                <span className="material-symbols-outlined text-tertiary text-base icon-fill">check_circle</span>
+                <span>Verify table numbers before carrying plates.</span>
+              </li>
+              <li className="flex items-start gap-2.5">
+                <span className="material-symbols-outlined text-tertiary text-base icon-fill">check_circle</span>
+                <span>Print ticket receipts before kitchen preparation starts.</span>
+              </li>
+              <li className="flex items-start gap-2.5">
+                <span className="material-symbols-outlined text-tertiary text-base icon-fill">check_circle</span>
+                <span>Mark dishes as "Done" on the board when ready to serve.</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        {/* Live Activity Stream (Operational only) */}
+        <div className="bg-surface-container-lowest p-6 rounded-3xl border border-surface-container/50 shadow-sm flex flex-col">
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="font-[var(--font-headline)] font-bold flex items-center gap-2">
+              <span className="material-symbols-outlined text-tertiary text-xl">pulse</span> Live Operations Feed
+            </h3>
+            <span className="flex h-2.5 w-2.5 rounded-full bg-tertiary animate-pulse"></span>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {recentEvents.length === 0 ? (
+              <p className="text-secondary text-sm text-center py-4 col-span-2">No recent service activity.</p>
+            ) : (
+              recentEvents.slice(0, 10).map((a, i) => (
+                <div
+                  key={i}
+                  className="flex gap-3 items-center p-3.5 hover:bg-surface-container-low rounded-2xl transition-colors border border-surface-container/30"
+                >
+                  <div
+                    className={`w-9 h-9 rounded-full ${
+                      a.type === "order_sent" ? "bg-tertiary/10 text-tertiary" : "bg-primary/10 text-primary"
+                    } flex items-center justify-center`}
+                  >
+                    <span className="material-symbols-outlined text-lg">
+                      {a.type === "order_sent" ? "shopping_cart" : "visibility"}
+                    </span>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-bold text-on-surface truncate">
+                      {a.type === "order_sent" ? "New Table Order Placed" : "Customer Viewed Menu"}
+                    </p>
+                    <p className="text-[10px] text-secondary truncate">
+                      {formatRelativeTime(a.time)}
+                      {a.item ? ` • Item: ${a.item}` : ""}
+                    </p>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 lg:p-12 pb-24 lg:pb-12">
