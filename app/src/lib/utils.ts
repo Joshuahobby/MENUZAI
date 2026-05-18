@@ -64,3 +64,14 @@ export function getOptimizedImageUrl(url: string | null | undefined, width = 600
 
   return url;
 }
+
+/**
+ * Checks if a user's email belongs to a Platform Admin.
+ * Uses the NEXT_PUBLIC_ADMIN_EMAILS environment variable, falling back to a safe default list.
+ */
+export function isPlatformAdmin(email: string | null | undefined): boolean {
+  if (!email) return false;
+  const adminEmailsStr = process.env.NEXT_PUBLIC_ADMIN_EMAILS || "admin@menuzai.com,e2e-test@menuzai.test";
+  const adminEmails = adminEmailsStr.split(",").map(e => e.trim().toLowerCase());
+  return adminEmails.includes(email.toLowerCase());
+}

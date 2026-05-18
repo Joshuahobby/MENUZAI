@@ -1,15 +1,28 @@
 import { NextResponse } from "next/server";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
+import { createSupabaseServerClient } from "@/lib/supabase-server";
+import { isPlatformAdmin } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
 export async function GET() {
-  const admin = getSupabaseAdmin();
-  if (!admin) {
-    return NextResponse.json({ error: "Configuration missing" }, { status: 500 });
-  }
-
   try {
+    const supabase = await createSupabaseServerClient();
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    if (!isPlatformAdmin(user.email)) {
+      return NextResponse.json({ error: "Forbidden: Platform Admin only" }, { status: 403 });
+    }
+
+    const admin = getSupabaseAdmin();
+    if (!admin) {
+      return NextResponse.json({ error: "Configuration missing" }, { status: 500 });
+    }
+
     const { data, error } = await admin
       .from("platform_settings")
       .select("*")
@@ -32,12 +45,23 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
-  const admin = getSupabaseAdmin();
-  if (!admin) {
-    return NextResponse.json({ error: "Configuration missing" }, { status: 500 });
-  }
-
   try {
+    const supabase = await createSupabaseServerClient();
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    if (!isPlatformAdmin(user.email)) {
+      return NextResponse.json({ error: "Forbidden: Platform Admin only" }, { status: 403 });
+    }
+
+    const admin = getSupabaseAdmin();
+    if (!admin) {
+      return NextResponse.json({ error: "Configuration missing" }, { status: 500 });
+    }
+
     const { provider, model } = await req.json();
 
     if (!["openrouter", "anthropic"].includes(provider)) {
@@ -64,3 +88,4 @@ export async function POST(req: Request) {
     }, { status: 500 });
   }
 }
+

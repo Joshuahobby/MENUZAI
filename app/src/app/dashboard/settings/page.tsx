@@ -36,6 +36,8 @@ export default function SettingsPage() {
     restaurantLogoUrl, setRestaurantLogoUrl,
     menuStyle, setMenuStyle,
     user,
+    userRole,
+    isLoading,
   } = useMenu();
 
   const [name, setName] = useState(restaurantName);
@@ -213,6 +215,41 @@ export default function SettingsPage() {
     setRestaurantLogoUrl("");
     toast.success("Logo removed.");
   };
+
+  if (isLoading) {
+    return (
+      <div className="p-8 flex items-center justify-center min-h-[50vh]">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  if (userRole !== "owner") {
+    return (
+      <div className="p-6 lg:p-12 flex flex-col items-center justify-center min-h-[60vh] text-center">
+        <div className="w-full max-w-md bg-surface-container-lowest border border-surface-container-high/50 p-8 rounded-[2.5rem] shadow-2xl relative overflow-hidden flex flex-col items-center">
+          <div className="absolute -top-24 -left-24 w-48 h-48 rounded-full bg-error/5 blur-3xl pointer-events-none"></div>
+          <div className="absolute -bottom-24 -right-24 w-48 h-48 rounded-full bg-primary/5 blur-3xl pointer-events-none"></div>
+
+          <div className="w-16 h-16 rounded-2xl bg-error/10 text-error flex items-center justify-center mb-6">
+            <span className="material-symbols-outlined text-3xl icon-fill">gpp_maybe</span>
+          </div>
+          <h2 className="text-xl font-[var(--font-headline)] font-extrabold tracking-tight mb-2">
+            Access Restricted
+          </h2>
+          <p className="text-sm text-secondary mb-6 leading-relaxed">
+            Only the Restaurant Owner can modify business settings, subscription plans, and billing configurations.
+          </p>
+          <a
+            href="/dashboard"
+            className="px-6 py-3 bg-gradient-to-br from-primary to-primary-container rounded-xl font-bold text-sm text-white shadow-lg shadow-primary/20 hover:opacity-90 active:scale-95 transition-all text-center block w-full"
+          >
+            Return to Dashboard
+          </a>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 lg:p-12 pb-24 lg:pb-12">
