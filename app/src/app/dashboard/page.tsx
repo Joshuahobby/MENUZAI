@@ -13,7 +13,7 @@ interface AnalyticsData {
 }
 
 export default function DashboardPage() {
-  const { restaurantId, lastSynced, menuStyle } = useMenu();
+  const { restaurantId, lastSynced, menuStyle, menuItems, menuStatus, restaurantLogoUrl } = useMenu();
   const currency = menuStyle.currency ?? "RWF";
   const [data, setData] = useState<AnalyticsData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -60,6 +60,11 @@ export default function DashboardPage() {
   const maxHourCount = Math.max(...peakHours.map((h) => h.count), 1);
   const peakHour = peakHours.reduce((best, h) => (h.count > best.count ? h : best), { hour: 0, count: 0 });
 
+  const hasLogo = !!restaurantLogoUrl;
+  const hasItems = menuItems && menuItems.length > 0;
+  const isPublished = menuStatus === "published";
+  const allStepsDone = hasLogo && hasItems && isPublished;
+
   const isNewUser = kpis.views === 0 && kpis.orders === 0;
 
   return (
@@ -67,33 +72,46 @@ export default function DashboardPage() {
       {/* Quick Start — shown only when user has no activity yet */}
       {isNewUser && (
         <div className="mb-10 bg-gradient-to-br from-primary/5 to-primary-container/5 border border-primary/10 rounded-3xl p-8">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center shadow-md shadow-primary/20">
-              <span className="material-symbols-outlined text-white icon-fill text-xl">rocket_launch</span>
+          <div className="flex items-center justify-between gap-4 mb-6">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center shadow-md shadow-primary/20">
+                <span className="material-symbols-outlined text-white icon-fill text-xl">rocket_launch</span>
+              </div>
+              <div>
+                <h2 className="font-[var(--font-headline)] font-bold text-lg">Get your menu live in 3 steps</h2>
+                <p className="text-secondary text-xs">Complete these to start receiving orders</p>
+              </div>
             </div>
-            <div>
-              <h2 className="font-[var(--font-headline)] font-bold text-lg">Get your menu live in 3 steps</h2>
-              <p className="text-secondary text-xs">Follow these to start receiving orders</p>
-            </div>
+            {allStepsDone && (
+              <div className="bg-tertiary/10 text-tertiary px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2">
+                <span className="material-symbols-outlined text-sm icon-fill">check_circle</span> Ready to go!
+              </div>
+            )}
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             {[
-              { step: 1, icon: "edit_note", label: "Build your menu", desc: "Add items, prices, and photos", href: "/dashboard/editor", cta: "Open Editor" },
-              { step: 2, icon: "publish", label: "Publish it", desc: "Go live with a public link", href: "/dashboard/editor", cta: "Publish Menu" },
-              { step: 3, icon: "qr_code_2", label: "Share your QR code", desc: "Print and display for customers", href: "/dashboard/qr-codes", cta: "Get QR Code" },
-            ].map(({ step, icon, label, desc, href, cta }) => (
-              <Link key={step} href={href} className="group flex flex-col gap-3 bg-surface-container-lowest rounded-2xl p-5 border border-outline-variant/10 hover:border-primary/20 hover:shadow-md transition-all">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 bg-primary/10 text-primary rounded-lg flex items-center justify-center font-black text-sm">{step}</div>
-                  <span className="material-symbols-outlined text-primary">{icon}</span>
+              { step: 1, done: hasLogo, icon: "image", label: "Upload logo", desc: "Add your restaurant branding", href: "/dashboard/settings", cta: "Go to Settings" },
+              { step: 2, done: hasItems, icon: "edit_note", label: "Add menu items", desc: "Create your first category and item", href: "/dashboard/editor", cta: "Open Editor" },
+              { step: 3, done: isPublished, icon: "qr_code_2", label: "Publish & Share", desc: "Get your QR code for tables", href: "/dashboard/qr-codes", cta: "Get QR Code" },
+            ].map(({ step, done, icon, label, desc, href, cta }) => (
+              <Link key={step} href={href} className={`group flex flex-col gap-3 rounded-2xl p-5 border transition-all ${done ? 'bg-surface-container-low border-transparent opacity-80' : 'bg-surface-container-lowest border-outline-variant/20 hover:border-primary/30 hover:shadow-md'}`}>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-black text-sm ${done ? 'bg-tertiary text-white' : 'bg-primary/10 text-primary'}`}>
+                      {done ? <span className="material-symbols-outlined text-base">check</span> : step}
+                    </div>
+                    <span className={`material-symbols-outlined ${done ? 'text-tertiary' : 'text-primary'}`}>{icon}</span>
+                  </div>
                 </div>
                 <div>
-                  <p className="font-bold text-sm">{label}</p>
+                  <p className={`font-bold text-sm ${done ? 'line-through text-secondary' : 'text-on-surface'}`}>{label}</p>
                   <p className="text-secondary text-xs mt-0.5">{desc}</p>
                 </div>
-                <span className="text-xs font-bold text-primary flex items-center gap-1 group-hover:translate-x-0.5 transition-transform">
-                  {cta} <span className="material-symbols-outlined text-sm">arrow_forward</span>
-                </span>
+                {!done && (
+                  <span className="text-xs font-bold text-primary flex items-center gap-1 group-hover:translate-x-0.5 transition-transform mt-auto">
+                    {cta} <span className="material-symbols-outlined text-sm">arrow_forward</span>
+                  </span>
+                )}
               </Link>
             ))}
           </div>

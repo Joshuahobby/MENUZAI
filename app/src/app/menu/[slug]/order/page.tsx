@@ -13,6 +13,7 @@ function OrderContent({ slug }: { slug: string }) {
   const searchParams = useSearchParams();
   // const router = useRouter();
   const [customerName, setCustomerName] = useState("");
+  const [customerEmail, setCustomerEmail] = useState("");
   const [tableNumber, setTableNumber] = useState(
     searchParams.get("table") ? `Table ${searchParams.get("table")}` : ""
   );
@@ -69,7 +70,7 @@ function OrderContent({ slug }: { slug: string }) {
     fetch("/api/notifications/order", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ restaurantId, items, total, currency, customerName, tableNumber }),
+      body: JSON.stringify({ restaurantId, items, total, currency, customerName, customerEmail, tableNumber }),
     }).catch(() => {/* non-critical */});
 
     setIsSubmitting(false);
@@ -242,6 +243,11 @@ function OrderContent({ slug }: { slug: string }) {
             <label className="text-xs font-bold text-secondary uppercase tracking-[0.2em] mb-2 block">Name</label>
             <input className="w-full bg-surface-container-low border-none rounded-xl py-3 px-4 text-sm focus:ring-2 focus:ring-primary/20 text-on-surface"
               placeholder="Your name" value={customerName} onChange={(e) => setCustomerName(e.target.value)} />
+          </div>
+          <div>
+            <label className="text-xs font-bold text-secondary uppercase tracking-[0.2em] mb-2 block">Email for Receipt</label>
+            <input type="email" className="w-full bg-surface-container-low border-none rounded-xl py-3 px-4 text-sm focus:ring-2 focus:ring-primary/20 text-on-surface"
+              placeholder="e.g. you@example.com" value={customerEmail} onChange={(e) => setCustomerEmail(e.target.value)} />
           </div>
           <div>
             <label className="text-xs font-bold text-secondary uppercase tracking-[0.2em] mb-2 block">Table Number</label>
