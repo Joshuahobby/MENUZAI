@@ -45,13 +45,13 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
           <div className="z-10">
             <span className="inline-block py-1 px-4 rounded-full bg-primary-container/10 text-primary font-bold text-xs tracking-widest uppercase mb-6">
-              The Digital Maître d&apos;
+              Your AI Digital Waiter
             </span>
             <h1 className="text-5xl md:text-7xl font-[var(--font-headline)] font-extrabold text-on-surface leading-[1.1] tracking-tighter mb-8">
               Turn your menu into a <span className="text-primary-container">money-making</span> machine
             </h1>
             <p className="text-xl text-secondary max-w-lg mb-10 leading-relaxed">
-              Create, optimize, and track your restaurant menu with AI. Stop guessing and start selling with data-driven design.
+              Create, optimize, and track your restaurant menu with your own AI Digital Waiter. Take orders in real-time, stop guessing, and start selling with data-driven design.
             </p>
             <div className="flex flex-wrap gap-4">
               <Link href="/login" className="px-8 py-4 bg-gradient-to-tr from-primary to-primary-container text-white font-bold rounded-xl shadow-lg shadow-primary-container/20 active:scale-95 transition-all text-lg hover:shadow-xl">
@@ -120,10 +120,10 @@ export default function LandingPage() {
                     </div>
                   </div>
                   <div className="flex items-start gap-4">
-                    <span className="material-symbols-outlined text-white/50 text-3xl">speed</span>
+                    <span className="material-symbols-outlined text-white/50 text-3xl">support_agent</span>
                     <div>
-                      <p className="font-bold">Real-time</p>
-                      <p className="text-white/80 text-sm">Update prices or hide sold-out items instantly.</p>
+                      <p className="font-bold">Digital Waiter</p>
+                      <p className="text-white/80 text-sm">Automated upselling and real-time order tracking.</p>
                     </div>
                   </div>
                 </div>
@@ -175,12 +175,12 @@ export default function LandingPage() {
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
             {[
+              { icon: "support_agent", title: "AI Digital Waiter", desc: "An interactive digital waiter that guides customers, recommends specials, and upsells effortlessly." },
+              { icon: "flash_on", title: "Real-time Ordering", desc: "Customers order from their phones and tickets instantly appear on your live kitchen dashboard." },
               { icon: "upload_file", title: "Upload & Convert", desc: "Upload a photo of your paper menu. Our AI extracts every item, price, and description automatically." },
-              { icon: "style", title: "Smart Templates", desc: "Choose from editorial-grade layouts designed to guide customers toward your highest-margin items." },
-              { icon: "qr_code_scanner", title: "Custom QR Codes", desc: "Design branded QR codes that match your restaurant's aesthetic. High-resolution for print." },
-              { icon: "leaderboard", title: "Live Analytics", desc: "Track menu views, item clicks, and order conversions in real-time from your dashboard." },
-              { icon: "chat", title: "WhatsApp Orders", desc: "Direct connection to your kitchen. Orders land straight in your WhatsApp business account." },
-              { icon: "notifications_active", title: "Order Notifications", desc: "Instant email alerts whenever a customer places an order, so you never miss a sale." },
+              { icon: "leaderboard", title: "Live Analytics", desc: "Track menu views, item clicks, and order conversions in real-time to optimize your offerings." },
+              { icon: "chat", title: "WhatsApp Integration", desc: "Direct connection to your staff. Orders can land straight in your WhatsApp business account." },
+              { icon: "notifications_active", title: "Instant Alerts", desc: "Receive immediate email and dashboard notifications whenever a customer places a new order." },
             ].map((f, i) => (
               <div key={i} className="p-8 rounded-3xl bg-surface-container hover:bg-surface-container-low transition-colors group cursor-pointer">
                 <span className="material-symbols-outlined text-4xl text-primary mb-6 block group-hover:scale-110 transition-transform">{f.icon}</span>

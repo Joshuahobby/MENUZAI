@@ -24,7 +24,7 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: "MENUZA AI | Turn Your Menu Into a Revenue Engine",
   description:
-    "Create, optimize, and track your restaurant menu with AI. Upload your menu, customize with smart templates, generate QR codes, and take orders via WhatsApp.",
+    "Create, optimize, and track your restaurant menu with your own AI Digital Waiter. Upload your menu, let the AI recommend items to customers, and take real-time orders.",
   manifest: "/manifest.json",
   icons: {
     icon: [
