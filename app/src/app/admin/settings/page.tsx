@@ -5,7 +5,7 @@ import { toast } from "sonner";
 
 export default function PlatformAdminSettings() {
   const [provider, setProvider] = useState<"openrouter" | "anthropic">("openrouter");
-  const [model, setModel] = useState("google/gemma-4-31b-it:free");
+  const [model, setModel] = useState("meta-llama/llama-3.2-11b-vision-instruct:free");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
@@ -119,7 +119,7 @@ export default function PlatformAdminSettings() {
                   value={model}
                   onChange={(e) => setModel(e.target.value)}
                   className="w-full bg-surface-container-low border-none rounded-xl py-3 px-4 text-sm focus:ring-2 focus:ring-primary/20 text-on-surface font-medium"
-                  placeholder="e.g. google/gemma-4-31b-it:free or claude-3-5-sonnet-20241022"
+                  placeholder="e.g. meta-llama/llama-3.2-11b-vision-instruct:free or claude-3-5-sonnet-20241022"
                 />
                 <p className="text-xs text-secondary mt-2">
                   Must match the provider API expectations.

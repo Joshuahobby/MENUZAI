@@ -3,6 +3,15 @@ import { headers } from "next/headers";
 import Anthropic from "@anthropic-ai/sdk";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
 
+// Ordered list of free OpenRouter models that support vision (image) inputs.
+// The first model is tried first; if OpenRouter returns a provider error we
+// fall through to the next one automatically.
+const VISION_FALLBACK_MODELS = [
+  "meta-llama/llama-3.2-11b-vision-instruct:free",
+  "google/gemini-2.0-flash-exp:free",
+  "qwen/qwen2-vl-7b-instruct:free",
+];
+
 const MAX_FILE_SIZE = 10 * 1024 * 1024;
 const MAX_FILES = 5;
 
@@ -113,7 +122,7 @@ export async function POST(request: Request) {
 
   // Fetch admin settings for AI provider
   let provider = "openrouter";
-  let model = "google/gemma-4-31b-it:free";
+  let model = VISION_FALLBACK_MODELS[0]; // default: first vision-capable free model
   
   try {
     const admin = getSupabaseAdmin();
@@ -193,14 +202,33 @@ export async function POST(request: Request) {
           const apiKey = process.env.OPENROUTER_API_KEY;
           if (!apiKey) throw new Error("OPENROUTER_API_KEY not configured");
 
+          // Build fallback list: configured model first, then remaining vision models
+          const fallbackChain = [
+            model,
+            ...VISION_FALLBACK_MODELS.filter((m) => m !== model),
+          ];
+
           for (let i = 0; i < files.length; i++) {
             const label = files.length === 1
               ? "Analysing menu with AI..."
               : `Analysing image ${i + 1} of ${files.length}...`;
             const pct = Math.round(10 + ((i / files.length) * 75));
             send({ type: "progress", step: label, pct });
-            console.log(`Extracting with OpenRouter (${model}) — image ${i + 1}/${files.length}`);
-            results.push(await extractWithOpenRouter(files[i], apiKey, model));
+
+            let extracted: ExtractionResult | null = null;
+            let lastError: Error | null = null;
+            for (const candidate of fallbackChain) {
+              try {
+                console.log(`Extracting with OpenRouter (${candidate}) — image ${i + 1}/${files.length}`);
+                extracted = await extractWithOpenRouter(files[i], apiKey, candidate);
+                break; // success — stop trying
+              } catch (err) {
+                lastError = err instanceof Error ? err : new Error(String(err));
+                console.warn(`Model ${candidate} failed: ${lastError.message}. Trying next fallback…`);
+              }
+            }
+            if (!extracted) throw lastError ?? new Error("All OpenRouter vision models failed");
+            results.push(extracted);
           }
         }
 

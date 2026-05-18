@@ -23,11 +23,11 @@ export async function GET() {
 
     return NextResponse.json({
       provider: data?.ai_provider || "openrouter",
-      model: data?.ai_model || "google/gemma-4-31b-it:free",
+      model: data?.ai_model || "meta-llama/llama-3.2-11b-vision-instruct:free",
     });
   } catch (err) {
     console.warn("Failed to fetch platform_settings (table might not exist yet):", err);
-    return NextResponse.json({ provider: "openrouter", model: "google/gemma-4-31b-it:free" });
+    return NextResponse.json({ provider: "openrouter", model: "meta-llama/llama-3.2-11b-vision-instruct:free" });
   }
 }
 
