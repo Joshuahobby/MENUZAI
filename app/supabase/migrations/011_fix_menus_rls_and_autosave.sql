@@ -59,9 +59,13 @@ BEGIN
   END IF;
 END $$;
 
--- ── Drop old single-policy and replace with split INSERT / ALL policies ─────
+-- ── Drop ALL existing policies (old names + new names for idempotency) ──────
 DROP POLICY IF EXISTS "Staff can manage menus" ON public.menus;
 DROP POLICY IF EXISTS "Owner can manage their menus" ON public.menus;
+DROP POLICY IF EXISTS "Staff can read menus" ON public.menus;
+DROP POLICY IF EXISTS "Staff can insert menus" ON public.menus;
+DROP POLICY IF EXISTS "Staff can update menus" ON public.menus;
+DROP POLICY IF EXISTS "Staff can delete menus" ON public.menus;
 
 -- SELECT: any staff member of the owning restaurant may read menus
 CREATE POLICY "Staff can read menus"
