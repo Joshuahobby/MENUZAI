@@ -58,6 +58,7 @@ describe("formatEventType", () => {
     expect(formatEventType("menu_view")).toBe("viewed menu");
     expect(formatEventType("item_view")).toBe("viewed item");
     expect(formatEventType("order_sent")).toBe("placed an order");
+    expect(formatEventType("qr_scan")).toBe("scanned QR code");
   });
 
   it("returns unknown types as-is", () => {

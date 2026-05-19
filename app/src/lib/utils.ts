@@ -28,6 +28,7 @@ export function formatEventType(type: string) {
     case "menu_view": return "viewed menu";
     case "item_view": return "viewed item";
     case "order_sent": return "placed an order";
+    case "qr_scan": return "scanned QR code";
     default: return type;
   }
 }
