@@ -9,6 +9,7 @@ import { trackMenuView, trackItemView, trackOrderClick, trackQRScan } from "@/li
 import type { MenuItem, MenuCategory, MenuStyle, CartItem } from "@/types/menu";
 import { defaultStyle } from "@/store/menuStore";
 import { formatPrice, getOptimizedImageUrl } from "@/lib/utils";
+import { toast } from "sonner";
 
 interface PublicMenuClientProps {
   menuId: string;
@@ -85,6 +86,46 @@ export default function PublicMenuClient(props: PublicMenuClientProps) {
   const [isAssistantLoading, setIsAssistantLoading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
+  // Table Service Pager State
+  const [isServiceOpen, setIsServiceOpen] = useState(false);
+  const [serviceType, setServiceType] = useState<"call_waiter" | "bill" | "water" | "custom">("call_waiter");
+  const [serviceMessage, setServiceMessage] = useState("");
+  const [isSendingService, setIsSendingService] = useState(false);
+
+  const handleSendServiceRequest = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSendingService(true);
+    
+    try {
+      const channel = supabase.channel(`table_requests:${restaurantId}`);
+      // Connect and send
+      channel.subscribe(async (status) => {
+        if (status === 'SUBSCRIBED') {
+          await channel.send({
+            type: 'broadcast',
+            event: 'new_request',
+            payload: {
+              id: crypto.randomUUID(),
+              tableNumber: tableFromUrl || "12",
+              type: serviceType,
+              message: serviceMessage.trim(),
+              created_at: new Date().toISOString(),
+              status: "pending"
+            }
+          });
+          toast.success("Assistance request sent to staff! 🛎️");
+          setIsServiceOpen(false);
+          setServiceMessage("");
+        }
+      });
+    } catch (err) {
+      console.error("Pager error:", err);
+      toast.error("Failed to connect to waiter service.");
+    } finally {
+      setIsSendingService(false);
+    }
+  };
+
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
@@ -111,6 +152,11 @@ export default function PublicMenuClient(props: PublicMenuClientProps) {
           messages: [...assistantMessages, { role: "user", content: userMsg }].slice(-5),
           menuItems: items.map(i => ({ name: i.name, description: i.description, price: i.price, tags: i.tags })),
           restaurantName,
+          aiWaiterSettings: {
+            tone: menuStyle.aiWaiterTone,
+            upsell: menuStyle.aiWaiterUpsell,
+            instructions: menuStyle.aiWaiterInstructions,
+          },
         }),
       });
 
@@ -583,6 +629,94 @@ export default function PublicMenuClient(props: PublicMenuClientProps) {
                 className="w-12 h-12 bg-primary text-white rounded-2xl flex items-center justify-center disabled:opacity-50 active:scale-95 transition-all shadow-lg"
               >
                 <span className="material-symbols-outlined text-[20px] font-bold">send</span>
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Service Pager FAB */}
+      {tableFromUrl && (
+        <button
+          onClick={() => setIsServiceOpen(true)}
+          className="fixed bottom-40 right-6 w-14 h-14 bg-gradient-to-tr from-amber-500 to-amber-600 text-white rounded-full shadow-2xl flex items-center justify-center z-50 hover:scale-110 active:scale-95 transition-all animate-bounce-slow cursor-pointer"
+          title="Call Waiter / Request Service"
+        >
+          <span className="material-symbols-outlined text-2xl icon-fill font-bold">concierge</span>
+        </button>
+      )}
+
+      {/* Service Pager Modal */}
+      {isServiceOpen && (
+        <div className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center p-0 sm:p-6 bg-black/40 backdrop-blur-sm animate-in fade-in duration-300">
+          <div className="bg-surface w-full max-w-md sm:rounded-[2.5rem] shadow-2xl flex flex-col overflow-hidden animate-in slide-in-from-bottom duration-500">
+            {/* Header */}
+            <div className="bg-gradient-to-tr from-amber-500 to-amber-600 p-6 text-white flex justify-between items-center">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-white/20 rounded-2xl flex items-center justify-center">
+                  <span className="material-symbols-outlined text-xl icon-fill font-bold">concierge</span>
+                </div>
+                <div>
+                  <h4 className="font-[var(--font-headline)] font-bold text-sm">Table Assistance</h4>
+                  <p className="text-[10px] opacity-80 uppercase tracking-widest font-black">Table {tableFromUrl || "Bar"}</p>
+                </div>
+              </div>
+              <button 
+                onClick={() => setIsServiceOpen(false)}
+                className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors cursor-pointer"
+                title="Close pager"
+              >
+                <span className="material-symbols-outlined text-sm">close</span>
+              </button>
+            </div>
+
+            {/* Pager Options Grid */}
+            <form onSubmit={handleSendServiceRequest} className="p-6 space-y-6">
+              <div>
+                <label className="text-[10px] font-black text-secondary uppercase tracking-[0.2em] mb-3 block">What do you need?</label>
+                <div className="grid grid-cols-2 gap-3">
+                  {[
+                    { id: "call_waiter", name: "Call Waiter", icon: "concierge", sub: "Request assistance" },
+                    { id: "bill", name: "Request Bill", icon: "payments", sub: "Ready to pay" },
+                    { id: "water", name: "Need Water", icon: "local_drinking_water", sub: "Bring water" },
+                    { id: "custom", name: "Custom Call", icon: "chat_bubble", sub: "Type request" }
+                  ].map((opt) => {
+                    const isSelected = serviceType === opt.id;
+                    return (
+                      <button
+                        key={opt.id}
+                        type="button"
+                        onClick={() => setServiceType(opt.id as any)}
+                        className={`flex flex-col p-4 rounded-2xl border text-left transition-all cursor-pointer ${isSelected ? "border-amber-500 bg-amber-500/5 text-amber-600 ring-2 ring-amber-500/10 font-bold" : "border-outline-variant/15 hover:bg-surface-container-low text-secondary"}`}
+                      >
+                        <span className="material-symbols-outlined text-xl mb-2">{opt.icon}</span>
+                        <span className="text-xs font-bold block">{opt.name}</span>
+                        <span className="text-[9px] opacity-75 font-normal block mt-0.5">{opt.sub}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Message Box */}
+              <div>
+                <label className="text-[10px] font-black text-secondary uppercase tracking-[0.2em] mb-2 block" htmlFor="service-message">Additional details (Optional)</label>
+                <textarea
+                  id="service-message"
+                  rows={3}
+                  value={serviceMessage}
+                  onChange={(e) => setServiceMessage(e.target.value)}
+                  placeholder={serviceType === "custom" ? "Type details here, e.g. Extra napkins, clean glass, fork..." : "Any extra details..."}
+                  className="w-full bg-surface-container-low border-none rounded-2xl py-3 px-4 text-xs font-semibold focus:ring-2 focus:ring-amber-500/20 leading-relaxed custom-scrollbar resize-none"
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={isSendingService}
+                className="w-full py-4 bg-gradient-to-tr from-amber-500 to-amber-600 text-white rounded-2xl font-bold text-sm shadow-lg shadow-amber-500/20 hover:opacity-90 active:scale-95 transition-all disabled:opacity-50 cursor-pointer"
+              >
+                {isSendingService ? "Sending Request..." : "Send Call Alert"}
               </button>
             </form>
           </div>

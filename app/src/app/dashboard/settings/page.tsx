@@ -47,6 +47,13 @@ export default function SettingsPage() {
   const [currency, setCurrency] = useState(menuStyle.currency ?? "RWF");
   const [whatsappEnabled, setWhatsappEnabled] = useState(true);
 
+  // AI Waiter Settings
+  const [aiTone, setAiTone] = useState<"friendly" | "formal" | "vibrant">((menuStyle.aiWaiterTone as "friendly" | "formal" | "vibrant") ?? "friendly");
+  const [aiUpsell, setAiUpsell] = useState(menuStyle.aiWaiterUpsell ?? "");
+  const [aiInstructions, setAiInstructions] = useState(menuStyle.aiWaiterInstructions ?? "");
+  const [savingAiSettings, setSavingAiSettings] = useState(false);
+  const [savedAiSettings, setSavedAiSettings] = useState(false);
+
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [checkoutPlan, setCheckoutPlan] = useState({ name: "", price: 0 });
   const [changingPlan, setChangingPlan] = useState(false);
@@ -118,6 +125,29 @@ export default function SettingsPage() {
     };
     load();
   }, [restaurantId]);
+
+  useEffect(() => {
+    if (menuStyle) {
+      setAiTone(menuStyle.aiWaiterTone ?? "friendly");
+      setAiUpsell(menuStyle.aiWaiterUpsell ?? "");
+      setAiInstructions(menuStyle.aiWaiterInstructions ?? "");
+    }
+  }, [menuStyle]);
+
+  const saveAiSettings = async () => {
+    setSavingAiSettings(true);
+    setSavedAiSettings(false);
+    setMenuStyle({
+      ...menuStyle,
+      aiWaiterTone: aiTone as "friendly" | "formal" | "vibrant",
+      aiWaiterUpsell: aiUpsell,
+      aiWaiterInstructions: aiInstructions,
+    });
+    setSavedAiSettings(true);
+    toast.success("AI Digital Waiter settings saved successfully.");
+    setTimeout(() => setSavedAiSettings(false), 2000);
+    setSavingAiSettings(false);
+  };
 
   const saveRestaurantInfo = async () => {
     if (!restaurantId) return;
@@ -465,6 +495,124 @@ export default function SettingsPage() {
               className="w-full py-3 bg-gradient-to-br from-primary to-primary-container rounded-xl font-bold text-sm text-white shadow-lg shadow-primary/20 hover:opacity-90 transition-all active:scale-95">
               Save Currency
             </button>
+          </div>
+        </div>
+
+        {/* AI Digital Waiter Customizer */}
+        <div className="bg-surface-container-lowest p-8 rounded-[2rem] border border-surface-container/50 lg:col-span-2">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary shrink-0">
+              <span className="material-symbols-outlined text-2xl icon-fill font-bold">robot_2</span>
+            </div>
+            <div>
+              <h3 className="font-[var(--font-headline)] font-bold text-lg">AI Digital Waiter Assistant</h3>
+              <p className="text-xs text-secondary mt-0.5">Customize your AI waiter's personality, upselling logic, and menu guidelines</p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="space-y-6">
+              {/* Tone Selector */}
+              <div>
+                <label className="text-xs font-bold text-secondary uppercase tracking-[0.2em] mb-3 block">Personality & Tone</label>
+                <div className="grid grid-cols-3 gap-3">
+                  {[
+                    { id: "friendly", name: "Warm & Friendly", icon: "sentiment_satisfied" },
+                    { id: "formal", name: "Elegant & Formal", icon: "concierge" },
+                    { id: "vibrant", name: "High-Energy", icon: "celebration" }
+                  ].map((t) => {
+                    const isSelected = aiTone === t.id;
+                    return (
+                      <button
+                        key={t.id}
+                        type="button"
+                        onClick={() => setAiTone(t.id as "friendly" | "formal" | "vibrant")}
+                        className={`flex flex-col items-center justify-center p-4 rounded-xl border text-center transition-all cursor-pointer ${isSelected ? "border-primary bg-primary/5 text-primary ring-2 ring-primary/20 font-bold" : "border-surface-container hover:bg-surface-container-low text-secondary"}`}
+                      >
+                        <span className="material-symbols-outlined text-xl mb-2">{t.icon}</span>
+                        <span className="text-[10px]">{t.name}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Upselling Directives */}
+              <div>
+                <label className="text-xs font-bold text-secondary uppercase tracking-[0.2em] mb-2 block" htmlFor="ai-upsell">Custom Upselling Strategy</label>
+                <textarea
+                  id="ai-upsell"
+                  rows={3}
+                  value={aiUpsell}
+                  onChange={(e) => setAiUpsell(e.target.value)}
+                  placeholder="Example: Always suggest a fresh fruit juice when ordering breakfast items, or propose our signature volcano chocolate lava cake for dessert."
+                  className="w-full bg-surface-container-low border-none rounded-xl py-3 px-4 text-sm focus:ring-2 focus:ring-primary/20 leading-relaxed custom-scrollbar resize-none"
+                />
+              </div>
+
+              {/* Additional behavioral instructions */}
+              <div>
+                <label className="text-xs font-bold text-secondary uppercase tracking-[0.2em] mb-2 block" htmlFor="ai-instructions">Restaurant-Specific Guidelines</label>
+                <textarea
+                  id="ai-instructions"
+                  rows={4}
+                  value={aiInstructions}
+                  onChange={(e) => setAiInstructions(e.target.value)}
+                  placeholder="Example: Let customers know that all our dishes are 100% halal. Emphasize that our beef is locally sourced from farms in Gisenyi."
+                  className="w-full bg-surface-container-low border-none rounded-xl py-3 px-4 text-sm focus:ring-2 focus:ring-primary/20 leading-relaxed custom-scrollbar resize-none"
+                />
+              </div>
+
+              <button
+                type="button"
+                onClick={saveAiSettings}
+                disabled={savingAiSettings}
+                className="w-full py-3.5 bg-gradient-to-br from-primary to-primary-container rounded-xl font-bold text-sm text-white shadow-lg shadow-primary/20 hover:opacity-90 transition-all active:scale-95 disabled:opacity-60 cursor-pointer"
+              >
+                {savingAiSettings ? "Saving Settings..." : savedAiSettings ? "AI Settings Saved!" : "Save AI Customization"}
+              </button>
+            </div>
+
+            {/* Simulated Live Preview */}
+            <div className="flex flex-col bg-surface-container-low rounded-3xl p-6 border border-outline-variant/10">
+              <span className="text-xs font-bold text-secondary uppercase tracking-[0.2em] mb-4 block">Simulated Live Response Preview</span>
+              
+              <div className="flex-1 space-y-4 mb-4">
+                <div className="flex justify-end">
+                  <div className="bg-primary text-white text-xs font-semibold px-4 py-2.5 rounded-2xl rounded-tr-none shadow-sm max-w-[85%]">
+                    What would you recommend for lunch today?
+                  </div>
+                </div>
+
+                <div className="flex justify-start">
+                  <div className="bg-surface-container-lowest text-xs font-semibold px-4 py-3 rounded-2xl rounded-tl-none border border-outline-variant/5 shadow-sm max-w-[90%] leading-relaxed text-on-surface">
+                    {aiTone === "formal" ? (
+                      <>
+                        🍽️ Welcome to our dining room, esteemed guest. For an exquisite midday culinary experience, I would highly recommend our signature <strong>Classic Steak Frites</strong>, prepared precisely to your preference. {aiUpsell ? `Additionally, might I suggest: "${aiUpsell}"` : "To complement this choice, a glass of our reserve red wine would elevate the flavors perfectly."}
+                      </>
+                    ) : aiTone === "vibrant" ? (
+                      <>
+                        ✨ Oh, you are in for an absolute treat! You MUST try our legendary, chef-favorite <strong>Classic Steak Frites</strong>—it is juicy, perfectly seared, and completely mind-blowing! 🥩🔥 {aiUpsell ? `Oh, and let me tell you: "${aiUpsell}"` : "Pair it with our ice-cold Summer Spritz for the absolute ultimate flavor explosion! 🍹"} Let's get that ordered for you! 🛒
+                      </>
+                    ) : (
+                      <>
+                        🍽️ Hey there! If you're looking for a delicious lunch, I definitely recommend checking out our popular <strong>Classic Steak Frites</strong>. It's a real crowd favorite! 😊 {aiUpsell ? `To make it even better, I'd suggest: "${aiUpsell}"` : "It pairs wonderfully with a refreshing side of garlic parmesan fries."} Just tap the Add button to add it to your order! 🛒
+                      </>
+                    )}
+                    {aiInstructions && (
+                      <p className="mt-2 text-[10px] text-primary bg-primary/5 p-2 rounded-lg border border-primary/10">
+                        💡 <strong>Applying custom rules:</strong> "{aiInstructions.length > 80 ? aiInstructions.slice(0, 80) + "..." : aiInstructions}"
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-surface-container-lowest rounded-xl p-3 border border-outline-variant/10 text-[10px] text-secondary flex items-center gap-2">
+                <span className="material-symbols-outlined text-primary text-sm">info</span>
+                <span>This preview simulates how Claude or Gemma will adapt its greetings and suggestions in real-time on your live menu.</span>
+              </div>
+            </div>
           </div>
         </div>
 

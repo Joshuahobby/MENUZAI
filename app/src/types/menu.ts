@@ -52,6 +52,11 @@ export interface MenuStyle {
   showImages?: boolean;
   templateId?: string;
   logoUrl?: string;
+
+  // AI Waiter settings
+  aiWaiterTone?: "friendly" | "formal" | "vibrant";
+  aiWaiterUpsell?: string;
+  aiWaiterInstructions?: string;
 }
 
 export interface CartItem extends MenuItem {

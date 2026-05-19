@@ -20,10 +20,19 @@ interface OrderRow {
   whatsapp_sent: boolean;
 }
 
+interface TableRequest {
+  id: string;
+  tableNumber: string;
+  type: "call_waiter" | "bill" | "water" | "custom";
+  message?: string;
+  created_at: string;
+  status: "pending" | "resolved";
+}
+
 type StatusFilter = "all" | "pending" | "preparing" | "confirmed" | "cancelled";
 
 const STATUS_TABS: { value: StatusFilter; label: string }[] = [
-  { value: "all", label: "All" },
+  { value: "all", label: "All Orders" },
   { value: "pending", label: "Pending" },
   { value: "preparing", label: "Preparing" },
   { value: "confirmed", label: "Ready" },
@@ -31,10 +40,10 @@ const STATUS_TABS: { value: StatusFilter; label: string }[] = [
 ];
 
 const STATUS_STYLE = {
-  pending:   { badge: "bg-amber-100 text-amber-700",   dot: "bg-amber-400",   icon: "pending" },
-  preparing: { badge: "bg-blue-100 text-blue-700",     dot: "bg-blue-400",    icon: "skillet" },
-  confirmed: { badge: "bg-tertiary/10 text-tertiary",  dot: "bg-tertiary",    icon: "check_circle" },
-  cancelled: { badge: "bg-error/10 text-error",        dot: "bg-error",       icon: "cancel" },
+  pending:   { badge: "bg-amber-500/10 text-amber-700 dark:text-amber-400",   dot: "bg-amber-500",   icon: "pending" },
+  preparing: { badge: "bg-blue-500/10 text-blue-700 dark:text-blue-400",     dot: "bg-blue-500",    icon: "skillet" },
+  confirmed: { badge: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400",  dot: "bg-emerald-500",    icon: "check_circle" },
+  cancelled: { badge: "bg-rose-500/10 text-rose-700 dark:text-rose-400",        dot: "bg-rose-500",       icon: "cancel" },
 };
 
 function SkeletonOrder() {
@@ -50,15 +59,10 @@ function SkeletonOrder() {
       <div className="space-y-3 py-2">
         <Skeleton className="h-4 w-full" />
         <Skeleton className="h-4 w-4/5" />
-        <Skeleton className="h-4 w-3/5" />
       </div>
       <div className="flex justify-between pt-2 border-t border-surface-container">
         <Skeleton className="h-4 w-12" />
         <Skeleton className="h-7 w-24" />
-      </div>
-      <div className="grid grid-cols-2 gap-3">
-        <Skeleton className="h-11 rounded-xl" />
-        <Skeleton className="h-11 rounded-xl" />
       </div>
     </div>
   );
@@ -69,6 +73,7 @@ export default function OrdersPage() {
   const currency = menuStyle.currency ?? "RWF";
 
   const [orders, setOrders] = useState<OrderRow[]>([]);
+  const [tableRequests, setTableRequests] = useState<TableRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<StatusFilter>("all");
   const [isLive, setIsLive] = useState(false);
@@ -92,7 +97,6 @@ export default function OrdersPage() {
     }
   }, [printingOrder]);
 
-  // Initialize 'now' and update periodically to refresh 'new' badges
   useEffect(() => {
     const timer = setTimeout(() => {
       setNow(Date.now());
@@ -104,7 +108,7 @@ export default function OrdersPage() {
     };
   }, []);
 
-  // ── Fetch ──────────────────────────────────────────────────
+  // ── Fetch & Realtime Subscriptions ─────────────────────────
   useEffect(() => {
     if (!restaurantId) {
       if (loading) {
@@ -128,10 +132,11 @@ export default function OrdersPage() {
 
     fetchOrders();
 
-    // ── Realtime ───────────────────────────────────────────
-    const audio = new Audio("https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3");
+    // Sound chimes
+    const audioOrder = new Audio("https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3");
 
-    const channel = supabase
+    // Orders Realtime Channel
+    const orderChannel = supabase
       .channel(`orders:${restaurantId}`)
       .on(
         "postgres_changes",
@@ -144,20 +149,15 @@ export default function OrdersPage() {
         (payload) => {
           if (payload.eventType === "INSERT") {
             const newOrder = payload.new as OrderRow;
-            // Don't fire toast on first load
             if (initialLoadDone.current) {
-              // Play notification sound
               if (soundEnabledRef.current) {
-                audio.play().catch(() => {
-                  console.log("Audio playback blocked by browser. User must interact with the page first.");
-                });
+                audioOrder.play().catch(() => {});
               }
-
               toast("New order received!", {
                 description: newOrder.customer_name
                   ? `From ${newOrder.customer_name}${newOrder.table_number ? ` · Table ${newOrder.table_number}` : ""}`
                   : "A customer just placed an order",
-                icon: "🔔",
+                icon: "🛎️",
                 duration: 6000,
               });
             }
@@ -175,13 +175,38 @@ export default function OrdersPage() {
         setIsLive(status === "SUBSCRIBED");
       });
 
+    // Realtime Broadcast Assistance Channel
+    const requestChannel = supabase
+      .channel(`table_requests:${restaurantId}`)
+      .on("broadcast", { event: "new_request" }, (payload) => {
+        const newReq = payload.payload as TableRequest;
+        
+        if (soundEnabledRef.current) {
+          const chime = new Audio("https://assets.mixkit.co/active_storage/sfx/911/911-preview.mp3");
+          chime.play().catch(() => {});
+        }
+
+        toast(`Assistance Request: Table ${newReq.tableNumber}`, {
+          description: newReq.type === "bill" 
+            ? "Requested the bill 💵" 
+            : newReq.type === "water" 
+            ? "Requested water 🥛" 
+            : newReq.message || "Requested waiter service 🛎️",
+          icon: "🛎️",
+          duration: 8000,
+        });
+
+        setTableRequests((prev) => [newReq, ...prev]);
+      })
+      .subscribe();
+
     return () => {
-      supabase.removeChannel(channel);
+      supabase.removeChannel(orderChannel);
+      supabase.removeChannel(requestChannel);
       setIsLive(false);
     };
   }, [restaurantId, loading]);
 
-  // ── Status update (optimistic) ─────────────────────────
   const updateStatus = async (orderId: string, newStatus: OrderRow["status"]) => {
     setOrders((prev) =>
       prev.map((o) => (o.id === orderId ? { ...o, status: newStatus } : o))
@@ -194,16 +219,7 @@ export default function OrdersPage() {
 
     if (error) {
       toast.error("Failed to update order status.");
-      const { data } = await supabase
-        .from("orders")
-        .select("*")
-        .eq("id", orderId)
-        .single();
-      if (data) {
-        setOrders((prev) =>
-          prev.map((o) => (o.id === orderId ? (data as OrderRow) : o))
-        );
-      }
+      fetchOrdersRefresh();
     } else {
       const labels = { confirmed: "ready", cancelled: "declined", pending: "restored", preparing: "preparing" };
       toast.success(`Order ${labels[newStatus]}.`);
@@ -217,7 +233,16 @@ export default function OrdersPage() {
     }
   };
 
-  // ── Confirm order — calls API to also decrement stock ──
+  const fetchOrdersRefresh = async () => {
+    if (!restaurantId) return;
+    const { data } = await supabase
+      .from("orders")
+      .select("*")
+      .eq("restaurant_id", restaurantId)
+      .order("created_at", { ascending: false });
+    if (data) setOrders(data as OrderRow[]);
+  };
+
   const confirmOrder = async (orderId: string) => {
     setOrders((prev) =>
       prev.map((o) => (o.id === orderId ? { ...o, status: "confirmed" } : o))
@@ -230,38 +255,26 @@ export default function OrdersPage() {
         body: JSON.stringify({ orderId, restaurantId }),
       });
 
-      if (!res.ok) {
-        throw new Error("API error");
-      }
-      toast.success("Order ready.");
+      if (!res.ok) throw new Error("API error");
+      toast.success("Order is ready!");
     } catch {
       toast.error("Failed to confirm order.");
-      const { data } = await supabase
-        .from("orders")
-        .select("*")
-        .eq("id", orderId)
-        .single();
-      if (data) {
-        setOrders((prev) =>
-          prev.map((o) => (o.id === orderId ? (data as OrderRow) : o))
-        );
-      }
+      fetchOrdersRefresh();
     }
   };
 
-  // ── Derived stats ──────────────────────────────────────
+  const handleResolveRequest = (id: string) => {
+    setTableRequests((prev) => prev.filter((r) => r.id !== id));
+    toast.success("Table request marked as resolved.");
+  };
+
   const todayStart = new Date();
   todayStart.setHours(0, 0, 0, 0);
 
-  const todayOrders = orders.filter(
-    (o) => new Date(o.created_at) >= todayStart
-  );
+  const todayOrders = orders.filter((o) => new Date(o.created_at) >= todayStart);
   const pendingCount = orders.filter((o) => o.status === "pending").length;
-  const todayRevenue = todayOrders
-    .filter((o) => o.status !== "cancelled")
-    .reduce((s, o) => s + o.total, 0);
+  const todayRevenue = todayOrders.filter((o) => o.status !== "cancelled").reduce((s, o) => s + o.total, 0);
 
-  // Sparkline data (hourly revenue for today)
   const hourlyData = Array.from({ length: 24 }).map((_, i) => ({
     hour: `${i.toString().padStart(2, '0')}:00`,
     revenue: 0,
@@ -274,24 +287,24 @@ export default function OrdersPage() {
     }
   });
 
-  // ── Filter ─────────────────────────────────────────────
-  const filtered =
-    filter === "all" ? orders : orders.filter((o) => o.status === filter);
+  const filtered = filter === "all" ? orders : orders.filter((o) => o.status === filter);
 
   return (
-    <div className="p-6 lg:p-12 pb-24 lg:pb-12">
+    <div className="p-6 lg:p-12 pb-24 lg:pb-12 max-w-7xl mx-auto">
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-8 gap-4">
         <div>
-          <h1 className="text-3xl font-[var(--font-headline)] font-extrabold tracking-tight mb-1">Orders</h1>
-          <p className="text-secondary">Real-time view of incoming customer orders</p>
+          <h1 className="text-3xl font-[var(--font-headline)] font-extrabold tracking-tight mb-1">
+            Real-Time Staff Panel
+          </h1>
+          <p className="text-secondary text-sm">Monitor live customer orders and instant table service notifications</p>
         </div>
         
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3">
           <button
             onClick={() => setSoundEnabled(!soundEnabled)}
-            className={`flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-bold transition-colors ${
-              soundEnabled ? "bg-surface-container-high text-on-surface" : "bg-surface-container text-secondary"
+            className={`flex items-center justify-center w-10 h-10 rounded-xl transition-all cursor-pointer ${
+              soundEnabled ? "bg-primary/10 text-primary" : "bg-surface-container text-secondary"
             }`}
             title={soundEnabled ? "Mute notifications" : "Enable notifications"}
           >
@@ -300,46 +313,45 @@ export default function OrdersPage() {
             </span>
           </button>
           
-          {/* Live indicator */}
-          <div className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold ${isLive ? "bg-tertiary/10 text-tertiary" : "bg-surface-container text-secondary"}`}>
-            <span className={`w-2 h-2 rounded-full ${isLive ? "bg-tertiary animate-pulse" : "bg-secondary"}`} />
-            {isLive ? "Live" : "Connecting…"}
+          <div className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold ${isLive ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400" : "bg-surface-container text-secondary"}`}>
+            <span className={`w-2 h-2 rounded-full ${isLive ? "bg-emerald-500 animate-pulse" : "bg-secondary"}`} />
+            {isLive ? "Live Sync Active" : "Connecting..."}
           </div>
         </div>
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-        <div className="bg-surface-container-lowest rounded-2xl p-5 border border-surface-container/50">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="bg-surface-container-lowest rounded-3xl p-5 border border-surface-container/50">
           <div className="flex items-center gap-2 mb-2">
             <span className="material-symbols-outlined text-primary icon-fill text-lg">today</span>
-            <p className="text-[10px] font-bold text-secondary uppercase tracking-widest">Today</p>
+            <p className="text-[10px] font-bold text-secondary uppercase tracking-[0.2em]">Today's Orders</p>
           </div>
           <p className="text-2xl font-extrabold">{todayOrders.length}</p>
-          <p className="text-[10px] text-secondary mt-0.5">orders</p>
+          <p className="text-[10px] text-secondary mt-0.5">orders processed today</p>
         </div>
-        <div className="bg-surface-container-lowest rounded-2xl p-5 border border-surface-container/50">
+        <div className="bg-surface-container-lowest rounded-3xl p-5 border border-surface-container/50">
           <div className="flex items-center gap-2 mb-2">
             <span className="material-symbols-outlined text-amber-500 icon-fill text-lg">pending</span>
-            <p className="text-[10px] font-bold text-secondary uppercase tracking-widest">Pending</p>
+            <p className="text-[10px] font-bold text-secondary uppercase tracking-[0.2em]">Pending Action</p>
           </div>
-          <p className="text-2xl font-extrabold">{pendingCount}</p>
-          <p className="text-[10px] text-secondary mt-0.5">need action</p>
+          <p className="text-2xl font-extrabold text-amber-500">{pendingCount}</p>
+          <p className="text-[10px] text-secondary mt-0.5">require immediate attention</p>
         </div>
-        <div className="bg-surface-container-lowest rounded-2xl p-5 border border-surface-container/50 relative overflow-hidden">
+        <div className="bg-surface-container-lowest rounded-3xl p-5 border border-surface-container/50 relative overflow-hidden">
           <div className="relative z-10">
             <div className="flex items-center gap-2 mb-2">
-              <span className="material-symbols-outlined text-tertiary icon-fill text-lg">payments</span>
-              <p className="text-[10px] font-bold text-secondary uppercase tracking-widest">Revenue</p>
+              <span className="material-symbols-outlined text-emerald-500 icon-fill text-lg">payments</span>
+              <p className="text-[10px] font-bold text-secondary uppercase tracking-[0.2em]">Today's Revenue</p>
             </div>
-            <p className="text-2xl font-extrabold leading-none">{formatPrice(todayRevenue, currency)}</p>
-            <p className="text-[10px] text-secondary mt-0.5">today</p>
+            <p className="text-2xl font-extrabold leading-none text-emerald-600 dark:text-emerald-400">{formatPrice(todayRevenue, currency)}</p>
+            <p className="text-[10px] text-secondary mt-0.5">excluding cancelled orders</p>
           </div>
           {todayRevenue > 0 && (
-            <div className="absolute inset-x-0 bottom-0 h-16 opacity-30 pointer-events-none">
+            <div className="absolute inset-x-0 bottom-0 h-16 opacity-20 pointer-events-none">
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={hourlyData} margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
-                  <Area type="monotone" dataKey="revenue" stroke="var(--color-tertiary)" fill="var(--color-tertiary)" strokeWidth={2} />
+                  <Area type="monotone" dataKey="revenue" stroke="#10b981" fill="#10b981" strokeWidth={2} />
                 </AreaChart>
               </ResponsiveContainer>
             </div>
@@ -347,211 +359,287 @@ export default function OrdersPage() {
         </div>
       </div>
 
-      {/* Filter tabs */}
-      <div className="flex gap-2 mb-6 flex-wrap">
-        {STATUS_TABS.map((tab) => {
-          const count =
-            tab.value === "all"
-              ? orders.length
-              : orders.filter((o) => o.status === tab.value).length;
-          return (
-            <button
-              key={tab.value}
-              type="button"
-              onClick={() => setFilter(tab.value)}
-              className={`px-4 py-2 text-xs font-bold rounded-xl transition-all flex items-center gap-2 ${
-                filter === tab.value
-                  ? "bg-primary/10 text-primary"
-                  : "text-secondary hover:bg-surface-container-low"
-              }`}
-            >
-              {tab.label}
-              {count > 0 && (
-                <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
-                  filter === tab.value ? "bg-primary/20" : "bg-surface-container-high"
-                }`}>
-                  {count}
-                </span>
-              )}
-            </button>
-          );
-        })}
-      </div>
+      {/* Main Grid: Orders (Left) vs Table Pager (Right) */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+        {/* Left Side: Orders list */}
+        <div className="lg:col-span-2 space-y-6">
+          <div className="flex items-center justify-between border-b border-surface-container pb-4">
+            <h2 className="font-[var(--font-headline)] font-bold text-xl flex items-center gap-2">
+              <span className="material-symbols-outlined text-primary">receipt_long</span>
+              Orders List
+            </h2>
 
-      {/* Content */}
-      {loading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-          {Array.from({ length: 6 }).map((_, i) => <SkeletonOrder key={i} />)}
-        </div>
-      ) : filtered.length === 0 ? (
-        <div className="flex flex-col items-center justify-center text-center py-24">
-          <div className="w-20 h-20 bg-surface-container-high rounded-full flex items-center justify-center mb-6">
-            <span className="material-symbols-outlined text-4xl text-secondary">receipt_long</span>
-          </div>
-          <h2 className="text-xl font-[var(--font-headline)] font-bold mb-2">
-            {filter === "all" ? "No orders yet" : `No ${filter} orders`}
-          </h2>
-          <p className="text-secondary text-sm max-w-sm">
-            {filter === "all"
-              ? "When customers place orders via your digital menu, they will appear here in real-time."
-              : `Orders with status "${filter}" will appear here.`}
-          </p>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 auto-rows-max">
-          {filtered.map((order) => {
-            const s = STATUS_STYLE[order.status];
-            const isNew =
-              now - new Date(order.created_at).getTime() < 60_000;
-
-            return (
-              <div
-                key={order.id}
-                className={`bg-surface-container-lowest rounded-[2rem] p-6 border shadow-sm flex flex-col transition-all ${
-                  order.status === "pending" && isNew
-                    ? "border-primary/40 shadow-primary/5"
-                    : "border-surface-container/50"
-                }`}
-              >
-                {/* Card header */}
-                <div className="flex justify-between items-start mb-4 gap-2">
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <h3 className="font-[var(--font-headline)] font-bold text-lg leading-tight">
-                        {order.customer_name || "Guest"}
-                      </h3>
-                      {isNew && order.status === "pending" && (
-                        <span className="text-[9px] font-black uppercase tracking-widest bg-primary text-white px-2 py-0.5 rounded-full">New</span>
-                      )}
-                    </div>
-                    <div className="flex items-center gap-2 text-xs text-secondary mt-1">
-                      <span className="material-symbols-outlined text-[14px]">schedule</span>
-                      <span>{formatTimeOnly(order.created_at)}</span>
-                      <span className="text-outline-variant">·</span>
-                      <span>{formatRelativeTime(order.created_at)}</span>
-                      {order.table_number && (
-                        <>
-                          <span className="text-outline-variant">·</span>
-                          <span className="font-bold text-on-surface">Table {order.table_number}</span>
-                        </>
-                      )}
-                    </div>
-                  </div>
-                  <div className="flex flex-col items-end gap-2">
-                    <span className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest shrink-0 ${s.badge}`}>
-                      <span className={`w-1.5 h-1.5 rounded-full ${s.dot}`} />
-                      {order.status}
-                    </span>
-                    {order.status !== "pending" && (
-                      <button
-                        type="button"
-                        onClick={() => setPrintingOrder(order)}
-                        className="text-secondary hover:text-primary transition-colors p-1 flex items-center gap-1 opacity-60 hover:opacity-100"
-                        title="Print Receipt"
-                      >
-                        <span className="material-symbols-outlined text-[16px]">print</span>
-                        <span className="text-[10px] font-bold uppercase">Print</span>
-                      </button>
+            {/* Filter tabs */}
+            <div className="flex gap-1.5 flex-wrap">
+              {STATUS_TABS.map((tab) => {
+                const count = tab.value === "all" ? orders.length : orders.filter((o) => o.status === tab.value).length;
+                const isSelected = filter === tab.value;
+                return (
+                  <button
+                    key={tab.value}
+                    type="button"
+                    onClick={() => setFilter(tab.value)}
+                    className={`px-3 py-1.5 text-xs font-bold rounded-xl transition-all flex items-center gap-1.5 cursor-pointer ${
+                      isSelected ? "bg-primary text-white" : "bg-surface-container hover:bg-surface-container-high text-secondary"
+                    }`}
+                  >
+                    {tab.label.split(" ")[0]}
+                    {count > 0 && (
+                      <span className={`text-[9px] px-1.5 py-0.5 rounded-full ${isSelected ? "bg-white/20 text-white" : "bg-surface-container-high text-secondary"}`}>
+                        {count}
+                      </span>
                     )}
-                  </div>
-                </div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
 
-                {/* Items */}
-                <div className="flex-1 space-y-2.5 mb-5">
-                  {order.items.map((item, idx) => (
-                    <div key={idx} className="flex justify-between items-baseline text-sm">
-                      <div className="flex gap-2 min-w-0">
-                        <span className="font-extrabold text-primary shrink-0">{item.quantity}×</span>
-                        <span className="truncate">{item.name}</span>
+          {loading ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {Array.from({ length: 4 }).map((_, i) => <SkeletonOrder key={i} />)}
+            </div>
+          ) : filtered.length === 0 ? (
+            <div className="flex flex-col items-center justify-center text-center py-20 bg-surface-container-lowest rounded-3xl border border-surface-container/50">
+              <div className="w-16 h-16 bg-surface-container-low rounded-2xl flex items-center justify-center mb-4 text-secondary">
+                <span className="material-symbols-outlined text-3xl">receipt_long</span>
+              </div>
+              <h3 className="text-lg font-bold mb-1">No orders found</h3>
+              <p className="text-secondary text-xs max-w-xs">
+                {filter === "all" ? "Incoming customer orders will appear here automatically." : `There are currently no "${filter}" orders.`}
+              </p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 auto-rows-max">
+              {filtered.map((order) => {
+                const s = STATUS_STYLE[order.status];
+                const isNew = now - new Date(order.created_at).getTime() < 60_000;
+
+                return (
+                  <div
+                    key={order.id}
+                    className={`bg-surface-container-lowest rounded-[2rem] p-6 border shadow-sm flex flex-col transition-all ${
+                      order.status === "pending" && isNew
+                        ? "border-primary ring-2 ring-primary/10 shadow-md"
+                        : "border-surface-container/50 hover:shadow-md"
+                    }`}
+                  >
+                    {/* Card header */}
+                    <div className="flex justify-between items-start mb-4 gap-2">
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <h3 className="font-[var(--font-headline)] font-bold text-base leading-tight">
+                            {order.customer_name || "Guest"}
+                          </h3>
+                          {isNew && order.status === "pending" && (
+                            <span className="text-[8px] font-black uppercase tracking-widest bg-primary text-white px-2 py-0.5 rounded-full">NEW</span>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-2 text-[10px] text-secondary mt-1">
+                          <span className="material-symbols-outlined text-[13px]">schedule</span>
+                          <span>{formatTimeOnly(order.created_at)}</span>
+                          <span className="text-outline-variant">·</span>
+                          <span>{formatRelativeTime(order.created_at)}</span>
+                          {order.table_number && (
+                            <>
+                              <span className="text-outline-variant">·</span>
+                              <span className="font-bold text-on-surface">Table {order.table_number}</span>
+                            </>
+                          )}
+                        </div>
                       </div>
-                      <span className="font-medium text-secondary shrink-0 ml-4">
-                        {formatPrice(item.price * item.quantity, currency)}
+                      <div className="flex flex-col items-end gap-1.5 shrink-0">
+                        <span className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-[8px] font-bold uppercase tracking-widest ${s.badge}`}>
+                          <span className={`w-1 h-1 rounded-full ${s.dot}`} />
+                          {order.status}
+                        </span>
+                        {order.status !== "pending" && (
+                          <button
+                            type="button"
+                            onClick={() => setPrintingOrder(order)}
+                            className="text-secondary hover:text-primary transition-colors p-1 flex items-center gap-1 opacity-70 hover:opacity-100 cursor-pointer"
+                          >
+                            <span className="material-symbols-outlined text-[14px]">print</span>
+                            <span className="text-[9px] font-bold uppercase">Print</span>
+                          </button>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Items */}
+                    <div className="flex-1 space-y-2 mb-5">
+                      {order.items.map((item, idx) => (
+                        <div key={idx} className="flex justify-between items-baseline text-xs">
+                          <div className="flex gap-2 min-w-0">
+                            <span className="font-extrabold text-primary shrink-0">{item.quantity}×</span>
+                            <span className="truncate text-on-surface-variant">{item.name}</span>
+                          </div>
+                          <span className="font-semibold text-secondary shrink-0 ml-4">
+                            {formatPrice(item.price * item.quantity, currency)}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Total */}
+                    <div className="border-t border-surface-container pt-4 mb-5 flex justify-between items-center">
+                      <span className="text-[9px] font-bold text-secondary uppercase tracking-[0.2em]">Total Amount</span>
+                      <span className="font-[var(--font-headline)] font-extrabold text-lg text-primary">
+                        {formatPrice(order.total, currency)}
                       </span>
                     </div>
-                  ))}
-                </div>
 
-                {/* Total */}
-                <div className="border-t border-surface-container pt-4 mb-5 flex justify-between items-center">
-                  <span className="text-[10px] font-bold text-secondary uppercase tracking-widest">Total</span>
-                  <span className="font-[var(--font-headline)] font-extrabold text-xl text-primary">
-                    {formatPrice(order.total, currency)}
-                  </span>
-                </div>
-
-                {/* Actions */}
-                <div className="grid grid-cols-2 gap-3">
-                  {order.status === "pending" && (
-                    <>
-                      <button
-                        type="button"
-                        onClick={() => updateStatus(order.id, "cancelled")}
-                        className="py-3 px-4 rounded-xl font-bold text-sm bg-error/10 text-error hover:bg-error/20 transition-colors"
-                      >
-                        Decline
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => updateStatus(order.id, "preparing")}
-                        className="py-3 px-4 rounded-xl font-bold text-sm bg-tertiary/10 text-tertiary hover:bg-tertiary/20 transition-colors flex items-center justify-center gap-1.5"
-                      >
-                        <span className="material-symbols-outlined text-sm">skillet</span>
-                        Prepare
-                      </button>
-                    </>
-                  )}
-                  {order.status === "preparing" && (
-                    <>
-                      <button
-                        type="button"
-                        onClick={() => updateStatus(order.id, "cancelled")}
-                        className="py-3 px-4 rounded-xl font-bold text-sm bg-surface-container-high text-secondary hover:bg-error/10 hover:text-error transition-colors"
-                      >
-                        Cancel
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => confirmOrder(order.id)}
-                        className="py-3 px-4 rounded-xl font-bold text-sm bg-tertiary/10 text-tertiary hover:bg-tertiary/20 transition-colors flex items-center justify-center gap-1.5"
-                      >
-                        <span className="material-symbols-outlined text-sm">check</span>
-                        Done
-                      </button>
-                    </>
-                  )}
-                  {order.status === "confirmed" && (
-                    <>
-                      <button
-                        type="button"
-                        onClick={() => updateStatus(order.id, "cancelled")}
-                        className="py-3 px-4 rounded-xl font-bold text-sm bg-surface-container-high text-secondary hover:bg-error/10 hover:text-error transition-colors"
-                      >
-                        Cancel
-                      </button>
-                      <div className="py-3 px-4 rounded-xl font-bold text-sm bg-tertiary/10 text-tertiary flex items-center justify-center gap-1.5">
-                        <span className="material-symbols-outlined text-sm icon-fill">check_circle</span>
-                        Ready
-                      </div>
-                    </>
-                  )}
-                  {order.status === "cancelled" && (
-                    <button
-                      type="button"
-                      onClick={() => updateStatus(order.id, "pending")}
-                      className="col-span-2 py-3 px-4 rounded-xl font-bold text-sm bg-surface-container-high text-secondary hover:bg-primary/10 hover:text-primary transition-colors flex items-center justify-center gap-2"
-                    >
-                      <span className="material-symbols-outlined text-sm">undo</span>
-                      Restore to Pending
-                    </button>
-                  )}
-                </div>
-              </div>
-            );
-          })}
+                    {/* Actions */}
+                    <div className="grid grid-cols-2 gap-3">
+                      {order.status === "pending" && (
+                        <>
+                          <button
+                            type="button"
+                            onClick={() => updateStatus(order.id, "cancelled")}
+                            className="py-2.5 px-4 rounded-xl font-bold text-xs bg-error/10 text-error hover:bg-error/20 transition-all cursor-pointer"
+                          >
+                            Decline
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => updateStatus(order.id, "preparing")}
+                            className="py-2.5 px-4 rounded-xl font-bold text-xs bg-primary text-white shadow-md shadow-primary/10 hover:opacity-90 transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                          >
+                            <span className="material-symbols-outlined text-sm">skillet</span>
+                            Accept
+                          </button>
+                        </>
+                      )}
+                      {order.status === "preparing" && (
+                        <>
+                          <button
+                            type="button"
+                            onClick={() => updateStatus(order.id, "cancelled")}
+                            className="py-2.5 px-4 rounded-xl font-bold text-xs bg-surface-container text-secondary hover:bg-error/10 hover:text-error transition-all cursor-pointer"
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => confirmOrder(order.id)}
+                            className="py-2.5 px-4 rounded-xl font-bold text-xs bg-gradient-to-br from-emerald-500 to-emerald-600 text-white shadow-md shadow-emerald-500/10 hover:opacity-90 transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                          >
+                            <span className="material-symbols-outlined text-sm">check</span>
+                            Mark Ready
+                          </button>
+                        </>
+                      )}
+                      {order.status === "confirmed" && (
+                        <>
+                          <button
+                            type="button"
+                            onClick={() => updateStatus(order.id, "cancelled")}
+                            className="py-2.5 px-4 rounded-xl font-bold text-xs bg-surface-container text-secondary hover:bg-error/10 hover:text-error transition-all cursor-pointer"
+                          >
+                            Cancel
+                          </button>
+                          <div className="py-2.5 px-4 rounded-xl font-bold text-xs bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center gap-1.5">
+                            <span className="material-symbols-outlined text-sm icon-fill">check_circle</span>
+                            Served
+                          </div>
+                        </>
+                      )}
+                      {order.status === "cancelled" && (
+                        <button
+                          type="button"
+                          onClick={() => updateStatus(order.id, "pending")}
+                          className="col-span-2 py-2.5 px-4 rounded-xl font-bold text-xs bg-surface-container hover:bg-primary/10 hover:text-primary transition-all flex items-center justify-center gap-2 cursor-pointer"
+                        >
+                          <span className="material-symbols-outlined text-sm">undo</span>
+                          Restore to Pending
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
-      )}
 
-      {/* Printable Receipt */}
+        {/* Right Side: Real-Time Table service pager */}
+        <div className="space-y-6">
+          <div className="border-b border-surface-container pb-4">
+            <h2 className="font-[var(--font-headline)] font-bold text-xl flex items-center gap-2">
+              <span className="material-symbols-outlined text-primary icon-fill">notifications_active</span>
+              Table Pager
+            </h2>
+          </div>
+
+          <div className="bg-surface-container-lowest p-6 rounded-[2rem] border border-surface-container/50 shadow-sm space-y-6">
+            <div>
+              <h3 className="font-[var(--font-headline)] font-bold text-sm">Live Service Calls</h3>
+              <p className="text-secondary text-[11px] mt-0.5">Real-time waiter calls from customers browsing the QR menus</p>
+            </div>
+
+            {tableRequests.length === 0 ? (
+              <div className="flex flex-col items-center justify-center text-center py-12 bg-surface-container-low/50 rounded-2xl border border-dashed border-outline-variant/20">
+                <div className="w-12 h-12 bg-surface-container-lowest rounded-xl flex items-center justify-center mb-3 text-secondary shadow-sm">
+                  <span className="material-symbols-outlined text-xl">concierge</span>
+                </div>
+                <p className="font-bold text-xs">No active service calls</p>
+                <p className="text-secondary text-[10px] max-w-[180px] mt-0.5">All tables are happy and fully taken care of!</p>
+              </div>
+            ) : (
+              <div className="space-y-4 max-h-[400px] overflow-y-auto pr-1 custom-scrollbar">
+                {tableRequests.map((req) => (
+                  <div
+                    key={req.id}
+                    className="p-4 rounded-2xl bg-surface-container-low border border-outline-variant/15 flex flex-col justify-between gap-3 relative overflow-hidden transition-all hover:bg-surface-container"
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center font-bold text-xs shrink-0">
+                          {req.tableNumber}
+                        </div>
+                        <div>
+                          <span className={`text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full ${
+                            req.type === "bill" 
+                              ? "bg-amber-500/10 text-amber-600 dark:text-amber-400" 
+                              : req.type === "water" 
+                              ? "bg-blue-500/10 text-blue-600 dark:text-blue-400" 
+                              : "bg-primary/10 text-primary"
+                          }`}>
+                            {req.type === "bill" ? "Bill 💵" : req.type === "water" ? "Water 🥛" : "Waiter 🛎️"}
+                          </span>
+                          <p className="text-[10px] text-secondary mt-1">{formatTimeOnly(req.created_at)}</p>
+                        </div>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => handleResolveRequest(req.id)}
+                        className="text-secondary hover:text-emerald-500 p-1 transition-colors cursor-pointer shrink-0"
+                        title="Mark as Resolved"
+                      >
+                        <span className="material-symbols-outlined text-lg">check_circle</span>
+                      </button>
+                    </div>
+
+                    {req.message && (
+                      <p className="text-xs font-semibold leading-relaxed text-on-surface bg-surface-container-lowest p-2 rounded-xl border border-outline-variant/5">
+                        "{req.message}"
+                      </p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <div className="bg-surface-container-low rounded-2xl p-4 border border-outline-variant/10 text-[10px] text-secondary flex items-start gap-2.5 leading-relaxed">
+              <span className="material-symbols-outlined text-primary text-sm shrink-0">help_outline</span>
+              <span>Customers tap a bell icon on their phone to trigger these alerts. They emit immediate chimes and toast highlights for staff.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Printable Receipt Block */}
       <style dangerouslySetInnerHTML={{
         __html: `
           @media print {

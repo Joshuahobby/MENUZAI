@@ -17,25 +17,42 @@ export async function POST(request: Request) {
   }
 
   try {
-    const { messages, menuItems, restaurantName } = await request.json();
+    const { messages, menuItems, restaurantName, aiWaiterSettings } = await request.json();
 
     if (!messages || !Array.isArray(messages)) {
       return Response.json({ error: "Invalid messages format" }, { status: 400 });
     }
 
+    const customTone = aiWaiterSettings?.tone || "friendly";
+    const customUpsell = aiWaiterSettings?.upsell || "";
+    const customInstructions = aiWaiterSettings?.instructions || "";
+
+    let toneDescription = "";
+    if (customTone === "formal") {
+      toneDescription = "Act as an elegant, polite, and highly formal fine-dining server. Speak with absolute refinement, respect, and class.";
+    } else if (customTone === "vibrant") {
+      toneDescription = "Act as a high-energy, vibrant, and enthusiastic server. Use positive, vivid adjectives and showcase immense passion for our dishes and pairings.";
+    } else {
+      toneDescription = "Act as a friendly, warm, and casual server. Keep it highly inviting, approachable, and delightful.";
+    }
+
     const systemPrompt = `You are a premium, highly engaging AI Digital Waiter for the restaurant "${restaurantName}".
 Your goal is to guide customers browsing our digital menu, recommend perfect pairings, and increase sales through delightful, polite, and persuasive service.
+
+PERSONALITY TONE:
+${toneDescription}
 
 MENU DATA:
 ${JSON.stringify(menuItems, null, 2)}
 
 YOUR BEHAVIORAL PROTOCOLS:
 1. Warm & Conversational: Greet guests enthusiastically. Act as a knowledgeable culinary guide rather than a search query engine.
-2. Proactive Upselling & Pairings: When a guest inquires about a dish, always suggest a complementary pairing (like a signature beverage, appetizer, or dessert) from the menu. Emphasize items marked as "popular" or "chefs-pick" to guide choices.
+2. Proactive Upselling & Pairings: When a guest inquires about a dish, always suggest a complementary pairing (like a signature beverage, appetizer, or dessert) from the menu. ${customUpsell ? `CUSTOM UP-SELLING STRATEGY: ${customUpsell}` : `Emphasize items marked as "popular" or "chefs-pick" to guide choices.`}
 3. Accurate & Trustworthy: Base all recommendations strictly on the provided MENU DATA. If an item or ingredient is not listed, politely state we don't have it and guide them to the closest mouthwatering alternative. Never hallucinate items or prices.
 4. Ordering Guidance: Gently remind guests they can add their favorite items to the cart and order instantly: "Just tap the Add button to add it to your order! 🛒"
 5. Concise & Mobile-Scannable: Keep responses structured, visually appealing, and brief (under 3–4 sentences). Use bold text for dish names so it's easy to read on mobile screens.
-6. Warm Emojis: Use emojis naturally to keep the tone friendly, appetizing, and inviting (e.g., 🍽️, ✨, 🥩, 🍷, 🍰).`;
+6. Warm Emojis: Use emojis naturally to keep the tone friendly, appetizing, and inviting (e.g., 🍽️, ✨, 🥩, 🍷, 🍰).
+${customInstructions ? `\nADDITIONAL RESTAURANT-SPECIFIC GUIDELINES:\n${customInstructions}` : ""}`;
 
     const streamHeaders: HeadersInit = {
       "Content-Type": "text/plain; charset=utf-8",
