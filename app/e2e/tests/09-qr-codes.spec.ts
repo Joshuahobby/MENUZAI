@@ -38,12 +38,26 @@ test.describe("QR Codes page", () => {
       return;
     }
 
-    const tableInput = page.getByPlaceholder("e.g. 12").first();
+    const tableInput = page.getByPlaceholder("e.g. 05").first();
     await tableInput.fill("5");
     await page.waitForTimeout(500);
 
     // QR code should re-render (still visible)
     await expect(qrSvg).toBeVisible();
+  });
+
+  test("table number appears as badge on the poster when entered", async ({ page }) => {
+    const qrSvg = page.locator("#qr-code-svg, svg[role='img']").first();
+    const hasQr = await qrSvg.isVisible({ timeout: 5000 }).catch(() => false);
+    if (!hasQr) { test.skip(); return; }
+
+    const tableInput = page.getByPlaceholder("e.g. 05").first();
+    await tableInput.fill("12");
+    await page.waitForTimeout(300);
+
+    // The poster preview should now show the "Table 12" badge
+    const badge = page.getByText(/table 12/i).first();
+    await expect(badge).toBeVisible({ timeout: 5000 });
   });
 
   test("colour picker changes QR code colour", async ({ page }) => {

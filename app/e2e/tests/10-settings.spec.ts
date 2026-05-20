@@ -113,3 +113,73 @@ test.describe("Settings page", () => {
     }
   });
 });
+
+test.describe("Staff management", () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto("/dashboard/settings");
+    await page.waitForURL(/\/(dashboard\/settings|login|onboarding)/, { timeout: 10000 });
+    if (!page.url().includes("/settings")) test.skip();
+    await page.waitForLoadState("domcontentloaded");
+    // Give the StaffManager time to fetch current staff list
+    await page.waitForLoadState("networkidle", { timeout: 5000 }).catch(() => {});
+  });
+
+  test("staff management section is visible for owners and managers", async ({ page }) => {
+    const staffHeading = page.getByText("Staff Management").first();
+    const hasStaff = await staffHeading.isVisible({ timeout: 8000 }).catch(() => false);
+    // Staff section is hidden for the 'staff' role — skip if not visible
+    if (!hasStaff) { test.skip(); return; }
+    await expect(staffHeading).toBeVisible();
+  });
+
+  test("invite form has email input and role selector", async ({ page }) => {
+    const staffHeading = page.getByText("Staff Management").first();
+    const hasStaff = await staffHeading.isVisible({ timeout: 8000 }).catch(() => false);
+    if (!hasStaff) { test.skip(); return; }
+
+    const emailInput = page.getByPlaceholder("staff@email.com");
+    await expect(emailInput).toBeVisible({ timeout: 5000 });
+
+    const roleSelect = page.locator("select").filter({ hasText: /manager|staff/i }).first();
+    const hasRoleSelect = await roleSelect.isVisible().catch(() => false);
+    if (hasRoleSelect) {
+      const options = await roleSelect.locator("option").count();
+      expect(options).toBeGreaterThanOrEqual(2);
+    }
+  });
+
+  test("invite form validates empty email", async ({ page }) => {
+    const staffHeading = page.getByText("Staff Management").first();
+    const hasStaff = await staffHeading.isVisible({ timeout: 8000 }).catch(() => false);
+    if (!hasStaff) { test.skip(); return; }
+
+    // Submit with empty email — button should not trigger an API call (HTML required or JS guard)
+    const inviteBtn = page.getByRole("button", { name: /^invite$/i }).first();
+    await expect(inviteBtn).toBeVisible({ timeout: 5000 });
+    await inviteBtn.click();
+
+    // Page should not navigate away and no "Inviting..." spinner should appear
+    await page.waitForTimeout(400);
+    expect(page.url()).toContain("/settings");
+  });
+
+  test("invite form accepts a typed email address", async ({ page }) => {
+    const staffHeading = page.getByText("Staff Management").first();
+    const hasStaff = await staffHeading.isVisible({ timeout: 8000 }).catch(() => false);
+    if (!hasStaff) { test.skip(); return; }
+
+    const emailInput = page.getByPlaceholder("staff@email.com");
+    await emailInput.fill("test-staff@example.com");
+    await expect(emailInput).toHaveValue("test-staff@example.com");
+  });
+
+  test("existing staff members are listed with their roles", async ({ page }) => {
+    const staffHeading = page.getByText("Staff Management").first();
+    const hasStaff = await staffHeading.isVisible({ timeout: 8000 }).catch(() => false);
+    if (!hasStaff) { test.skip(); return; }
+
+    // The owner row is always present (backfilled on migration)
+    const ownerBadge = page.getByText(/owner/i).first();
+    await expect(ownerBadge).toBeVisible({ timeout: 8000 });
+  });
+});

@@ -81,4 +81,5 @@ export interface QRPosterData {
   textColor: string;
   qrColor: string;
   pageSize: "A4" | "A5";
+  tableNumber?: string;
 }

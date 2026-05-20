@@ -102,7 +102,7 @@ create table if not exists public.orders (
   total           numeric not null,
   customer_name   text,
   table_number    text,
-  status          text not null default 'pending',   -- pending | confirmed | cancelled
+  status          text not null default 'pending',   -- pending | preparing | confirmed | cancelled
   whatsapp_sent   boolean not null default false,
   created_at      timestamptz not null default now()
 );

@@ -42,8 +42,9 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=
 OPENROUTER_API_KEY=          # from openrouter.ai
 OPENROUTER_MODEL=google/gemma-4-31b-it:free   # swap without redeploying; if unset, auto-selects best free vision model
 NEXT_PUBLIC_SITE_URL=http://localhost:3000     # set to production domain on Vercel
-# PAWAPAY_JWT=               # uncomment when enabling payments
-# PAWAPAY_WEBHOOK_SECRET=    # from pawaPay dashboard → Webhooks; required for signature verification
+# PAWAPAY_API_KEY=            # from pawaPay dashboard → API Keys
+# PAWAPAY_MODE=sandbox       # "sandbox" (default) or "live"
+# PAWAPAY_WEBHOOK_PUBLIC_KEY="-----BEGIN PUBLIC KEY-----\n..."  # from pawaPay dashboard → Webhooks → Public Key
 # For Playwright E2E tests:
 # SUPABASE_SERVICE_ROLE_KEY=
 # E2E_TEST_EMAIL=
@@ -69,7 +70,7 @@ MENUZAI is an AI-powered SaaS platform for restaurant menu digitization. Stack: 
 | `/dashboard/editor` | Yes | WYSIWYG menu editor — 3-panel layout with device frame preview |
 | `/dashboard/analytics` | Yes | Menu performance charts (views, conversions) via recharts |
 | `/dashboard/menus` | Yes | List, create, and switch between menus |
-| `/dashboard/orders` | Yes | WhatsApp order history |
+| `/dashboard/orders` | Yes | Real-time staff panel — live order stream (Supabase postgres_changes) + waiter pager (Supabase broadcast channel `table_requests:{restaurantId}`) |
 | `/dashboard/qr-codes` | Yes | Generate custom QR codes with logo overlay |
 | `/dashboard/settings` | Yes | Restaurant and account settings, plan upgrade/downgrade |
 | `/dashboard/templates` | Yes | Choose pre-designed menu templates (6 templates, live-rendered) |
@@ -84,8 +85,8 @@ MENUZAI is an AI-powered SaaS platform for restaurant menu digitization. Stack: 
 | `/api/extract-menu` | POST | Image → OpenRouter LLM → parsed menu JSON; auto-selects best free vision model if `OPENROUTER_MODEL` not set; rate-limited 5 req/IP/min (in-memory) |
 | `/api/auth/callback` | GET | Supabase OAuth redirect handler |
 | `/api/analytics/summary` | GET | Aggregated analytics from `analytics_events` table |
-| `/api/payments/pawapay` | POST | Payment initiation; falls back to simulation if `PAWAPAY_JWT` not set |
-| `/api/webhooks/pawapay` | POST | Payment webhook; verifies `X-Pawapay-Signature` HMAC-SHA256 against `PAWAPAY_WEBHOOK_SECRET` |
+| `/api/payments/pawapay` | POST | Payment initiation; falls back to simulation if `PAWAPAY_API_KEY` not set |
+| `/api/webhooks/pawapay` | POST | Payment webhook; verifies `X-Pawapay-Signature` RSA-SHA256 against `PAWAPAY_WEBHOOK_PUBLIC_KEY` |
 | `/api/ai-waiter` | POST | AI-powered waiter/recommendation feature |
 | `/api/notifications/order` | POST | Order notification handler |
 | `/api/plan/change` | POST | Subscription plan upgrade/downgrade |
@@ -118,13 +119,18 @@ Migrations live in `app/supabase/migrations/` — run them in order in the Supab
 | `007_staff_roles.sql` | `restaurant_staff` table (owner/manager/staff roles), RLS, backfills existing restaurant owners |
 | `008_get_user_by_email.sql` | `get_user_id_by_email()` RPC (security definer); callable by `authenticated` and `service_role` only |
 | `009_customer_reviews.sql` | `reviews` table — public insert, staff-only select via RLS |
+| `010_fix_rls_recursion.sql` | Fixes mutual RLS recursion via a `SECURITY DEFINER` helper function |
+| `011_fix_menus_rls_and_autosave.sql` | Fixes menus RLS for auto-save (upsert without `restaurant_id`) and reliability |
+| `012_enable_realtime_orders.sql` | Adds `orders` table to the `supabase_realtime` publication |
+| `013_orders_customer_email.sql` | Adds `customer_email` column to `orders`; adds column comments for all statuses |
+| `014_platform_settings.sql` | `platform_settings` table — single `'global'` row for AI provider/model config; service_role only |
 
 Key tables:
 
 - **`restaurants`** — one row per user, created on first login. Has `onboarded boolean` checked by dashboard layout.
 - **`menus`** — many per restaurant. `categories` and `items` are JSONB arrays. `status` is `'draft' | 'published'`. Has a legacy `restaurant_name` column (nullable, unused — do not rely on it).
 - **`analytics_events`** — fired client-side via `app/src/lib/analytics.ts` (fire-and-forget, no error handling by design).
-- **`orders`** — created via WhatsApp flow. `status` can be `confirmed` or `completed`; use `POST /api/orders/confirm` to transition.
+- **`orders`** — created via WhatsApp flow. `status`: `pending` → `preparing` → `confirmed` → `cancelled`. Use `POST /api/orders/confirm` to mark ready (sets `confirmed`, decrements stock). `preparing` and `cancelled` are set directly via Supabase client. Also stores `customer_email` (added in migration 013) for Resend receipt emails.
 - **`platform_settings`** — single row ('global') managing global AI provider and model orchestration.
 - **`restaurant_staff`** — RBAC join table: `(restaurant_id, user_id, role)`. Roles: `owner`, `manager`, `staff`. Unique per `(restaurant_id, user_id)`. Backfilled from `restaurants.user_id` on migration.
 - **`reviews`** — customer reviews: `(restaurant_id, rating 1–5, customer_name?, comment?, order_id?)`. Open insert, staff-only read.
@@ -252,7 +258,7 @@ The `restaurants` table stores the current plan tier; check `canCreateMenu()`, `
 
 ### Payments
 
-`/api/payments/pawapay` and `/api/webhooks/pawapay` exist but the actual API calls are commented out — they return a simulated success response. To enable: set `PAWAPAY_JWT`, uncomment the fetch block in the route, and implement webhook signature verification.
+`/api/payments/pawapay` and `/api/webhooks/pawapay` are fully live-capable. Set `PAWAPAY_API_KEY` to activate real payments; without it the payment route returns a simulated success. The webhook route verifies `X-Pawapay-Signature` using RSA-SHA256 with `PAWAPAY_WEBHOOK_PUBLIC_KEY` and sends an upgrade confirmation email via Resend on `COMPLETED` status. Set `PAWAPAY_MODE=live` for production (defaults to sandbox).
 
 ### Other
 

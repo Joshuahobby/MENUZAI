@@ -27,8 +27,8 @@ export default function QRCodesPage() {
   const baseUrl = typeof window !== "undefined" ? window.location.origin : "https://menuzai.com";
   
   const [tableNumber, setTableNumber] = useState("");
-  const menuUrl = menuSlug && menuStatus === "published" 
-    ? `${baseUrl}/menu/${menuSlug}${tableNumber ? `?table=${encodeURIComponent(tableNumber)}` : ''}?src=qr` 
+  const menuUrl = menuSlug && menuStatus === "published"
+    ? `${baseUrl}/menu/${menuSlug}?${tableNumber ? `table=${encodeURIComponent(tableNumber)}&` : ""}src=qr`
     : "";
 
   const [posterData, setPosterData] = useState<QRPosterData>({
@@ -52,6 +52,11 @@ export default function QRCodesPage() {
       primaryColor: menuStyle.primaryColor || "#FF6B00",
     }));
   }, [menuStyle.logoUrl, menuStyle.primaryColor]);
+
+  // Keep tableNumber in posterData in sync with the input
+  useEffect(() => {
+    setPosterData(prev => ({ ...prev, tableNumber: tableNumber || undefined }));
+  }, [tableNumber]);
 
   const posterRef = useRef<HTMLDivElement>(null);
   const [isExporting, setIsExporting] = useState(false);

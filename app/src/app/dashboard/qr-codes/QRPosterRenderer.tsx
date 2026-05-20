@@ -24,6 +24,7 @@ export function QRPosterRenderer({ data, url, className = "", id }: QRPosterRend
     textColor,
     qrColor,
     pageSize,
+    tableNumber,
   } = data;
 
   const isA4 = pageSize === "A4";
@@ -77,7 +78,7 @@ export function QRPosterRenderer({ data, url, className = "", id }: QRPosterRend
                 {/* Decorative Sparkles */}
                 <span className="material-symbols-outlined absolute -top-4 -left-4 text-primary opacity-30 text-xl">star_rate</span>
                 <span className="material-symbols-outlined absolute -bottom-4 -right-4 text-primary opacity-30 text-xl">star_rate</span>
-                
+
                 <QRCodeSVG
                   value={url}
                   size={isA4 ? 350 : 140}
@@ -85,6 +86,11 @@ export function QRPosterRenderer({ data, url, className = "", id }: QRPosterRend
                   level="H"
                   includeMargin={true}
                 />
+                {tableNumber && (
+                  <div className={`mt-3 ${isA4 ? 'py-3 px-8 text-xl' : 'py-1.5 px-4 text-[10px]'} rounded-full font-black uppercase tracking-widest text-white text-center qp-primary-bg`}>
+                    Table {tableNumber}
+                  </div>
+                )}
               </div>
 
               {footer && (
@@ -139,6 +145,11 @@ export function QRPosterRenderer({ data, url, className = "", id }: QRPosterRend
                 <div className={`${isA4 ? 'mt-8 py-3 px-10' : 'mt-5 py-2 px-8'} bg-black rounded-full shadow-lg shadow-black/20 group-hover:scale-105 transition-transform`}>
                   <span className={`${isA4 ? 'text-lg' : 'text-[8px]'} font-black text-white uppercase tracking-[0.3em]`}>Scan Now</span>
                 </div>
+                {tableNumber && (
+                  <div className={`mt-3 ${isA4 ? 'py-2 px-8 text-lg' : 'py-1 px-4 text-[8px]'} rounded-full font-black uppercase tracking-widest text-center qp-primary-bg`}>
+                    <span className="text-white">Table {tableNumber}</span>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -190,6 +201,11 @@ export function QRPosterRenderer({ data, url, className = "", id }: QRPosterRend
 
               <div className="text-center">
                 <p className="text-xs font-black mb-3 qp-primary-color">SCAN TO VIEW</p>
+                {tableNumber && (
+                  <div className={`inline-block mb-3 ${isA4 ? 'py-2 px-8 text-xl' : 'py-1 px-4 text-[9px]'} rounded-full font-black uppercase tracking-widest text-white qp-primary-bg`}>
+                    Table {tableNumber}
+                  </div>
+                )}
                 {footer && (
                   <p className="text-[9px] font-medium opacity-60 leading-tight px-6">
                     {footer}
@@ -211,6 +227,7 @@ export function QRPosterRenderer({ data, url, className = "", id }: QRPosterRend
       <style jsx>{`
         .qp-text-color { color: ${textColor}; }
         .qp-primary-color { color: ${primaryColor}; }
+        .qp-primary-bg { background-color: ${primaryColor}; }
       `}</style>
     </div>
   );

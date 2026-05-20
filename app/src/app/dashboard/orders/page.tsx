@@ -12,6 +12,7 @@ import { ResponsiveContainer, AreaChart, Area } from "recharts";
 interface OrderRow {
   id: string;
   customer_name: string | null;
+  customer_email: string | null;
   table_number: string | null;
   total: number;
   status: "pending" | "confirmed" | "preparing" | "cancelled";
@@ -444,6 +445,12 @@ export default function OrdersPage() {
                             <>
                               <span className="text-outline-variant">·</span>
                               <span className="font-bold text-on-surface">Table {order.table_number}</span>
+                            </>
+                          )}
+                          {order.customer_email && (
+                            <>
+                              <span className="text-outline-variant">·</span>
+                              <span className="truncate max-w-[120px]">{order.customer_email}</span>
                             </>
                           )}
                         </div>

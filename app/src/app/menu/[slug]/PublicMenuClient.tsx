@@ -98,7 +98,7 @@ export default function PublicMenuClient(props: PublicMenuClientProps) {
     
     try {
       const channel = supabase.channel(`table_requests:${restaurantId}`);
-      // Connect and send
+      // Connect, send, then immediately clean up — this is fire-and-forget
       channel.subscribe(async (status) => {
         if (status === 'SUBSCRIBED') {
           await channel.send({
@@ -113,6 +113,7 @@ export default function PublicMenuClient(props: PublicMenuClientProps) {
               status: "pending"
             }
           });
+          supabase.removeChannel(channel);
           toast.success("Assistance request sent to staff! 🛎️");
           setIsServiceOpen(false);
           setServiceMessage("");
