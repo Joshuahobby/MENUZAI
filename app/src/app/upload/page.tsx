@@ -6,12 +6,17 @@ import { useRouter } from "next/navigation";
 import { useMenu } from "@/context/MenuContext";
 import { templates } from "@/data/mockData";
 import type { MenuItem } from "@/types/menu";
+import * as pdfjsLib from "pdfjs-dist";
+
+if (typeof window !== "undefined") {
+  pdfjsLib.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjsLib.version}/build/pdf.worker.min.mjs`;
+}
 
 type UploadState = "idle" | "extracting" | "done" | "error";
 
 const MAX_FILES = 5;
 const MAX_SIZE = 10 * 1024 * 1024;
-const VALID_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+const VALID_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif", "application/pdf"];
 // Mutable — SSE events overwrite index 0 with live server step labels
 const EXTRACTING_STEPS = [
   "Preparing extraction...",
@@ -31,6 +36,7 @@ export default function UploadPage() {
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const router = useRouter();
   const [dragActive, setDragActive] = useState(false);
+  const [isProcessingPdf, setIsProcessingPdf] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
   // Rotate extraction messages
@@ -46,12 +52,52 @@ export default function UploadPage() {
     };
   }, [state]);
 
-  const addFiles = (incoming: File[]) => {
-    const valid = incoming.filter(f => VALID_TYPES.includes(f.type) && f.size <= MAX_SIZE);
-    setSelectedFiles(prev => {
-      const merged = [...prev, ...valid];
-      return merged.slice(0, MAX_FILES);
-    });
+  const addFiles = async (incoming: File[]) => {
+    setIsProcessingPdf(true);
+    try {
+      const valid = incoming.filter(f => VALID_TYPES.includes(f.type) && f.size <= MAX_SIZE);
+      const processedFiles: File[] = [];
+
+      for (const file of valid) {
+        if (file.type === "application/pdf") {
+          const arrayBuffer = await file.arrayBuffer();
+          const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+          const numPages = Math.min(pdf.numPages, MAX_FILES);
+
+          for (let i = 1; i <= numPages; i++) {
+            const page = await pdf.getPage(i);
+            const viewport = page.getViewport({ scale: 2.0 });
+
+            const canvas = document.createElement("canvas");
+            const context = canvas.getContext("2d");
+            if (!context) continue;
+
+            canvas.height = viewport.height;
+            canvas.width = viewport.width;
+
+            await page.render({ canvasContext: context, viewport }).promise;
+
+            const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, "image/jpeg", 0.9));
+            if (blob) {
+              processedFiles.push(new File([blob], `${file.name.replace(/\.pdf$/i, '')}_page${i}.jpg`, { type: "image/jpeg" }));
+            }
+          }
+        } else {
+          processedFiles.push(file);
+        }
+      }
+
+      setSelectedFiles(prev => {
+        const merged = [...prev, ...processedFiles];
+        return merged.slice(0, MAX_FILES);
+      });
+    } catch (err) {
+      console.error("PDF processing failed", err);
+      setErrorMsg("Failed to read PDF. Please try a different file or use an image.");
+      setState("error");
+    } finally {
+      setIsProcessingPdf(false);
+    }
   };
 
   const removeFile = (index: number) => {
@@ -229,7 +275,7 @@ export default function UploadPage() {
                   type="file"
                   multiple
                   className="hidden"
-                  accept=".jpg,.jpeg,.png,.webp,.gif"
+                  accept=".jpg,.jpeg,.png,.webp,.gif,.pdf"
                   onChange={onFileChange}
                   id="menu-upload"
                   title="Menu File Upload"
@@ -237,11 +283,11 @@ export default function UploadPage() {
                 />
                 <label htmlFor="menu-upload" className="cursor-pointer flex flex-col items-center">
                   <span className="material-symbols-outlined text-primary text-5xl mb-4">cloud_upload</span>
-                  <p className="font-[var(--font-headline)] font-bold text-on-surface text-lg">Drop menu photos here</p>
-                  <p className="text-secondary text-sm">JPG, PNG, WebP or GIF · Max 10MB each · Up to {MAX_FILES} images</p>
+                  <p className="font-[var(--font-headline)] font-bold text-on-surface text-lg">Drop menu photos or PDF here</p>
+                  <p className="text-secondary text-sm">JPG, PNG, WebP, GIF or PDF · Max 10MB each</p>
                 </label>
-                <button type="button" className="mt-6 px-6 py-3 bg-gradient-to-tr from-primary to-primary-container text-white font-bold rounded-xl shadow-lg shadow-primary/20 active:scale-95 transition-all">
-                  Browse Files
+                <button type="button" disabled={isProcessingPdf} className="mt-6 px-6 py-3 bg-gradient-to-tr from-primary to-primary-container text-white font-bold rounded-xl shadow-lg shadow-primary/20 active:scale-95 transition-all disabled:opacity-50">
+                  {isProcessingPdf ? "Processing PDF..." : "Browse Files"}
                 </button>
               </div>
 
