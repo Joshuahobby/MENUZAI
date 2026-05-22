@@ -6,11 +6,6 @@ import { useRouter } from "next/navigation";
 import { useMenu } from "@/context/MenuContext";
 import { templates } from "@/data/mockData";
 import type { MenuItem } from "@/types/menu";
-import * as pdfjsLib from "pdfjs-dist";
-
-if (typeof window !== "undefined") {
-  pdfjsLib.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjsLib.version}/build/pdf.worker.min.mjs`;
-}
 
 type UploadState = "idle" | "extracting" | "done" | "error";
 
@@ -60,6 +55,9 @@ export default function UploadPage() {
 
       for (const file of valid) {
         if (file.type === "application/pdf") {
+          const pdfjsLib = await import("pdfjs-dist");
+          pdfjsLib.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjsLib.version}/build/pdf.worker.min.mjs`;
+
           const arrayBuffer = await file.arrayBuffer();
           const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
           const numPages = Math.min(pdf.numPages, MAX_FILES);
