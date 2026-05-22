@@ -8,6 +8,10 @@ CREATE TABLE IF NOT EXISTS push_subscriptions (
 
 CREATE INDEX IF NOT EXISTS push_subscriptions_restaurant_idx ON push_subscriptions(restaurant_id);
 
+-- Unique index on (restaurant_id, endpoint) required by the upsert in /api/push/subscribe
+CREATE UNIQUE INDEX IF NOT EXISTS push_subscriptions_restaurant_endpoint_idx
+  ON push_subscriptions(restaurant_id, (subscription->>'endpoint'));
+
 -- Only the restaurant owner/staff can manage their own subscriptions
 ALTER TABLE push_subscriptions ENABLE ROW LEVEL SECURITY;
 
