@@ -114,7 +114,7 @@ export function useMenuBootstrap() {
         const { data: existingRestaurant, error: selectError, status: selectStatus } = await supabase
           .from("restaurants")
           .select("id, name, phone, plan, logo_url, onboarded, user_id")
-          // Get the restaurant the user has access to (via RLS)
+          .eq("user_id", user.id)
           .order("created_at", { ascending: true })
           .limit(1)
           .maybeSingle();
@@ -128,19 +128,7 @@ export function useMenuBootstrap() {
 
         if (existingRestaurant) {
           restoId = existingRestaurant.id;
-          
-          // Determine role
-          if (existingRestaurant.user_id === user.id) {
-            userRole = "owner";
-          } else {
-            const { data: staffData } = await supabase
-              .from("restaurant_staff")
-              .select("role")
-              .eq("restaurant_id", restoId)
-              .eq("user_id", user.id)
-              .maybeSingle();
-            userRole = (staffData?.role as "owner" | "manager" | "staff") ?? "staff";
-          }
+          userRole = "owner";
 
           if (!cancelled) {
             hydrate({

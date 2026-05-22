@@ -39,12 +39,22 @@ function LoginForm() {
         setConfirmationSent(true);
       }
     } else {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
 
       if (error) {
         setError(error.message);
-      } else {
-        router.push("/dashboard");
+      } else if (data.session) {
+        const { data: restaurant } = await supabase
+          .from('restaurants')
+          .select('onboarded')
+          .eq('user_id', data.session.user.id)
+          .maybeSingle();
+
+        if (restaurant?.onboarded) {
+          router.push("/dashboard");
+        } else {
+          router.push("/onboarding");
+        }
       }
     }
 
