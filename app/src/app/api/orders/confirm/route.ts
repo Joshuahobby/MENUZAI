@@ -111,5 +111,45 @@ export async function POST(req: Request) {
       .eq("id", order.menu_id);
   }
 
+  // Fire order notification email (fire-and-forget — don't block the response)
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
+  if (siteUrl) {
+    const notifItems = orderedItems
+      .map((o) => {
+        const mi = menuItems.find((m) => m.id === o.id);
+        return mi ? { name: mi.name, quantity: o.quantity, price: mi.price } : null;
+      })
+      .filter(Boolean);
+
+    const total = notifItems.reduce((sum, i) => sum + i!.price * i!.quantity, 0);
+
+    const fullOrder = order as Record<string, unknown>;
+    fetch(`${siteUrl}/api/notifications/order`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        restaurantId,
+        items: notifItems,
+        total,
+        currency: fullOrder.currency ?? "RWF",
+        customerName: fullOrder.customer_name ?? null,
+        customerEmail: fullOrder.customer_email ?? null,
+        tableNumber: fullOrder.table_number ?? null,
+      }),
+    }).catch((e) => console.error("Order notification failed:", e));
+
+    const itemCount = orderedItems.length;
+    fetch(`${siteUrl}/api/push/send`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        restaurantId,
+        title: "Order Ready",
+        body: `${itemCount} item${itemCount !== 1 ? "s" : ""} marked ready for pickup`,
+        url: "/dashboard/orders",
+      }),
+    }).catch((e) => console.error("Push notification failed:", e));
+  }
+
   return NextResponse.json({ success: true, stockUpdated: changed });
 }

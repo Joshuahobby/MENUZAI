@@ -47,3 +47,25 @@ export function trackQRScan(menuId: string, restaurantId: string) {
     session_id: getSessionId(),
   }).then(() => {});
 }
+
+export function trackAddToCart(menuId: string, restaurantId: string, itemId: string, itemName: string, price: number) {
+  supabase.from("analytics_events").insert({
+    menu_id: menuId,
+    restaurant_id: restaurantId,
+    event_type: "add_to_cart",
+    item_id: itemId,
+    item_name: itemName,
+    amount: price,
+    session_id: getSessionId(),
+  }).then(() => {});
+}
+
+export function trackCartAbandon(menuId: string, restaurantId: string, itemCount: number) {
+  supabase.from("analytics_events").insert({
+    menu_id: menuId,
+    restaurant_id: restaurantId,
+    event_type: "cart_abandon",
+    amount: itemCount,
+    session_id: getSessionId(),
+  }).then(() => {});
+}

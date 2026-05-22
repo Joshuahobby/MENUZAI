@@ -108,6 +108,40 @@ self.addEventListener('activate', (event) => {
   );
 });
 
+// ── Push Notifications ─────────────────────────────────────────────────────
+self.addEventListener('push', (event) => {
+  let data = { title: 'New Order', body: 'A new order has been placed.', url: '/dashboard/orders' };
+  try {
+    if (event.data) data = { ...data, ...event.data.json() };
+  } catch {}
+
+  event.waitUntil(
+    self.registration.showNotification(data.title, {
+      body: data.body,
+      icon: '/icon-192.png',
+      badge: '/icon-192.png',
+      data: { url: data.url },
+      tag: 'new-order',
+      renotify: true,
+    })
+  );
+});
+
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  const url = event.notification.data?.url ?? '/dashboard/orders';
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
+      for (const client of clientList) {
+        if (client.url.includes('/dashboard') && 'focus' in client) {
+          return client.navigate(url).then((c) => c.focus());
+        }
+      }
+      return clients.openWindow(url);
+    })
+  );
+});
+
 // ── Fetch ──────────────────────────────────────────────────────────────────
 self.addEventListener('fetch', (event) => {
   const { request } = event;

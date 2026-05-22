@@ -6,6 +6,7 @@ import NextImage from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { useMenu } from "@/context/MenuContext";
+import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
 
 const getNavLinks = (role: "owner" | "manager" | "staff" | null) => {
   const allLinks = [
@@ -71,6 +72,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 
   return (
     <div className="min-h-screen bg-surface text-on-surface" data-auth-ready={authReady ? "true" : undefined}>
+      <PWAInstallPrompt />
       {/* Desktop Sidebar */}
       <aside className={`hidden lg:flex fixed left-0 top-0 h-full flex-col py-6 z-50 bg-surface border-r border-surface-container font-[var(--font-headline)] text-sm font-medium transition-all duration-300 ${collapsed ? "w-16" : "w-64"}`}>
         {/* Header */}

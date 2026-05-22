@@ -353,17 +353,32 @@ export default function ReviewsPage() {
             </div>
           ))}
         </div>
-      ) : filtered.length === 0 ? (
+      ) : reviews.length === 0 ? (
         <div className="flex flex-col items-center justify-center text-center py-24 bg-surface-container-lowest border border-surface-container/50 rounded-[2.5rem]">
           <div className="w-20 h-20 bg-surface-container-low rounded-3xl flex items-center justify-center mb-6 border border-outline-variant/10 text-secondary">
             <span className="material-symbols-outlined text-4xl">rate_review</span>
           </div>
-          <h2 className="text-xl font-[var(--font-headline)] font-bold mb-2">
-            No matching reviews
-          </h2>
+          <h2 className="text-xl font-[var(--font-headline)] font-bold mb-2">No reviews yet</h2>
+          <p className="text-secondary text-sm max-w-sm">
+            Share your menu link with customers to start collecting feedback. Reviews appear here automatically after orders.
+          </p>
+        </div>
+      ) : filtered.length === 0 ? (
+        <div className="flex flex-col items-center justify-center text-center py-24 bg-surface-container-lowest border border-surface-container/50 rounded-[2.5rem]">
+          <div className="w-20 h-20 bg-surface-container-low rounded-3xl flex items-center justify-center mb-6 border border-outline-variant/10 text-secondary">
+            <span className="material-symbols-outlined text-4xl">filter_alt_off</span>
+          </div>
+          <h2 className="text-xl font-[var(--font-headline)] font-bold mb-2">No reviews match your filters</h2>
           <p className="text-secondary text-sm max-w-sm">
             Try clearing your rating or sentiment filters to view all customer reviews.
           </p>
+          <button
+            type="button"
+            onClick={() => { setFilterRating(null); setFilterSentiment(null); }}
+            className="mt-5 px-5 py-2.5 bg-primary/10 text-primary font-bold rounded-xl text-sm hover:bg-primary/20 transition-colors"
+          >
+            Clear Filters
+          </button>
         </div>
       ) : (
         <div className="space-y-6">

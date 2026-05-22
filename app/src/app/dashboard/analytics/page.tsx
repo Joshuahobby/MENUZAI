@@ -7,7 +7,8 @@ import { formatPrice, formatEventType, formatRelativeTime } from "@/lib/utils";
 import { SkeletonKpi, SkeletonRow } from "@/components/Skeleton";
 
 interface AnalyticsData {
-  kpis: { views: number; orders: number; revenue: number; avgOrderValue: number; conversionRate: number };
+  kpis: { views: number; orders: number; revenue: number; avgOrderValue: number; conversionRate: number; addToCarts?: number; cartAbandons?: number; abandonRate?: number };
+  funnel?: { label: string; count: number }[];
   topItems: { name: string; count: number }[];
   peakHours: { hour: number; count: number }[];
   recentEvents: { type: string; item: string | null; amount: number | null; time: string }[];
@@ -93,7 +94,8 @@ export default function AnalyticsPage() {
     );
   }
 
-  const kpis = data?.kpis ?? { views: 0, orders: 0, revenue: 0, avgOrderValue: 0, conversionRate: 0 };
+  const kpis = data?.kpis ?? { views: 0, orders: 0, revenue: 0, avgOrderValue: 0, conversionRate: 0, addToCarts: 0, cartAbandons: 0, abandonRate: 0 };
+  const funnel = data?.funnel ?? [];
   const topItems = data?.topItems ?? [];
   const peakHours = data?.peakHours ?? [];
   const recentEvents = data?.recentEvents ?? [];
@@ -173,6 +175,9 @@ export default function AnalyticsPage() {
           { label: "Total Orders", value: kpis.orders.toLocaleString(), icon: "receipt_long" },
           { label: "Revenue", value: formatPrice(kpis.revenue, currency), icon: "payments" },
           { label: "Conversion Rate", value: `${kpis.conversionRate.toFixed(1)}%`, icon: "conversion_path" },
+          ...(typeof kpis.abandonRate === "number" && kpis.addToCarts ? [
+            { label: "Cart Abandonment", value: `${kpis.abandonRate.toFixed(1)}%`, icon: "remove_shopping_cart" },
+          ] : []),
         ].map((kpi) => (
           <div key={kpi.label} className="bg-surface-container-lowest p-6 rounded-3xl shadow-sm border border-surface-container/50">
             <div className="flex items-center gap-2 mb-3">
@@ -221,6 +226,52 @@ export default function AnalyticsPage() {
               <Area type="monotone" dataKey="views" stroke="#FF6B00" strokeWidth={2} fill="url(#viewsGradient)" dot={false} activeDot={{ r: 4, fill: "#FF6B00" }} />
             </AreaChart>
           </ResponsiveContainer>
+        </div>
+      )}
+
+      {/* Conversion Funnel */}
+      {funnel.length > 0 && funnel[0].count > 0 && (
+        <div className="mb-8 bg-surface-container-lowest p-8 rounded-3xl border border-surface-container/50 shadow-sm">
+          <div className="flex justify-between items-center mb-6">
+            <div>
+              <h3 className="text-xl font-[var(--font-headline)] font-bold">Conversion Funnel</h3>
+              <p className="text-xs text-secondary font-medium mt-1">Customer journey from menu view to order</p>
+            </div>
+          </div>
+          <div className="space-y-4">
+            {funnel.map((step, i) => {
+              const pct = funnel[0].count > 0 ? (step.count / funnel[0].count) * 100 : 0;
+              const prevPct = i > 0 && funnel[i - 1].count > 0 ? (step.count / funnel[i - 1].count) * 100 : 100;
+              return (
+                <div key={step.label}>
+                  <div className="flex items-center justify-between mb-1.5 text-sm">
+                    <div className="flex items-center gap-2">
+                      <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-black text-white ${i === 0 ? "bg-primary" : "bg-primary/60"}`}>{i + 1}</span>
+                      <span className="font-bold">{step.label}</span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <span className="text-secondary text-xs font-medium">{step.count.toLocaleString()}</span>
+                      {i > 0 && (
+                        <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${prevPct >= 50 ? "bg-tertiary/10 text-tertiary" : "bg-error/10 text-error"}`}>
+                          {prevPct.toFixed(0)}% of prev
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  <div className="h-2.5 w-full bg-surface-container rounded-full overflow-hidden">
+                    <div
+                      className="h-full rounded-full transition-all duration-700"
+                      style={{
+                        width: `${pct}%`,
+                        background: `linear-gradient(to right, var(--color-primary), var(--color-primary-container))`,
+                        opacity: 1 - i * 0.15,
+                      }}
+                    />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </div>
       )}
 

@@ -36,6 +36,9 @@ export default function OnboardingPage() {
   const [name, setName] = useState("");
   const [tagline, setTagline] = useState("");
   const [hours, setHours] = useState("");
+  const [category, setCategory] = useState("");
+  const [currency, setCurrency] = useState("RWF");
+  const [termsAccepted, setTermsAccepted] = useState(false);
 
   // Step 2: WhatsApp
   const [phone, setPhone] = useState("");
@@ -73,10 +76,18 @@ export default function OnboardingPage() {
     setSaving(true);
 
     // Ensure restaurant row exists, then update
+    const restaurantPayload = {
+      name: name.trim(),
+      tagline: tagline.trim(),
+      hours: hours.trim(),
+      category: category || null,
+      terms_accepted_at: new Date().toISOString(),
+    };
+
     if (restaurantId) {
       const { error: err } = await supabase
         .from("restaurants")
-        .update({ name: name.trim(), tagline: tagline.trim(), hours: hours.trim() })
+        .update(restaurantPayload)
         .eq("id", restaurantId);
 
       if (err) {
@@ -85,18 +96,9 @@ export default function OnboardingPage() {
         return;
       }
     } else if (userId) {
-      // Restaurant might not be bootstrapped yet — upsert
       const { error: err } = await supabase
         .from("restaurants")
-        .upsert(
-          {
-            user_id: userId,
-            name: name.trim(),
-            tagline: tagline.trim(),
-            hours: hours.trim(),
-          },
-          { onConflict: "user_id" }
-        );
+        .upsert({ user_id: userId, ...restaurantPayload }, { onConflict: "user_id" });
 
       if (err) {
         setError("Failed to save. Please try again.");
@@ -141,11 +143,27 @@ export default function OnboardingPage() {
   const finishOnboarding = async (destination: "upload" | "editor") => {
     setSaving(true);
 
-    // Mark onboarding complete
+    // Mark onboarding complete and propagate chosen currency to the active menu style
     await supabase
       .from("restaurants")
       .update({ onboarded: true })
       .eq("user_id", userId!);
+
+    // Best-effort: update the bootstrapped menu's currency so the editor starts correct
+    if (restaurantId) {
+      const { data: menu } = await supabase
+        .from("menus")
+        .select("id, style")
+        .eq("restaurant_id", restaurantId)
+        .order("updated_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (menu?.id) {
+        const updatedStyle = { ...(menu.style as object ?? {}), currency };
+        await supabase.from("menus").update({ style: updatedStyle }).eq("id", menu.id);
+      }
+    }
 
     // Sync context so the dashboard guard sees onboarded = true immediately
     // without waiting for a full re-bootstrap
@@ -266,6 +284,63 @@ export default function OnboardingPage() {
                     placeholder="e.g. Mon-Sat 7am - 10pm"
                   />
                 </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-xs font-bold text-secondary uppercase tracking-[0.2em] mb-2 block" htmlFor="ob-category">Restaurant Type</label>
+                    <select
+                      id="ob-category"
+                      className="w-full bg-surface-container-lowest border border-outline-variant/20 rounded-xl py-3.5 px-4 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                      value={category}
+                      onChange={(e) => setCategory(e.target.value)}
+                    >
+                      <option value="">Select type</option>
+                      <option value="cafe">Café</option>
+                      <option value="fine-dining">Fine Dining</option>
+                      <option value="fast-food">Fast Food</option>
+                      <option value="street-food">Street Food</option>
+                      <option value="bar">Bar</option>
+                      <option value="bakery">Bakery</option>
+                      <option value="other">Other</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-xs font-bold text-secondary uppercase tracking-[0.2em] mb-2 block" htmlFor="ob-currency">Currency</label>
+                    <select
+                      id="ob-currency"
+                      className="w-full bg-surface-container-lowest border border-outline-variant/20 rounded-xl py-3.5 px-4 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                      value={currency}
+                      onChange={(e) => setCurrency(e.target.value)}
+                    >
+                      <option value="RWF">RWF — Rwandan Franc</option>
+                      <option value="UGX">UGX — Ugandan Shilling</option>
+                      <option value="TZS">TZS — Tanzanian Shilling</option>
+                      <option value="KES">KES — Kenyan Shilling</option>
+                      <option value="NGN">NGN — Nigerian Naira</option>
+                      <option value="GHS">GHS — Ghanaian Cedi</option>
+                      <option value="XOF">XOF — West African Franc</option>
+                      <option value="ZAR">ZAR — South African Rand</option>
+                      <option value="ETB">ETB — Ethiopian Birr</option>
+                      <option value="EGP">EGP — Egyptian Pound</option>
+                      <option value="USD">USD — US Dollar</option>
+                      <option value="EUR">EUR — Euro</option>
+                      <option value="GBP">GBP — British Pound</option>
+                    </select>
+                  </div>
+                </div>
+                <label className="flex items-start gap-3 cursor-pointer group">
+                  <input
+                    type="checkbox"
+                    checked={termsAccepted}
+                    onChange={(e) => setTermsAccepted(e.target.checked)}
+                    className="mt-0.5 w-4 h-4 accent-primary shrink-0"
+                  />
+                  <span className="text-sm text-secondary leading-snug">
+                    I agree to the{" "}
+                    <a href="/terms" target="_blank" className="text-primary font-medium hover:underline">Terms of Service</a>
+                    {" "}and{" "}
+                    <a href="/privacy" target="_blank" className="text-primary font-medium hover:underline">Privacy Policy</a>
+                  </span>
+                </label>
               </div>
 
               {error && (
@@ -274,8 +349,8 @@ export default function OnboardingPage() {
 
               <button
                 onClick={saveStep1}
-                disabled={saving}
-                className="w-full py-4 bg-gradient-to-br from-primary to-primary-container rounded-2xl font-bold text-white shadow-lg shadow-primary/20 hover:opacity-90 transition-all active:scale-[0.98] disabled:opacity-60 text-base"
+                disabled={saving || !termsAccepted}
+                className="w-full py-4 bg-gradient-to-br from-primary to-primary-container rounded-2xl font-bold text-white shadow-lg shadow-primary/20 hover:opacity-90 transition-all active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed text-base"
               >
                 {saving ? "Saving..." : "Continue"}
               </button>

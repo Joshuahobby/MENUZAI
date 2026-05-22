@@ -87,6 +87,12 @@ export function CheckoutModal({ isOpen, onClose, planName, priceAmount }: Checko
           </div>
         ) : (
           <>
+            {process.env.NEXT_PUBLIC_PAWAPAY_MODE === "sandbox" && (
+              <div className="mb-5 flex items-center gap-2.5 bg-amber-50 border border-amber-200 text-amber-800 rounded-xl px-4 py-3 text-xs font-medium">
+                <span className="material-symbols-outlined text-[16px] text-amber-500">science</span>
+                Test Mode — no real money will be charged
+              </div>
+            )}
             <div className="mb-8">
               <h2 className="text-2xl font-[var(--font-headline)] font-black tracking-tight mb-2">Checkout</h2>
               <p className="text-secondary text-sm">You are upgrading to the <span className="font-bold text-primary">{planName}</span> plan.</p>

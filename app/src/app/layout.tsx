@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
 import { Plus_Jakarta_Sans, Inter } from "next/font/google";
-import Script from "next/script";
 import "./globals.css";
 import { MenuProvider } from "@/context/MenuContext";
 import { CartProvider } from "@/contexts/CartContext";
 import { Toaster } from "sonner";
 import { ConfirmModal, PromptModal } from "@/components/Modals";
+import { SWRegister } from "@/components/SWRegister";
 
 const plusJakartaSans = Plus_Jakarta_Sans({
   subsets: ["latin"],
@@ -101,19 +101,7 @@ export default function RootLayout({
                 },
               }}
             />
-            <Script
-              id="sw-register"
-              strategy="afterInteractive"
-              dangerouslySetInnerHTML={{
-                __html: `
-                  if ('serviceWorker' in navigator) {
-                    navigator.serviceWorker.register('/sw.js').catch(function(err) {
-                      console.log('ServiceWorker registration failed: ', err);
-                    });
-                  }
-                `,
-              }}
-            />
+            <SWRegister />
           </CartProvider>
         </MenuProvider>
       </body>

@@ -1,9 +1,15 @@
 "use client";
 
-import React, { createContext, useContext, useState, useCallback, ReactNode } from "react";
+import React, { createContext, useContext, useState, useCallback, useEffect, useRef, ReactNode } from "react";
 import type { MenuItem, CartItem } from "@/types/menu";
+import { trackAddToCart, trackCartAbandon } from "@/lib/analytics";
 
 export type { CartItem };
+
+interface AnalyticsProps {
+  menuId: string;
+  restaurantId: string;
+}
 
 interface CartContextType {
   items: CartItem[];
@@ -13,18 +19,28 @@ interface CartContextType {
   clearCart: () => void;
   totalItems: number;
   totalPrice: number;
+  setAnalyticsProps: (props: AnalyticsProps) => void;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export function CartProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([]);
+  const analyticsRef = useRef<AnalyticsProps | null>(null);
+
+  const setAnalyticsProps = useCallback((props: AnalyticsProps) => {
+    analyticsRef.current = props;
+  }, []);
 
   const addItem = useCallback((item: MenuItem) => {
     setItems((prev) => {
       const existing = prev.find((i) => i.id === item.id);
       if (existing) {
         return prev.map((i) => (i.id === item.id ? { ...i, quantity: i.quantity + 1 } : i));
+      }
+      // Only track the first add (not quantity bumps) to avoid inflating add_to_cart counts
+      if (analyticsRef.current) {
+        trackAddToCart(analyticsRef.current.menuId, analyticsRef.current.restaurantId, item.id, item.name, item.price);
       }
       return [...prev, { ...item, quantity: 1 }];
     });
@@ -44,11 +60,22 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const clearCart = useCallback(() => setItems([]), []);
 
+  // Track cart abandonment when the user leaves the page with items in the cart
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      if (items.length > 0 && analyticsRef.current) {
+        trackCartAbandon(analyticsRef.current.menuId, analyticsRef.current.restaurantId, items.length);
+      }
+    };
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  }, [items.length]);
+
   const totalItems = items.reduce((sum, i) => sum + i.quantity, 0);
   const totalPrice = items.reduce((sum, i) => sum + i.price * i.quantity, 0);
 
   return (
-    <CartContext.Provider value={{ items, addItem, removeItem, updateQuantity, clearCart, totalItems, totalPrice }}>
+    <CartContext.Provider value={{ items, addItem, removeItem, updateQuantity, clearCart, totalItems, totalPrice, setAnalyticsProps }}>
       {children}
     </CartContext.Provider>
   );

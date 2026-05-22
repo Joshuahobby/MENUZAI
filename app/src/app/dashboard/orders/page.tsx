@@ -9,6 +9,13 @@ import type { CartItem } from "@/types/menu";
 import { Skeleton } from "@/components/Skeleton";
 import { ResponsiveContainer, AreaChart, Area } from "recharts";
 
+function urlBase64ToUint8Array(base64: string): ArrayBuffer {
+  const padding = "=".repeat((4 - (base64.length % 4)) % 4);
+  const b64 = (base64 + padding).replace(/-/g, "+").replace(/_/g, "/");
+  const raw = atob(b64);
+  return new Uint8Array([...raw].map((c) => c.charCodeAt(0))).buffer;
+}
+
 interface OrderRow {
   id: string;
   customer_name: string | null;
@@ -81,12 +88,48 @@ export default function OrdersPage() {
   const [now, setNow] = useState(0);
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [printingOrder, setPrintingOrder] = useState<OrderRow | null>(null);
+  const [notifPermission, setNotifPermission] = useState<NotificationPermission | null>(null);
   const initialLoadDone = useRef(false);
   const soundEnabledRef = useRef(soundEnabled);
 
   useEffect(() => {
     soundEnabledRef.current = soundEnabled;
   }, [soundEnabled]);
+
+  useEffect(() => {
+    if (typeof window !== "undefined" && "Notification" in window) {
+      setNotifPermission(Notification.permission);
+    }
+  }, []);
+
+  const enableNotifications = async () => {
+    if (!restaurantId || !("Notification" in window) || !("serviceWorker" in navigator)) return;
+    const permission = await Notification.requestPermission();
+    setNotifPermission(permission);
+    if (permission !== "granted") {
+      toast.error("Notification permission denied.");
+      return;
+    }
+    try {
+      const reg = await navigator.serviceWorker.ready;
+      const vapidKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+      if (!vapidKey) { toast.error("Push not configured (missing VAPID key)."); return; }
+      const sub = await reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(vapidKey),
+      });
+      const res = await fetch("/api/push/subscribe", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ subscription: sub }),
+      });
+      if (!res.ok) throw new Error("Subscribe API failed");
+      toast.success("Push notifications enabled!");
+    } catch (err) {
+      console.error("Push subscription failed:", err);
+      toast.error("Failed to enable push notifications.");
+    }
+  };
 
   useEffect(() => {
     if (printingOrder) {
@@ -302,18 +345,30 @@ export default function OrdersPage() {
         </div>
         
         <div className="flex items-center gap-3">
+          {notifPermission !== null && notifPermission !== "granted" && (
+            <button
+              type="button"
+              onClick={enableNotifications}
+              className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold bg-primary/10 text-primary hover:bg-primary/20 transition-all cursor-pointer"
+              title="Enable push notifications for new orders"
+            >
+              <span className="material-symbols-outlined text-sm">notifications</span>
+              <span className="hidden sm:inline">Enable Alerts</span>
+            </button>
+          )}
+
           <button
             onClick={() => setSoundEnabled(!soundEnabled)}
             className={`flex items-center justify-center w-10 h-10 rounded-xl transition-all cursor-pointer ${
               soundEnabled ? "bg-primary/10 text-primary" : "bg-surface-container text-secondary"
             }`}
-            title={soundEnabled ? "Mute notifications" : "Enable notifications"}
+            title={soundEnabled ? "Mute sound" : "Enable sound"}
           >
             <span className="material-symbols-outlined text-lg">
               {soundEnabled ? "volume_up" : "volume_off"}
             </span>
           </button>
-          
+
           <div className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold ${isLive ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400" : "bg-surface-container text-secondary"}`}>
             <span className={`w-2 h-2 rounded-full ${isLive ? "bg-emerald-500 animate-pulse" : "bg-secondary"}`} />
             {isLive ? "Live Sync Active" : "Connecting..."}

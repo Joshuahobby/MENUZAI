@@ -6,6 +6,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 This project uses **Next.js 16.2.1**, which contains breaking changes from earlier versions — APIs, conventions, and file structure may differ from training data. Read the relevant guide in `app/node_modules/next/dist/docs/` before writing any code that touches Next.js internals or routing.
 
+**Middleware is replaced by `proxy.ts`** — `app/src/proxy.ts` exports a `proxy()` function (not `middleware()`) that refreshes Supabase sessions on every request. This is the Next.js 16 convention; `middleware.ts` is deprecated.
+
 ## Commands
 
 All commands run from the `app/` directory:
@@ -39,14 +41,18 @@ All required variables are documented in `app/.env.example`. For local dev, crea
 ```env
 NEXT_PUBLIC_SUPABASE_URL=
 NEXT_PUBLIC_SUPABASE_ANON_KEY=
-OPENROUTER_API_KEY=          # from openrouter.ai
-OPENROUTER_MODEL=google/gemma-4-31b-it:free   # swap without redeploying; if unset, auto-selects best free vision model
-NEXT_PUBLIC_SITE_URL=http://localhost:3000     # set to production domain on Vercel
-# PAWAPAY_API_KEY=            # from pawaPay dashboard → API Keys
-# PAWAPAY_MODE=sandbox       # "sandbox" (default) or "live"
-# PAWAPAY_WEBHOOK_PUBLIC_KEY="-----BEGIN PUBLIC KEY-----\n..."  # from pawaPay dashboard → Webhooks → Public Key
+SUPABASE_SERVICE_ROLE_KEY=       # Required for admin tasks, emails, E2E tests
+OPENROUTER_API_KEY=              # from openrouter.ai
+OPENROUTER_MODEL=meta-llama/llama-3.2-11b-vision-instruct:free  # swap without redeploying; auto-selects best free vision model if unset
+NEXT_PUBLIC_SITE_URL=http://localhost:3000   # set to production domain on Vercel
+# ANTHROPIC_API_KEY=sk-ant-...   # set in Admin → AI Settings to switch provider to Anthropic
+# NEXT_PUBLIC_ADMIN_EMAILS=admin@menuzai.com,other@example.com  # comma-separated; gates /admin/settings
+# PAWAPAY_API_KEY=               # from pawaPay dashboard → API Keys
+# PAWAPAY_MODE=sandbox           # "sandbox" (default) or "live"
+# PAWAPAY_BASE_URL=              # override; auto-set from PAWAPAY_MODE if omitted
+# PAWAPAY_WEBHOOK_PUBLIC_KEY="-----BEGIN PUBLIC KEY-----\n..."
+# RESEND_API_KEY=re_...          # order confirmation & plan-upgrade emails
 # For Playwright E2E tests:
-# SUPABASE_SERVICE_ROLE_KEY=
 # E2E_TEST_EMAIL=
 # E2E_TEST_PASSWORD=
 # PLAYWRIGHT_BASE_URL=http://localhost:3000
@@ -71,9 +77,11 @@ MENUZAI is an AI-powered SaaS platform for restaurant menu digitization. Stack: 
 | `/dashboard/analytics` | Yes | Menu performance charts (views, conversions) via recharts |
 | `/dashboard/menus` | Yes | List, create, and switch between menus |
 | `/dashboard/orders` | Yes | Real-time staff panel — live order stream (Supabase postgres_changes) + waiter pager (Supabase broadcast channel `table_requests:{restaurantId}`) |
-| `/dashboard/qr-codes` | Yes | Generate custom QR codes with logo overlay |
+| `/dashboard/qr-codes` | Yes | Generate custom QR poster badges with logo overlay; uses `QRPosterRenderer` |
+| `/dashboard/reviews` | Yes | View customer reviews; AI-generated reply drafts via `/api/ai-reply` |
 | `/dashboard/settings` | Yes | Restaurant and account settings, plan upgrade/downgrade |
 | `/dashboard/templates` | Yes | Choose pre-designed menu templates (6 templates, live-rendered) |
+| `/admin/settings` | Yes (platform admin) | Super-admin AI provider config; guarded by `isPlatformAdmin()` |
 | `/menu/[slug]` | No | Public menu — only renders if `status = 'published'` |
 | `/menu/[slug]/order` | No | Cart + WhatsApp checkout for public menus |
 | `/menu/demo` | No | Demo using hardcoded mock data |
@@ -85,14 +93,20 @@ MENUZAI is an AI-powered SaaS platform for restaurant menu digitization. Stack: 
 | `/api/extract-menu` | POST | Image → OpenRouter LLM → parsed menu JSON; auto-selects best free vision model if `OPENROUTER_MODEL` not set; rate-limited 5 req/IP/min (in-memory) |
 | `/api/auth/callback` | GET | Supabase OAuth redirect handler |
 | `/api/analytics/summary` | GET | Aggregated analytics from `analytics_events` table |
+| `/api/ai-waiter` | POST | AI-powered conversational waiter in public menu; routes to configured AI provider |
+| `/api/ai-reply` | POST | Generates AI reply draft for a customer review; uses OpenRouter with fallback template |
+| `/api/admin/ai-config` | GET/POST | Read/write `platform_settings`; restricted to `isPlatformAdmin()` emails |
+| `/api/notifications/order` | POST | Order notification handler |
+| `/api/orders/confirm` | POST | Confirms order, decrements `stock_count` on each item, auto-sets `available=false` when stock hits 0; requires `SUPABASE_SERVICE_ROLE_KEY` |
 | `/api/payments/pawapay` | POST | Payment initiation; falls back to simulation if `PAWAPAY_API_KEY` not set |
 | `/api/webhooks/pawapay` | POST | Payment webhook; verifies `X-Pawapay-Signature` RSA-SHA256 against `PAWAPAY_WEBHOOK_PUBLIC_KEY` |
-| `/api/ai-waiter` | POST | AI-powered waiter/recommendation feature |
-| `/api/notifications/order` | POST | Order notification handler |
 | `/api/plan/change` | POST | Subscription plan upgrade/downgrade |
-| `/api/orders/confirm` | POST | Confirms order, decrements `stock_count` on each item, auto-sets `available=false` when stock hits 0; requires `SUPABASE_SERVICE_ROLE_KEY` |
-| `/api/staff` | GET/POST/DELETE | List/add/remove `restaurant_staff` entries; owner-only writes, owner+manager reads; uses admin client to resolve emails via `auth.admin.listUsers` |
 | `/api/reviews` | POST | Submit a customer review (unauthenticated); writes to `reviews` table via admin client |
+| `/api/staff` | GET/POST/DELETE | List/add/remove `restaurant_staff` entries; owner-only writes, owner+manager reads; uses admin client to resolve emails via `auth.admin.listUsers` |
+
+### Platform Admin Access
+
+`isPlatformAdmin(email)` in `app/src/lib/utils.ts` checks against a comma-separated `NEXT_PUBLIC_ADMIN_EMAILS` env var (falls back to `admin@menuzai.com,e2e-test@menuzai.test`). Used to gate `/admin/settings` page and `/api/admin/ai-config`. Platform admins can switch the global AI provider between `openrouter` and `anthropic` and set the model string — stored in the `platform_settings` table.
 
 ### Supabase: Three Clients
 
@@ -133,11 +147,11 @@ Key tables:
 - **`orders`** — created via WhatsApp flow. `status`: `pending` → `preparing` → `confirmed` → `cancelled`. Use `POST /api/orders/confirm` to mark ready (sets `confirmed`, decrements stock). `preparing` and `cancelled` are set directly via Supabase client. Also stores `customer_email` (added in migration 013) for Resend receipt emails.
 - **`platform_settings`** — single row ('global') managing global AI provider and model orchestration.
 - **`restaurant_staff`** — RBAC join table: `(restaurant_id, user_id, role)`. Roles: `owner`, `manager`, `staff`. Unique per `(restaurant_id, user_id)`. Backfilled from `restaurants.user_id` on migration.
-- **`reviews`** — customer reviews: `(restaurant_id, rating 1–5, customer_name?, comment?, order_id?)`. Open insert, staff-only read.
+- **`reviews`** — customer reviews: `(restaurant_id, rating 1–5, customer_name?, comment?, order_id?, sentiment, reply?, replied_at?)`. Open insert, staff-only read. `sentiment` is `"positive" | "negative" | "neutral"`. Staff can draft and save replies via `/dashboard/reviews`.
 
 ### Shared Types
 
-`app/src/types/menu.ts` is the canonical source for `MenuItem`, `MenuCategory`, `MenuStyle`, and `CartItem`. `MenuContext` re-exports them for backward compatibility — import from `@/types/menu` directly in new code.
+`app/src/types/menu.ts` is the canonical source for `MenuItem`, `MenuCategory`, `MenuStyle`, `CartItem`, `QRTemplate`, and `QRPosterData`. `MenuContext` re-exports them for backward compatibility — import from `@/types/menu` directly in new code.
 
 `MenuItem` fields:
 
@@ -147,6 +161,7 @@ Key tables:
 - `tags`: `string[]` — user-defined dietary/attribute tags.
 - `margin`, `orders`: optional numeric fields for analytics.
 - `stock_count`: optional number. When set, `/api/orders/confirm` decrements it and sets `available=false` at zero.
+- `gallery`: optional `string[]` — additional item photo URLs, stored under `{userId}/gallery/` in `menu-images` bucket.
 
 `MenuCategory` fields:
 
@@ -154,6 +169,10 @@ Key tables:
 - `image`: optional string — category banner image URL, displayed in editor canvas header and sidebar thumbnail.
 
 `MenuStyle.currency`: string code (default `"RWF"`). `app/src/lib/utils.ts` exports `formatPrice(amount, currency)` which handles whole-unit currencies (RWF, UGX, TZS, etc.) without decimal places — important for the primary African market.
+
+`MenuStyle` AI Waiter settings: `aiWaiterTone?: "friendly" | "formal" | "vibrant"`, `aiWaiterUpsell?: string` (upsell prompt), `aiWaiterInstructions?: string` (custom system instructions injected per restaurant).
+
+`QRPosterData`: Used by `QRPosterRenderer` to define poster layout — includes `templateId`, `headline`, `subheadline`, `footer?`, `backgroundImage?`, `logoUrl?`, `primaryColor`, `textColor`, `qrColor`, `pageSize ("A4" | "A5")`, `tableNumber?`.
 
 ### State Management
 
@@ -165,7 +184,7 @@ Key actions exposed: `addCategory`, `renameCategory`, `removeCategory`, `toggleC
 
 The dashboard auth guard lives in `app/src/app/dashboard/layout.tsx` and runs **client-side** — it reads `onboarded` from `MenuContext` and redirects to `/onboarding` if false. There is no server-side middleware. The layout waits for `isLoading` to be false before evaluating auth state.
 
-**`useMenuStore`** (`app/src/store/menuStore.ts`) — Zustand store (with `subscribeWithSelector`) that holds the high-frequency editor state: `categories`, `menuItems`, `menuStyle`, `isSyncing`, `isLoading`, `userRole`, and restaurant metadata. `MenuContext` remains the public API for all actions and side-effects; it reads/writes this store internally. Components should subscribe with granular selectors (e.g. `useMenuStore(s => s.menuItems)`) to avoid broad re-renders. Convenience selector hooks exported: `useMenuItems`, `useCategories`, `useMenuStyle`, `useIsSyncing`, `useIsLoading`, `useActiveMenuId`, `useRestaurantName`, `useUserRole`. Includes a `hydrate(data)` action for bulk initial load and a `updateItem(id, updates)` action for in-place item patching without full array replacement.
+**`useMenuStore`** (`app/src/store/menuStore.ts`) — Zustand store (with `subscribeWithSelector`) that holds the high-frequency editor state: `categories`, `menuItems`, `menuStyle`, `isSyncing`, `isLoading`, `userRole`, `restaurantLogoUrl`, and restaurant metadata. `MenuContext` remains the public API for all actions and side-effects; it reads/writes this store internally. Components should subscribe with granular selectors (e.g. `useMenuStore(s => s.menuItems)`) to avoid broad re-renders. Convenience selector hooks exported: `useMenuItems`, `useCategories`, `useMenuStyle`, `useIsSyncing`, `useIsLoading`, `useActiveMenuId`, `useRestaurantName`, `useUserRole`. Includes a `hydrate(data)` action for bulk initial load and a `updateItem(id, updates)` action for in-place item patching without full array replacement.
 
 **`CartContext`** (`app/src/contexts/CartContext.tsx`) — ephemeral cart for the public ordering flow. Contents are serialized into a WhatsApp message via `app/src/lib/whatsapp.ts` and opened via `wa.me` URL — no WhatsApp API key needed.
 
@@ -174,10 +193,10 @@ The dashboard auth guard lives in `app/src/app/dashboard/layout.tsx` and runs **
 The editor (`app/src/app/dashboard/editor/page.tsx`, ~530 lines) is the core authoring experience. It uses a 3-panel layout:
 
 1. **Left: `MenuSectionsSidebar`** — category list with drag-to-reorder, inline banner image upload, rename/hide/delete actions. Hidden on mobile; replaced by a horizontal tab strip with a bottom-sheet action menu.
-2. **Center: Device-frame canvas** — WYSIWYG preview wrapped in a phone/tablet/desktop frame. Viewport switcher (mobile `390px` / tablet `680px` / desktop `920px`) in the header. Each item renders as an **`EditorItemCard`** (`app/src/app/dashboard/editor/EditorItemCard.tsx`, ~290 lines) — a self-contained component with image upload, inline price editing, name/description inputs, tag chips, and an expandable panel for availability toggle, badge picker, tag editor, duplicate, and delete.
+2. **Center: Device-frame canvas** — WYSIWYG preview wrapped in a phone/tablet/desktop frame. Viewport switcher (mobile `390px` / tablet `680px` / desktop `920px`) in the header. Each item renders as an **`EditorItemCard`** (`app/src/app/dashboard/editor/EditorItemCard.tsx`, ~290 lines) — a self-contained component with image upload, gallery upload, inline price editing, name/description inputs, tag chips, and an expandable panel for availability toggle, badge picker, tag editor, duplicate, and delete.
 3. **Right: `StyleEditorSidebar`** — toggled via the "Design" button. Controls: headline/body font pickers (10 headline + 9 body Google Fonts loaded on demand), primary accent color (6 presets + custom picker), background color, currency selector (13 currencies, African focus), style presets from `mockData.ts` templates, card style (flat/elevated/glass), corner radius (sharp/soft/round/pill), grid layout (single/compact), and spacing density slider.
 
-Item images upload to Supabase Storage `menu-images` bucket under `{userId}/items/{timestamp}.{ext}`. Category banners upload to `menu-images` bucket under `{userId}/banners/` via the `ImageUpload` component.
+Item images upload to Supabase Storage `menu-images` bucket under `{userId}/items/{timestamp}.{ext}`. Gallery images upload under `{userId}/gallery/`. Category banners upload under `{userId}/banners/` via the `ImageUpload` component.
 
 The editor also integrates a **Print Menu** overlay using `PrintView` from the templates system.
 
@@ -193,9 +212,9 @@ The editor also integrates a **Print Menu** overlay using `PrintView` from the t
 
 The platform uses a dynamic AI provider stack configurable by the platform admin.
 
-- **Admin Dashboard**: `/admin/settings` allows the super-admin to set the global AI provider (`openrouter` or `anthropic`) and model string. Settings are stored in the `platform_settings` table.
-- **Anthropic Integration**: Uses `@anthropic-ai/sdk` with `claude-3-5-sonnet-20241022` for high-accuracy text extraction and conversational waiter capabilities.
-- **OpenRouter Integration**: Serves as the free tier default, using `google/gemma-4-31b-it:free`.
+- **Admin Dashboard**: `/admin/settings` allows the super-admin to set the global AI provider (`openrouter` or `anthropic`) and model string. Settings are stored in the `platform_settings` table. Access is gated by `isPlatformAdmin()`.
+- **Anthropic Integration**: Uses `@anthropic-ai/sdk` with `claude-3-5-sonnet-20241022` for high-accuracy text extraction and conversational waiter capabilities. Requires `ANTHROPIC_API_KEY`.
+- **OpenRouter Integration**: Serves as the free tier default, using `meta-llama/llama-3.2-11b-vision-instruct:free` (or whatever `OPENROUTER_MODEL` is set to).
 
 ### AI Menu Extraction
 
@@ -203,7 +222,7 @@ The platform uses a dynamic AI provider stack configurable by the platform admin
 
 ### AI Waiter
 
-`POST /api/ai-waiter` handles customer queries via a conversational interface in the public menu. It dynamically routes queries to the configured AI provider, using the restaurant's menu items as context.
+`POST /api/ai-waiter` handles customer queries via a conversational interface in the public menu. It dynamically routes queries to the configured AI provider, using the restaurant's menu items as context. Per-restaurant tone and upsell behavior is controlled by `MenuStyle.aiWaiter*` fields.
 
 ### Styling
 
@@ -236,9 +255,11 @@ The `restaurants` table stores the current plan tier; check `canCreateMenu()`, `
 | `CheckoutModal` | `app/src/components/CheckoutModal.tsx` | Payment checkout modal |
 | `ImageUpload` | `app/src/components/ImageUpload.tsx` | Reusable image upload with Supabase Storage |
 | `Modals` | `app/src/components/Modals.tsx` | Imperative `prompt()` and `confirm()` functions via global modals |
+| `QRCodeModal` | `app/src/components/QRCodeModal.tsx` | Standalone QR code canvas with size control and download |
+| `QRPosterRenderer` | `app/src/app/dashboard/qr-codes/QRPosterRenderer.tsx` | Renders a styled QR poster from `QRPosterData`; used for table badges and printable sheets |
 | `Skeleton` | `app/src/components/Skeleton.tsx` | Loading skeleton placeholders |
 | `PublicMenuClient` | `app/src/app/menu/[slug]/PublicMenuClient.tsx` | Client-side public menu renderer (~27KB) |
-| `EditorItemCard` | `app/src/app/dashboard/editor/EditorItemCard.tsx` | Self-contained menu item card with image upload, tags, badges |
+| `EditorItemCard` | `app/src/app/dashboard/editor/EditorItemCard.tsx` | Self-contained menu item card with image upload, gallery, tags, badges |
 | `useMenuBootstrap` | `app/src/hooks/useMenuBootstrap.ts` | Auth + restaurant/menu bootstrap hook used by MenuProvider |
 | `StaffManager` | `app/src/app/dashboard/settings/StaffManager.tsx` | Staff invite/remove UI in dashboard settings; calls `/api/staff` |
 
@@ -258,7 +279,7 @@ The `restaurants` table stores the current plan tier; check `canCreateMenu()`, `
 
 ### Payments
 
-`/api/payments/pawapay` and `/api/webhooks/pawapay` are fully live-capable. Set `PAWAPAY_API_KEY` to activate real payments; without it the payment route returns a simulated success. The webhook route verifies `X-Pawapay-Signature` using RSA-SHA256 with `PAWAPAY_WEBHOOK_PUBLIC_KEY` and sends an upgrade confirmation email via Resend on `COMPLETED` status. Set `PAWAPAY_MODE=live` for production (defaults to sandbox).
+`/api/payments/pawapay` and `/api/webhooks/pawapay` are fully live-capable. Set `PAWAPAY_API_KEY` to activate real payments; without it the payment route returns a simulated success. The webhook route verifies `X-Pawapay-Signature` using RSA-SHA256 with `PAWAPAY_WEBHOOK_PUBLIC_KEY` and sends an upgrade confirmation email via Resend (`RESEND_API_KEY`) on `COMPLETED` status. Set `PAWAPAY_MODE=live` for production (defaults to sandbox).
 
 ### Other
 
@@ -267,6 +288,7 @@ The `restaurants` table stores the current plan tier; check `canCreateMenu()`, `
 - **Dashboard sidebar** — collapsible via a toggle button; collapsed state persisted to `localStorage` under `sidebar-collapsed`. Mobile uses a bottom tab bar with a "More" overflow sheet.
 - **SEO** — `robots.ts` and `sitemap.ts` are configured. Root layout includes Open Graph and Twitter Card metadata.
 - **Error handling** — `global-error.tsx` at app root, `error.tsx` in dashboard and public menu routes.
+- **`app/scratch/`** — untracked utility scripts for one-off admin tasks (`check_rls.js`, `get_all_users.js`, `reset_user_password.js`); not part of the app.
 
 ### Deployment
 

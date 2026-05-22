@@ -88,8 +88,20 @@ export async function GET(request: Request) {
     dailyViews.push({ date: key, views: dailyMap[key] ?? 0 });
   }
 
+  // Conversion funnel counts
+  const itemViews = events.filter(e => e.event_type === "item_view").length;
+  const addToCarts = events.filter(e => e.event_type === "add_to_cart").length;
+  const cartAbandons = events.filter(e => e.event_type === "cart_abandon").length;
+  const abandonRate = addToCarts > 0 ? (cartAbandons / addToCarts) * 100 : 0;
+
   return Response.json({
-    kpis: { views, orders: orderCount, revenue, avgOrderValue, conversionRate },
+    kpis: { views, orders: orderCount, revenue, avgOrderValue, conversionRate, addToCarts, cartAbandons, abandonRate },
+    funnel: [
+      { label: "Menu Views", count: views },
+      { label: "Item Views", count: itemViews },
+      { label: "Add to Cart", count: addToCarts },
+      { label: "Orders Sent", count: orderCount },
+    ],
     topItems,
     peakHours,
     recentEvents,
