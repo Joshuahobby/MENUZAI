@@ -75,6 +75,7 @@ export default function UploadPage() {
             canvas.height = viewport.height;
             canvas.width = viewport.width;
 
+            // @ts-expect-error pdfjs-dist type mismatch
             await page.render({ canvasContext: context, viewport }).promise;
 
             const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, "image/jpeg", 0.9));
