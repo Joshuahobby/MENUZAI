@@ -1,0 +1,138 @@
+import { NextResponse } from "next/server";
+import Anthropic from "@anthropic-ai/sdk";
+import { getSupabaseAdmin } from "@/lib/supabase-admin";
+import { headers } from "next/headers";
+
+const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
+const RATE_LIMIT_MAX = 10;
+const RATE_LIMIT_WINDOW_MS = 60_000;
+
+function checkRateLimit(ip: string): boolean {
+  const now = Date.now();
+  const entry = rateLimitMap.get(ip);
+  if (!entry || now > entry.resetAt) {
+    rateLimitMap.set(ip, { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS });
+    return true;
+  }
+  if (entry.count >= RATE_LIMIT_MAX) return false;
+  entry.count += 1;
+  return true;
+}
+
+export async function POST(request: Request) {
+  const headersList = await headers();
+  const ip = headersList.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
+
+  if (!checkRateLimit(ip)) {
+    return NextResponse.json({ error: "Rate limit exceeded. Please wait a moment." }, { status: 429 });
+  }
+
+  try {
+    const { prompt: userPrompt, categoryId, currency } = await request.json();
+
+    if (!userPrompt || !categoryId) {
+      return NextResponse.json({ error: "Prompt and categoryId are required" }, { status: 400 });
+    }
+
+    let provider = "anthropic";
+    let model = "claude-3-5-sonnet-20241022";
+
+    try {
+      const admin = getSupabaseAdmin();
+      if (admin) {
+        const { data } = await admin.from("platform_settings").select("*").eq("id", "global").single();
+        if (data?.ai_provider) provider = data.ai_provider;
+        if (data?.ai_model) model = data.ai_model;
+      }
+    } catch (e) {
+      console.warn("Could not fetch platform settings", e);
+    }
+
+    const currencyCode = currency || "RWF";
+
+    const systemPrompt = `You are a professional menu consultant and culinary expert helping restaurants build digital menus.
+When given a prompt, you generate menu items as a JSON array.
+
+STRICT rules:
+- Respond ONLY with a valid JSON array. No markdown, no explanation, no code fences.
+- Each item must have: name (string), description (string, 1-2 appealing sentences), price (number in ${currencyCode}), tags (string array, e.g. ["vegan", "spicy", "gluten-free"])
+- Generate between 3 and 8 items based on the prompt. Use realistic local prices for the currency.
+- Make descriptions mouth-watering and professional.
+- Example output: [{"name":"Grilled Salmon","description":"Pan-seared Atlantic salmon with lemon butter sauce.","price":8500,"tags":["gluten-free"]}]`;
+
+    const fullPrompt = `Generate menu items for the following request: "${userPrompt}"`;
+
+    let rawText = "";
+
+    if (provider === "anthropic") {
+      const apiKey = process.env.ANTHROPIC_API_KEY;
+      if (!apiKey) throw new Error("ANTHROPIC_API_KEY not configured");
+
+      const anthropic = new Anthropic({ apiKey });
+      const msg = await anthropic.messages.create({
+        model,
+        max_tokens: 1024,
+        system: systemPrompt,
+        messages: [{ role: "user", content: fullPrompt }],
+      });
+
+      // @ts-expect-error text block extraction
+      rawText = msg.content[0]?.text || "";
+    } else {
+      const apiKey = process.env.OPENROUTER_API_KEY;
+      if (!apiKey) throw new Error("OPENROUTER_API_KEY not configured");
+
+      const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${apiKey}`,
+          "Content-Type": "application/json",
+          "HTTP-Referer": "https://menuzaai.com",
+          "X-Title": "MENUZAI",
+        },
+        body: JSON.stringify({
+          model,
+          max_tokens: 1024,
+          messages: [
+            { role: "system", content: systemPrompt },
+            { role: "user", content: fullPrompt },
+          ],
+        }),
+      });
+
+      if (!response.ok) {
+        const err = await response.json().catch(() => ({}));
+        throw new Error((err as { error?: { message?: string } }).error?.message ?? `OpenRouter error ${response.status}`);
+      }
+
+      const data = await response.json() as { choices: { message: { content: string } }[] };
+      rawText = data.choices[0]?.message?.content || "";
+    }
+
+    // Strip any accidental markdown code fences
+    const cleaned = rawText.replace(/```json|```/g, "").trim();
+    const items = JSON.parse(cleaned);
+
+    if (!Array.isArray(items)) {
+      throw new Error("AI returned invalid format");
+    }
+
+    // Map to MenuItem shape with UUIDs
+    const menuItems = items.map((item: { name: string; description: string; price: number; tags: string[] }) => ({
+      id: crypto.randomUUID(),
+      name: item.name || "New Item",
+      description: item.description || "",
+      price: typeof item.price === "number" ? item.price : 0,
+      category: categoryId,
+      image: "",
+      tags: Array.isArray(item.tags) ? item.tags : [],
+      available: true,
+    }));
+
+    return NextResponse.json({ items: menuItems });
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : "AI generation failed";
+    console.error("AI generate-items error:", msg);
+    return NextResponse.json({ error: msg }, { status: 500 });
+  }
+}

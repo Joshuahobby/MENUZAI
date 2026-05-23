@@ -2,7 +2,7 @@
 
 import NextImage from "next/image";
 import Link from "next/link";
-import { useState, useRef } from "react";
+import { useState, useRef, useCallback } from "react";
 import { useMenu } from "@/context/MenuContext";
 import { ImageUpload } from "@/components/ImageUpload";
 import { prompt, confirm } from "@/components/Modals";
@@ -32,6 +32,7 @@ export function BuildSidebarContent({
     removeCategory,
     toggleCategoryVisibility,
     setCategories,
+    setMenuItems,
     addItem,
     updateItem,
     duplicateItem,
@@ -43,8 +44,44 @@ export function BuildSidebarContent({
   const [dragOverId, setDragOverId] = useState<string | null>(null);
   const [bannerEditId, setBannerEditId] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [aiPrompt, setAiPrompt] = useState("");
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [showAiPanel, setShowAiPanel] = useState(false);
+  const aiInputRef = useRef<HTMLTextAreaElement | null>(null);
 
   const userId = user?.id ?? null;
+
+  const handleGenerateItems = useCallback(async () => {
+    if (!aiPrompt.trim()) return;
+    if (!activeCategoryId) {
+      toast.error("Please select a section first");
+      return;
+    }
+    setIsGenerating(true);
+    const toastId = toast.loading("AI is generating items...");
+    try {
+      const res = await fetch("/api/ai/generate-items", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          prompt: aiPrompt,
+          categoryId: activeCategoryId,
+          currency: menuStyle.currency ?? "RWF",
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to generate items");
+      // Bulk-add all generated items in one state update
+      setMenuItems((prev: import("@/types/menu").MenuItem[]) => [...prev, ...data.items]);
+      toast.success(`✨ Added ${data.items.length} items to your menu!`, { id: toastId });
+      setAiPrompt("");
+      setShowAiPanel(false);
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : "Generation failed", { id: toastId });
+    } finally {
+      setIsGenerating(false);
+    }
+  }, [aiPrompt, activeCategoryId, menuStyle.currency, updateItem]);
 
   if (selectedItemId) {
     const selectedItem = menuItems.find((i) => i.id === selectedItemId);
@@ -329,6 +366,84 @@ export function BuildSidebarContent({
         <span className="material-symbols-outlined group-hover:rotate-90 transition-transform text-primary">add</span>
         Add New Section
       </button>
+
+      {/* AI Generator Panel */}
+      <div className="mt-4">
+        <button
+          type="button"
+          onClick={() => { setShowAiPanel(v => !v); setTimeout(() => aiInputRef.current?.focus(), 50); }}
+          className={`w-full flex items-center gap-2 py-3.5 rounded-2xl font-bold text-sm transition-all group active:scale-95 border ${
+            showAiPanel
+              ? "bg-gradient-to-tr from-amber-500/15 to-orange-500/10 border-amber-500/30 text-amber-700 dark:text-amber-400"
+              : "bg-gradient-to-tr from-amber-500/5 to-orange-500/5 border-amber-500/20 hover:border-amber-500/40 text-amber-700 dark:text-amber-400 hover:from-amber-500/10 hover:to-orange-500/10"
+          }`}
+        >
+          <span className={`material-symbols-outlined text-lg ml-3 transition-transform ${showAiPanel ? "rotate-180" : ""}`}>auto_awesome</span>
+          <span className="flex-1 text-left">Generate Items with AI</span>
+          <span className={`material-symbols-outlined text-base mr-3 transition-transform ${showAiPanel ? "rotate-180" : ""}`}>expand_more</span>
+        </button>
+
+        {showAiPanel && (
+          <div className="mt-2 p-4 bg-gradient-to-br from-amber-500/5 to-orange-500/5 rounded-2xl border border-amber-500/20 space-y-3">
+            {!activeCategoryId && (
+              <div className="flex items-center gap-2 p-2 bg-amber-500/10 rounded-xl">
+                <span className="material-symbols-outlined text-amber-600 text-sm">info</span>
+                <p className="text-[10px] font-bold text-amber-700 dark:text-amber-400">Select a section above first</p>
+              </div>
+            )}
+
+            <div>
+              <label className="text-[10px] font-bold text-secondary uppercase tracking-wider mb-1.5 block">What do you want to add?</label>
+              <textarea
+                ref={aiInputRef}
+                value={aiPrompt}
+                onChange={e => setAiPrompt(e.target.value)}
+                onKeyDown={e => { if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) handleGenerateItems(); }}
+                placeholder={`e.g. "Add 5 popular cocktails with RWF prices" or "3 vegan desserts"`}
+                rows={3}
+                className="w-full bg-surface-container-low rounded-xl px-3 py-2.5 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-amber-500/30 placeholder:text-secondary/50"
+              />
+              <p className="text-[9px] text-secondary mt-1 text-right">Tip: Ctrl+Enter to generate</p>
+            </div>
+
+            {/* Quick suggestions */}
+            <div>
+              <p className="text-[9px] font-bold text-secondary uppercase tracking-wider mb-1.5">Quick ideas:</p>
+              <div className="flex flex-wrap gap-1.5">
+                {[
+                  "5 popular cocktails",
+                  "3 vegan options",
+                  "Signature pasta dishes",
+                  "Kids menu items",
+                  "Fresh salads",
+                ].map(s => (
+                  <button
+                    key={s}
+                    type="button"
+                    onClick={() => setAiPrompt(s)}
+                    className="text-[10px] font-bold px-2 py-1 rounded-full bg-surface-container hover:bg-amber-500/10 text-secondary hover:text-amber-700 dark:hover:text-amber-400 transition-all border border-outline-variant/20 hover:border-amber-500/20"
+                  >
+                    {s}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={handleGenerateItems}
+              disabled={isGenerating || !aiPrompt.trim() || !activeCategoryId}
+              className="w-full py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed bg-gradient-to-tr from-amber-500 to-orange-500 text-white shadow-lg shadow-amber-500/20 hover:shadow-amber-500/30 border-none cursor-pointer"
+            >
+              {isGenerating ? (
+                <><span className="material-symbols-outlined text-base animate-spin">sync</span> Generating...</>
+              ) : (
+                <><span className="material-symbols-outlined text-base">auto_awesome</span> Generate Items</>
+              )}
+            </button>
+          </div>
+        )}
+      </div>
 
       {/* Bottom links */}
       <div className="mt-auto pt-6 border-t border-outline-variant/20 space-y-3">
