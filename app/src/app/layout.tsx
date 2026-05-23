@@ -45,7 +45,7 @@ export const metadata: Metadata = {
     title: "MENUZA AI | Smart Digital Menus",
     description: "View our menu and order directly via WhatsApp.",
     type: "website",
-    url: "https://menuzai.com",
+    url: "https://menuzaai.com",
     images: [
       {
         url: "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=1200&h=630&fit=crop",

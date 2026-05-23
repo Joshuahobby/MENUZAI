@@ -10,6 +10,7 @@ import type { MenuItem, MenuCategory, MenuStyle, CartItem } from "@/types/menu";
 import { defaultStyle } from "@/store/menuStore";
 import { formatPrice, getOptimizedImageUrl } from "@/lib/utils";
 import { toast } from "sonner";
+import ItemDetailsModal from "@/components/menu/ItemDetailsModal";
 
 interface PublicMenuClientProps {
   menuId: string;
@@ -65,6 +66,33 @@ export default function PublicMenuClient(props: PublicMenuClientProps) {
   const [searchOpen, setSearchOpen] = useState(false);
   const [isOffline, setIsOffline] = useState(false);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null);
+  const sectionRefs = useRef<{ [key: string]: HTMLElement | null }>({});
+
+  useEffect(() => {
+    if (searchQuery.trim()) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setActiveCategory(entry.target.id);
+            const tab = document.getElementById(`tab-${entry.target.id}`);
+            if (tab) {
+              tab.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+            }
+          }
+        });
+      },
+      { rootMargin: "-120px 0px -70% 0px" }
+    );
+
+    Object.values(sectionRefs.current).forEach((el) => {
+      if (el) observer.observe(el);
+    });
+
+    return () => observer.disconnect();
+  }, [categories, searchQuery]);
 
   useEffect(() => {
     const handleOnline = () => setIsOffline(false);
@@ -363,7 +391,17 @@ export default function PublicMenuClient(props: PublicMenuClientProps) {
       <nav className="sticky top-20 z-40 bg-surface/95 backdrop-blur-sm pt-4 pb-2.5 overflow-x-auto hide-scrollbar border-b border-outline-variant/5">
         <div className="flex px-6 gap-3">
           {categories.map((cat) => (
-            <button key={cat.id} onClick={() => setActiveCategory(cat.id)}
+            <button 
+              key={cat.id} 
+              id={`tab-${cat.id}`}
+              onClick={() => {
+                setActiveCategory(cat.id);
+                const el = sectionRefs.current[cat.id];
+                if (el) {
+                  const y = el.getBoundingClientRect().top + window.scrollY - 180;
+                  window.scrollTo({ top: y, behavior: "smooth" });
+                }
+              }}
               className={`px-6 py-2.5 font-[var(--font-headline)] font-bold text-sm whitespace-nowrap transition-all duration-300 rounded-[var(--border-radius)] ${activeCategory === cat.id
                 ? "text-white shadow-lg bg-[var(--primary-color)]"
                 : "bg-surface-container-low text-on-surface-variant hover:bg-surface-container-high"}`}
@@ -416,142 +454,255 @@ export default function PublicMenuClient(props: PublicMenuClientProps) {
         </div>
       </nav>
 
-      <main className="px-6 pt-4 space-y-8">
-        {/* Hero Banner for first category */}
-        {activeCategory === categories[0]?.id && filtered[0] && (
-          <section className="relative h-48 overflow-hidden group rounded-[var(--border-radius)]">
+      <main className="px-6 pt-4 pb-12 space-y-8">
+        {/* Global Restaurant Hero Banner */}
+        {!searchQuery.trim() && (
+          <section className="relative h-56 overflow-hidden rounded-[var(--border-radius)] shadow-lg group">
             <NextImage
-              alt="Featured Dish"
+              alt={restaurantName}
               className="object-cover transition-transform duration-700 group-hover:scale-105"
-              src={getOptimizedImageUrl(filtered[0].image || "https://images.unsplash.com/photo-1600891964092-4316c288032e?w=800&h=400&fit=crop", 800)}
+              src={getOptimizedImageUrl(restaurantLogoUrl || "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=1200&h=600&fit=crop", 1200)}
               fill
-              sizes="(max-width: 1024px) 100vw, 800px"
+              sizes="(max-width: 1024px) 100vw, 1200px"
               priority
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end p-6 z-10">
-              <h2 className="text-white font-[var(--font-headline)] text-2xl font-extrabold tracking-tight">{filtered[0].name}</h2>
-              <p className="text-white/80 text-xs mt-1 italic">{filtered[0].description}</p>
+            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent flex flex-col justify-end p-6 z-10">
+              <h1 className="text-white font-[var(--font-headline)] text-3xl font-black tracking-tight drop-shadow-md">{restaurantName}</h1>
+              <p className="text-white/90 text-sm mt-1 font-medium flex items-center gap-1">
+                <span className="material-symbols-outlined text-sm">restaurant</span>
+                Welcome to our digital menu
+              </p>
             </div>
           </section>
         )}
 
         {/* Menu Items */}
-        <section className="space-y-6">
-          <div className="flex items-center justify-between">
-            <h3 className="font-[var(--font-headline)] text-xl font-extrabold tracking-tight capitalize">
-              {searchQuery.trim()
-                ? `Results for "${searchQuery}"`
-                : categories.find(c => c.id === activeCategory)?.name || activeCategory}
-            </h3>
-            {searchQuery.trim() && (
+        {searchQuery.trim() ? (
+          // Flat search results
+          <section className="space-y-6">
+            <div className="flex items-center justify-between">
+              <h3 className="font-[var(--font-headline)] text-xl font-extrabold tracking-tight capitalize">
+                Results for "{searchQuery}"
+              </h3>
               <span className="text-xs text-secondary font-bold">{filtered.length} found</span>
-            )}
-          </div>
-          {filtered.length === 0 && (
-            <div className="text-center py-16 text-secondary">
-              <span className="material-symbols-outlined text-5xl mb-3 block opacity-40">search_off</span>
-              <p className="font-bold">No dishes found</p>
-              <p className="text-sm mt-1">Try a different search term</p>
             </div>
-          )}
-          {/* Grid layout driven by layoutDensity:
-               compact    → 2-col on md, 3-col on lg (small cards)
-               comfortable → single column, max-w-2xl (standard)
-               spacious   → single column, max-w-xl, extra card padding */}
-          <div className={
-            menuStyle.layoutDensity === "compact"
-              ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
-              : menuStyle.layoutDensity === "spacious"
-              ? "grid grid-cols-1 gap-8 max-w-xl mx-auto"
-              : "grid grid-cols-1 gap-6 max-w-2xl mx-auto"
-          }>
-            {filtered.map((item) => (
-              <div key={item.id} className={`bg-surface-container-lowest overflow-hidden flex flex-col shadow-sm border border-outline-variant/10 rounded-[var(--border-radius)] relative ${item.available === false ? "opacity-60" : ""}`}>
-                {/* Image — shorter in compact mode */}
-                <div className={`relative ${menuStyle.layoutDensity === "compact" ? "h-36" : "h-52"}`}>
-                  <NextImage
-                    alt={item.name}
-                    className="object-cover"
-                    src={getOptimizedImageUrl(item.image || "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=600&h=400&fit=crop", 600)}
-                    fill
-                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 400px"
-                  />
-                  <div className="absolute top-4 right-4 bg-white/95 backdrop-blur-md px-4 py-2 z-10 shadow-sm rounded-[calc(var(--border-radius)/2)]">
-                    <span className="font-[var(--font-headline)] font-extrabold text-lg text-[var(--primary-color)]">{formatPrice(item.price, menuStyle.currency ?? "RWF")}</span>
-                  </div>
-                  {item.available === false && (
-                    <div className="absolute inset-0 bg-black/40 flex items-center justify-center z-20">
-                      <span className="bg-error text-white text-xs font-black px-4 py-2 rounded-full uppercase tracking-widest">Sold Out</span>
+            {filtered.length === 0 && (
+              <div className="text-center py-16 text-secondary">
+                <span className="material-symbols-outlined text-5xl mb-3 block opacity-40">search_off</span>
+                <p className="font-bold">No dishes found</p>
+                <p className="text-sm mt-1">Try a different search term</p>
+              </div>
+            )}
+            <div className={
+              menuStyle.layoutDensity === "compact"
+                ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
+                : menuStyle.layoutDensity === "spacious"
+                ? "grid grid-cols-1 gap-8 max-w-xl mx-auto"
+                : "grid grid-cols-1 gap-6 max-w-2xl mx-auto"
+            }>
+              {filtered.map(item => (
+                <div 
+                  key={item.id} 
+                  onClick={() => setSelectedItem(item)}
+                  className={`bg-surface-container-lowest overflow-hidden flex flex-col shadow-sm border border-outline-variant/10 rounded-[var(--border-radius)] relative cursor-pointer hover:shadow-md hover:-translate-y-1 transition-all duration-300 ${item.available === false ? "opacity-60" : ""}`}
+                >
+                  {/* Image — shorter in compact mode */}
+                  <div className={`relative ${menuStyle.layoutDensity === "compact" ? "h-36" : "h-52"}`}>
+                    <NextImage
+                      alt={item.name}
+                      className="object-cover"
+                      src={getOptimizedImageUrl(item.image || "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=600&h=400&fit=crop", 600)}
+                      fill
+                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 400px"
+                    />
+                    <div className="absolute top-4 right-4 bg-white/95 backdrop-blur-md px-4 py-2 z-10 shadow-sm rounded-[calc(var(--border-radius)/2)]">
+                      <span className="font-[var(--font-headline)] font-extrabold text-lg text-[var(--primary-color)]">{formatPrice(item.price, menuStyle.currency ?? "RWF")}</span>
                     </div>
-                  )}
-                  {/* Gallery Indicator */}
-                  {item.gallery && item.gallery.length > 0 && (
-                    <div className="absolute bottom-3 right-3 bg-black/60 backdrop-blur-sm text-white text-[10px] font-bold px-2 py-1 rounded-lg flex items-center gap-1 z-20">
-                      <span className="material-symbols-outlined text-[12px]">collections</span>
-                      <span>+{item.gallery.length}</span>
-                    </div>
-                  )}
-                </div>
-
-                {/* Extra Gallery Photos (Horizontal Scroll) */}
-                {item.gallery && item.gallery.length > 0 && (
-                  <div className="flex gap-2 overflow-x-auto px-4 py-3 bg-surface-container-low hide-scrollbar">
-                    {item.gallery.map((url, idx) => (
-                      <div key={idx} className="relative w-20 h-20 rounded-xl overflow-hidden shrink-0 border border-outline-variant/10">
-                        <NextImage src={url} alt={`${item.name} gallery ${idx}`} fill className="object-cover" />
+                    {item.available === false && (
+                      <div className="absolute inset-0 bg-black/40 flex items-center justify-center z-20">
+                        <span className="bg-error text-white text-xs font-black px-4 py-2 rounded-full uppercase tracking-widest">Sold Out</span>
                       </div>
-                    ))}
-                  </div>
-                )}
-
-                {/* Body — less padding in compact, more in spacious */}
-                <div className={`flex flex-col ${menuStyle.layoutDensity === "compact" ? "p-4" : menuStyle.layoutDensity === "spacious" ? "p-8" : "p-6"}`}>
-                  <div className="flex justify-between items-start mb-2">
-                    <h4 className="font-[var(--font-headline)] text-lg font-extrabold">{item.name}</h4>
-                    {item.badge && (
-                      <div className={`flex items-center gap-1 ${item.badge === "healthy" ? "text-tertiary" : "text-[var(--primary-color)]"}`}>
-                        <span className="material-symbols-outlined icon-fill">
-                          {item.badge === "healthy" ? "eco" : item.badge === "popular" ? "local_fire_department" : "star"}
-                        </span>
-                        <span className="text-[10px] font-bold uppercase tracking-tighter capitalize">{item.badge}</span>
+                    )}
+                    {/* Gallery Indicator */}
+                    {item.gallery && item.gallery.length > 0 && (
+                      <div className="absolute bottom-3 right-3 bg-black/60 backdrop-blur-sm text-white text-[10px] font-bold px-2 py-1 rounded-lg flex items-center gap-1 z-20">
+                        <span className="material-symbols-outlined text-[12px]">collections</span>
+                        <span>+{item.gallery.length}</span>
                       </div>
                     )}
                   </div>
-                  {/* Dietary Tags for the item */}
-                  {item.tags && item.tags.length > 0 && (
-                    <div className="flex flex-wrap gap-1.5 mb-3.5 mt-1">
-                      {item.tags.map((tag) => {
-                        const meta = getTagMeta(tag);
-                        return (
-                          <span 
-                            key={tag} 
-                            className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider ${meta.color}`}
-                          >
-                            <span className="material-symbols-outlined text-[11px]">{meta.icon}</span>
-                            {tag}
+
+                  {/* Body — less padding in compact, more in spacious */}
+                  <div className={`flex flex-col flex-1 ${menuStyle.layoutDensity === "compact" ? "p-4" : menuStyle.layoutDensity === "spacious" ? "p-8" : "p-6"}`}>
+                    <div className="flex justify-between items-start mb-2">
+                      <h4 className="font-[var(--font-headline)] text-lg font-extrabold">{item.name}</h4>
+                      {item.badge && (
+                        <div className={`flex items-center gap-1 ${item.badge === "healthy" ? "text-tertiary" : "text-[var(--primary-color)]"}`}>
+                          <span className="material-symbols-outlined icon-fill">
+                            {item.badge === "healthy" ? "eco" : item.badge === "popular" ? "local_fire_department" : "star"}
                           </span>
-                        );
-                      })}
+                          <span className="text-[10px] font-bold uppercase tracking-tighter capitalize">{item.badge}</span>
+                        </div>
+                      )}
                     </div>
-                  )}
-                  {/* Hide description in compact mode to save space */}
-                  {menuStyle.layoutDensity !== "compact" && (
-                    <p className="text-on-surface-variant text-sm leading-relaxed mb-6 font-medium opacity-80 font-[var(--font-body)]">{item.description}</p>
-                  )}
-                  <button
-                    onClick={() => item.available !== false && addToCart(item)}
-                    disabled={item.available === false}
-                    className={`w-full text-white font-[var(--font-headline)] font-bold flex items-center justify-center gap-2 active:scale-95 transition-all hover:opacity-90 bg-[var(--primary-color)] rounded-[var(--border-radius)] premium-shadow disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100 ${menuStyle.layoutDensity === "compact" ? "py-2.5 text-sm mt-2" : "py-4 mt-auto"}`}
-                  >
-                    {item.available === false ? "Sold Out" : "Add to Cart"}
-                    {item.available !== false && <span className="material-symbols-outlined text-lg">add_circle</span>}
-                  </button>
+                    {/* Dietary Tags for the item */}
+                    {item.tags && item.tags.length > 0 && (
+                      <div className="flex flex-wrap gap-1.5 mb-3.5 mt-1">
+                        {item.tags.map((tag) => {
+                          const meta = getTagMeta(tag);
+                          return (
+                            <span 
+                              key={tag} 
+                              className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider ${meta.color}`}
+                            >
+                              <span className="material-symbols-outlined text-[11px]">{meta.icon}</span>
+                              {tag}
+                            </span>
+                          );
+                        })}
+                      </div>
+                    )}
+                    {/* Hide description in compact mode to save space */}
+                    {menuStyle.layoutDensity !== "compact" && (
+                      <p className="text-on-surface-variant text-sm leading-relaxed mb-6 font-medium opacity-80 font-[var(--font-body)] line-clamp-2">{item.description}</p>
+                    )}
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (item.available !== false) addToCart(item);
+                      }}
+                      disabled={item.available === false}
+                      className={`w-full text-white font-[var(--font-headline)] font-bold flex items-center justify-center gap-2 active:scale-95 transition-all hover:opacity-90 bg-[var(--primary-color)] rounded-[var(--border-radius)] premium-shadow disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100 ${menuStyle.layoutDensity === "compact" ? "py-2.5 text-sm mt-auto" : "py-4 mt-auto"}`}
+                    >
+                      {item.available === false ? "Sold Out" : "Add to Cart"}
+                      {item.available !== false && <span className="material-symbols-outlined text-lg">add_circle</span>}
+                    </button>
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
-        </section>
+              ))}
+            </div>
+          </section>
+        ) : (
+          // Continuous scroll grouped by category
+          categories.map(cat => {
+            const catItems = filtered.filter(i => i.category === cat.id);
+            if (catItems.length === 0) return null;
+
+            return (
+              <section 
+                key={cat.id} 
+                id={cat.id} 
+                ref={el => { sectionRefs.current[cat.id] = el; }} 
+                className="space-y-6 pt-4"
+              >
+                <h3 className="font-[var(--font-headline)] text-2xl font-extrabold tracking-tight capitalize sticky top-[152px] z-30 bg-surface/90 backdrop-blur-md py-2 border-b border-outline-variant/10">
+                  {cat.name}
+                </h3>
+                <div className={
+                  menuStyle.layoutDensity === "compact"
+                    ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
+                    : menuStyle.layoutDensity === "spacious"
+                    ? "grid grid-cols-1 gap-8 max-w-xl mx-auto"
+                    : "grid grid-cols-1 gap-6 max-w-2xl mx-auto"
+                }>
+                  {catItems.map(item => (
+                    <div 
+                      key={item.id} 
+                      onClick={() => setSelectedItem(item)}
+                      className={`bg-surface-container-lowest overflow-hidden flex flex-col shadow-sm border border-outline-variant/10 rounded-[var(--border-radius)] relative cursor-pointer hover:shadow-md hover:-translate-y-1 transition-all duration-300 ${item.available === false ? "opacity-60" : ""}`}
+                    >
+                      {/* Image — shorter in compact mode */}
+                      <div className={`relative ${menuStyle.layoutDensity === "compact" ? "h-36" : "h-52"}`}>
+                        <NextImage
+                          alt={item.name}
+                          className="object-cover"
+                          src={getOptimizedImageUrl(item.image || "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=600&h=400&fit=crop", 600)}
+                          fill
+                          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 400px"
+                        />
+                        <div className="absolute top-4 right-4 bg-white/95 backdrop-blur-md px-4 py-2 z-10 shadow-sm rounded-[calc(var(--border-radius)/2)]">
+                          <span className="font-[var(--font-headline)] font-extrabold text-lg text-[var(--primary-color)]">{formatPrice(item.price, menuStyle.currency ?? "RWF")}</span>
+                        </div>
+                        {item.available === false && (
+                          <div className="absolute inset-0 bg-black/40 flex items-center justify-center z-20">
+                            <span className="bg-error text-white text-xs font-black px-4 py-2 rounded-full uppercase tracking-widest">Sold Out</span>
+                          </div>
+                        )}
+                        {/* Gallery Indicator */}
+                        {item.gallery && item.gallery.length > 0 && (
+                          <div className="absolute bottom-3 right-3 bg-black/60 backdrop-blur-sm text-white text-[10px] font-bold px-2 py-1 rounded-lg flex items-center gap-1 z-20">
+                            <span className="material-symbols-outlined text-[12px]">collections</span>
+                            <span>+{item.gallery.length}</span>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Body — less padding in compact, more in spacious */}
+                      <div className={`flex flex-col flex-1 ${menuStyle.layoutDensity === "compact" ? "p-4" : menuStyle.layoutDensity === "spacious" ? "p-8" : "p-6"}`}>
+                        <div className="flex justify-between items-start mb-2">
+                          <h4 className="font-[var(--font-headline)] text-lg font-extrabold">{item.name}</h4>
+                          {item.badge && (
+                            <div className={`flex items-center gap-1 ${item.badge === "healthy" ? "text-tertiary" : "text-[var(--primary-color)]"}`}>
+                              <span className="material-symbols-outlined icon-fill">
+                                {item.badge === "healthy" ? "eco" : item.badge === "popular" ? "local_fire_department" : "star"}
+                              </span>
+                              <span className="text-[10px] font-bold uppercase tracking-tighter capitalize">{item.badge}</span>
+                            </div>
+                          )}
+                        </div>
+                        {/* Dietary Tags for the item */}
+                        {item.tags && item.tags.length > 0 && (
+                          <div className="flex flex-wrap gap-1.5 mb-3.5 mt-1">
+                            {item.tags.map((tag) => {
+                              const meta = getTagMeta(tag);
+                              return (
+                                <span 
+                                  key={tag} 
+                                  className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider ${meta.color}`}
+                                >
+                                  <span className="material-symbols-outlined text-[11px]">{meta.icon}</span>
+                                  {tag}
+                                </span>
+                              );
+                            })}
+                          </div>
+                        )}
+                        {/* Hide description in compact mode to save space */}
+                        {menuStyle.layoutDensity !== "compact" && (
+                          <p className="text-on-surface-variant text-sm leading-relaxed mb-6 font-medium opacity-80 font-[var(--font-body)] line-clamp-2">{item.description}</p>
+                        )}
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (item.available !== false) addToCart(item);
+                          }}
+                          disabled={item.available === false}
+                          className={`w-full text-white font-[var(--font-headline)] font-bold flex items-center justify-center gap-2 active:scale-95 transition-all hover:opacity-90 bg-[var(--primary-color)] rounded-[var(--border-radius)] premium-shadow disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100 ${menuStyle.layoutDensity === "compact" ? "py-2.5 text-sm mt-auto" : "py-4 mt-auto"}`}
+                        >
+                          {item.available === false ? "Sold Out" : "Add to Cart"}
+                          {item.available !== false && <span className="material-symbols-outlined text-lg">add_circle</span>}
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            );
+          })
+        )}
       </main>
+
+      {/* Item Details Modal */}
+      <ItemDetailsModal 
+        item={selectedItem} 
+        isOpen={selectedItem !== null} 
+        onClose={() => setSelectedItem(null)} 
+        onAddToCart={(item, qty) => {
+          // Add specific quantity to cart
+          for (let i = 0; i < qty; i++) addToCart(item);
+        }}
+        currency={menuStyle.currency ?? "RWF"}
+      />
 
       {/* AI Assistant FAB */}
       <button

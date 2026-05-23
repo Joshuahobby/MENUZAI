@@ -12,6 +12,7 @@ function LoginForm() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [confirmationSent, setConfirmationSent] = useState(false);
+  const [showEmailForm, setShowEmailForm] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -134,53 +135,66 @@ function LoginForm() {
           <div className="w-full border-t border-outline-variant/20"></div>
         </div>
         <div className="relative flex justify-center text-[10px] uppercase tracking-[0.2em] font-bold">
-          <span className="bg-surface-container-lowest px-4 text-secondary/60">Or continue with email</span>
+          <span className="bg-surface-container-lowest px-4 text-secondary/60">Or</span>
         </div>
       </div>
 
-      <form onSubmit={handleAuth} className="space-y-5">
-        <div className="space-y-1.5">
-          <label className="text-[11px] font-bold uppercase tracking-widest text-secondary ml-1">Email Address</label>
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="name@restaurant.com"
-            className="w-full px-5 py-3.5 bg-surface-container-lowest rounded-xl border-2 border-outline-variant/20 hover:border-outline-variant/40 focus:border-primary/50 focus:bg-surface focus:ring-4 focus:ring-primary/10 outline-none transition-all font-medium text-sm placeholder:text-secondary/40"
-            required
-          />
-        </div>
-
-        <div className="space-y-1.5">
-          <label className="text-[11px] font-bold uppercase tracking-widest text-secondary ml-1">Password</label>
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder="••••••••"
-            className="w-full px-5 py-3.5 bg-surface-container-lowest rounded-xl border-2 border-outline-variant/20 hover:border-outline-variant/40 focus:border-primary/50 focus:bg-surface focus:ring-4 focus:ring-primary/10 outline-none transition-all font-medium text-sm placeholder:text-secondary/40"
-            required
-          />
-        </div>
-
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full py-4 bg-gradient-to-br from-primary to-primary-container text-white font-bold rounded-2xl shadow-lg shadow-primary/20 hover:shadow-xl hover:-translate-y-0.5 active:scale-[0.98] transition-all disabled:opacity-50 disabled:translate-y-0"
-        >
-          {loading ? "Processing..." : isSignUp ? "Create Account" : "Sign In"}
-        </button>
-      </form>
-
-      <div className="mt-8 text-center">
+      {!showEmailForm ? (
         <button
           type="button"
-          onClick={() => { setIsSignUp(!isSignUp); setError(null); }}
-          className="text-sm font-bold text-secondary hover:text-primary transition-colors"
+          onClick={() => setShowEmailForm(true)}
+          className="w-full py-4 bg-surface-container-high border border-outline-variant/20 text-on-surface font-bold rounded-2xl shadow-sm hover:bg-surface-container-highest transition-all flex items-center justify-center gap-3"
         >
-          {isSignUp ? "Already have an account? Sign In" : "Don't have an account? Sign Up"}
+          <span className="material-symbols-outlined text-lg">mail</span>
+          Continue with Email
         </button>
-      </div>
+      ) : (
+        <>
+          <form onSubmit={handleAuth} className="space-y-5 animate-in fade-in slide-in-from-top-4 duration-500">
+            <div className="space-y-1.5">
+              <label className="text-[11px] font-bold uppercase tracking-widest text-secondary ml-1">Email Address</label>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="name@restaurant.com"
+                className="w-full px-5 py-3.5 bg-surface-container-lowest rounded-xl border-2 border-outline-variant/20 hover:border-outline-variant/40 focus:border-primary/50 focus:bg-surface focus:ring-4 focus:ring-primary/10 outline-none transition-all font-medium text-sm placeholder:text-secondary/40"
+                required
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-[11px] font-bold uppercase tracking-widest text-secondary ml-1">Password</label>
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••••••"
+                className="w-full px-5 py-3.5 bg-surface-container-lowest rounded-xl border-2 border-outline-variant/20 hover:border-outline-variant/40 focus:border-primary/50 focus:bg-surface focus:ring-4 focus:ring-primary/10 outline-none transition-all font-medium text-sm placeholder:text-secondary/40"
+                required
+              />
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full py-4 bg-gradient-to-br from-primary to-primary-container text-white font-bold rounded-2xl shadow-lg shadow-primary/20 hover:shadow-xl hover:-translate-y-0.5 active:scale-[0.98] transition-all disabled:opacity-50 disabled:translate-y-0"
+            >
+              {loading ? "Processing..." : isSignUp ? "Create Account" : "Sign In"}
+            </button>
+          </form>
+
+          <div className="mt-8 text-center animate-in fade-in duration-500">
+            <button
+              type="button"
+              onClick={() => { setIsSignUp(!isSignUp); setError(null); }}
+              className="text-sm font-bold text-secondary hover:text-primary transition-colors"
+            >
+              {isSignUp ? "Already have an account? Sign In" : "Don't have an account? Sign Up"}
+            </button>
+          </div>
+        </>
+      )}
     </div>
   );
 }

@@ -4,9 +4,6 @@ import { useMenu } from "@/context/MenuContext";
 import { MenuStyle } from "@/types/menu";
 import { templates } from "@/data/mockData";
 
-interface StyleEditorSidebarProps {
-  onClose: () => void;
-}
 
 interface MagicVibe {
   name: string;
@@ -148,7 +145,7 @@ const MAGIC_VIBES: MagicVibe[] = [
   }
 ];
 
-export function StyleEditorSidebar({ onClose }: StyleEditorSidebarProps) {
+export function StyleEditorSidebarContent() {
   const { menuStyle, setMenuStyle, applyTemplate } = useMenu();
 
   useEffect(() => {
@@ -165,36 +162,7 @@ export function StyleEditorSidebar({ onClose }: StyleEditorSidebarProps) {
   }, [menuStyle.headlineFont, menuStyle.bodyFont]);
 
   return (
-    <>
-      {/* Backdrop — only on non-xl screens */}
-      <div
-        className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40 xl:hidden"
-        onClick={onClose}
-        aria-hidden="true"
-      />
-
-      {/* Panel */}
-      <aside className="fixed xl:relative right-0 top-0 xl:top-auto h-full xl:h-auto w-80 xl:w-72 bg-surface flex flex-col overflow-y-auto shrink-0 z-50 xl:z-auto shadow-2xl xl:shadow-none">
-        {/* Header */}
-        <div className="sticky top-0 bg-surface z-10 px-6 pt-6 pb-4 border-b border-surface-container/50">
-          <div className="flex items-start justify-between">
-            <div>
-              <h2 className="font-[var(--font-headline)] text-lg font-bold tracking-tight">Style Editor</h2>
-              <p className="text-xs text-on-surface-variant font-medium uppercase tracking-widest mt-1">Brand Identity</p>
-            </div>
-            <button
-              type="button"
-              onClick={onClose}
-              className="p-2 rounded-full hover:bg-surface-container transition-colors text-secondary hover:text-on-surface -mt-1 -mr-2"
-              title="Close style editor"
-              aria-label="Close style editor"
-            >
-              <span className="material-symbols-outlined text-[20px]">close</span>
-            </button>
-          </div>
-        </div>
-
-        <div className="px-6 py-6 space-y-8">
+    <div className="flex-1 overflow-y-auto px-6 py-6 space-y-8 bg-surface">
           
           {/* Design Assistant Tip */}
           <div className="bg-primary/5 rounded-2xl p-4 border border-primary/10">
@@ -546,8 +514,6 @@ export function StyleEditorSidebar({ onClose }: StyleEditorSidebarProps) {
             </select>
           </div>
 
-        </div>
-      </aside>
-    </>
+    </div>
   );
 }

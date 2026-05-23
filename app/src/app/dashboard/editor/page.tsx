@@ -3,8 +3,7 @@ import NextImage from "next/image";
 import { useMenu } from "@/context/MenuContext";
 import { useState, useRef, useMemo, useEffect, useCallback } from "react";
 import Link from "next/link";
-import { StyleEditorSidebar } from "./StyleEditorSidebar";
-import { MenuSectionsSidebar } from "./MenuSectionsSidebar";
+import { EditorSidebar } from "./EditorSidebar";
 import { EditorItemCard } from "./EditorItemCard";
 import { prompt, confirm } from "@/components/Modals";
 import { toast } from "sonner";
@@ -307,15 +306,7 @@ export default function MenuEditorPage() {
             <span>Preview & Print</span>
           </button>
 
-          <button
-            type="button"
-            onClick={() => setIsStyleSidebarOpen(!isStyleSidebarOpen)}
-            className={`p-2 rounded-xl transition-all flex items-center gap-2 ${isStyleSidebarOpen ? "bg-primary text-white shadow-lg" : "bg-surface-container-highest text-secondary hover:text-primary"}`}
-            title="Toggle Style Editor"
-          >
-            <span className="material-symbols-outlined text-sm">palette</span>
-            <span className="text-xs font-bold hidden md:inline">Design</span>
-          </button>
+
 
           {publishedSlug && (
             <span className="text-xs text-tertiary font-bold animate-pulse">Published!</span>
@@ -346,10 +337,12 @@ export default function MenuEditorPage() {
       </header>
 
       <div className="flex flex-1 overflow-hidden">
-        {/* Left Panel — hidden on small screens, visible lg+ */}
-        <MenuSectionsSidebar
+        {/* Left Panel */}
+        <EditorSidebar
           activeCategoryId={activeCategoryId}
           setActiveCategoryId={setActiveCategoryId}
+          selectedItemId={expandedItemId}
+          setSelectedItemId={setExpandedItemId}
         />
 
         {/* Center: Live Preview */}
@@ -506,15 +499,8 @@ export default function MenuEditorPage() {
                         key={item.id}
                         item={item}
                         menuStyle={menuStyle}
-                        isExpanded={expandedItemId === item.id}
-                        isUploading={uploadingItemId === item.id}
-                        userId={userId}
-                        onToggleExpand={() => setExpandedItemId(expandedItemId === item.id ? null : item.id)}
-                        onUpdateItem={updateItem}
-                        onDuplicateItem={(id) => { duplicateItem(id); setExpandedItemId(null); }}
-                        onRemoveItem={removeItem}
-                        onUploadStart={(id) => setUploadingItemId(id)}
-                        onUploadEnd={() => setUploadingItemId(null)}
+                        isSelected={expandedItemId === item.id}
+                        onClick={() => setExpandedItemId(expandedItemId === item.id ? null : item.id)}
                       />
                     ))}
                   </SortableContext>
@@ -558,8 +544,7 @@ export default function MenuEditorPage() {
           </div>
         </section>
 
-        {/* Right Panel */}
-        {isStyleSidebarOpen && <StyleEditorSidebar onClose={() => setIsStyleSidebarOpen(false)} />}
+
       </div>
 
       {isPrintOpen && (

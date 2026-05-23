@@ -14,7 +14,6 @@ export default function robots(): MetadataRoute.Robots {
         '/menu/*/order', // Don't index order pages
       ],
     },
-    // We'll set the sitemap URL here once we decide the production domain
-    // sitemap: 'https://menuzai.com/sitemap.xml',
+    sitemap: 'https://menuzaai.com/sitemap.xml',
   };
 }

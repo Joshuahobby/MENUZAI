@@ -8,19 +8,69 @@ import { ImageUpload } from "@/components/ImageUpload";
 import { prompt, confirm } from "@/components/Modals";
 import { toast } from "sonner";
 
-interface MenuSectionsSidebarProps {
+import { EditorItemForm } from "./EditorItemForm";
+
+interface BuildSidebarContentProps {
   activeCategoryId: string | undefined;
   setActiveCategoryId: (id: string | undefined) => void;
+  selectedItemId: string | null;
+  setSelectedItemId: (id: string | null) => void;
 }
 
-export function MenuSectionsSidebar({ activeCategoryId, setActiveCategoryId }: MenuSectionsSidebarProps) {
-  const { categories, menuItems, addCategory, renameCategory, removeCategory, toggleCategoryVisibility, setCategories, user } = useMenu();
+export function BuildSidebarContent({
+  activeCategoryId,
+  setActiveCategoryId,
+  selectedItemId,
+  setSelectedItemId,
+}: BuildSidebarContentProps) {
+  const {
+    categories,
+    menuItems,
+    menuStyle,
+    addCategory,
+    renameCategory,
+    removeCategory,
+    toggleCategoryVisibility,
+    setCategories,
+    addItem,
+    updateItem,
+    duplicateItem,
+    removeItem,
+    user,
+  } = useMenu();
   const dragIdRef = useRef<string | null>(null);
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const [dragOverId, setDragOverId] = useState<string | null>(null);
   const [bannerEditId, setBannerEditId] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
 
   const userId = user?.id ?? null;
+
+  if (selectedItemId) {
+    const selectedItem = menuItems.find((i) => i.id === selectedItemId);
+    if (selectedItem) {
+      return (
+        <EditorItemForm
+          item={selectedItem}
+          menuStyle={menuStyle}
+          isUploading={isUploading}
+          userId={userId}
+          onClose={() => setSelectedItemId(null)}
+          onUpdateItem={updateItem}
+          onDuplicateItem={(id: string) => {
+            duplicateItem(id);
+            setSelectedItemId(null);
+          }}
+          onRemoveItem={(id: string) => {
+            removeItem(id);
+            setSelectedItemId(null);
+          }}
+          onUploadStart={() => setIsUploading(true)}
+          onUploadEnd={() => setIsUploading(false)}
+        />
+      );
+    }
+  }
 
   const handleDragStart = (id: string) => {
     dragIdRef.current = id;
@@ -89,7 +139,7 @@ export function MenuSectionsSidebar({ activeCategoryId, setActiveCategoryId }: M
   };
 
   return (
-    <aside className="w-72 bg-surface flex flex-col p-5 overflow-y-auto shrink-0 hidden lg:flex border-r border-outline-variant/10">
+    <div className="flex flex-col h-full overflow-y-auto px-5 py-5">
       {/* Header */}
       <div className="mb-6">
         <h2 className="font-[var(--font-headline)] text-base font-extrabold tracking-tight text-on-surface">Menu Sections</h2>
@@ -204,6 +254,45 @@ export function MenuSectionsSidebar({ activeCategoryId, setActiveCategoryId }: M
                 </div>
               </div>
 
+              {/* Items in Category */}
+              {isActive && (
+                <div className="mt-2 mb-4 ml-4 space-y-1.5 border-l-2 border-surface-container pl-2">
+                  {menuItems
+                    .filter((i) => i.category === cat.id)
+                    .map((item) => (
+                      <div
+                        key={item.id}
+                        onClick={() => setSelectedItemId(item.id)}
+                        className="group/item flex items-center gap-2 p-2 rounded-xl hover:bg-surface-container-low cursor-pointer transition-colors"
+                      >
+                        {item.image ? (
+                          <div className="w-8 h-8 rounded bg-surface-container overflow-hidden shrink-0 relative">
+                            <NextImage src={item.image} alt={item.name} fill sizes="32px" className="object-cover" />
+                          </div>
+                        ) : (
+                          <div className="w-8 h-8 rounded bg-surface-container flex items-center justify-center shrink-0">
+                            <span className="material-symbols-outlined text-secondary text-[14px]">restaurant_menu</span>
+                          </div>
+                        )}
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs font-bold text-on-surface truncate">{item.name}</p>
+                          <p className="text-[10px] text-primary font-bold">{menuStyle.currency ?? "RWF"} {item.price}</p>
+                        </div>
+                        <span className="material-symbols-outlined text-secondary text-[14px] opacity-0 group-hover/item:opacity-100 transition-opacity">
+                          chevron_right
+                        </span>
+                      </div>
+                    ))}
+                  <button
+                    type="button"
+                    onClick={() => addItem(cat.id)}
+                    className="w-full flex items-center gap-1.5 p-2 mt-1 rounded-xl text-[10px] font-bold text-secondary hover:text-primary hover:bg-primary/5 transition-colors"
+                  >
+                    <span className="material-symbols-outlined text-[14px]">add</span> Add Item
+                  </button>
+                </div>
+              )}
+
               {/* Inline banner image editor */}
               {isBannerOpen && userId && (
                 <div className="mt-1 mb-1 p-3 bg-surface-container-low rounded-2xl border border-primary/10">
@@ -266,6 +355,6 @@ export function MenuSectionsSidebar({ activeCategoryId, setActiveCategoryId }: M
           </p>
         </div>
       </div>
-    </aside>
+    </div>
   );
 }

@@ -24,7 +24,7 @@ const PRESET_IMAGES = [
 
 export default function QRCodesPage() {
   const { menuSlug, menuStatus, menuStyle, restaurantName, userRole, isLoading } = useMenu();
-  const baseUrl = typeof window !== "undefined" ? window.location.origin : "https://menuzai.com";
+  const baseUrl = typeof window !== "undefined" ? window.location.origin : "https://menuzaai.com";
   
   const [tableNumber, setTableNumber] = useState("");
   const menuUrl = menuSlug && menuStatus === "published"
@@ -441,7 +441,7 @@ export default function QRCodesPage() {
                   <QRPosterRenderer
                     id="printable-poster"
                     data={posterData}
-                    url={menuUrl || "https://menuzai.com"}
+                    url={menuUrl || "https://menuzaai.com"}
                     className="flex-1"
                   />
                 </div>
@@ -454,7 +454,7 @@ export default function QRCodesPage() {
                 <div ref={posterRef} className="w-[1200px] h-[1697px]">
                   <QRPosterRenderer
                   data={posterData}
-                  url={menuUrl || "https://menuzai.com"}
+                  url={menuUrl || "https://menuzaai.com"}
                   className="!shadow-none !rounded-none"
                 />
                 </div>

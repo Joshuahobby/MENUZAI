@@ -7,6 +7,11 @@ import { useMenu } from "@/context/MenuContext";
 import { templates } from "@/data/mockData";
 import type { MenuItem } from "@/types/menu";
 
+if (typeof globalThis !== "undefined" && !globalThis.DOMMatrix) {
+  // @ts-ignore polyfill for Next.js SSR where Turbopack evaluates pdfjs-dist
+  globalThis.DOMMatrix = class DOMMatrix {} as any;
+}
+
 type UploadState = "idle" | "extracting" | "done" | "error";
 
 const MAX_FILES = 5;
@@ -73,7 +78,7 @@ export default function UploadPage() {
             canvas.height = viewport.height;
             canvas.width = viewport.width;
 
-            // @ts-expect-error pdfjs-dist type mismatch
+            // @ts-ignore pdfjs-dist type mismatch with canvasContext
             await page.render({ canvasContext: context, viewport }).promise;
 
             const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, "image/jpeg", 0.9));

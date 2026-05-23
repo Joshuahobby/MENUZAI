@@ -70,6 +70,17 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     router.push("/login");
   };
 
+  if (pathname.startsWith("/dashboard/editor")) {
+    return (
+      <div className="min-h-screen bg-surface" data-auth-ready={authReady ? "true" : undefined}>
+        <PWAInstallPrompt />
+        <main className="w-full h-screen overflow-hidden">
+          {children}
+        </main>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-surface text-on-surface" data-auth-ready={authReady ? "true" : undefined}>
       <PWAInstallPrompt />
