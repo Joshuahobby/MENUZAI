@@ -8,12 +8,12 @@ MENUZAI is an AI-powered SaaS platform designed to transform traditional restaur
 
 ## 🚀 Core Features
 
-- **AI Menu Processing:** Instantly convert photos, PDFs, or text into digital menus.
+- **AI Menu Processing & Generation:** Instantly convert photos to menus, auto-write delicious item descriptions with a Magic Wand, and use text prompts to generate entire menu sections.
 - **Smart Templates:** Choose from professionally designed, conversion-optimized templates (Classic, Modern, Luxury, Fast Food).
-- **Interactive Editor:** Drag-and-drop builder with real-time preview and smart layout suggestions.
+- **Interactive Editor:** Drag-and-drop builder with real-time preview, unified sidebars, and smart layout suggestions.
 - **QR Code Generation:** Custom QR codes with logos for tables, allowing instant menu access.
-- **WhatsApp Ordering:** Seamless ordering flow directly via WhatsApp for frictionless customer experience.
-- **Deep Analytics:** Track most viewed dishes, peak hours, and conversion rates to gain business insights.
+- **Frictionless Ordering:** Modern checkout flow with local cart persistence and seamless ordering via WhatsApp (with Mobile Money arriving soon).
+- **Deep Analytics:** Track most viewed dishes, peak hours, conversion funnels, and cart abandonment rates to gain business insights.
 
 ---
 
