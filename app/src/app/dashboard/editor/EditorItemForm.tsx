@@ -1,7 +1,7 @@
 "use client";
 
 import NextImage from "next/image";
-import { useRef, useCallback } from "react";
+import { useRef, useCallback, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { prompt, confirm } from "@/components/Modals";
@@ -44,6 +44,31 @@ export function EditorItemForm({
 }: EditorItemFormProps) {
   const imgInputRef = useRef<HTMLInputElement | null>(null);
   const galleryInputRef = useRef<HTMLInputElement | null>(null);
+  const [isGeneratingDesc, setIsGeneratingDesc] = useState(false);
+
+  const handleGenerateDescription = async () => {
+    if (!item.name) {
+      toast.error("Please enter an item name first");
+      return;
+    }
+    setIsGeneratingDesc(true);
+    const toastId = toast.loading("Generating description...");
+    try {
+      const res = await fetch("/api/ai/description", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: item.name, tags: item.tags }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to generate");
+      onUpdateItem(item.id, { description: data.description });
+      toast.success("Description generated!", { id: toastId });
+    } catch (err: any) {
+      toast.error(err.message, { id: toastId });
+    } finally {
+      setIsGeneratingDesc(false);
+    }
+  };
 
   const handleItemImageUpload = useCallback(
     async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -247,7 +272,18 @@ export function EditorItemForm({
           />
         </div>
         <div>
-          <label className="text-xs font-bold text-secondary ml-1 mb-1 block">Description</label>
+          <div className="flex justify-between items-center mb-1 ml-1">
+            <label className="text-xs font-bold text-secondary block">Description</label>
+            <button 
+              type="button" 
+              onClick={handleGenerateDescription}
+              disabled={isGeneratingDesc || !item.name}
+              className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-gradient-to-tr from-amber-500/10 to-orange-500/10 hover:from-amber-500/20 hover:to-orange-500/20 text-amber-600 dark:text-amber-400 text-[10px] font-bold tracking-wider transition-all disabled:opacity-50"
+            >
+              <span className="material-symbols-outlined text-[12px]">auto_awesome</span>
+              {isGeneratingDesc ? "Writing..." : "Auto-write"}
+            </button>
+          </div>
           <textarea
             className="w-full bg-surface-container-low rounded-xl px-4 py-3 text-sm font-medium leading-relaxed focus:outline-none focus:ring-2 focus:ring-primary/20 resize-none"
             value={item.description}
