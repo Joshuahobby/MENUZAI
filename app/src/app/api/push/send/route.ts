@@ -5,7 +5,8 @@ import { getSupabaseAdmin } from "@/lib/supabase-admin";
 export const dynamic = "force-dynamic";
 
 function getWebPushConfig() {
-  const publicKey = process.env.VAPID_PUBLIC_KEY;
+  // NEXT_PUBLIC_ prefix is intentional — the same key is needed on both client and server
+  const publicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY ?? process.env.VAPID_PUBLIC_KEY;
   const privateKey = process.env.VAPID_PRIVATE_KEY;
   const contact = process.env.VAPID_CONTACT_EMAIL;
   if (!publicKey || !privateKey || !contact) return null;

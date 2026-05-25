@@ -6,10 +6,13 @@ import { formatPrice, formatEventType, formatRelativeTime } from "@/lib/utils";
 import { SkeletonKpi, SkeletonRow } from "@/components/Skeleton";
 
 interface AnalyticsData {
-  kpis: { views: number; orders: number; revenue: number; avgOrderValue: number; conversionRate: number };
+  kpis: { views: number; orders: number; revenue: number; avgOrderValue: number; conversionRate: number; addToCarts?: number; cartAbandons?: number; abandonRate?: number };
   topItems: { name: string; count: number }[];
   peakHours: { hour: number; count: number }[];
   recentEvents: { type: string; item: string | null; amount: number | null; time: string }[];
+  dailyViews?: { date: string; views: number }[];
+  funnel?: { label: string; count: number }[];
+  meta?: { days: number; plan: string };
 }
 
 export default function DashboardPage() {
@@ -17,6 +20,7 @@ export default function DashboardPage() {
   const currency = menuStyle.currency ?? "RWF";
   const [data, setData] = useState<AnalyticsData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [days, setDays] = useState(30);
 
   useEffect(() => {
     if (restaurantId === null) {
@@ -29,11 +33,12 @@ export default function DashboardPage() {
       return;
     }
 
-    fetch(`/api/analytics/summary?restaurantId=${restaurantId}&days=30`)
+    setLoading(true);
+    fetch(`/api/analytics/summary?restaurantId=${restaurantId}&days=${days}`)
       .then((res) => res.json())
       .then(setData)
       .finally(() => setLoading(false));
-  }, [restaurantId]);
+  }, [restaurantId, days]);
 
   if (loading) {
     return (
@@ -66,6 +71,61 @@ export default function DashboardPage() {
   const allStepsDone = hasLogo && hasItems && isPublished;
 
   const isNewUser = kpis.views === 0 && kpis.orders === 0;
+
+  function downloadReport() {
+    if (!data) return;
+    const plan = data.meta?.plan ?? "free";
+    const rows: (string | number)[][] = [
+      ["MENUZA AI Analytics Report", `Last ${days} Days`, new Date().toISOString().slice(0, 10)],
+      ["Plan", plan],
+      [],
+      ["── Summary KPIs ──", ""],
+      ["Metric", "Value"],
+      ["Total Revenue", formatPrice(kpis.revenue, currency)],
+      ["Total Orders", kpis.orders],
+      ["Menu Views", kpis.views],
+      ["Conversion Rate", `${kpis.conversionRate.toFixed(1)}%`],
+      ["Avg Order Value", formatPrice(kpis.avgOrderValue, currency)],
+    ];
+
+    if (data.funnel && data.funnel.length > 0) {
+      rows.push([], ["── Conversion Funnel ──", ""]);
+      rows.push(["Stage", "Count"]);
+      data.funnel.forEach((f) => rows.push([f.label, f.count]));
+      if (kpis.abandonRate != null) {
+        rows.push(["Cart Abandon Rate", `${kpis.abandonRate.toFixed(1)}%`]);
+      }
+    }
+
+    rows.push([], ["── Top Performing Dishes ──", ""]);
+    rows.push(["Dish", "Interactions"]);
+    if (data.topItems?.length) {
+      data.topItems.slice(0, 10).forEach((d) => rows.push([d.name, d.count]));
+    } else {
+      rows.push(["No data yet", ""]);
+    }
+
+    rows.push([], ["── Peak Ordering Hours ──", ""]);
+    rows.push(["Hour", "Activity Count"]);
+    data.peakHours?.filter((h) => h.hour >= 8 && h.hour <= 23).forEach((h) => rows.push([`${h.hour}:00`, h.count]));
+
+    if (data.dailyViews && data.dailyViews.length > 0) {
+      rows.push([], ["── Daily Menu Views ──", ""]);
+      rows.push(["Date", "Views"]);
+      data.dailyViews.forEach((d) => rows.push([d.date, d.views]));
+    }
+
+    const csv = rows.map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(",")).join("\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `menuza-analytics-${days}d-${new Date().toISOString().slice(0, 10)}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
 
   if (userRole === "staff") {
     return (
@@ -293,11 +353,22 @@ export default function DashboardPage() {
           <p className="text-secondary font-medium">Growing your restaurant with data-driven insights.</p>
         </div>
         <div className="flex items-center gap-3">
-          <div className="bg-surface-container-lowest px-4 py-2.5 rounded-xl border border-surface-container flex items-center gap-3 shadow-sm">
-            <span className="material-symbols-outlined text-primary text-sm">calendar_month</span>
-            <span className="text-sm font-semibold">Last 30 Days</span>
+          <div className="flex gap-1 bg-surface-container-lowest border border-surface-container rounded-xl p-1 shadow-sm">
+            {[7, 30, 90].map((d) => (
+              <button
+                key={d}
+                onClick={() => setDays(d)}
+                className={`px-3 py-1.5 rounded-lg text-sm font-semibold transition-all ${days === d ? "bg-primary text-white shadow-sm" : "text-secondary hover:text-on-surface"}`}
+              >
+                {d === 7 ? "7 Days" : d === 30 ? "30 Days" : "90 Days"}
+              </button>
+            ))}
           </div>
-          <button className="bg-primary-container hover:opacity-90 text-white px-5 py-2.5 rounded-xl font-bold transition-all flex items-center gap-2 shadow-lg shadow-primary-container/20">
+          <button
+            onClick={downloadReport}
+            disabled={!data}
+            className="bg-primary-container hover:opacity-90 disabled:opacity-40 text-white px-5 py-2.5 rounded-xl font-bold transition-all flex items-center gap-2 shadow-lg shadow-primary-container/20"
+          >
             <span className="material-symbols-outlined text-sm">download</span> Report
           </button>
         </div>
