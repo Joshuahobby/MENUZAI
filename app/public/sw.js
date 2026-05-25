@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'menuza-pwa-v2';
+const CACHE_VERSION = 'menuza-pwa-v3';
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const IMAGE_CACHE = `${CACHE_VERSION}-images`;
 const ALL_CACHES = [STATIC_CACHE, IMAGE_CACHE];
@@ -150,13 +150,17 @@ self.addEventListener('fetch', (event) => {
 
   const url = new URL(request.url);
 
-  // Network-only: API routes, Supabase, OpenRouter, Resend, PawaPay
+  // Network-only: API routes, Supabase, analytics beacons, ad/tracking scripts
   if (
     url.pathname.startsWith('/api/') ||
     url.hostname.includes('supabase.co') ||
     url.hostname.includes('openrouter.ai') ||
     url.hostname.includes('pawapay.io') ||
-    url.hostname.includes('resend.com')
+    url.hostname.includes('resend.com') ||
+    url.hostname.includes('cloudflareinsights.com') ||
+    url.hostname.includes('googletagmanager.com') ||
+    url.hostname.includes('google-analytics.com') ||
+    url.hostname.includes('clarity.ms')
   ) {
     return;
   }
@@ -197,7 +201,7 @@ self.addEventListener('fetch', (event) => {
         const networkFetch = fetch(request).then((response) => {
           if (response.ok) cache.put(request, response.clone());
           return response;
-        }).catch(() => cached);
+        }).catch(() => cached ?? new Response('', { status: 204 }));
         return cached || networkFetch;
       })
     );
