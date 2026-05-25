@@ -155,9 +155,7 @@ export default function OrdersPage() {
   // ── Fetch & Realtime Subscriptions ─────────────────────────
   useEffect(() => {
     if (!restaurantId) {
-      if (loading) {
-        setTimeout(() => setLoading(false), 0);
-      }
+      setLoading(false);
       return;
     }
 
@@ -249,7 +247,7 @@ export default function OrdersPage() {
       supabase.removeChannel(requestChannel);
       setIsLive(false);
     };
-  }, [restaurantId, loading]);
+  }, [restaurantId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const updateStatus = async (orderId: string, newStatus: OrderRow["status"]) => {
     setOrders((prev) =>
@@ -262,7 +260,8 @@ export default function OrdersPage() {
       .eq("id", orderId);
 
     if (error) {
-      toast.error("Failed to update order status.");
+      console.error("updateStatus failed:", { orderId, newStatus, code: error.code, message: error.message, details: error.details });
+      toast.error("Failed to update order status.", { description: error.message });
       fetchOrdersRefresh();
     } else {
       const labels = { confirmed: "ready", cancelled: "declined", pending: "restored", preparing: "preparing" };

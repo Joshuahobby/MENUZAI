@@ -150,6 +150,9 @@ Migrations live in `app/supabase/migrations/` — run them in order in the Supab
 | `012_enable_realtime_orders.sql` | Adds `orders` table to the `supabase_realtime` publication |
 | `013_orders_customer_email.sql` | Adds `customer_email` column to `orders`; adds column comments for all statuses |
 | `014_platform_settings.sql` | `platform_settings` table — single `'global'` row for AI provider/model config; service_role only |
+| `015_restaurants_category.sql` | Adds `category varchar(50)` and `terms_accepted_at timestamptz` columns to `restaurants` |
+| `016_push_subscriptions.sql` | `push_subscriptions` table — stores Web Push subscription objects per restaurant; unique index on `(restaurant_id, endpoint)`; used by `/api/push/subscribe` and `/api/push/send` |
+| `017_orders_update_with_check.sql` | Adds explicit `WITH CHECK` to orders UPDATE policy (mirrors USING clause; prevents PostgREST ambiguity) |
 
 Key tables:
 
@@ -160,6 +163,7 @@ Key tables:
 - **`platform_settings`** — single row ('global') managing global AI provider and model orchestration.
 - **`restaurant_staff`** — RBAC join table: `(restaurant_id, user_id, role)`. Roles: `owner`, `manager`, `staff`. Unique per `(restaurant_id, user_id)`. Backfilled from `restaurants.user_id` on migration.
 - **`reviews`** — customer reviews: `(restaurant_id, rating 1–5, customer_name?, comment?, order_id?, sentiment, reply?, replied_at?)`. Open insert, staff-only read. `sentiment` is `"positive" | "negative" | "neutral"`. Staff can draft and save replies via `/dashboard/reviews`.
+- **`push_subscriptions`** — Web Push subscription objects per restaurant. Upserted via `/api/push/subscribe` (authenticated); sent via `/api/push/send` (admin client). Requires `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_CONTACT_EMAIL` env vars; silently skips if not configured.
 
 ### Shared Types
 
