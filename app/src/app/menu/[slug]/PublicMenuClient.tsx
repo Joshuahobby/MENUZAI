@@ -482,7 +482,7 @@ export default function PublicMenuClient(props: PublicMenuClientProps) {
           <section className="space-y-6">
             <div className="flex items-center justify-between">
               <h3 className="font-[var(--font-headline)] text-xl font-extrabold tracking-tight capitalize">
-                Results for "{searchQuery}"
+                Results for &quot;{searchQuery}&quot;
               </h3>
               <span className="text-xs text-secondary font-bold">{filtered.length} found</span>
             </div>
@@ -838,7 +838,7 @@ export default function PublicMenuClient(props: PublicMenuClientProps) {
                       <button
                         key={opt.id}
                         type="button"
-                        onClick={() => setServiceType(opt.id as any)}
+                        onClick={() => setServiceType(opt.id as "call_waiter" | "bill" | "water" | "custom")}
                         className={`flex flex-col p-4 rounded-2xl border text-left transition-all cursor-pointer ${isSelected ? "border-amber-500 bg-amber-500/5 text-amber-600 ring-2 ring-amber-500/10 font-bold" : "border-outline-variant/15 hover:bg-surface-container-low text-secondary"}`}
                       >
                         <span className="material-symbols-outlined text-xl mb-2">{opt.icon}</span>

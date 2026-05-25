@@ -1,7 +1,7 @@
 "use client";
 import NextImage from "next/image";
 import { useMenu } from "@/context/MenuContext";
-import { useState, useRef, useMemo, useEffect, useCallback } from "react";
+import { useState, useRef, useMemo, useEffect } from "react";
 import Link from "next/link";
 import { EditorSidebar } from "./EditorSidebar";
 import { EditorItemCard } from "./EditorItemCard";
@@ -44,9 +44,6 @@ export default function MenuEditorPage() {
     menuStyle,
     addItem,
     addCategory,
-    updateItem,
-    removeItem,
-    duplicateItem,
     renameCategory,
     removeCategory,
     toggleCategoryVisibility,
@@ -67,10 +64,8 @@ export default function MenuEditorPage() {
   const [publishedSlug, setPublishedSlug] = useState<string | null>(null);
   const [isEditingName, setIsEditingName] = useState(false);
   const [tempName, setTempName] = useState("");
-  const userId = user?.id ?? null;
   const [expandedItemId, setExpandedItemId] = useState<string | null>(null);
   const [viewport, setViewport] = useState<Viewport>("mobile");
-  const [isStyleSidebarOpen, setIsStyleSidebarOpen] = useState(false);
 
   const containerRef = useRef<HTMLDivElement>(null);
   const [activeCategoryId, setActiveCategoryId] = useState<string | undefined>(undefined);
@@ -85,8 +80,6 @@ export default function MenuEditorPage() {
       coordinateGetter: sortableKeyboardCoordinates,
     })
   );
-
-  const [uploadingItemId, setUploadingItemId] = useState<string | null>(null);
 
   // Mobile category action sheet state
   const [catActionSheet, setCatActionSheet] = useState<{ id: string; name: string; hidden?: boolean } | null>(null);

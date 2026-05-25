@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { StyleEditorSidebarContent } from "./StyleEditorSidebarContent";
 import { BuildSidebarContent } from "./BuildSidebarContent";
-import type { MenuItem } from "@/types/menu";
 
 interface EditorSidebarProps {
   activeCategoryId: string | undefined;

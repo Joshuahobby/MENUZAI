@@ -185,7 +185,7 @@ export default function DashboardPage() {
               </li>
               <li className="flex items-start gap-2.5">
                 <span className="material-symbols-outlined text-tertiary text-base icon-fill">check_circle</span>
-                <span>Mark dishes as "Done" on the board when ready to serve.</span>
+                <span>Mark dishes as &quot;Done&quot; on the board when ready to serve.</span>
               </li>
             </ul>
           </div>

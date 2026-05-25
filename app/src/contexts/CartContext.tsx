@@ -25,29 +25,21 @@ interface CartContextType {
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export function CartProvider({ children }: { children: ReactNode }) {
-  const [items, setItems] = useState<CartItem[]>([]);
-  const [isLoaded, setIsLoaded] = useState(false);
-  const analyticsRef = useRef<AnalyticsProps | null>(null);
-
-  // Load from localStorage on mount
-  useEffect(() => {
+  const [items, setItems] = useState<CartItem[]>(() => {
+    if (typeof window === "undefined") return [];
     try {
       const stored = localStorage.getItem("menuza_cart");
-      if (stored) {
-        setItems(JSON.parse(stored));
-      }
-    } catch (err) {
-      console.error("Failed to load cart", err);
+      return stored ? (JSON.parse(stored) as CartItem[]) : [];
+    } catch {
+      return [];
     }
-    setIsLoaded(true);
-  }, []);
+  });
+  const analyticsRef = useRef<AnalyticsProps | null>(null);
 
   // Save to localStorage when items change
   useEffect(() => {
-    if (isLoaded) {
-      localStorage.setItem("menuza_cart", JSON.stringify(items));
-    }
-  }, [items, isLoaded]);
+    localStorage.setItem("menuza_cart", JSON.stringify(items));
+  }, [items]);
 
   const setAnalyticsProps = useCallback((props: AnalyticsProps) => {
     analyticsRef.current = props;

@@ -12,6 +12,12 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Utility/admin scripts — CommonJS, not part of the app bundle
+    "apply_all_migrations.js",
+    "apply_migration.js",
+    "inspect.js",
+    "inspect_rpc.js",
+    "scratch/**",
   ]),
 ]);
 

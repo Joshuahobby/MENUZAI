@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect, useRef, useCallback } from "react";
+import React, { createContext, useContext, useEffect, useRef, useCallback } from "react";
 import { supabase } from "@/lib/supabase";
 import { generateSlug, ensureUniqueSlug } from "@/lib/slug";
 import { canCreateMenu, canPublishMenu } from "@/lib/plans";

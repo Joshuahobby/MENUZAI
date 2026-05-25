@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import NextImage from "next/image";
 import { formatPrice, getOptimizedImageUrl } from "@/lib/utils";
 import type { MenuItem } from "@/types/menu";
@@ -25,11 +25,13 @@ const getTagMeta = (tag: string) => {
 
 export default function ItemDetailsModal({ item, isOpen, onClose, onAddToCart, currency }: ItemDetailsModalProps) {
   const [quantity, setQuantity] = useState(1);
+  const [prevIsOpen, setPrevIsOpen] = useState(isOpen);
 
-  // Reset quantity when modal opens
-  useEffect(() => {
+  // Reset quantity when modal transitions from closed → open (during-render derived state)
+  if (prevIsOpen !== isOpen) {
+    setPrevIsOpen(isOpen);
     if (isOpen) setQuantity(1);
-  }, [isOpen, item]);
+  }
 
   if (!isOpen || !item) return null;
 

@@ -63,8 +63,8 @@ export function EditorItemForm({
       if (!res.ok) throw new Error(data.error || "Failed to generate");
       onUpdateItem(item.id, { description: data.description });
       toast.success("Description generated!", { id: toastId });
-    } catch (err: any) {
-      toast.error(err.message, { id: toastId });
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to generate", { id: toastId });
     } finally {
       setIsGeneratingDesc(false);
     }

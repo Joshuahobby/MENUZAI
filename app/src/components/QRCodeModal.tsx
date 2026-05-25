@@ -1,7 +1,7 @@
 "use client";
 
 import { QRCodeCanvas } from "qrcode.react";
-import { useState, useRef } from "react";
+import { useRef } from "react";
 import { toast } from "sonner";
 
 interface QRCodeModalProps {
@@ -12,7 +12,7 @@ interface QRCodeModalProps {
 
 export function QRCodeModal({ url, isOpen, onClose }: QRCodeModalProps) {
   const qrRef = useRef<HTMLDivElement>(null);
-  const [size, setSize] = useState(256);
+  const size = 256;
 
   if (!isOpen) return null;
 

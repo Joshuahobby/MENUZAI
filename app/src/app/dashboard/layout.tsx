@@ -27,7 +27,6 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const [moreOpen, setMoreOpen] = useState(false);
-  const [authReady, setAuthReady] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
   const { restaurantLogoUrl, restaurantName, onboarded, isLoading, user, userRole } = useMenu();
 
@@ -49,17 +48,19 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     });
   };
 
+  // Derived: true once the auth check has resolved without triggering a redirect
+  const authReady = !isLoading && !!user && !(
+    !onboarded && (userRole === "owner" || userRole === null) && pathname !== "/dashboard/onboarding"
+  );
+
   useEffect(() => {
     if (isLoading) return;
     if (!user) { router.push("/login"); return; }
-    // Only owners go through onboarding. Staff/managers access the dashboard directly
-    // (the employer's onboarded state doesn't gate their access).
+    // Only owners go through onboarding. Staff/managers access the dashboard directly.
     if (!onboarded && (userRole === "owner" || userRole === null) && pathname !== "/dashboard/onboarding") {
       router.replace("/onboarding");
-      return;
     }
-    setAuthReady(true);
-  }, [router, isLoading, onboarded, pathname, user]);
+  }, [router, isLoading, onboarded, pathname, user, userRole]);
 
   useEffect(() => {
     if (moreOpen) setTimeout(() => setMoreOpen(false), 0);

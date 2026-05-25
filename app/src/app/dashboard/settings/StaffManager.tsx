@@ -37,8 +37,8 @@ export function StaffManager() {
       if (!res.ok) throw new Error("Failed to fetch staff");
       const data = await res.json();
       setStaff(data.staff || []);
-    } catch (err: any) {
-      toast.error(err.message || "Failed to load staff.");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to load staff.");
     } finally {
       setLoading(false);
     }
@@ -67,8 +67,8 @@ export function StaffManager() {
       setInviteEmail("");
       setInviteRole("staff");
       fetchStaff();
-    } catch (err: any) {
-      toast.error(err.message || "Something went wrong.");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Something went wrong.");
     } finally {
       setInviting(false);
     }
@@ -92,8 +92,8 @@ export function StaffManager() {
 
       toast.success("Staff removed.");
       fetchStaff();
-    } catch (err: any) {
-      toast.error(err.message || "Something went wrong.");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Something went wrong.");
     }
   };
 

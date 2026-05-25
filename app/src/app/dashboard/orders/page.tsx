@@ -381,7 +381,7 @@ export default function OrdersPage() {
         <div className="bg-surface-container-lowest rounded-3xl p-5 border border-surface-container/50">
           <div className="flex items-center gap-2 mb-2">
             <span className="material-symbols-outlined text-primary icon-fill text-lg">today</span>
-            <p className="text-[10px] font-bold text-secondary uppercase tracking-[0.2em]">Today's Orders</p>
+            <p className="text-[10px] font-bold text-secondary uppercase tracking-[0.2em]">Today&apos;s Orders</p>
           </div>
           <p className="text-2xl font-extrabold">{todayOrders.length}</p>
           <p className="text-[10px] text-secondary mt-0.5">orders processed today</p>
@@ -398,7 +398,7 @@ export default function OrdersPage() {
           <div className="relative z-10">
             <div className="flex items-center gap-2 mb-2">
               <span className="material-symbols-outlined text-emerald-500 icon-fill text-lg">payments</span>
-              <p className="text-[10px] font-bold text-secondary uppercase tracking-[0.2em]">Today's Revenue</p>
+              <p className="text-[10px] font-bold text-secondary uppercase tracking-[0.2em]">Today&apos;s Revenue</p>
             </div>
             <p className="text-2xl font-extrabold leading-none text-emerald-600 dark:text-emerald-400">{formatPrice(todayRevenue, currency)}</p>
             <p className="text-[10px] text-secondary mt-0.5">excluding cancelled orders</p>
@@ -685,7 +685,7 @@ export default function OrdersPage() {
 
                     {req.message && (
                       <p className="text-xs font-semibold leading-relaxed text-on-surface bg-surface-container-lowest p-2 rounded-xl border border-outline-variant/5">
-                        "{req.message}"
+                        &quot;{req.message}&quot;
                       </p>
                     )}
                   </div>

@@ -506,7 +506,7 @@ export default function SettingsPage() {
             </div>
             <div>
               <h3 className="font-[var(--font-headline)] font-bold text-lg">AI Digital Waiter Assistant</h3>
-              <p className="text-xs text-secondary mt-0.5">Customize your AI waiter's personality, upselling logic, and menu guidelines</p>
+              <p className="text-xs text-secondary mt-0.5">Customize your AI waiter&apos;s personality, upselling logic, and menu guidelines</p>
             </div>
           </div>
 
@@ -592,16 +592,16 @@ export default function SettingsPage() {
                       </>
                     ) : aiTone === "vibrant" ? (
                       <>
-                        ✨ Oh, you are in for an absolute treat! You MUST try our legendary, chef-favorite <strong>Classic Steak Frites</strong>—it is juicy, perfectly seared, and completely mind-blowing! 🥩🔥 {aiUpsell ? `Oh, and let me tell you: "${aiUpsell}"` : "Pair it with our ice-cold Summer Spritz for the absolute ultimate flavor explosion! 🍹"} Let's get that ordered for you! 🛒
+                        ✨ Oh, you are in for an absolute treat! You MUST try our legendary, chef-favorite <strong>Classic Steak Frites</strong>—it is juicy, perfectly seared, and completely mind-blowing! 🥩🔥 {aiUpsell ? `Oh, and let me tell you: "${aiUpsell}"` : "Pair it with our ice-cold Summer Spritz for the absolute ultimate flavor explosion! 🍹"} Let&apos;s get that ordered for you! 🛒
                       </>
                     ) : (
                       <>
-                        🍽️ Hey there! If you're looking for a delicious lunch, I definitely recommend checking out our popular <strong>Classic Steak Frites</strong>. It's a real crowd favorite! 😊 {aiUpsell ? `To make it even better, I'd suggest: "${aiUpsell}"` : "It pairs wonderfully with a refreshing side of garlic parmesan fries."} Just tap the Add button to add it to your order! 🛒
+                        🍽️ Hey there! If you&apos;re looking for a delicious lunch, I definitely recommend checking out our popular <strong>Classic Steak Frites</strong>. It&apos;s a real crowd favorite! 😊 {aiUpsell ? `To make it even better, I'd suggest: "${aiUpsell}"` : "It pairs wonderfully with a refreshing side of garlic parmesan fries."} Just tap the Add button to add it to your order! 🛒
                       </>
                     )}
                     {aiInstructions && (
                       <p className="mt-2 text-[10px] text-primary bg-primary/5 p-2 rounded-lg border border-primary/10">
-                        💡 <strong>Applying custom rules:</strong> "{aiInstructions.length > 80 ? aiInstructions.slice(0, 80) + "..." : aiInstructions}"
+                        💡 <strong>Applying custom rules:</strong> &quot;{aiInstructions.length > 80 ? aiInstructions.slice(0, 80) + "..." : aiInstructions}&quot;
                       </p>
                     )}
                   </div>

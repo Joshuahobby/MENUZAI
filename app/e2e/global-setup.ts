@@ -116,12 +116,21 @@ async function globalSetup() {
   const page = await context.newPage();
 
   await page.goto(`${BASE_URL}/login`);
-  // Wait for the React form to hydrate and be fully ready
-  const emailInput = page.locator('input[type="email"]');
-  await emailInput.waitFor({ state: "visible", timeout: 60000 });
   
-  // Extra cushion for hydration
+  // Wait for hydration
   await page.waitForTimeout(1000);
+
+  // Click the Continue with Email button to reveal the email input
+  const continueWithEmailBtn = page.getByRole("button", { name: /Continue with Email/i });
+  await continueWithEmailBtn.waitFor({ state: "visible", timeout: 10000 });
+  await continueWithEmailBtn.click();
+
+  // Wait for the React form to reveal the email input
+  const emailInput = page.locator('input[type="email"]');
+  await emailInput.waitFor({ state: "visible", timeout: 10000 });
+  
+  // Extra cushion for transition
+  await page.waitForTimeout(500);
 
   await emailInput.fill(TEST_USER.email);
   await page.locator('input[type="password"]').fill(TEST_USER.password);

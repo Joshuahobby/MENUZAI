@@ -32,7 +32,19 @@ npm run test:e2e:headed     # Run in headed browser
 npm run test:e2e:debug      # Debug mode
 ```
 
+Run a single test file:
+
+```bash
+npx vitest run src/lib/utils.test.ts          # single Vitest file
+npx playwright test e2e/tests/04-editor.spec.ts          # single E2E spec
+npx playwright test e2e/tests/04-editor.spec.ts --headed # headed
+```
+
 The dashboard layout sets `data-auth-ready="true"` on its root `<div>` once auth + onboarding checks complete — Playwright tests use this as a synchronization signal.
+
+**E2E infrastructure**: `global-setup.ts` creates/resets a confirmed test user via Supabase Admin API and saves browser session (cookies + localStorage) to `e2e/.auth/user.json`. Most test specs reuse this saved session. Tests are numbered `01–14` and run in sequence. Page Object classes live in `e2e/pages/` (`LoginPage`, `DashboardPage`, `EditorPage`, `OnboardingPage`). The login page now requires clicking **"Continue with Email"** before the email input appears — all PO helpers handle this.
+
+**Lint**: `npm run lint` has pre-existing failures in root utility scripts (`apply_all_migrations.js`, `inspect.js`, etc.) and `scratch/` — CommonJS `require()` forbidden by the ESLint config. These don't block build or TypeScript. App source is lint-clean except a handful of `no-explicit-any` in API routes and `react-hooks` warnings.
 
 ## Environment Variables
 
@@ -188,13 +200,14 @@ The dashboard auth guard lives in `app/src/app/dashboard/layout.tsx` and runs **
 
 **`CartContext`** (`app/src/contexts/CartContext.tsx`) — ephemeral cart for the public ordering flow. Contents are serialized into a WhatsApp message via `app/src/lib/whatsapp.ts` and opened via `wa.me` URL — no WhatsApp API key needed.
 
-### Menu Editor (3-Panel Architecture)
+### Menu Editor (2-Panel Architecture)
 
-The editor (`app/src/app/dashboard/editor/page.tsx`, ~530 lines) is the core authoring experience. It uses a 3-panel layout:
+The editor (`app/src/app/dashboard/editor/page.tsx`) is the core authoring experience. It uses a 2-panel layout:
 
-1. **Left: `MenuSectionsSidebar`** — category list with drag-to-reorder, inline banner image upload, rename/hide/delete actions. Hidden on mobile; replaced by a horizontal tab strip with a bottom-sheet action menu.
-2. **Center: Device-frame canvas** — WYSIWYG preview wrapped in a phone/tablet/desktop frame. Viewport switcher (mobile `390px` / tablet `680px` / desktop `920px`) in the header. Each item renders as an **`EditorItemCard`** (`app/src/app/dashboard/editor/EditorItemCard.tsx`, ~290 lines) — a self-contained component with image upload, gallery upload, inline price editing, name/description inputs, tag chips, and an expandable panel for availability toggle, badge picker, tag editor, duplicate, and delete.
-3. **Right: `StyleEditorSidebar`** — toggled via the "Design" button. Controls: headline/body font pickers (10 headline + 9 body Google Fonts loaded on demand), primary accent color (6 presets + custom picker), background color, currency selector (13 currencies, African focus), style presets from `mockData.ts` templates, card style (flat/elevated/glass), corner radius (sharp/soft/round/pill), grid layout (single/compact), and spacing density slider.
+1. **Left: `EditorSidebar`** (`app/src/app/dashboard/editor/EditorSidebar.tsx`) — a persistent panel with two top-level tabs:
+   - **Build tab** (`BuildSidebarContent.tsx`) — category list with drag-to-reorder, banner image upload, rename/hide/delete actions, and inline item editing via `EditorItemForm.tsx`. On mobile, categories are replaced by a horizontal tab strip with a bottom-sheet action menu.
+   - **Design tab** (`StyleEditorSidebarContent.tsx`) — 4 sub-tabs (Theme/Colors/Fonts/Layout): headline/body font pickers (10 headline + 9 body Google Fonts), accent + background color presets, "Magic Vibes" one-click style presets, card style (flat/elevated/glass), corner radius (sharp/soft/round/pill), spacing density, currency selector (13 currencies, African focus).
+2. **Center: Device-frame canvas** — WYSIWYG preview wrapped in a phone/tablet/desktop frame. Viewport switcher (mobile `390px` / tablet `680px` / desktop `920px`) in the header. Each item renders as an **`EditorItemCard`** (`app/src/app/dashboard/editor/EditorItemCard.tsx`) — a self-contained component with image upload, gallery upload, inline price editing, name/description inputs, tag chips, and an expandable panel for availability toggle, badge picker, tag editor, duplicate, and delete.
 
 Item images upload to Supabase Storage `menu-images` bucket under `{userId}/items/{timestamp}.{ext}`. Gallery images upload under `{userId}/gallery/`. Category banners upload under `{userId}/banners/` via the `ImageUpload` component.
 
@@ -204,7 +217,7 @@ The editor also integrates a **Print Menu** overlay using `PrintView` from the t
 
 `app/src/app/dashboard/templates/` contains the live-rendered template engine:
 
-- **`TemplatePreview.tsx`** — renders 6 distinct menu templates as pure React/inline-style components, scaled to fit any container width. Templates: `vintage-parchment`, `dark-chalkboard`, `bold-street`, `bistro-split`, `photo-gallery`, `luxury-gold`. Each template uses its own Google Fonts (Playfair Display, Oswald, Bebas Neue, Cormorant Garamond, Outfit). Exports `TplData`, `TplItem`, `TplCategory`, `TplStyle` types and `DEMO_DATA` constant. Canvas base dimensions: 700×990px.
+- **`TemplatePreview.tsx`** — renders 8 distinct menu templates as pure React/inline-style components, scaled to fit any container width. Templates: `vintage-parchment`, `dark-chalkboard`, `bold-street`, `bistro-split`, `photo-gallery`, `luxury-gold`, `organic-clean`, `midnight-luxe`. Each template uses its own Google Fonts (Playfair Display, Oswald, Bebas Neue, Cormorant Garamond, Outfit). Exports `TplData`, `TplItem`, `TplCategory`, `TplStyle` types and `DEMO_DATA` constant. Canvas base dimensions: 700×990px.
 - **`PrintView.tsx`** — print/PDF overlay with template switcher dropdown (all 6 templates), accent color picker, and a "Download PDF" button that opens the browser print dialog targeting "Save as PDF". Also includes a share link button.
 - **`page.tsx`** — template gallery page for browsing and applying templates.
 
@@ -260,6 +273,10 @@ The `restaurants` table stores the current plan tier; check `canCreateMenu()`, `
 | `Skeleton` | `app/src/components/Skeleton.tsx` | Loading skeleton placeholders |
 | `PublicMenuClient` | `app/src/app/menu/[slug]/PublicMenuClient.tsx` | Client-side public menu renderer (~27KB) |
 | `EditorItemCard` | `app/src/app/dashboard/editor/EditorItemCard.tsx` | Self-contained menu item card with image upload, gallery, tags, badges |
+| `EditorSidebar` | `app/src/app/dashboard/editor/EditorSidebar.tsx` | Right panel container with Build and Design tabs |
+| `BuildSidebarContent` | `app/src/app/dashboard/editor/BuildSidebarContent.tsx` | Build tab — category management and item editing |
+| `StyleEditorSidebarContent` | `app/src/app/dashboard/editor/StyleEditorSidebarContent.tsx` | Design tab with 4 sub-tabs (Theme/Colors/Fonts/Layout) |
+| `EditorItemForm` | `app/src/app/dashboard/editor/EditorItemForm.tsx` | Extracted item edit form used inside BuildSidebarContent |
 | `useMenuBootstrap` | `app/src/hooks/useMenuBootstrap.ts` | Auth + restaurant/menu bootstrap hook used by MenuProvider |
 | `StaffManager` | `app/src/app/dashboard/settings/StaffManager.tsx` | Staff invite/remove UI in dashboard settings; calls `/api/staff` |
 

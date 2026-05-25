@@ -54,7 +54,7 @@ export default function ReviewsPage() {
 
     if (!error && data) {
       // Map sentiment if it's missing in some records
-      const processed = (data as any[]).map((r) => ({
+      const processed = (data as ReviewRow[]).map((r) => ({
         ...r,
         sentiment: r.sentiment || (r.rating >= 4 ? "positive" : r.rating === 3 ? "neutral" : "negative"),
       }));
@@ -124,8 +124,8 @@ export default function ReviewsPage() {
       toast.success("Response sent to customer successfully!");
       setEditingReplyId(null);
       fetchReviews();
-    } catch (err: any) {
-      toast.error("Failed to save response: " + err.message);
+    } catch (err) {
+      toast.error("Failed to save response: " + (err instanceof Error ? err.message : "Unknown error"));
     } finally {
       setSavingReplyId(null);
     }
@@ -145,8 +145,8 @@ export default function ReviewsPage() {
       if (error) throw error;
       toast.success("Response deleted successfully.");
       fetchReviews();
-    } catch (err: any) {
-      toast.error("Failed to delete response: " + err.message);
+    } catch (err) {
+      toast.error("Failed to delete response: " + (err instanceof Error ? err.message : "Unknown error"));
     }
   };
 
@@ -431,7 +431,7 @@ export default function ReviewsPage() {
                 {/* Comment Section */}
                 {review.comment ? (
                   <p className="text-sm text-on-surface leading-relaxed mb-6 font-medium pl-1">
-                    "{review.comment}"
+                    &quot;{review.comment}&quot;
                   </p>
                 ) : (
                   <p className="text-xs text-secondary italic mb-6 pl-1">
@@ -538,7 +538,7 @@ export default function ReviewsPage() {
                         </div>
                       </div>
                       <p className="text-xs font-semibold leading-relaxed text-on-surface-variant italic">
-                        "{review.reply}"
+                        &quot;{review.reply}&quot;
                       </p>
                     </div>
                   )}

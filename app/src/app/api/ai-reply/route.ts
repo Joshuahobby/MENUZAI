@@ -17,9 +17,6 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Configuration missing" }, { status: 500 });
     }
 
-    // Call openrouter via admin setting or environment variables
-    const apiKey = process.env.OPENROUTER_API_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-    
     // Fallback template builder if external API is slow or offline
     const buildFallbackReply = () => {
       if (rating >= 4) {

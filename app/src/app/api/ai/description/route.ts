@@ -94,8 +94,8 @@ Keep it strictly between 1 to 2 short sentences. No introductory text, no quotes
       });
 
       if (!response.ok) {
-        const err = await response.json().catch(() => ({}));
-        throw new Error((err as any).error?.message ?? `OpenRouter error ${response.status}`);
+        const err = await response.json().catch(() => ({})) as { error?: { message?: string } };
+        throw new Error(err.error?.message ?? `OpenRouter error ${response.status}`);
       }
 
       const data = await response.json();
@@ -103,8 +103,9 @@ Keep it strictly between 1 to 2 short sentences. No introductory text, no quotes
     }
 
     return NextResponse.json({ description: description.trim() });
-  } catch (error: any) {
+  } catch (error) {
     console.error("AI Generation error:", error);
-    return NextResponse.json({ error: error.message || "Failed to generate description" }, { status: 500 });
+    const msg = error instanceof Error ? error.message : "Failed to generate description";
+    return NextResponse.json({ error: msg }, { status: 500 });
   }
 }

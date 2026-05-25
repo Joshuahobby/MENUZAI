@@ -55,7 +55,7 @@ test.describe("Orders dashboard", () => {
   });
 
   test("sound toggle button is present", async ({ page }) => {
-    const soundBtn = page.locator("button[title]").filter({ hasText: "" }).first();
+    const _soundBtn = page.locator("button[title]").filter({ hasText: "" }).first();
     // Sound toggle has a title attribute
     const soundToggle = page.locator("button[title*='notification'], button[title*='Mute']").first();
     const hasSoundToggle = await soundToggle.isVisible({ timeout: 5000 }).catch(() => false);

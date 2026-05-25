@@ -37,7 +37,6 @@ export function useMenuBootstrap() {
     setMenuStyle,
     setLastSynced,
     hydrate,
-    setUserRole,
   } = useMenuStore.getState();
 
   const isBootstrappingRef = useRef(false);

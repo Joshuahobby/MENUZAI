@@ -12,6 +12,7 @@ test.describe("Sign In", () => {
     await login.goto();
 
     await expect(page.getByText("Welcome back")).toBeVisible();
+    await page.getByRole("button", { name: /continue with email/i }).click();
     await expect(login.emailInput).toBeVisible();
     await expect(login.passwordInput).toBeVisible();
     await expect(login.submitButton).toHaveText(/Sign In/i);
@@ -29,6 +30,7 @@ test.describe("Sign In", () => {
   test("shows error for empty password", async ({ page }) => {
     const login = new LoginPage(page);
     await login.goto();
+    await page.getByRole("button", { name: /continue with email/i }).click();
     await login.emailInput.fill("test@example.com");
     await login.submitButton.click();
 
