@@ -126,12 +126,9 @@ export default function PricingPage() {
                 Dashboard
               </Link>
             ) : (
-              <>
-                <Link href="/login" className="text-sm font-medium text-secondary hover:text-on-surface transition-colors">Log In</Link>
-                <Link href="/login" className="hidden md:block px-5 py-2 text-sm font-bold text-white bg-primary rounded-lg hover:opacity-90 transition-opacity">
-                  Sign Up Free
-                </Link>
-              </>
+              <Link href="/login" className="px-5 py-2 text-sm font-bold text-white bg-primary rounded-lg hover:opacity-90 transition-opacity">
+                Get Started
+              </Link>
             )}
           </div>
         </div>

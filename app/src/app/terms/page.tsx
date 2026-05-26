@@ -23,7 +23,6 @@ export default function TermsPage() {
             </span>
           </Link>
           <div className="flex items-center gap-3">
-            <Link href="/login" className="text-sm font-medium text-secondary hover:text-on-surface transition-colors hidden md:block">Log In</Link>
             <Link href="/login" className="px-5 py-2 bg-primary text-white text-sm font-bold rounded-lg hover:opacity-90 transition-opacity">
               Get Started
             </Link>
@@ -96,7 +95,7 @@ export default function TermsPage() {
 
           <section>
             <h2 className="text-lg font-bold text-on-surface mb-3">11. Contact</h2>
-            <p>For questions about these Terms, contact us at <a href="mailto:hello@ikoranabuhanga.tech" className="text-primary hover:underline">hello@ikoranabuhanga.tech</a>.</p>
+            <p>For questions about these Terms, contact us at <a href="mailto:support@menuzai.com" className="text-primary hover:underline">support@menuzai.com</a>.</p>
           </section>
 
         </div>

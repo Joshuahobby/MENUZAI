@@ -23,7 +23,6 @@ export default function PrivacyPage() {
             </span>
           </Link>
           <div className="flex items-center gap-3">
-            <Link href="/login" className="text-sm font-medium text-secondary hover:text-on-surface transition-colors hidden md:block">Log In</Link>
             <Link href="/login" className="px-5 py-2 bg-primary text-white text-sm font-bold rounded-lg hover:opacity-90 transition-opacity">
               Get Started
             </Link>
@@ -96,7 +95,7 @@ export default function PrivacyPage() {
 
           <section>
             <h2 className="text-lg font-bold text-on-surface mb-3">8. Your Rights</h2>
-            <p>You have the right to access, correct, or delete your personal data at any time. To delete your account and all associated data, contact us at <a href="mailto:hello@ikoranabuhanga.tech" className="text-primary hover:underline">hello@ikoranabuhanga.tech</a>. We will process your request within 30 days.</p>
+            <p>You have the right to access, correct, or delete your personal data at any time. To delete your account and all associated data, contact us at <a href="mailto:support@menuzai.com" className="text-primary hover:underline">support@menuzai.com</a>. We will process your request within 30 days.</p>
           </section>
 
           <section>
@@ -111,7 +110,7 @@ export default function PrivacyPage() {
 
           <section>
             <h2 className="text-lg font-bold text-on-surface mb-3">11. Contact</h2>
-            <p>For privacy-related questions or requests, email us at <a href="mailto:hello@ikoranabuhanga.tech" className="text-primary hover:underline">hello@ikoranabuhanga.tech</a>.</p>
+            <p>For privacy-related questions or requests, email us at <a href="mailto:support@menuzai.com" className="text-primary hover:underline">support@menuzai.com</a>.</p>
           </section>
 
         </div>

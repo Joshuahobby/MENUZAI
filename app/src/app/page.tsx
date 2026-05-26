@@ -40,7 +40,6 @@ export default function LandingPage() {
           </div>
 
           <div className="flex items-center gap-3">
-            <Link href="/login" className="text-sm font-medium text-secondary hover:text-on-surface transition-colors hidden md:block">Log In</Link>
             <Link href="/login" className="px-5 py-2 bg-primary text-white text-sm font-bold rounded-lg hover:opacity-90 transition-opacity">
               Get Started
             </Link>
