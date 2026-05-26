@@ -5,9 +5,9 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 
 const NAV_LINKS = [
-  { href: "/features",  label: "Features"  },
-  { href: "/pricing",   label: "Pricing"   },
-  { href: "/menu/demo", label: "Live Demo" },
+  { href: "/features", label: "Features"  },
+  { href: "/pricing",  label: "Pricing"   },
+  { href: "/demo",     label: "Live Demo" },
 ];
 
 export function PublicNav({ activePath }: { activePath?: string }) {

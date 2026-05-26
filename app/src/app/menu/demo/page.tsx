@@ -6,6 +6,7 @@ import Link from "next/link";
 import NextImage from "next/image";
 import { useRouter } from "next/navigation";
 import { formatPrice } from "@/lib/utils";
+import { DemoBanner } from "@/components/DemoBanner";
 
 interface CartItem { id: string; name: string; price: number; quantity: number; }
 
@@ -52,10 +53,12 @@ export default function CustomerMenuPage() {
   };
 
   return (
-    <div 
+    <div
       ref={containerRef}
       className="min-h-screen bg-surface text-on-surface pb-32 theme-transition"
     >
+      <DemoBanner role="customer" restaurantName={restaurantName || "Le Bistro Demo"} />
+
       {/* Header */}
       <header className="w-full sticky top-0 z-50 bg-surface/95 backdrop-blur-xl flex justify-between items-center px-6 h-20">
         <div className="flex flex-col">
