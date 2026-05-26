@@ -10,13 +10,14 @@ import { SkeletonCard } from "@/components/Skeleton";
 import { useMenu } from "@/context/MenuContext";
 import { supabase } from "@/lib/supabase";
 import { getPlanLimits, getPlanMeta, isUnlimited } from "@/lib/plans";
+import type { MenuItem } from "@/types/menu";
 
 interface MenuRow {
   id: string;
   name: string;
   slug: string | null;
   status: string;
-  items: unknown[];
+  items: MenuItem[];
   view_count: number;
   updated_at: string;
 }
@@ -24,7 +25,8 @@ interface MenuRow {
 export default function MenusPage() {
   const [menus, setMenus] = useState<MenuRow[]>([]);
   const [loading, setLoading] = useState(true);
-  const { switchMenu, createMenu, deleteMenu, renameMenu, publishMenu, unpublishMenu, activeMenuId, plan, user, userRole, isLoading } = useMenu();
+  const [openMenuActions, setOpenMenuActions] = useState<string | null>(null);
+  const { switchMenu, createMenu, deleteMenu, renameMenu, duplicateMenu, publishMenu, unpublishMenu, activeMenuId, plan, user, userRole, isLoading } = useMenu();
   const router = useRouter();
 
   const limits = getPlanLimits(plan);
@@ -107,14 +109,24 @@ export default function MenusPage() {
       placeholder: "Menu name",
       confirmLabel: "Save",
     });
-    if (!newName || newName === currentName) return;
+    if (!newName || !newName.trim() || newName === currentName) return;
 
-    const success = await renameMenu(menuId, newName);
+    const success = await renameMenu(menuId, newName.trim());
     if (success) {
       toast.success("Menu renamed.");
       loadMenus();
     } else {
       toast.error("Failed to rename menu.");
+    }
+  };
+
+  const handleDuplicate = async (menuId: string, menuName: string) => {
+    const newId = await duplicateMenu(menuId);
+    if (newId) {
+      toast.success(`"${menuName}" duplicated.`);
+      loadMenus();
+    } else {
+      toast.error("Failed to duplicate menu.");
     }
   };
 
@@ -127,7 +139,6 @@ export default function MenusPage() {
     });
     if (!ok) return;
 
-    // Switch to this menu first if it's not already active, then unpublish via context
     if (menuId !== activeMenuId) await switchMenu(menuId);
     await unpublishMenu();
     toast.success(`"${menuName}" unpublished.`);
@@ -142,7 +153,6 @@ export default function MenusPage() {
       });
       return;
     }
-    // Pass menuId directly — no switchMenu needed, avoids stale-closure race condition
     const slug = await publishMenu(menuId);
     if (slug) {
       toast.success("Menu published successfully!");
@@ -186,7 +196,7 @@ export default function MenusPage() {
   }
 
   return (
-    <div className="p-6 lg:p-12 pb-24 lg:pb-12">
+    <div className="p-6 lg:p-12 pb-24 lg:pb-12" onClick={() => setOpenMenuActions(null)}>
 
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-6 gap-4">
@@ -239,11 +249,12 @@ export default function MenusPage() {
             const itemCount = Array.isArray(menu.items) ? menu.items.length : 0;
             const isPublished = menu.status === "published";
             const isActive = menu.id === activeMenuId;
+            const actionsOpen = openMenuActions === menu.id;
 
             return (
               <div
                 key={menu.id}
-                className={`bg-surface-container-lowest rounded-[2rem] overflow-hidden shadow-sm border transition-all group relative ${
+                className={`bg-surface-container-lowest rounded-[2rem] overflow-hidden shadow-sm border transition-all relative ${
                   isActive ? "border-primary shadow-primary/10" : "border-surface-container/50 hover:shadow-lg"
                 }`}
               >
@@ -253,32 +264,59 @@ export default function MenusPage() {
                   </div>
                 )}
 
-                {/* Hover actions */}
-                <div className="absolute top-4 right-4 z-10 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                {/* Always-visible … menu button */}
+                <div className="absolute top-4 right-4 z-20">
                   <button
-                    onClick={() => handleRename(menu.id, menu.name)}
-                    className="w-8 h-8 rounded-full bg-white text-secondary hover:text-primary shadow-md flex items-center justify-center transition-colors"
-                    title="Rename"
+                    type="button"
+                    onClick={(e) => { e.stopPropagation(); setOpenMenuActions(actionsOpen ? null : menu.id); }}
+                    className="w-8 h-8 rounded-full bg-white shadow-md flex items-center justify-center text-secondary hover:text-on-surface transition-colors"
+                    title="Menu options"
                   >
-                    <span className="material-symbols-outlined text-[16px]">edit</span>
+                    <span className="material-symbols-outlined text-[18px]">more_vert</span>
                   </button>
-                  {isPublished && (
-                    <button
-                      type="button"
-                      onClick={() => handleUnpublish(menu.id, menu.name)}
-                      className="w-8 h-8 rounded-full bg-white text-secondary hover:text-amber-600 shadow-md flex items-center justify-center transition-colors"
-                      title="Unpublish"
+
+                  {actionsOpen && (
+                    <div
+                      className="absolute top-10 right-0 bg-white rounded-2xl shadow-xl border border-black/5 py-1.5 min-w-[170px] overflow-hidden"
+                      onClick={(e) => e.stopPropagation()}
                     >
-                      <span className="material-symbols-outlined text-[16px]">unpublished</span>
-                    </button>
+                      <button
+                        type="button"
+                        onClick={() => { setOpenMenuActions(null); handleRename(menu.id, menu.name); }}
+                        className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-semibold hover:bg-black/3 transition-colors text-left"
+                      >
+                        <span className="material-symbols-outlined text-[18px] text-primary">edit</span>
+                        Rename
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => { setOpenMenuActions(null); handleDuplicate(menu.id, menu.name); }}
+                        className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-semibold hover:bg-black/3 transition-colors text-left"
+                      >
+                        <span className="material-symbols-outlined text-[18px] text-secondary">content_copy</span>
+                        Duplicate
+                      </button>
+                      {isPublished && (
+                        <button
+                          type="button"
+                          onClick={() => { setOpenMenuActions(null); handleUnpublish(menu.id, menu.name); }}
+                          className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-semibold hover:bg-black/3 transition-colors text-left"
+                        >
+                          <span className="material-symbols-outlined text-[18px] text-amber-500">unpublished</span>
+                          Unpublish
+                        </button>
+                      )}
+                      <div className="my-1 border-t border-black/5" />
+                      <button
+                        type="button"
+                        onClick={() => { setOpenMenuActions(null); handleDelete(menu.id, menu.name); }}
+                        className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-semibold hover:bg-red-50 transition-colors text-error text-left"
+                      >
+                        <span className="material-symbols-outlined text-[18px]">delete</span>
+                        Delete
+                      </button>
+                    </div>
                   )}
-                  <button
-                    onClick={() => handleDelete(menu.id, menu.name)}
-                    className="w-8 h-8 rounded-full bg-white text-secondary hover:text-error shadow-md flex items-center justify-center transition-colors"
-                    title="Delete"
-                  >
-                    <span className="material-symbols-outlined text-[16px]">delete</span>
-                  </button>
                 </div>
 
                 <div className="h-40 bg-gradient-to-br from-primary/10 to-primary-container/10 flex items-center justify-center">
@@ -287,7 +325,12 @@ export default function MenusPage() {
 
                 <div className="p-6">
                   <div className="flex items-center justify-between mb-2">
-                    <h3 className="font-[var(--font-headline)] font-bold text-lg truncate pr-2">{menu.name}</h3>
+                    <h3
+                      title={menu.name}
+                      className="font-[var(--font-headline)] font-bold text-lg truncate pr-2"
+                    >
+                      {menu.name}
+                    </h3>
                     <span className={`text-[10px] font-black uppercase tracking-[0.1em] px-3 py-1 rounded-full shrink-0 shadow-sm ${
                       isPublished
                         ? "bg-tertiary text-white ring-4 ring-tertiary/10"

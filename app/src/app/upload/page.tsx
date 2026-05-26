@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useMenu } from "@/context/MenuContext";
 import { templates } from "@/data/mockData";
@@ -17,20 +17,13 @@ type UploadState = "idle" | "extracting" | "done" | "error";
 const MAX_FILES = 5;
 const MAX_SIZE = 10 * 1024 * 1024;
 const VALID_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif", "application/pdf"];
-// Mutable — SSE events overwrite index 0 with live server step labels
-const EXTRACTING_STEPS = [
-  "Preparing extraction...",
-  "Analysing menu with AI...",
-  "Merging results...",
-  "Done!",
-];
 
 export default function UploadPage() {
   const { setMenuItems, setCategories, setRestaurantName, applyTemplate, restaurantId } = useMenu();
   const backHref = restaurantId ? "/dashboard/editor" : "/onboarding";
   const [state, setState] = useState<UploadState>("idle");
   const [progress, setProgress] = useState(0);
-  const [currentStepIndex, setCurrentStepIndex] = useState(0);
+  const [currentStep, setCurrentStep] = useState("Preparing extraction...");
   const [errorMsg, setErrorMsg] = useState("");
   const [extractedCount, setExtractedCount] = useState({ items: 0, categories: 0 });
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
@@ -39,20 +32,21 @@ export default function UploadPage() {
   const [isProcessingPdf, setIsProcessingPdf] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
-  // Rotate extraction messages
-  useEffect(() => {
-    let interval: NodeJS.Timeout;
-    if (state === "extracting") {
-      interval = setInterval(() => {
-        setCurrentStepIndex(prev => (prev + 1) % EXTRACTING_STEPS.length);
-      }, 3000);
-    }
-    return () => {
-      if (interval) clearInterval(interval);
-    };
-  }, [state]);
-
   const addFiles = async (incoming: File[]) => {
+    const oversized = incoming.filter(f => f.size > MAX_SIZE);
+    const invalid = incoming.filter(f => !VALID_TYPES.includes(f.type) && f.size <= MAX_SIZE);
+
+    if (oversized.length > 0) {
+      setErrorMsg(`${oversized[0].name} exceeds 10 MB.`);
+      setState("error");
+      return;
+    }
+    if (invalid.length > 0) {
+      setErrorMsg(`${invalid[0].name}: unsupported type. Use JPG, PNG, WebP, GIF, or PDF.`);
+      setState("error");
+      return;
+    }
+
     setIsProcessingPdf(true);
     try {
       const valid = incoming.filter(f => VALID_TYPES.includes(f.type) && f.size <= MAX_SIZE);
@@ -118,13 +112,14 @@ export default function UploadPage() {
         return;
       }
       if (file.size > MAX_SIZE) {
-        setErrorMsg(`${file.name} exceeds 10MB.`);
+        setErrorMsg(`${file.name} exceeds 10 MB.`);
         setState("error");
         return;
       }
     }
 
     setState("extracting");
+    setCurrentStep("Preparing extraction...");
     setProgress(5);
 
     const formData = new FormData();
@@ -142,7 +137,6 @@ export default function UploadPage() {
         throw new Error((data as { error?: string }).error || "Extraction failed");
       }
 
-      // Consume SSE stream
       const reader = res.body.getReader();
       const decoder = new TextDecoder();
       let buffer = "";
@@ -172,15 +166,7 @@ export default function UploadPage() {
 
             if (event.type === "progress") {
               if (event.pct !== undefined) setProgress(event.pct);
-              if (event.step) setCurrentStepIndex(EXTRACTING_STEPS.indexOf(event.step) >= 0
-                ? EXTRACTING_STEPS.indexOf(event.step)
-                : currentStepIndex);
-              // Display server step directly in the rotating label slot
-              if (event.step) {
-                // Override the label by storing it at index 0 and locking to index 0
-                EXTRACTING_STEPS[0] = event.step;
-                setCurrentStepIndex(0);
-              }
+              if (event.step) setCurrentStep(event.step);
             } else if (event.type === "result" && event.data) {
               const result = event.data;
               if (result.restaurantName) setRestaurantName(result.restaurantName);
@@ -200,14 +186,13 @@ export default function UploadPage() {
               }
               setProgress(100);
               setState("done");
-              setTimeout(() => router.push("/ai-result"), 1200);
+              router.push("/ai-result");
             } else if (event.type === "error") {
               throw new Error(event.error ?? "Extraction failed");
             }
           } catch (parseErr) {
-            // Skip malformed SSE lines but re-throw actual errors
             if (parseErr instanceof Error && parseErr.message !== "Extraction failed") {
-              // JSON parse error — ignore
+              // JSON parse error — ignore malformed SSE line
             } else {
               throw parseErr;
             }
@@ -240,7 +225,7 @@ export default function UploadPage() {
 
   return (
     <div className="min-h-screen bg-[#faf8f6] text-on-surface">
-      <header className="w-full sticky top-0 z-50 bg-[#faf8f6]/90 backdrop-blur-md border-b border-black/5 px-8 h-16 flex justify-between items-center">
+      <header className="w-full sticky top-0 z-50 bg-[#faf8f6]/90 backdrop-blur-md border-b border-black/5 px-4 sm:px-8 h-16 flex justify-between items-center">
         <Link href="/" className="flex items-center gap-2 shrink-0">
           <div className="w-7 h-7 bg-primary rounded-md flex items-center justify-center">
             <span className="material-symbols-outlined text-white icon-fill text-base">restaurant_menu</span>
@@ -267,41 +252,52 @@ export default function UploadPage() {
               </div>
 
               {/* Drop zone */}
-              <div
-                className={`border-2 border-dashed rounded-3xl p-12 text-center cursor-pointer transition-colors ${
-                  dragActive ? "border-primary bg-primary/3" : "border-black/10 hover:border-primary/40 hover:bg-primary/3"
-                }`}
-                onDragEnter={() => setDragActive(true)}
-                onDragLeave={() => setDragActive(false)}
-                onDragOver={(e) => e.preventDefault()}
-                onDrop={onDrop}
-                onClick={() => fileRef.current?.click()}
-              >
-                <input
-                  ref={fileRef}
-                  type="file"
-                  multiple
-                  className="hidden"
-                  accept=".jpg,.jpeg,.png,.webp,.gif,.pdf"
-                  onChange={onFileChange}
-                  id="menu-upload"
-                  title="Menu File Upload"
-                  aria-label="Menu File Upload"
-                />
-                <label htmlFor="menu-upload" className="cursor-pointer flex flex-col items-center gap-3">
-                  <span className="material-symbols-outlined text-primary text-4xl">cloud_upload</span>
-                  <div>
-                    <p className="font-bold text-on-surface">Drop menu photos or PDF here</p>
-                    <p className="text-secondary text-sm mt-1">JPG, PNG, WebP, GIF or PDF · Max 10 MB each</p>
-                  </div>
-                </label>
-                <button
-                  type="button"
-                  disabled={isProcessingPdf}
-                  className="mt-6 px-6 py-2.5 bg-primary text-white text-sm font-bold rounded-xl hover:opacity-90 transition-opacity disabled:opacity-50"
+              <div className="relative">
+                <div
+                  className={`border-2 border-dashed rounded-3xl p-6 sm:p-12 text-center cursor-pointer transition-colors ${
+                    dragActive ? "border-primary bg-primary/3" : "border-black/10 hover:border-primary/40 hover:bg-primary/3"
+                  }`}
+                  onDragEnter={() => setDragActive(true)}
+                  onDragLeave={() => setDragActive(false)}
+                  onDragOver={(e) => e.preventDefault()}
+                  onDrop={onDrop}
+                  onClick={() => !isProcessingPdf && fileRef.current?.click()}
                 >
-                  {isProcessingPdf ? "Processing PDF…" : "Browse Files"}
-                </button>
+                  <input
+                    ref={fileRef}
+                    type="file"
+                    multiple
+                    className="hidden"
+                    accept=".jpg,.jpeg,.png,.webp,.gif,.pdf"
+                    onChange={onFileChange}
+                    id="menu-upload"
+                    title="Menu File Upload"
+                    aria-label="Menu File Upload"
+                  />
+                  <label htmlFor="menu-upload" className="cursor-pointer flex flex-col items-center gap-3">
+                    <span className="material-symbols-outlined text-primary text-4xl">cloud_upload</span>
+                    <div>
+                      <p className="font-bold text-on-surface">Drop menu photos or PDF here</p>
+                      <p className="text-secondary text-sm mt-1">JPG, PNG, WebP, GIF or PDF · Max 10 MB each</p>
+                    </div>
+                  </label>
+                  <button
+                    type="button"
+                    disabled={isProcessingPdf}
+                    onClick={(e) => { e.stopPropagation(); fileRef.current?.click(); }}
+                    className="mt-6 px-6 py-2.5 bg-primary text-white text-sm font-bold rounded-xl hover:opacity-90 transition-opacity disabled:opacity-50"
+                  >
+                    {isProcessingPdf ? "Processing PDF…" : "Browse Files"}
+                  </button>
+                </div>
+
+                {/* PDF processing spinner overlay */}
+                {isProcessingPdf && (
+                  <div className="absolute inset-0 rounded-3xl bg-white/80 backdrop-blur-sm flex flex-col items-center justify-center gap-3 pointer-events-none">
+                    <span className="material-symbols-outlined text-primary text-3xl animate-spin">sync</span>
+                    <p className="text-sm font-semibold text-primary">Converting PDF pages…</p>
+                  </div>
+                )}
               </div>
 
               {/* Selected files */}
@@ -346,7 +342,10 @@ export default function UploadPage() {
                     className="w-full py-4 bg-primary text-white font-bold rounded-2xl hover:opacity-90 transition-opacity flex items-center justify-center gap-2"
                   >
                     <span className="material-symbols-outlined text-lg">auto_awesome</span>
-                    Extract Menu{selectedFiles.length > 1 ? ` from ${selectedFiles.length} images` : ""}
+                    <span className="sm:hidden">Extract ({selectedFiles.length})</span>
+                    <span className="hidden sm:inline">
+                      Extract Menu{selectedFiles.length > 1 ? ` from ${selectedFiles.length} images` : ""}
+                    </span>
                   </button>
                 </div>
               )}
@@ -364,7 +363,7 @@ export default function UploadPage() {
               <div className="flex flex-col items-center gap-1.5 mb-8">
                 <div className="flex items-center gap-2 text-primary">
                   <span className="material-symbols-outlined text-sm animate-spin">sync</span>
-                  <p className="text-sm font-semibold">{EXTRACTING_STEPS[currentStepIndex]}</p>
+                  <p className="text-sm font-semibold">{currentStep}</p>
                 </div>
                 <p className="text-secondary text-xs">
                   {selectedFiles.length > 1 ? `Processing ${selectedFiles.length} images` : "This might take a moment"}

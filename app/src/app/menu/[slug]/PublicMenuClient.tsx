@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import Link from "next/link";
 import NextImage from "next/image";
 import { useSearchParams } from "next/navigation";
@@ -153,7 +153,7 @@ export default function PublicMenuClient(props: PublicMenuClientProps) {
             event: 'new_request',
             payload: {
               id: crypto.randomUUID(),
-              tableNumber: tableFromUrl || "12",
+              tableNumber: tableFromUrl || "",
               type: serviceType,
               message: serviceMessage.trim(),
               created_at: new Date().toISOString(),
@@ -288,8 +288,8 @@ export default function PublicMenuClient(props: PublicMenuClientProps) {
     }
   }, [menuStyle]);
 
-  const visibleCategoryIds = new Set(categories.map(c => c.id));
-  const filtered = items.filter((i) => {
+  const visibleCategoryIds = useMemo(() => new Set(categories.map(c => c.id)), [categories]);
+  const filtered = useMemo(() => items.filter((i) => {
     const matchesCategory = searchQuery.trim()
       ? visibleCategoryIds.has(i.category)
       : i.category === activeCategory;
@@ -301,7 +301,7 @@ export default function PublicMenuClient(props: PublicMenuClientProps) {
         i.tags && i.tags.some(itemTag => itemTag.toLowerCase().trim() === selTag.toLowerCase().trim())
       );
     return matchesCategory && matchesSearch && matchesTags;
-  });
+  }), [items, searchQuery, activeCategory, selectedTags, visibleCategoryIds]);
 
   const totalItems = cart.reduce((s, i) => s + i.quantity, 0);
   const totalPrice = cart.reduce((s, i) => s + i.price * i.quantity, 0);
@@ -551,7 +551,7 @@ export default function PublicMenuClient(props: PublicMenuClientProps) {
 
       <main className="px-6 pt-4 pb-12 space-y-8">
         {!searchQuery.trim() && (
-          <section className="relative h-56 overflow-hidden rounded-[var(--border-radius)] shadow-lg group">
+          <section className="relative h-40 sm:h-56 overflow-hidden rounded-[var(--border-radius)] shadow-lg group">
             <NextImage
               alt={restaurantName}
               className="object-cover transition-transform duration-700 group-hover:scale-105"
@@ -600,6 +600,8 @@ export default function PublicMenuClient(props: PublicMenuClientProps) {
                   menuStyle={menuStyle}
                   onSelect={() => setSelectedItem(item)}
                   onAddToCart={() => addToCart(item)}
+                  onIncrement={() => incrementQty(item.id)}
+                  onDecrement={() => decrementQty(item.id)}
                   cartQty={cart.find(c => c.id === item.id)?.quantity ?? 0}
                 />
               ))}
@@ -633,6 +635,8 @@ export default function PublicMenuClient(props: PublicMenuClientProps) {
                       menuStyle={menuStyle}
                       onSelect={() => setSelectedItem(item)}
                       onAddToCart={() => addToCart(item)}
+                      onIncrement={() => incrementQty(item.id)}
+                      onDecrement={() => decrementQty(item.id)}
                       cartQty={cart.find(c => c.id === item.id)?.quantity ?? 0}
                     />
                   ))}
@@ -1119,12 +1123,16 @@ function MenuItemCard({
   menuStyle,
   onSelect,
   onAddToCart,
+  onIncrement,
+  onDecrement,
   cartQty,
 }: {
   item: MenuItem;
   menuStyle: MenuStyle;
   onSelect: () => void;
   onAddToCart: () => void;
+  onIncrement: () => void;
+  onDecrement: () => void;
   cartQty: number;
 }) {
   return (
@@ -1184,28 +1192,40 @@ function MenuItemCard({
         {menuStyle.layoutDensity !== "compact" && (
           <p className="text-on-surface-variant text-sm leading-relaxed mb-6 font-medium opacity-80 font-[var(--font-body)] line-clamp-2">{item.description}</p>
         )}
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            if (item.available !== false) onAddToCart();
-          }}
-          disabled={item.available === false}
-          className={`w-full text-white font-[var(--font-headline)] font-bold flex items-center justify-center gap-2 active:scale-95 transition-all hover:opacity-90 bg-[var(--primary-color)] rounded-[var(--border-radius)] premium-shadow disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100 ${menuStyle.layoutDensity === "compact" ? "py-2.5 text-sm mt-auto" : "py-4 mt-auto"}`}
-        >
-          {item.available === false ? (
-            "Sold Out"
-          ) : cartQty > 0 ? (
-            <>
-              <span className="material-symbols-outlined text-lg icon-fill">check_circle</span>
-              In cart ({cartQty})
-            </>
-          ) : (
-            <>
-              Add to Cart
-              <span className="material-symbols-outlined text-lg">add_circle</span>
-            </>
-          )}
-        </button>
+        {item.available === false ? (
+          <div className={`w-full flex items-center justify-center bg-surface-container text-secondary font-bold rounded-[var(--border-radius)] cursor-not-allowed ${menuStyle.layoutDensity === "compact" ? "py-2.5 text-sm mt-auto" : "py-4 mt-auto"}`}>
+            Sold Out
+          </div>
+        ) : cartQty > 0 ? (
+          <div
+            className={`w-full flex items-center justify-between bg-[var(--primary-color)]/10 rounded-[var(--border-radius)] mt-auto ${menuStyle.layoutDensity === "compact" ? "py-1" : "py-1.5"}`}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              type="button"
+              onClick={(e) => { e.stopPropagation(); onDecrement(); }}
+              className="w-10 h-10 flex items-center justify-center text-[var(--primary-color)] hover:bg-[var(--primary-color)]/10 rounded-[var(--border-radius)] transition-colors active:scale-90"
+            >
+              <span className="material-symbols-outlined text-[20px]">{cartQty === 1 ? "delete" : "remove"}</span>
+            </button>
+            <span className="font-[var(--font-headline)] font-black text-[var(--primary-color)] text-base min-w-[2ch] text-center">{cartQty}</span>
+            <button
+              type="button"
+              onClick={(e) => { e.stopPropagation(); onIncrement(); }}
+              className="w-10 h-10 flex items-center justify-center text-[var(--primary-color)] hover:bg-[var(--primary-color)]/10 rounded-[var(--border-radius)] transition-colors active:scale-90"
+            >
+              <span className="material-symbols-outlined text-[20px]">add</span>
+            </button>
+          </div>
+        ) : (
+          <button
+            onClick={(e) => { e.stopPropagation(); onAddToCart(); }}
+            className={`w-full text-white font-[var(--font-headline)] font-bold flex items-center justify-center gap-2 active:scale-95 transition-all hover:opacity-90 bg-[var(--primary-color)] rounded-[var(--border-radius)] premium-shadow ${menuStyle.layoutDensity === "compact" ? "py-2.5 text-sm mt-auto" : "py-4 mt-auto"}`}
+          >
+            Add to Cart
+            <span className="material-symbols-outlined text-lg">add_circle</span>
+          </button>
+        )}
       </div>
     </div>
   );

@@ -51,6 +51,7 @@ interface MenuContextType {
   createMenu: (name: string) => Promise<string | null>;
   deleteMenu: (menuId: string) => Promise<boolean>;
   renameMenu: (menuId: string, name: string) => Promise<boolean>;
+  duplicateMenu: (menuId: string) => Promise<string | null>;
   isSyncing: boolean;
   lastSynced: Date | null;
   isLoading: boolean;
@@ -429,6 +430,46 @@ export function MenuProvider({ children }: { children: React.ReactNode }) {
     return true;
   }, [user, activeMenuId]);
 
+  const duplicateMenu = useCallback(async (menuId: string): Promise<string | null> => {
+    if (!user || !restaurantId) return null;
+
+    const { data: allMenus } = await supabase
+      .from("menus")
+      .select("id")
+      .eq("user_id", user.id);
+
+    const createCheck = canCreateMenu(plan, allMenus?.length ?? 0);
+    if (!createCheck.allowed) {
+      toast.error("Menu limit reached.", { description: createCheck.reason });
+      return null;
+    }
+
+    const { data: sourceMenu } = await supabase
+      .from("menus")
+      .select("name, categories, items, style")
+      .eq("id", menuId)
+      .eq("user_id", user.id)
+      .maybeSingle();
+
+    if (!sourceMenu) return null;
+
+    const { data: newMenu, error } = await supabase
+      .from("menus")
+      .insert({
+        user_id: user.id,
+        restaurant_id: restaurantId,
+        name: `${sourceMenu.name} (copy)`,
+        categories: sourceMenu.categories ?? [],
+        items: sourceMenu.items ?? [],
+        style: sourceMenu.style ?? defaultStyle,
+      })
+      .select("id")
+      .single();
+
+    if (error || !newMenu) return null;
+    return newMenu.id;
+  }, [user, restaurantId, plan]);
+
   return (
     <MenuContext.Provider value={{
       restaurantName,
@@ -467,6 +508,7 @@ export function MenuProvider({ children }: { children: React.ReactNode }) {
       createMenu,
       deleteMenu,
       renameMenu,
+      duplicateMenu,
       isSyncing,
       lastSynced,
       isLoading,

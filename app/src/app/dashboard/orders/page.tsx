@@ -84,6 +84,7 @@ export default function OrdersPage() {
   const [tableRequests, setTableRequests] = useState<TableRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<StatusFilter>("all");
+  const [orderSearch, setOrderSearch] = useState("");
   const [isLive, setIsLive] = useState(false);
   const [now, setNow] = useState(0);
   const [soundEnabled, setSoundEnabled] = useState(true);
@@ -272,7 +273,17 @@ export default function OrdersPage() {
       })
       .subscribe();
 
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        supabase.removeChannel(orderChannel);
+        supabase.removeChannel(requestChannel);
+        fetchOrders();
+      }
+    };
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
     return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
       supabase.removeChannel(orderChannel);
       supabase.removeChannel(requestChannel);
       setIsLive(false);
@@ -280,6 +291,9 @@ export default function OrdersPage() {
   }, [restaurantId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const updateStatus = async (orderId: string, newStatus: OrderRow["status"]) => {
+    const previousOrder = orders.find(o => o.id === orderId);
+    const previousStatus = previousOrder?.status;
+
     setOrders((prev) =>
       prev.map((o) => (o.id === orderId ? { ...o, status: newStatus } : o))
     );
@@ -294,15 +308,17 @@ export default function OrdersPage() {
       toast.error("Failed to update order status.", { description: error.message });
       fetchOrdersRefresh();
     } else {
-      const labels = { confirmed: "ready", cancelled: "declined", pending: "restored", preparing: "preparing" };
-      toast.success(`Order ${labels[newStatus]}.`);
-
-      if (newStatus === "preparing") {
-        const orderToPrint = orders.find(o => o.id === orderId);
-        if (orderToPrint) {
-          setPrintingOrder({ ...orderToPrint, status: "preparing" });
-        }
-      }
+      const labels: Record<OrderRow["status"], string> = { confirmed: "ready", cancelled: "declined", pending: "restored", preparing: "preparing" };
+      toast.success(`Order ${labels[newStatus]}.`, {
+        duration: 4000,
+        action: previousStatus ? {
+          label: "Undo",
+          onClick: async () => {
+            setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: previousStatus } : o));
+            await supabase.from("orders").update({ status: previousStatus }).eq("id", orderId);
+          },
+        } : undefined,
+      });
     }
   };
 
@@ -378,7 +394,17 @@ export default function OrdersPage() {
     }
   });
 
-  const filtered = filter === "all" ? orders : orders.filter((o) => o.status === filter);
+  const filtered = orders.filter((o) => {
+    const matchesFilter = filter === "all" || o.status === filter;
+    if (!matchesFilter) return false;
+    if (!orderSearch.trim()) return true;
+    const q = orderSearch.toLowerCase();
+    return (
+      o.id.toLowerCase().includes(q) ||
+      (o.customer_name ?? "").toLowerCase().includes(q) ||
+      (o.table_number ?? "").toLowerCase().includes(q)
+    );
+  });
 
   return (
     <div className="p-6 lg:p-12 pb-24 lg:pb-12 max-w-7xl mx-auto">
@@ -424,7 +450,7 @@ export default function OrdersPage() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 mb-8">
         <div className="bg-surface-container-lowest rounded-3xl p-5 border border-surface-container/50">
           <div className="flex items-center gap-2 mb-2">
             <span className="material-symbols-outlined text-primary icon-fill text-lg">today</span>
@@ -466,11 +492,24 @@ export default function OrdersPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
         {/* Left Side: Orders list */}
         <div className="lg:col-span-2 space-y-6">
-          <div className="flex items-center justify-between border-b border-surface-container pb-4">
-            <h2 className="font-[var(--font-headline)] font-bold text-xl flex items-center gap-2">
-              <span className="material-symbols-outlined text-primary">receipt_long</span>
-              Orders List
-            </h2>
+          <div className="space-y-4 border-b border-surface-container pb-4">
+            <div className="flex items-center justify-between">
+              <h2 className="font-[var(--font-headline)] font-bold text-xl flex items-center gap-2">
+                <span className="material-symbols-outlined text-primary">receipt_long</span>
+                Orders List
+              </h2>
+              {/* Search */}
+              <div className="relative">
+                <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-secondary text-[16px]">search</span>
+                <input
+                  type="text"
+                  value={orderSearch}
+                  onChange={(e) => setOrderSearch(e.target.value)}
+                  placeholder="Search by name, table…"
+                  className="bg-surface-container rounded-xl pl-8 pr-3 py-2 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 w-44 sm:w-56 transition-all"
+                />
+              </div>
+            </div>
 
             {/* Filter tabs */}
             <div className="flex gap-1.5 flex-wrap">
@@ -694,8 +733,8 @@ export default function OrdersPage() {
                 <div className="w-12 h-12 bg-surface-container-lowest rounded-xl flex items-center justify-center mb-3 text-secondary shadow-sm">
                   <span className="material-symbols-outlined text-xl">concierge</span>
                 </div>
-                <p className="font-bold text-xs">No active service calls</p>
-                <p className="text-secondary text-[10px] max-w-[180px] mt-0.5">All tables are happy and fully taken care of!</p>
+                <p className="font-bold text-xs">No pending table requests</p>
+                <p className="text-secondary text-[10px] max-w-[180px] mt-0.5">Incoming requests from QR menu customers will appear here.</p>
               </div>
             ) : (
               <div className="space-y-4 max-h-[400px] overflow-y-auto pr-1 custom-scrollbar">
