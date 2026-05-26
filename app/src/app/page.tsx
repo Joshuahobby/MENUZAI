@@ -5,6 +5,7 @@ import Image from "next/image";
 import { useState } from "react";
 import { pricingPlans } from "@/data/mockData";
 import { PublicNav } from "@/components/PublicNav";
+import { BackToTop } from "@/components/BackToTop";
 
 const fmt = (n: number) => new Intl.NumberFormat("en-US").format(n);
 
@@ -312,6 +313,7 @@ export default function LandingPage() {
           </div>
         </div>
       </footer>
+      <BackToTop />
     </div>
   );
 }

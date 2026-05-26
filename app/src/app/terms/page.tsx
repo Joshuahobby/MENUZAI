@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { PublicNav } from "@/components/PublicNav";
+import { BackToTop } from "@/components/BackToTop";
 
 const LAST_UPDATED = "1 January 2026";
 
@@ -97,6 +98,7 @@ export default function TermsPage() {
           </div>
         </div>
       </footer>
+      <BackToTop />
     </div>
   );
 }

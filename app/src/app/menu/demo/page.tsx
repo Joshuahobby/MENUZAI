@@ -6,6 +6,7 @@ import NextImage from "next/image";
 import { useRouter } from "next/navigation";
 import { formatPrice } from "@/lib/utils";
 import { DemoBanner } from "@/components/DemoBanner";
+import { BackToTop } from "@/components/BackToTop";
 import {
   menuItems as MOCK_ITEMS,
   categories as MOCK_CATEGORIES,
@@ -202,6 +203,8 @@ export default function CustomerMenuPage() {
           )}
         </section>
       </main>
+
+      <BackToTop />
 
       {/* Floating Cart / WhatsApp CTA */}
       <div className="fixed bottom-0 left-0 w-full p-6 z-50 pointer-events-none">

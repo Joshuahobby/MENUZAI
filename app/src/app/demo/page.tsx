@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { PublicNav } from "@/components/PublicNav";
+import { BackToTop } from "@/components/BackToTop";
 
 export const metadata = {
   title: "Live Demo — MENUZA AI",
@@ -200,6 +201,7 @@ export default function DemoHubPage() {
           </div>
         </div>
       </footer>
+      <BackToTop />
     </div>
   );
 }

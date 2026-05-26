@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 import { DemoBanner } from "@/components/DemoBanner";
+import { BackToTop } from "@/components/BackToTop";
 
 const RESTAURANT = "Le Bistro Demo";
 
@@ -269,6 +270,7 @@ export default function OwnerDemoPage() {
         </div>
 
       </main>
+      <BackToTop />
     </div>
   );
 }

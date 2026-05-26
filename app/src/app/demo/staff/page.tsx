@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import { DemoBanner } from "@/components/DemoBanner";
+import { BackToTop } from "@/components/BackToTop";
 
 type Status = "pending" | "preparing" | "ready";
 
@@ -268,6 +269,7 @@ export default function StaffDemoPage() {
           </Link>
         </div>
       </main>
+      <BackToTop />
     </div>
   );
 }

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { PublicNav } from "@/components/PublicNav";
+import { BackToTop } from "@/components/BackToTop";
 
 export const metadata = {
   title: "Features — MENUZA AI",
@@ -265,6 +266,7 @@ export default function FeaturesPage() {
           </div>
         </div>
       </footer>
+      <BackToTop />
     </div>
   );
 }

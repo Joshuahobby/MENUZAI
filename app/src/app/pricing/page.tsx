@@ -5,6 +5,7 @@ import { CheckoutModal } from "@/components/CheckoutModal";
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import { PublicNav } from "@/components/PublicNav";
+import { BackToTop } from "@/components/BackToTop";
 
 const MONTHLY = { pro: 35000, business: 89000 };
 
@@ -374,6 +375,7 @@ export default function PricingPage() {
           </div>
         </div>
       </footer>
+      <BackToTop />
     </div>
   );
 }
