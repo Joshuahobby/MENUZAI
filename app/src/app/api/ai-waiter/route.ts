@@ -17,7 +17,29 @@ export async function POST(request: Request) {
   }
 
   try {
-    const { messages, menuItems, restaurantName, aiWaiterSettings } = await request.json();
+    const { messages, menuItems, restaurantName, aiWaiterSettings, restaurantId } = await request.json();
+
+    // Plan gate: AI Waiter is Pro-only
+    if (restaurantId) {
+      try {
+        const adminClient = getSupabaseAdmin();
+        if (adminClient) {
+          const { data: restaurant } = await adminClient
+            .from("restaurants")
+            .select("plan")
+            .eq("id", restaurantId)
+            .maybeSingle();
+          if (restaurant?.plan === "free") {
+            return Response.json(
+              { error: "AI Digital Waiter requires a Pro plan. Upgrade at /pricing to unlock it." },
+              { status: 402 }
+            );
+          }
+        }
+      } catch {
+        // If plan lookup fails, allow through (graceful degradation)
+      }
+    }
 
     if (!messages || !Array.isArray(messages)) {
       return Response.json({ error: "Invalid messages format" }, { status: 400 });

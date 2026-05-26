@@ -18,6 +18,7 @@ interface PublicMenuClientProps {
   restaurantName: string;
   restaurantPhone: string;
   restaurantLogoUrl: string;
+  restaurantPlan?: string;
   slug: string;
   categories: MenuCategory[];
   items: MenuItem[];
@@ -49,8 +50,11 @@ export default function PublicMenuClient(props: PublicMenuClientProps) {
     restaurantName,
     restaurantPhone,
     restaurantLogoUrl,
+    restaurantPlan = "free",
     slug,
   } = props;
+
+  const aiWaiterEnabled = restaurantPlan !== "free";
 
   const [categories, setCategories] = useState<MenuCategory[]>(props.categories.filter(c => !c.hidden));
   const [items, setItems] = useState<MenuItem[]>(props.items);
@@ -181,6 +185,7 @@ export default function PublicMenuClient(props: PublicMenuClientProps) {
           messages: [...assistantMessages, { role: "user", content: userMsg }].slice(-5),
           menuItems: items.map(i => ({ name: i.name, description: i.description, price: i.price, tags: i.tags })),
           restaurantName,
+          restaurantId,
           aiWaiterSettings: {
             tone: menuStyle.aiWaiterTone,
             upsell: menuStyle.aiWaiterUpsell,
@@ -704,18 +709,20 @@ export default function PublicMenuClient(props: PublicMenuClientProps) {
         currency={menuStyle.currency ?? "RWF"}
       />
 
-      {/* AI Assistant FAB */}
-      <button
-        onClick={() => setIsAssistantOpen(true)}
-        className="fixed bottom-24 right-6 w-14 h-14 bg-primary text-white rounded-full shadow-2xl flex items-center justify-center z-50 hover:scale-110 active:scale-95 transition-all animate-bounce-slow"
-        title="Ask the AI Waiter"
-      >
-        <span className="material-symbols-outlined text-2xl icon-fill">robot_2</span>
-        <div className="absolute -top-1 -right-1 w-4 h-4 bg-tertiary rounded-full border-2 border-white animate-pulse" />
-      </button>
+      {/* AI Assistant FAB — Pro plan only */}
+      {aiWaiterEnabled && (
+        <button
+          onClick={() => setIsAssistantOpen(true)}
+          className="fixed bottom-24 right-6 w-14 h-14 bg-primary text-white rounded-full shadow-2xl flex items-center justify-center z-50 hover:scale-110 active:scale-95 transition-all animate-bounce-slow"
+          title="Ask the AI Waiter"
+        >
+          <span className="material-symbols-outlined text-2xl icon-fill">robot_2</span>
+          <div className="absolute -top-1 -right-1 w-4 h-4 bg-tertiary rounded-full border-2 border-white animate-pulse" />
+        </button>
+      )}
 
       {/* AI Assistant Modal */}
-      {isAssistantOpen && (
+      {isAssistantOpen && aiWaiterEnabled && (
         <div className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center p-0 sm:p-6 bg-black/40 backdrop-blur-sm animate-in fade-in duration-300">
           <div className="bg-surface w-full max-w-lg sm:rounded-[2.5rem] shadow-2xl flex flex-col h-[80vh] sm:h-[600px] overflow-hidden animate-in slide-in-from-bottom duration-500">
             {/* Header */}

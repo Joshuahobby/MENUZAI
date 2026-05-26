@@ -31,7 +31,7 @@ function StarRow({ rating, filled }: { rating: number; filled: boolean }) {
 }
 
 export default function ReviewsPage() {
-  const { restaurantId, restaurantName, userRole, isLoading: menuLoading } = useMenu();
+  const { restaurantId, restaurantName, userRole, isLoading: menuLoading, plan } = useMenu();
   const [reviews, setReviews] = useState<ReviewRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [filterRating, setFilterRating] = useState<number | null>(null);
@@ -443,15 +443,26 @@ export default function ReviewsPage() {
                 <div className="border-t border-surface-container pt-5 flex flex-col gap-4">
                   {!hasReply && !isEditing && (
                     <div className="flex justify-end">
-                      <button
-                        type="button"
-                        onClick={() => handleGenerateAiReply(review)}
-                        disabled={generatingForId === review.id}
-                        className="flex items-center gap-2 px-4 py-2 bg-primary/10 hover:bg-primary/20 text-primary text-xs font-extrabold rounded-xl transition-all cursor-pointer disabled:opacity-50"
-                      >
-                        <span className="material-symbols-outlined text-[16px] icon-fill">bolt</span>
-                        <span>{generatingForId === review.id ? "Drafting..." : "AI Review Responder"}</span>
-                      </button>
+                      {plan === "free" ? (
+                        <a
+                          href="/pricing"
+                          className="flex items-center gap-2 px-4 py-2 bg-surface-container text-secondary text-xs font-extrabold rounded-xl transition-all hover:bg-primary/10 hover:text-primary"
+                          title="Upgrade to Pro to use AI Reply"
+                        >
+                          <span className="material-symbols-outlined text-[16px]">lock</span>
+                          <span>AI Reply — Pro</span>
+                        </a>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => handleGenerateAiReply(review)}
+                          disabled={generatingForId === review.id}
+                          className="flex items-center gap-2 px-4 py-2 bg-primary/10 hover:bg-primary/20 text-primary text-xs font-extrabold rounded-xl transition-all cursor-pointer disabled:opacity-50"
+                        >
+                          <span className="material-symbols-outlined text-[16px] icon-fill">bolt</span>
+                          <span>{generatingForId === review.id ? "Drafting..." : "AI Review Responder"}</span>
+                        </button>
+                      )}
                     </div>
                   )}
 
@@ -463,14 +474,16 @@ export default function ReviewsPage() {
                           <span className="material-symbols-outlined text-primary text-sm icon-fill">bolt</span>
                           AI Draft Response
                         </span>
-                        <button
-                          type="button"
-                          onClick={() => handleGenerateAiReply(review)}
-                          disabled={generatingForId === review.id}
-                          className="text-[10px] font-bold text-primary hover:underline flex items-center gap-1 cursor-pointer"
-                        >
-                          <span className="material-symbols-outlined text-xs">refresh</span> Regenerate
-                        </button>
+                        {plan !== "free" && (
+                          <button
+                            type="button"
+                            onClick={() => handleGenerateAiReply(review)}
+                            disabled={generatingForId === review.id}
+                            className="text-[10px] font-bold text-primary hover:underline flex items-center gap-1 cursor-pointer"
+                          >
+                            <span className="material-symbols-outlined text-xs">refresh</span> Regenerate
+                          </button>
+                        )}
                       </div>
 
                       <textarea

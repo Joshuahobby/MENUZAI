@@ -1,5 +1,19 @@
 export type Plan = "free" | "pro" | "business";
 
+export interface PlanFeatures {
+  aiWaiter: boolean;
+  aiReply: boolean;
+  galleryUpload: boolean;
+  staffManagement: boolean;
+  premiumQrTemplates: boolean;
+}
+
+const FEATURES: Record<Plan, PlanFeatures> = {
+  free:     { aiWaiter: false, aiReply: false, galleryUpload: false, staffManagement: false, premiumQrTemplates: false },
+  pro:      { aiWaiter: true,  aiReply: true,  galleryUpload: true,  staffManagement: true,  premiumQrTemplates: true },
+  business: { aiWaiter: true,  aiReply: true,  galleryUpload: true,  staffManagement: true,  premiumQrTemplates: true },
+};
+
 interface PlanLimits {
   maxDrafts: number;
   maxPublished: number;
@@ -33,6 +47,11 @@ export function getPlanLimits(plan: string): PlanLimits {
 
 export function getPlanMeta(plan: string): PlanMeta {
   return META[resolve(plan)];
+}
+
+export function canUseFeature(plan: string, feature: keyof PlanFeatures): boolean {
+  const resolved = resolve(plan);
+  return FEATURES[resolved][feature];
 }
 
 export function isUnlimited(plan: string): boolean {

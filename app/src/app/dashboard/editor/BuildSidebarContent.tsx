@@ -38,6 +38,7 @@ export function BuildSidebarContent({
     duplicateItem,
     removeItem,
     user,
+    plan,
   } = useMenu();
   const dragIdRef = useRef<string | null>(null);
   const [draggingId, setDraggingId] = useState<string | null>(null);
@@ -92,6 +93,7 @@ export function BuildSidebarContent({
           menuStyle={menuStyle}
           isUploading={isUploading}
           userId={userId}
+          plan={plan}
           onClose={() => setSelectedItemId(null)}
           onUpdateItem={updateItem}
           onDuplicateItem={(id: string) => {

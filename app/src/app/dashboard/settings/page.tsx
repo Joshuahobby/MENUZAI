@@ -499,7 +499,21 @@ export default function SettingsPage() {
         </div>
 
         {/* AI Digital Waiter Customizer */}
-        <div className="bg-surface-container-lowest p-8 rounded-[2rem] border border-surface-container/50 lg:col-span-2">
+        <div className="relative bg-surface-container-lowest p-8 rounded-[2rem] border border-surface-container/50 lg:col-span-2 overflow-hidden">
+          {restaurantPlan === "free" && (
+            <div className="absolute inset-0 z-10 bg-surface-container-lowest/80 backdrop-blur-[2px] flex flex-col items-center justify-center rounded-[2rem] gap-4 p-8 text-center">
+              <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center">
+                <span className="material-symbols-outlined text-3xl text-primary icon-fill">workspace_premium</span>
+              </div>
+              <div>
+                <p className="font-[var(--font-headline)] font-bold text-lg mb-1">AI Waiter is a Pro Feature</p>
+                <p className="text-sm text-secondary max-w-xs">Upgrade to Pro to deploy an AI Digital Waiter on your public menu that answers questions, upsells, and drives orders 24/7.</p>
+              </div>
+              <a href="/pricing" className="px-6 py-3 bg-primary-container text-white font-bold rounded-xl text-sm hover:shadow-lg transition-all active:scale-95">
+                Upgrade to Pro →
+              </a>
+            </div>
+          )}
           <div className="flex items-center gap-3 mb-6">
             <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary shrink-0">
               <span className="material-symbols-outlined text-2xl icon-fill font-bold">robot_2</span>
@@ -641,8 +655,23 @@ export default function SettingsPage() {
           </div>
         </div>
 
-        {/* Staff Management */}
-        <StaffManager />
+        {/* Staff Management — Pro only */}
+        {restaurantPlan === "free" ? (
+          <div className="bg-surface-container-lowest p-8 rounded-[2rem] border border-surface-container/50 lg:col-span-2 flex flex-col sm:flex-row items-start sm:items-center gap-6">
+            <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary shrink-0">
+              <span className="material-symbols-outlined text-2xl icon-fill">workspace_premium</span>
+            </div>
+            <div className="flex-1">
+              <p className="font-[var(--font-headline)] font-bold text-lg">Team & Staff Management</p>
+              <p className="text-sm text-secondary mt-0.5">Invite managers and staff, assign roles, and manage access — available on Pro and Business plans.</p>
+            </div>
+            <a href="/pricing" className="shrink-0 px-5 py-2.5 bg-primary-container text-white font-bold rounded-xl text-sm hover:shadow-lg transition-all active:scale-95">
+              Upgrade to Pro →
+            </a>
+          </div>
+        ) : (
+          <StaffManager />
+        )}
 
         {/* WhatsApp Settings */}
         <div className="bg-surface-container-lowest p-8 rounded-[2rem] border border-surface-container/50 lg:col-span-2">

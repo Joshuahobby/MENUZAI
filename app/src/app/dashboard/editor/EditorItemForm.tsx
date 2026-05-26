@@ -22,6 +22,7 @@ interface EditorItemFormProps {
   menuStyle: MenuStyle;
   isUploading: boolean;
   userId: string | null;
+  plan?: string;
   onClose: () => void;
   onUpdateItem: (itemId: string, updates: Partial<MenuItem>) => void;
   onDuplicateItem: (itemId: string) => void;
@@ -35,6 +36,7 @@ export function EditorItemForm({
   menuStyle,
   isUploading,
   userId,
+  plan = "free",
   onClose,
   onUpdateItem,
   onDuplicateItem,
@@ -352,13 +354,24 @@ export function EditorItemForm({
                   </button>
                 </div>
               ))}
-              <button
-                type="button"
-                onClick={() => galleryInputRef.current?.click()}
-                className="w-16 h-16 border-2 border-dashed border-outline-variant flex items-center justify-center rounded-lg text-secondary hover:text-primary transition-colors"
-              >
-                <span className="material-symbols-outlined">add</span>
-              </button>
+              {plan === "free" ? (
+                <a
+                  href="/pricing"
+                  title="Gallery upload requires Pro"
+                  className="w-16 h-16 border-2 border-dashed border-outline-variant flex flex-col items-center justify-center rounded-lg text-secondary hover:text-primary transition-colors gap-0.5"
+                >
+                  <span className="material-symbols-outlined text-sm">lock</span>
+                  <span className="text-[8px] font-bold uppercase">Pro</span>
+                </a>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => galleryInputRef.current?.click()}
+                  className="w-16 h-16 border-2 border-dashed border-outline-variant flex items-center justify-center rounded-lg text-secondary hover:text-primary transition-colors"
+                >
+                  <span className="material-symbols-outlined">add</span>
+                </button>
+              )}
               <input ref={galleryInputRef} type="file" multiple accept="image/*" className="hidden" onChange={handleGalleryUpload} title="Upload gallery photos" />
             </div>
           </div>

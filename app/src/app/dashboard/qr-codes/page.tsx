@@ -23,8 +23,9 @@ const PRESET_IMAGES = [
 ];
 
 export default function QRCodesPage() {
-  const { menuSlug, menuStatus, menuStyle, restaurantName, userRole, isLoading } = useMenu();
+  const { menuSlug, menuStatus, menuStyle, restaurantName, userRole, isLoading, plan } = useMenu();
   const baseUrl = typeof window !== "undefined" ? window.location.origin : "https://menuzaai.com";
+  const PREMIUM_QR_IDS = new Set(["dark-premium", "elegant-minimal"]);
   
   const [tableNumber, setTableNumber] = useState("");
   const menuUrl = menuSlug && menuStatus === "published"
@@ -211,13 +212,31 @@ export default function QRCodesPage() {
                 <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-[#1A1009]">Layout</h3>
               </div>
               <div className="flex gap-2">
-                {TEMPLATES.map((t) => (
+                {TEMPLATES.map((t) => {
+                  const locked = plan === "free" && PREMIUM_QR_IDS.has(t.id);
+                  return locked ? (
+                    <a
+                      key={t.id}
+                      href="/pricing"
+                      title={`${t.name} — Pro only`}
+                      className="group relative flex-1 aspect-square rounded-2xl border-2 border-transparent flex flex-col items-center justify-center p-2 opacity-60 hover:opacity-80 transition-opacity"
+                    >
+                      <div className={`w-full flex-1 rounded-lg border overflow-hidden mb-1 relative ${
+                        t.id === 'dark-premium' ? 'bg-black border-white/10' : 'bg-surface-container-low border-outline-variant/20'
+                      }`}>
+                        <div className="absolute inset-0 flex items-center justify-center bg-black/30">
+                          <span className="material-symbols-outlined text-white text-sm">lock</span>
+                        </div>
+                      </div>
+                      <span className="text-[7px] font-black uppercase tracking-widest text-secondary opacity-60">{t.name.split(' ')[0]}</span>
+                    </a>
+                  ) : (
                   <button
                     key={t.id}
                     onClick={() => setPosterData({ ...posterData, templateId: t.id })}
                     className={`group relative flex-1 aspect-square rounded-2xl transition-all border-2 flex flex-col items-center justify-center p-2 ${
-                      posterData.templateId === t.id 
-                        ? "bg-[#1A1009]/5 border-[#1A1009]" 
+                      posterData.templateId === t.id
+                        ? "bg-[#1A1009]/5 border-[#1A1009]"
                         : "bg-transparent border-transparent hover:bg-surface-container/20"
                     }`}
                   >
@@ -260,7 +279,8 @@ export default function QRCodesPage() {
                       </div>
                     )}
                   </button>
-                ))}
+                  );
+                })}
               </div>
             </section>
 
