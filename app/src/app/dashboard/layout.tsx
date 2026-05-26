@@ -63,8 +63,8 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   }, [router, isLoading, onboarded, pathname, user, userRole]);
 
   useEffect(() => {
-    if (moreOpen) setTimeout(() => setMoreOpen(false), 0);
-  }, [pathname, moreOpen]);
+    setMoreOpen(false);
+  }, [pathname]);
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
@@ -162,7 +162,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
       </aside>
 
       {/* Main Content */}
-      <main className={`transition-all duration-300 min-h-screen ${collapsed ? "lg:ml-16" : "lg:ml-64"}`}>
+      <main className={`transition-all duration-300 min-h-screen pb-24 lg:pb-0 ${collapsed ? "lg:ml-16" : "lg:ml-64"}`}>
         <div className="w-full h-full bg-surface-container-lowest lg:rounded-[3rem] shadow-2xl border border-surface-container-high/50 overflow-hidden relative min-h-[calc(100vh-48px)]">
           {children}
         </div>

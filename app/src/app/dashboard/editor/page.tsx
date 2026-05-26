@@ -209,7 +209,7 @@ export default function MenuEditorPage() {
       className="h-[calc(100vh)] flex flex-col overflow-hidden"
     >
       {/* ── Top Bar ── */}
-      <header className="bg-white/90 backdrop-blur-xl flex justify-between items-center px-4 lg:px-6 h-14 border-b border-black/6 shrink-0">
+      <header className="bg-white/90 backdrop-blur-xl flex justify-between items-center px-4 lg:px-6 h-14 border-b border-black/6 shrink-0 z-20">
         {/* Left side */}
         <div className="flex items-center gap-3 min-w-0">
           <Link href="/dashboard/menus" className="w-8 h-8 rounded-xl flex items-center justify-center hover:bg-black/5 transition-colors text-secondary hover:text-on-surface shrink-0">
@@ -303,7 +303,7 @@ export default function MenuEditorPage() {
             {showMobileMenu && (
               <>
                 <div className="fixed inset-0 z-40" onClick={() => setShowMobileMenu(false)} />
-                <div className="absolute right-0 top-11 z-50 bg-white rounded-2xl shadow-lg border border-black/8 py-1.5 min-w-[180px]">
+                <div className="fixed top-14 right-4 z-50 bg-white rounded-2xl shadow-lg border border-black/8 py-1.5 min-w-[180px]">
                   {menuStatus === "published" && menuSlug && (
                     <>
                       <Link
