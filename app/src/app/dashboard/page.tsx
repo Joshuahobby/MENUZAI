@@ -16,11 +16,11 @@ interface AnalyticsData {
 }
 
 export default function DashboardPage() {
-  const { restaurantId, lastSynced, menuStyle, menuItems, menuStatus, restaurantLogoUrl, userRole, menuSlug } = useMenu();
+  const { restaurantId, lastSynced, menuStyle, menuItems, menuStatus, restaurantLogoUrl, userRole, menuSlug, plan } = useMenu();
   const currency = menuStyle.currency ?? "RWF";
   const [data, setData] = useState<AnalyticsData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [days, setDays] = useState(30);
+  const [days, setDays] = useState(7);
 
   useEffect(() => {
     if (restaurantId === null) {
@@ -353,17 +353,27 @@ export default function DashboardPage() {
           <p className="text-secondary font-medium">Growing your restaurant with data-driven insights.</p>
         </div>
         <div className="flex items-center gap-3">
-          <div className="flex gap-1 bg-surface-container-lowest border border-surface-container rounded-xl p-1 shadow-sm">
-            {[7, 30, 90].map((d) => (
-              <button
-                key={d}
-                onClick={() => setDays(d)}
-                className={`px-3 py-1.5 rounded-lg text-sm font-semibold transition-all ${days === d ? "bg-primary text-white shadow-sm" : "text-secondary hover:text-on-surface"}`}
-              >
-                {d === 7 ? "7 Days" : d === 30 ? "30 Days" : "90 Days"}
-              </button>
-            ))}
-          </div>
+          {plan === "free" ? (
+            <div className="flex items-center gap-2 bg-surface-container-lowest border border-surface-container rounded-xl px-4 py-2.5 shadow-sm">
+              <span className="material-symbols-outlined text-primary text-sm">calendar_month</span>
+              <span className="text-sm font-semibold">Last 7 Days</span>
+              <Link href="/pricing" className="ml-1 text-[10px] font-bold text-primary hover:underline flex items-center gap-0.5">
+                <span className="material-symbols-outlined text-[11px]">lock</span>Upgrade
+              </Link>
+            </div>
+          ) : (
+            <div className="flex gap-1 bg-surface-container-lowest border border-surface-container rounded-xl p-1 shadow-sm">
+              {[7, 30, 90].map((d) => (
+                <button
+                  key={d}
+                  onClick={() => setDays(d)}
+                  className={`px-3 py-1.5 rounded-lg text-sm font-semibold transition-all ${days === d ? "bg-primary text-white shadow-sm" : "text-secondary hover:text-on-surface"}`}
+                >
+                  {d === 7 ? "7 Days" : d === 30 ? "30 Days" : "90 Days"}
+                </button>
+              ))}
+            </div>
+          )}
           <button
             onClick={downloadReport}
             disabled={!data}

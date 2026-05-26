@@ -17,9 +17,9 @@ interface AnalyticsData {
 }
 
 const RANGE_OPTIONS = [
-  { label: "Last 7 Days", days: 7, proOnly: false },
-  { label: "Last 30 Days", days: 30, proOnly: false },
-  { label: "Last 90 Days", days: 90, proOnly: true },
+  { label: "Last 7 Days",  days: 7,  proOnly: false },
+  { label: "Last 30 Days", days: 30, proOnly: true  },
+  { label: "Last 90 Days", days: 90, proOnly: true  },
 ];
 
 export default function AnalyticsPage() {
