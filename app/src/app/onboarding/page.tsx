@@ -187,19 +187,18 @@ export default function OnboardingPage() {
   }
 
   return (
-    <div className="min-h-screen bg-surface text-on-surface overflow-x-hidden">
+    <div className="min-h-screen bg-[#faf8f6] text-on-surface overflow-x-hidden">
       {/* Top Nav */}
-      <header className="w-full sticky top-0 z-50 bg-surface/95 backdrop-blur-md border-b border-outline-variant/10 px-6 h-16 flex justify-between items-center">
-        <Link href="/" className="flex items-center gap-2.5">
-          <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center shadow-md shadow-primary/20">
-            <span className="material-symbols-outlined text-white icon-fill text-lg">restaurant_menu</span>
+      <header className="w-full sticky top-0 z-50 bg-[#faf8f6]/90 backdrop-blur-md border-b border-black/5 px-8 h-16 flex justify-between items-center">
+        <Link href="/" className="flex items-center gap-2">
+          <div className="w-7 h-7 bg-primary rounded-md flex items-center justify-center">
+            <span className="material-symbols-outlined text-white icon-fill text-base">restaurant_menu</span>
           </div>
-          <span className="font-[var(--font-headline)] font-black text-lg tracking-tight">
+          <span className="font-[var(--font-headline)] font-black text-base tracking-tight">
             MENUZA <span className="text-primary">AI</span>
           </span>
         </Link>
-        <a href="mailto:hello@ikoranabuhanga.tech" className="flex items-center gap-2 text-sm font-medium text-secondary hover:text-primary transition-colors">
-          <span className="material-symbols-outlined text-base">help</span>
+        <a href="mailto:hello@ikoranabuhanga.tech" className="text-sm font-medium text-secondary hover:text-primary transition-colors">
           Need help?
         </a>
       </header>
@@ -350,7 +349,7 @@ export default function OnboardingPage() {
               <button
                 onClick={saveStep1}
                 disabled={saving || !termsAccepted}
-                className="w-full py-4 bg-gradient-to-br from-primary to-primary-container rounded-2xl font-bold text-white shadow-lg shadow-primary/20 hover:opacity-90 transition-all active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed text-base"
+                className="w-full py-4 bg-primary rounded-2xl font-bold text-white hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed text-sm"
               >
                 {saving ? "Saving..." : "Continue"}
               </button>
@@ -433,7 +432,7 @@ export default function OnboardingPage() {
                 <button
                   onClick={saveStep2}
                   disabled={saving}
-                  className="flex-1 py-4 bg-gradient-to-br from-primary to-primary-container rounded-2xl font-bold text-white shadow-lg shadow-primary/20 hover:opacity-90 transition-all active:scale-[0.98] disabled:opacity-60 text-base"
+                  className="flex-1 py-4 bg-primary rounded-2xl font-bold text-white hover:opacity-90 transition-opacity disabled:opacity-50 text-sm"
                 >
                   {saving ? "Saving..." : whatsappEnabled ? "Save & Continue" : "Skip & Continue"}
                 </button>
@@ -459,7 +458,7 @@ export default function OnboardingPage() {
                 <button
                   onClick={() => finishOnboarding("upload")}
                   disabled={saving}
-                  className="group relative flex flex-col items-start p-7 bg-gradient-to-br from-primary to-primary-container rounded-[2rem] text-left transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] shadow-xl shadow-primary/20 disabled:opacity-60"
+                  className="group relative flex flex-col items-start p-7 bg-on-surface rounded-3xl text-left transition-all hover:opacity-90 disabled:opacity-60"
                 >
                   <div className="w-14 h-14 bg-white/20 rounded-2xl flex items-center justify-center text-white mb-5">
                     <span className="material-symbols-outlined text-3xl">auto_awesome</span>
@@ -479,7 +478,7 @@ export default function OnboardingPage() {
                 <button
                   onClick={() => finishOnboarding("editor")}
                   disabled={saving}
-                  className="group relative flex flex-col items-start p-7 bg-surface-container-lowest rounded-[2rem] text-left transition-all duration-300 hover:bg-surface-container-low hover:scale-[1.02] active:scale-[0.98] border border-outline-variant/10 disabled:opacity-60"
+                  className="group relative flex flex-col items-start p-7 bg-white rounded-3xl text-left transition-all hover:bg-black/2 border border-black/6 disabled:opacity-60"
                 >
                   <div className="w-14 h-14 bg-surface-container-low rounded-2xl flex items-center justify-center text-primary mb-5 shadow-sm">
                     <span className="material-symbols-outlined text-3xl">edit_note</span>
@@ -504,8 +503,6 @@ export default function OnboardingPage() {
         </div>
       </main>
 
-      {/* Background decoration */}
-      <div className="fixed top-0 right-0 -z-10 w-1/3 h-screen bg-gradient-to-l from-primary-fixed/20 to-transparent pointer-events-none" />
     </div>
   );
 }

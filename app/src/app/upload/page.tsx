@@ -239,35 +239,38 @@ export default function UploadPage() {
   };
 
   return (
-    <div className="min-h-screen bg-surface text-on-surface">
-      <header className="w-full sticky top-0 z-50 bg-surface/80 backdrop-blur-md border-b border-surface-container/50 px-6 h-16 flex justify-between items-center">
-        <Link href="/" className="flex items-center gap-2.5 shrink-0">
-          <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center shadow-md shadow-primary/20">
-            <span className="material-symbols-outlined text-white icon-fill text-lg">restaurant_menu</span>
+    <div className="min-h-screen bg-[#faf8f6] text-on-surface">
+      <header className="w-full sticky top-0 z-50 bg-[#faf8f6]/90 backdrop-blur-md border-b border-black/5 px-8 h-16 flex justify-between items-center">
+        <Link href="/" className="flex items-center gap-2 shrink-0">
+          <div className="w-7 h-7 bg-primary rounded-md flex items-center justify-center">
+            <span className="material-symbols-outlined text-white icon-fill text-base">restaurant_menu</span>
           </div>
-          <span className="font-[var(--font-headline)] font-black text-lg tracking-tight text-on-surface">
+          <span className="font-[var(--font-headline)] font-black text-base tracking-tight">
             MENUZA <span className="text-primary">AI</span>
           </span>
         </Link>
-        <Link href={backHref} className="text-sm font-medium text-secondary hover:text-primary transition-colors flex items-center gap-1">
-          <span className="material-symbols-outlined text-sm">arrow_back</span> Back
+        <Link href={backHref} className="text-sm font-medium text-secondary hover:text-primary transition-colors flex items-center gap-1.5">
+          <span className="material-symbols-outlined text-base">arrow_back</span> Back
         </Link>
       </header>
 
-      <main className="flex items-center justify-center min-h-[calc(100vh-80px)] px-6 py-12">
-        <div className="max-w-2xl w-full">
+      <main className="flex items-center justify-center min-h-[calc(100vh-64px)] px-6 py-16">
+        <div className="max-w-xl w-full">
           {state === "idle" && (
             <div className="space-y-8">
-              <div className="text-center">
-                <h1 className="text-4xl lg:text-5xl font-[var(--font-headline)] font-extrabold tracking-tight mb-4">
-                  Upload Your Menu
+              <div>
+                <p className="text-xs font-bold tracking-[0.25em] uppercase text-secondary/50 mb-4">AI Extraction</p>
+                <h1 className="text-4xl font-[var(--font-headline)] font-extrabold tracking-tight mb-3">
+                  Upload your menu
                 </h1>
-                <p className="text-secondary text-lg">Upload up to {MAX_FILES} pages — we&apos;ll extract and merge them all</p>
+                <p className="text-secondary">Up to {MAX_FILES} pages — we&apos;ll extract and merge them all.</p>
               </div>
 
               {/* Drop zone */}
               <div
-                className={`border-2 border-dashed rounded-[2rem] p-12 text-center cursor-pointer transition-all ${dragActive ? "border-primary bg-primary/5 scale-[1.02]" : "border-outline-variant/40 hover:border-primary/40 hover:bg-primary/5"}`}
+                className={`border-2 border-dashed rounded-3xl p-12 text-center cursor-pointer transition-colors ${
+                  dragActive ? "border-primary bg-primary/3" : "border-black/10 hover:border-primary/40 hover:bg-primary/3"
+                }`}
                 onDragEnter={() => setDragActive(true)}
                 onDragLeave={() => setDragActive(false)}
                 onDragOver={(e) => e.preventDefault()}
@@ -285,39 +288,41 @@ export default function UploadPage() {
                   title="Menu File Upload"
                   aria-label="Menu File Upload"
                 />
-                <label htmlFor="menu-upload" className="cursor-pointer flex flex-col items-center">
-                  <span className="material-symbols-outlined text-primary text-5xl mb-4">cloud_upload</span>
-                  <p className="font-[var(--font-headline)] font-bold text-on-surface text-lg">Drop menu photos or PDF here</p>
-                  <p className="text-secondary text-sm">JPG, PNG, WebP, GIF or PDF · Max 10MB each</p>
+                <label htmlFor="menu-upload" className="cursor-pointer flex flex-col items-center gap-3">
+                  <span className="material-symbols-outlined text-primary text-4xl">cloud_upload</span>
+                  <div>
+                    <p className="font-bold text-on-surface">Drop menu photos or PDF here</p>
+                    <p className="text-secondary text-sm mt-1">JPG, PNG, WebP, GIF or PDF · Max 10 MB each</p>
+                  </div>
                 </label>
-                <button type="button" disabled={isProcessingPdf} className="mt-6 px-6 py-3 bg-gradient-to-tr from-primary to-primary-container text-white font-bold rounded-xl shadow-lg shadow-primary/20 active:scale-95 transition-all disabled:opacity-50">
-                  {isProcessingPdf ? "Processing PDF..." : "Browse Files"}
+                <button
+                  type="button"
+                  disabled={isProcessingPdf}
+                  className="mt-6 px-6 py-2.5 bg-primary text-white text-sm font-bold rounded-xl hover:opacity-90 transition-opacity disabled:opacity-50"
+                >
+                  {isProcessingPdf ? "Processing PDF…" : "Browse Files"}
                 </button>
               </div>
 
-              {/* Selected files preview */}
+              {/* Selected files */}
               {selectedFiles.length > 0 && (
-                <div className="space-y-3">
-                  <p className="text-xs font-bold text-secondary uppercase tracking-widest">
-                    {selectedFiles.length} of {MAX_FILES} images selected
+                <div className="space-y-4">
+                  <p className="text-xs font-bold text-secondary/60 uppercase tracking-widest">
+                    {selectedFiles.length} of {MAX_FILES} selected
                   </p>
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                     {selectedFiles.map((file, i) => (
-                      <div key={i} className="relative group bg-surface-container-lowest rounded-2xl overflow-hidden border border-surface-container">
+                      <div key={i} className="relative group bg-white rounded-2xl overflow-hidden border border-black/6">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
-                          src={URL.createObjectURL(file)}
-                          alt={file.name}
-                          className="w-full h-28 object-cover"
-                        />
+                        <img src={URL.createObjectURL(file)} alt={file.name} className="w-full h-28 object-cover" />
                         <div className="p-2">
-                          <p className="text-[10px] font-bold text-secondary truncate">{file.name}</p>
-                          <p className="text-[10px] text-secondary opacity-60">{(file.size / 1024).toFixed(0)} KB</p>
+                          <p className="text-[10px] font-medium text-secondary truncate">{file.name}</p>
+                          <p className="text-[10px] text-secondary/50">{(file.size / 1024).toFixed(0)} KB</p>
                         </div>
                         <button
                           type="button"
                           onClick={(e) => { e.stopPropagation(); removeFile(i); }}
-                          className="absolute top-2 right-2 w-6 h-6 bg-error text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                          className="absolute top-2 right-2 w-6 h-6 bg-black/60 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
                           title="Remove"
                         >
                           <span className="material-symbols-outlined text-[12px]">close</span>
@@ -328,20 +333,20 @@ export default function UploadPage() {
                       <button
                         type="button"
                         onClick={() => fileRef.current?.click()}
-                        className="h-full min-h-28 border-2 border-dashed border-outline-variant/40 rounded-2xl flex flex-col items-center justify-center gap-1 hover:border-primary/40 hover:bg-primary/5 transition-all"
+                        className="min-h-28 border-2 border-dashed border-black/10 rounded-2xl flex flex-col items-center justify-center gap-1 hover:border-primary/40 hover:bg-primary/3 transition-colors"
                       >
-                        <span className="material-symbols-outlined text-primary text-2xl">add</span>
-                        <span className="text-[10px] font-bold text-secondary">Add more</span>
+                        <span className="material-symbols-outlined text-primary text-xl">add</span>
+                        <span className="text-[10px] font-medium text-secondary">Add more</span>
                       </button>
                     )}
                   </div>
                   <button
                     type="button"
                     onClick={handleExtract}
-                    className="w-full py-4 bg-gradient-to-tr from-primary to-primary-container text-white font-bold rounded-2xl shadow-lg shadow-primary/20 active:scale-95 transition-all flex items-center justify-center gap-2 text-lg"
+                    className="w-full py-4 bg-primary text-white font-bold rounded-2xl hover:opacity-90 transition-opacity flex items-center justify-center gap-2"
                   >
-                    <span className="material-symbols-outlined">auto_awesome</span>
-                    Extract Menu{selectedFiles.length > 1 ? ` from ${selectedFiles.length} Images` : ""}
+                    <span className="material-symbols-outlined text-lg">auto_awesome</span>
+                    Extract Menu{selectedFiles.length > 1 ? ` from ${selectedFiles.length} images` : ""}
                   </button>
                 </div>
               )}
@@ -350,26 +355,22 @@ export default function UploadPage() {
 
           {state === "extracting" && (
             <div className="text-center py-20">
-              <div className="w-24 h-24 mx-auto bg-primary-container/10 rounded-full flex items-center justify-center mb-8 animate-pulse">
-                <span className="material-symbols-outlined text-primary-container text-5xl icon-fill">auto_awesome</span>
+              <div className="w-16 h-16 mx-auto bg-primary/8 rounded-2xl flex items-center justify-center mb-8">
+                <span className="material-symbols-outlined text-primary text-3xl animate-pulse">auto_awesome</span>
               </div>
-              <h2 className="text-3xl font-[var(--font-headline)] font-extrabold mb-4">
+              <h2 className="text-3xl font-[var(--font-headline)] font-extrabold mb-3">
                 AI is reading your menu…
               </h2>
-              <div className="flex flex-col items-center gap-2">
+              <div className="flex flex-col items-center gap-1.5 mb-8">
                 <div className="flex items-center gap-2 text-primary">
                   <span className="material-symbols-outlined text-sm animate-spin">sync</span>
-                  <p className="text-lg font-bold tracking-tight">
-                    {EXTRACTING_STEPS[currentStepIndex]}
-                  </p>
+                  <p className="text-sm font-semibold">{EXTRACTING_STEPS[currentStepIndex]}</p>
                 </div>
-                <p className="text-secondary text-sm opacity-70">
-                  {selectedFiles.length > 1
-                    ? `Processing ${selectedFiles.length} images and merging results`
-                    : "This might take a moment depending on the menu size"}
+                <p className="text-secondary text-xs">
+                  {selectedFiles.length > 1 ? `Processing ${selectedFiles.length} images` : "This might take a moment"}
                 </p>
               </div>
-              <div className="mt-8 w-64 h-2 bg-surface-container-highest rounded-full mx-auto overflow-hidden">
+              <div className="w-48 h-1 bg-black/6 rounded-full mx-auto overflow-hidden">
                 <div
                   className="bg-primary h-full transition-all duration-500 rounded-full"
                   ref={(el) => { if (el) el.style.width = `${progress}%`; }}
@@ -380,12 +381,12 @@ export default function UploadPage() {
 
           {state === "done" && (
             <div className="text-center py-20">
-              <div className="w-24 h-24 mx-auto bg-tertiary/10 rounded-full flex items-center justify-center mb-8">
-                <span className="material-symbols-outlined text-tertiary text-5xl icon-fill">check_circle</span>
+              <div className="w-16 h-16 mx-auto bg-emerald-50 rounded-2xl flex items-center justify-center mb-8">
+                <span className="material-symbols-outlined text-emerald-500 text-3xl">check</span>
               </div>
-              <h2 className="text-3xl font-[var(--font-headline)] font-extrabold mb-4">Menu Extracted Successfully!</h2>
-              <p className="text-secondary text-lg mb-8">{extractedCount.items} items found across {extractedCount.categories} categories</p>
-              <Link href="/ai-result" className="px-8 py-4 bg-gradient-to-tr from-primary to-primary-container text-white font-bold rounded-xl shadow-lg shadow-primary/20 active:scale-95 transition-all text-lg">
+              <h2 className="text-3xl font-[var(--font-headline)] font-extrabold mb-3">Extraction complete</h2>
+              <p className="text-secondary mb-8">{extractedCount.items} items across {extractedCount.categories} categories</p>
+              <Link href="/ai-result" className="inline-block px-8 py-3.5 bg-primary text-white font-bold rounded-xl hover:opacity-90 transition-opacity">
                 Review & Edit
               </Link>
             </div>
@@ -393,12 +394,12 @@ export default function UploadPage() {
 
           {state === "error" && (
             <div className="text-center py-20">
-              <div className="w-24 h-24 mx-auto bg-error/10 rounded-full flex items-center justify-center mb-8">
-                <span className="material-symbols-outlined text-error text-5xl">error</span>
+              <div className="w-16 h-16 mx-auto bg-red-50 rounded-2xl flex items-center justify-center mb-8">
+                <span className="material-symbols-outlined text-red-400 text-3xl">error_outline</span>
               </div>
-              <h2 className="text-3xl font-[var(--font-headline)] font-extrabold mb-4">Extraction Failed</h2>
-              <p className="text-secondary text-lg mb-8">{errorMsg}</p>
-              <button type="button" onClick={reset} className="px-8 py-4 bg-gradient-to-tr from-primary to-primary-container text-white font-bold rounded-xl shadow-lg shadow-primary/20 active:scale-95 transition-all text-lg">
+              <h2 className="text-3xl font-[var(--font-headline)] font-extrabold mb-3">Extraction failed</h2>
+              <p className="text-secondary mb-8 text-sm">{errorMsg}</p>
+              <button type="button" onClick={reset} className="px-8 py-3.5 bg-primary text-white font-bold rounded-xl hover:opacity-90 transition-opacity">
                 Try Again
               </button>
             </div>

@@ -4,267 +4,248 @@ import Link from "next/link";
 import Image from "next/image";
 import { pricingPlans } from "@/data/mockData";
 
+const FEATURES = [
+  { icon: "support_agent",        title: "AI Digital Waiter",       desc: "Guides guests, answers questions, and upsells your highest-margin dishes — automatically." },
+  { icon: "receipt_long",         title: "Real-time Ordering",       desc: "Orders appear on your staff panel the moment they are placed. No printers, no delays." },
+  { icon: "document_scanner",     title: "Upload & Convert",         desc: "Photograph your paper menu. Our AI reads every item, price, and description in seconds." },
+  { icon: "analytics",            title: "Live Analytics",           desc: "Know which dishes get viewed but not ordered. Make decisions on data, not intuition." },
+  { icon: "chat",                 title: "WhatsApp Integration",     desc: "Orders flow straight into your WhatsApp — no third-party app required." },
+  { icon: "notifications",        title: "Instant Alerts",           desc: "Push, email, and in-dashboard notifications the moment a customer places an order." },
+];
+
 export default function LandingPage() {
   return (
-    <div className="min-h-screen bg-surface text-on-surface">
-      {/* Top Navigation */}
-      <nav className="w-full sticky top-0 z-50 bg-surface/95 backdrop-blur-md border-b border-outline-variant/10">
-        <div className="flex justify-between items-center px-6 h-16 max-w-7xl mx-auto">
-          {/* Logo */}
+    <div className="min-h-screen bg-[#faf8f6] text-on-surface">
+
+      {/* ── Nav ── */}
+      <nav className="w-full sticky top-0 z-50 bg-[#faf8f6]/90 backdrop-blur-md border-b border-black/5">
+        <div className="flex justify-between items-center px-8 h-16 max-w-7xl mx-auto">
           <Link href="/" className="flex items-center gap-2.5 shrink-0">
-            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center shadow-md shadow-primary/20">
-              <span className="material-symbols-outlined text-white icon-fill text-lg">restaurant_menu</span>
+            <div className="w-7 h-7 bg-primary rounded-md flex items-center justify-center">
+              <span className="material-symbols-outlined text-white icon-fill text-base">restaurant_menu</span>
             </div>
-            <span className="font-[var(--font-headline)] font-black text-lg tracking-tight text-on-surface">
+            <span className="font-[var(--font-headline)] font-black text-base tracking-tight">
               MENUZA <span className="text-primary">AI</span>
             </span>
           </Link>
 
-          {/* Desktop nav */}
-          <div className="hidden md:flex items-center gap-1">
-            <Link href="/" className="text-sm font-semibold px-4 py-2 rounded-lg text-primary bg-primary/5">Home</Link>
-            <a href="#features" className="text-sm font-semibold px-4 py-2 rounded-lg text-secondary hover:text-on-surface hover:bg-surface-container transition-all">Features</a>
-            <a href="#pricing" className="text-sm font-semibold px-4 py-2 rounded-lg text-secondary hover:text-on-surface hover:bg-surface-container transition-all">Pricing</a>
+          <div className="hidden md:flex items-center gap-6">
+            <a href="#features" className="text-sm font-medium text-secondary hover:text-on-surface transition-colors">Features</a>
+            <a href="#pricing"  className="text-sm font-medium text-secondary hover:text-on-surface transition-colors">Pricing</a>
+            <Link href="/menu/demo" className="text-sm font-medium text-secondary hover:text-on-surface transition-colors">Live Demo</Link>
           </div>
 
-          {/* Actions */}
-          <div className="flex items-center gap-2">
-            <Link href="/menu/demo" className="hidden md:flex items-center gap-1.5 text-sm font-semibold text-secondary px-3 py-2 rounded-lg hover:bg-surface-container transition-all">
-              <span className="material-symbols-outlined icon-fill text-base">play_circle</span>
-              Live Demo
-            </Link>
-            <Link href="/login" className="text-sm font-bold px-5 py-2.5 bg-primary text-white rounded-xl shadow-md shadow-primary/20 hover:opacity-90 active:scale-95 transition-all">
+          <div className="flex items-center gap-3">
+            <Link href="/login" className="text-sm font-medium text-secondary hover:text-on-surface transition-colors hidden md:block">Log In</Link>
+            <Link href="/login" className="px-5 py-2 bg-primary text-white text-sm font-bold rounded-lg hover:opacity-90 transition-opacity">
               Get Started
             </Link>
           </div>
         </div>
       </nav>
 
-      {/* Hero Section */}
-      <section className="relative pt-20 pb-32 overflow-hidden px-6">
-        <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-          <div className="z-10">
-            <span className="inline-block py-1 px-4 rounded-full bg-primary-container/10 text-primary font-bold text-xs tracking-widest uppercase mb-6">
-              Your AI Digital Waiter
-            </span>
-            <h1 className="text-5xl md:text-7xl font-[var(--font-headline)] font-extrabold text-on-surface leading-[1.1] tracking-tighter mb-8">
-              Turn your menu into a <span className="text-primary-container">money-making</span> machine
-            </h1>
-            <p className="text-xl text-secondary max-w-lg mb-10 leading-relaxed">
-              Create, optimize, and track your restaurant menu with your own AI Digital Waiter. Take orders in real-time, stop guessing, and start selling with data-driven design.
+      {/* ── Hero ── */}
+      <section className="pt-24 pb-28 px-6 overflow-hidden">
+        <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
+          <div>
+            <p className="text-xs font-bold tracking-[0.25em] uppercase text-primary/70 mb-7">
+              AI-Powered Restaurant Menus
             </p>
-            <div className="flex flex-wrap gap-4">
-              <Link href="/login" className="px-8 py-4 bg-gradient-to-tr from-primary to-primary-container text-white font-bold rounded-xl shadow-lg shadow-primary-container/20 active:scale-95 transition-all text-lg hover:shadow-xl">
-                Start Free
+            <h1 className="text-5xl md:text-[64px] font-[var(--font-headline)] font-extrabold leading-[1.05] tracking-tighter mb-7">
+              The digital menu your restaurant deserves
+            </h1>
+            <p className="text-lg text-secondary leading-relaxed max-w-lg mb-10">
+              Turn every QR scan into a seamless guest experience. Manage orders, track performance, and let AI handle the upselling — all from one dashboard.
+            </p>
+            <div className="flex flex-wrap gap-3">
+              <Link href="/login" className="px-7 py-3.5 bg-primary text-white font-bold rounded-xl text-sm hover:opacity-90 transition-opacity shadow-md shadow-primary/20">
+                Start Free — No Card Required
               </Link>
-              <Link href="/menu/demo" className="px-8 py-4 bg-surface-container-highest text-on-surface font-bold rounded-xl active:scale-95 transition-all text-lg hover:bg-surface-variant">
-                See Demo
+              <Link href="/menu/demo" className="px-7 py-3.5 border border-black/10 text-on-surface font-bold rounded-xl text-sm hover:bg-black/3 transition-colors">
+                See Live Demo
               </Link>
             </div>
           </div>
+
           <div className="relative">
-            <div className="absolute -top-10 -right-10 w-64 h-64 bg-primary-container/20 rounded-full blur-3xl"></div>
-            <div className="relative bg-surface-container-low rounded-[2rem] p-4 shadow-2xl border border-white/50 overflow-hidden">
-              <div className="relative w-full h-[500px]">
+            <div className="bg-white rounded-3xl p-3 shadow-lg border border-black/6 overflow-hidden">
+              <div className="relative w-full h-[440px]">
                 <Image
                   alt="Modern Restaurant Menu"
-                  className="rounded-[1.5rem] object-cover"
+                  className="rounded-2xl object-cover"
                   src="https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=800&h=600&fit=crop"
                   fill
                   sizes="(max-width: 1024px) 100vw, 50vw"
                   priority
                 />
               </div>
-              <div className="absolute bottom-8 left-8 right-8 bg-white/90 backdrop-blur-md p-6 rounded-2xl shadow-xl flex items-center justify-between border border-primary-container/10 z-10">
+              <div className="absolute bottom-6 left-6 right-6 bg-white/95 backdrop-blur-sm p-5 rounded-2xl border border-black/6 flex items-center justify-between">
                 <div>
-                  <p className="text-xs font-bold text-primary uppercase tracking-tighter">Live Insight</p>
-                  <p className="text-lg font-bold text-on-surface">Spicy Ramen conversion up 24%</p>
+                  <p className="text-[10px] font-bold text-primary uppercase tracking-widest mb-1">Live Insight</p>
+                  <p className="text-sm font-bold text-on-surface">Spicy Ramen conversion up 24%</p>
                 </div>
-                <span className="material-symbols-outlined text-tertiary text-3xl icon-fill">trending_up</span>
+                <span className="material-symbols-outlined text-primary text-2xl">trending_up</span>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Problem & Solution Section */}
-      <section className="py-24 bg-surface-container-low px-6">
+      {/* ── Value Proposition ── */}
+      <section className="py-24 bg-white border-y border-black/5 px-6">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-[var(--font-headline)] font-black text-on-surface tracking-tight mb-4">
-              Most menus don&apos;t sell — they just list.
+            <p className="text-xs font-bold tracking-[0.25em] uppercase text-secondary/50 mb-4">The Problem</p>
+            <h2 className="text-4xl md:text-5xl font-[var(--font-headline)] font-black tracking-tight mb-5">
+              Most menus just list. Yours should sell.
             </h2>
-            <p className="text-secondary text-lg max-w-2xl mx-auto">
-              Traditional menus are static, blind, and hard to update. MENUZA AI turns them into active sales tools.
+            <p className="text-secondary text-lg max-w-xl mx-auto">
+              Static menus tell guests nothing. MENUZA AI turns yours into an active, data-driven sales tool.
             </p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="md:col-span-1 bg-surface-container-lowest p-8 rounded-[2rem] flex flex-col justify-between">
-              <div>
-                <div className="w-12 h-12 bg-error/10 text-error rounded-xl flex items-center justify-center mb-6">
-                  <span className="material-symbols-outlined">mobiledata_off</span>
-                </div>
-                <h3 className="text-2xl font-[var(--font-headline)] font-bold mb-4">Zero Data</h3>
-                <p className="text-secondary leading-relaxed">You have no idea which items people look at but never order. You&apos;re flying blind.</p>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+            <div className="bg-[#faf8f6] p-8 rounded-3xl border border-black/5">
+              <div className="w-10 h-10 bg-red-50 text-red-400 rounded-xl flex items-center justify-center mb-6">
+                <span className="material-symbols-outlined text-xl">visibility_off</span>
               </div>
+              <h3 className="text-lg font-[var(--font-headline)] font-bold mb-3">Zero Visibility</h3>
+              <p className="text-secondary text-sm leading-relaxed">You don&apos;t know which dishes get viewed but never ordered. Every day is a blind guess.</p>
             </div>
-            <div className="md:col-span-2 bg-gradient-to-br from-primary to-primary-container p-10 rounded-[2rem] text-white flex flex-col justify-center relative overflow-hidden">
-              <div className="relative z-10">
-                <h3 className="text-3xl md:text-4xl font-[var(--font-headline)] font-black mb-6">MENUZA AI turns your menu into a sales tool.</h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
-                  <div className="flex items-start gap-4">
-                    <span className="material-symbols-outlined text-white/50 text-3xl">psychology</span>
-                    <div>
-                      <p className="font-bold">AI Design</p>
-                      <p className="text-white/80 text-sm">Automatically plates your items for maximum profit.</p>
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-4">
-                    <span className="material-symbols-outlined text-white/50 text-3xl">support_agent</span>
-                    <div>
-                      <p className="font-bold">Digital Waiter</p>
-                      <p className="text-white/80 text-sm">Automated upselling and real-time order tracking.</p>
-                    </div>
-                  </div>
-                </div>
+
+            <div className="bg-on-surface p-8 rounded-3xl">
+              <div className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center mb-6">
+                <span className="material-symbols-outlined text-white text-xl">auto_awesome</span>
               </div>
-              <div className="absolute top-0 right-0 opacity-10 scale-150 rotate-12">
-                <span className="material-symbols-outlined text-[300px] icon-fill">restaurant_menu</span>
-              </div>
+              <h3 className="text-lg font-[var(--font-headline)] font-bold mb-3 text-white">MENUZA AI turns your menu into a revenue engine</h3>
+              <p className="text-white/50 text-sm leading-relaxed">AI-powered design, real-time ordering, and smart analytics — all working together.</p>
             </div>
-            <div className="md:col-span-2 bg-surface-container-highest p-10 rounded-[2rem] flex flex-col md:flex-row items-center gap-10">
-              <div className="w-full md:w-1/3 relative aspect-square">
-                <Image
-                  alt="Analytics View"
-                  className="rounded-2xl object-cover shadow-lg"
-                  src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=400&h=400&fit=crop"
-                  fill
-                  sizes="(max-width: 768px) 100vw, 33vw"
-                />
+
+            <div className="bg-[#faf8f6] p-8 rounded-3xl border border-black/5">
+              <div className="w-10 h-10 bg-emerald-50 text-emerald-500 rounded-xl flex items-center justify-center mb-6">
+                <span className="material-symbols-outlined text-xl">qr_code_2</span>
               </div>
-              <div className="w-full md:w-2/3">
-                <h3 className="text-2xl font-[var(--font-headline)] font-bold mb-4">Smart Insights</h3>
-                <p className="text-secondary leading-relaxed mb-6">See exactly which items get viewed most and which convert to orders. Make data-driven menu decisions every day.</p>
-                <Link href="/login" className="text-primary font-bold flex items-center gap-2 hover:translate-x-1 transition-transform">
-                  Get started free <span className="material-symbols-outlined">arrow_forward</span>
-                </Link>
-              </div>
-            </div>
-            <div className="md:col-span-1 bg-surface-container-lowest p-8 rounded-[2rem] border border-outline-variant/10">
-              <div className="w-12 h-12 bg-tertiary-container/10 text-tertiary rounded-xl flex items-center justify-center mb-6">
-                <span className="material-symbols-outlined icon-fill">qr_code_2</span>
-              </div>
-              <h3 className="text-2xl font-[var(--font-headline)] font-bold mb-4">Scan &amp; Order</h3>
-              <p className="text-secondary leading-relaxed">No apps to download. Customers scan, browse, and order in seconds.</p>
+              <h3 className="text-lg font-[var(--font-headline)] font-bold mb-3">Scan &amp; Order</h3>
+              <p className="text-secondary text-sm leading-relaxed">No app downloads. Guests scan, browse, and order in under 30 seconds.</p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Features Grid */}
-      <section className="py-24 px-6 bg-surface" id="features">
+      {/* ── Features ── */}
+      <section className="py-28 px-6" id="features">
         <div className="max-w-7xl mx-auto">
-          <div className="flex flex-col md:flex-row justify-between items-end mb-16 gap-6">
-            <div>
-              <h2 className="text-4xl font-[var(--font-headline)] font-black tracking-tight mb-4">Powerful Features for Pro Restaurateurs</h2>
-              <p className="text-secondary text-lg">Everything you need to run a high-performance digital menu.</p>
-            </div>
-            <Link href="/login" className="px-6 py-3 bg-primary text-white font-bold rounded-xl hover:opacity-90 active:scale-95 transition-all shadow-md shadow-primary/20">
-              Start for free
-            </Link>
+          <div className="max-w-2xl mb-16">
+            <p className="text-xs font-bold tracking-[0.25em] uppercase text-secondary/50 mb-4">Features</p>
+            <h2 className="text-4xl font-[var(--font-headline)] font-black tracking-tight mb-5">
+              Everything you need to run a great restaurant
+            </h2>
+            <p className="text-secondary text-lg leading-relaxed">
+              One platform. No integrations. No subscriptions for tools you won&apos;t use.
+            </p>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-            {[
-              { icon: "support_agent", title: "AI Digital Waiter", desc: "An interactive digital waiter that guides customers, recommends specials, and upsells effortlessly." },
-              { icon: "flash_on", title: "Real-time Ordering", desc: "Customers order from their phones and tickets instantly appear on your live kitchen dashboard." },
-              { icon: "upload_file", title: "Upload & Convert", desc: "Upload a photo of your paper menu. Our AI extracts every item, price, and description automatically." },
-              { icon: "leaderboard", title: "Live Analytics", desc: "Track menu views, item clicks, and order conversions in real-time to optimize your offerings." },
-              { icon: "chat", title: "WhatsApp Integration", desc: "Direct connection to your staff. Orders can land straight in your WhatsApp business account." },
-              { icon: "notifications_active", title: "Instant Alerts", desc: "Receive immediate email and dashboard notifications whenever a customer places a new order." },
-            ].map((f, i) => (
-              <div key={i} className="p-8 rounded-3xl bg-surface-container hover:bg-surface-container-low transition-colors group cursor-pointer">
-                <span className="material-symbols-outlined text-4xl text-primary mb-6 block group-hover:scale-110 transition-transform">{f.icon}</span>
-                <h3 className="text-xl font-[var(--font-headline)] font-bold mb-3">{f.title}</h3>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {FEATURES.map((f, i) => (
+              <div key={i} className="bg-white p-8 rounded-3xl border border-black/6">
+                <span className="material-symbols-outlined text-primary text-2xl mb-5 block">{f.icon}</span>
+                <h3 className="text-base font-bold mb-2">{f.title}</h3>
                 <p className="text-secondary text-sm leading-relaxed">{f.desc}</p>
               </div>
             ))}
           </div>
+
+          <div className="mt-8 text-center">
+            <Link href="/login" className="inline-block px-7 py-3.5 bg-primary text-white font-bold rounded-xl text-sm hover:opacity-90 transition-opacity">
+              Start building your menu
+            </Link>
+          </div>
         </div>
       </section>
 
-      {/* Pricing Section */}
-      <section className="py-24 px-6 bg-surface-container-low" id="pricing">
-        <div className="max-w-7xl mx-auto">
+      {/* ── Pricing Preview ── */}
+      <section className="py-24 px-6 bg-white border-y border-black/5" id="pricing">
+        <div className="max-w-5xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-[var(--font-headline)] font-black mb-4">Simple, transparent pricing</h2>
-            <p className="text-secondary">Pick the plan that fits your restaurant size.</p>
+            <p className="text-xs font-bold tracking-[0.25em] uppercase text-secondary/50 mb-4">Pricing</p>
+            <h2 className="text-4xl font-[var(--font-headline)] font-black tracking-tight mb-4">Transparent pricing</h2>
+            <p className="text-secondary">Start free. Upgrade when you grow.</p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-start">
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
             {pricingPlans.map((plan, i) => (
-              <div key={i} className={`bg-surface-container-lowest p-10 rounded-[2rem] flex flex-col ${plan.popular ? "border-2 border-primary-container relative md:scale-105 shadow-2xl z-10" : "border border-outline-variant/10"}`}>
+              <div key={i} className={`bg-[#faf8f6] rounded-3xl p-8 flex flex-col relative ${
+                plan.popular ? "bg-on-surface md:-mt-3 md:-mb-3 shadow-xl shadow-black/15" : "border border-black/6"
+              }`}>
                 {plan.popular && (
-                  <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-primary-container text-white px-4 py-1 rounded-full text-xs font-bold uppercase tracking-widest">
-                    Most Popular
-                  </div>
+                  <div className="absolute -top-px left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary to-transparent rounded-t-3xl" />
                 )}
-                <h3 className="text-xl font-[var(--font-headline)] font-bold mb-2">{plan.name}</h3>
+                <p className={`text-xs font-bold tracking-[0.2em] uppercase mb-3 ${plan.popular ? "text-white/40" : "text-secondary/60"}`}>
+                  {plan.name}
+                </p>
                 <div className="mb-8">
-                  <span className="text-4xl font-black">{plan.price}</span>
-                  <span className="text-secondary text-sm">{plan.period}</span>
+                  <span className={`text-4xl font-black ${plan.popular ? "text-white" : ""}`}>{plan.price}</span>
+                  {plan.period && <span className={`text-sm ml-1.5 ${plan.popular ? "text-white/40" : "text-secondary"}`}>{plan.period}</span>}
                 </div>
-                <ul className="space-y-4 mb-10 flex-grow">
+                <ul className="space-y-3 flex-grow mb-8">
                   {plan.features.map((f, j) => (
-                    <li key={j} className={`flex items-center gap-3 text-sm ${plan.popular ? "text-on-surface" : "text-secondary"}`}>
-                      <span className={`material-symbols-outlined ${plan.popular ? "text-primary icon-fill" : "text-tertiary-container"}`}>
-                        check_circle
-                      </span>
-                      {f}
+                    <li key={j} className="flex items-start gap-2.5 text-sm">
+                      <span className="material-symbols-outlined text-[14px] text-primary mt-0.5 shrink-0">check</span>
+                      <span className={plan.popular ? "text-white/60" : "text-secondary"}>{f}</span>
                     </li>
                   ))}
                 </ul>
-                <Link href="/login" className={`w-full py-4 font-bold rounded-xl transition-all text-center ${plan.popular
-                  ? "bg-gradient-to-tr from-primary to-primary-container text-white shadow-lg shadow-primary-container/20 active:scale-95"
-                  : "bg-surface-container-highest text-on-surface hover:bg-surface-variant"}`}>
+                <Link
+                  href={plan.amountRwf === 0 ? "/login" : "/pricing"}
+                  className={`block w-full py-3.5 text-center text-sm font-bold rounded-xl transition-colors ${
+                    plan.popular
+                      ? "bg-primary text-white hover:opacity-90"
+                      : "border border-black/10 text-on-surface hover:bg-black/3"
+                  }`}
+                >
                   {plan.cta}
                 </Link>
               </div>
             ))}
           </div>
+
+          <p className="text-center mt-8 text-sm text-secondary">
+            Annual billing available — save one month.{" "}
+            <Link href="/pricing" className="text-primary font-semibold hover:underline">See full comparison</Link>
+          </p>
         </div>
       </section>
 
-      {/* Final CTA */}
-      <section className="py-24 px-6 overflow-hidden">
-        <div className="max-w-5xl mx-auto bg-inverse-surface rounded-[3rem] p-12 md:p-20 text-center relative overflow-hidden">
-          <div className="relative z-10">
-            <h2 className="text-4xl md:text-6xl font-[var(--font-headline)] font-black text-white mb-8 leading-tight">
-              Your menu is your #1 sales tool. <br />
-              <span className="text-primary-container">Upgrade it.</span>
-            </h2>
-            <div className="flex flex-wrap justify-center gap-6">
-              <Link href="/login" className="px-10 py-5 bg-primary-container text-white font-black rounded-2xl text-xl shadow-2xl active:scale-95 transition-all hover:shadow-primary-container/40 hover:shadow-xl">
-                Get Started Now
-              </Link>
-              <a href="mailto:hello@ikoranabuhanga.tech" className="px-10 py-5 bg-white/10 text-white font-bold rounded-2xl text-xl backdrop-blur-md hover:bg-white/20 transition-all">
-                Contact Us
-              </a>
-            </div>
+      {/* ── Final CTA ── */}
+      <section className="py-28 px-6">
+        <div className="max-w-3xl mx-auto bg-on-surface rounded-3xl px-12 py-20 text-center">
+          <p className="text-xs font-bold tracking-[0.25em] uppercase text-white/30 mb-6">Get started</p>
+          <h2 className="text-4xl md:text-5xl font-[var(--font-headline)] font-black text-white tracking-tight leading-tight mb-5">
+            Elevate your restaurant&apos;s digital presence
+          </h2>
+          <p className="text-white/40 text-base mb-10 leading-relaxed max-w-lg mx-auto">
+            Join restaurants across Africa using MENUZA AI to serve more guests, more efficiently.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <Link href="/login" className="px-8 py-4 bg-primary text-white font-bold rounded-xl text-sm hover:opacity-90 transition-opacity shadow-lg shadow-primary/20">
+              Start Free — No Card Required
+            </Link>
+            <a href="mailto:hello@ikoranabuhanga.tech" className="px-8 py-4 bg-white/8 text-white/60 font-bold rounded-xl text-sm hover:bg-white/12 transition-colors border border-white/10">
+              Talk to Sales
+            </a>
           </div>
-          <div className="absolute -bottom-20 -left-20 w-80 h-80 bg-primary/20 rounded-full blur-[100px]"></div>
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="bg-surface-container-low border-t border-outline-variant/10">
-        {/* Main columns */}
-        <div className="max-w-7xl mx-auto px-6 py-16 grid grid-cols-1 md:grid-cols-4 gap-12">
-          {/* Brand */}
+      {/* ── Footer ── */}
+      <footer className="border-t border-black/5 bg-[#faf8f6]">
+        <div className="max-w-7xl mx-auto px-8 py-16 grid grid-cols-1 md:grid-cols-4 gap-12">
           <div className="md:col-span-2">
             <div className="flex items-center gap-2.5 mb-4">
-              <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center shadow-md shadow-primary/20">
-                <span className="material-symbols-outlined text-white icon-fill text-lg">restaurant_menu</span>
+              <div className="w-7 h-7 bg-primary rounded-md flex items-center justify-center">
+                <span className="material-symbols-outlined text-white icon-fill text-base">restaurant_menu</span>
               </div>
-              <span className="font-[var(--font-headline)] font-black text-lg tracking-tight">
+              <span className="font-[var(--font-headline)] font-black text-base tracking-tight">
                 MENUZA <span className="text-primary">AI</span>
               </span>
             </div>
@@ -273,20 +254,18 @@ export default function LandingPage() {
             </p>
           </div>
 
-          {/* Product links */}
           <div>
-            <p className="font-bold text-xs uppercase tracking-widest text-on-surface mb-5">Product</p>
+            <p className="font-bold text-xs uppercase tracking-widest text-on-surface/40 mb-5">Product</p>
             <ul className="space-y-3 text-sm text-secondary">
-              <li><a href="#features" className="hover:text-primary transition-colors">Features</a></li>
-              <li><a href="#pricing" className="hover:text-primary transition-colors">Pricing</a></li>
-              <li><Link href="/menu/demo" className="hover:text-primary transition-colors">Live Demo</Link></li>
-              <li><Link href="/login" className="hover:text-primary transition-colors">Sign Up Free</Link></li>
+              <li><a href="#features"        className="hover:text-primary transition-colors">Features</a></li>
+              <li><a href="#pricing"         className="hover:text-primary transition-colors">Pricing</a></li>
+              <li><Link href="/menu/demo"    className="hover:text-primary transition-colors">Live Demo</Link></li>
+              <li><Link href="/login"        className="hover:text-primary transition-colors">Sign Up Free</Link></li>
             </ul>
           </div>
 
-          {/* Company links */}
           <div>
-            <p className="font-bold text-xs uppercase tracking-widest text-on-surface mb-5">Company</p>
+            <p className="font-bold text-xs uppercase tracking-widest text-on-surface/40 mb-5">Company</p>
             <ul className="space-y-3 text-sm text-secondary">
               <li><a href="mailto:hello@ikoranabuhanga.tech" className="hover:text-primary transition-colors">Contact</a></li>
               <li><a href="#" className="hover:text-primary transition-colors">Terms of Service</a></li>
@@ -295,34 +274,13 @@ export default function LandingPage() {
           </div>
         </div>
 
-        {/* Bottom bar */}
-        <div className="border-t border-outline-variant/10">
-          <div className="max-w-7xl mx-auto px-6 py-5 flex flex-col md:flex-row justify-between items-center gap-3">
-            <p className="text-sm text-secondary">© 2026 Menuza Systems Inc. All rights reserved.</p>
-            <p className="text-sm text-secondary">Built for restaurants in Africa</p>
+        <div className="border-t border-black/5">
+          <div className="max-w-7xl mx-auto px-8 py-5 flex flex-col md:flex-row justify-between items-center gap-3">
+            <p className="text-xs text-secondary/50">© 2026 Menuza Systems Inc. All rights reserved.</p>
+            <p className="text-xs text-secondary/50">Built for restaurants in Africa</p>
           </div>
         </div>
       </footer>
-
-      {/* Mobile Bottom Nav */}
-      <div className="md:hidden fixed bottom-0 left-0 w-full z-50 flex justify-around items-end px-4 pb-6 bg-surface/90 backdrop-blur-xl border-t border-primary-container/10 shadow-[0_-4px_20px_rgba(0,0,0,0.04)] rounded-t-[2rem]">
-        <div className="flex flex-col items-center justify-center bg-gradient-to-tr from-primary to-primary-container text-white rounded-2xl p-3 mb-2 scale-110 shadow-lg shadow-primary-container/20">
-          <span className="material-symbols-outlined">home</span>
-          <span className="text-[10px] font-bold font-[var(--font-headline)] uppercase">Home</span>
-        </div>
-        <Link href="/dashboard/menus" className="flex flex-col items-center justify-center text-secondary p-2">
-          <span className="material-symbols-outlined">menu_book</span>
-          <span className="text-[10px] font-bold font-[var(--font-headline)] uppercase">Menus</span>
-        </Link>
-        <Link href="/menu/demo" className="flex flex-col items-center justify-center text-secondary p-2">
-          <span className="material-symbols-outlined">qr_code_scanner</span>
-          <span className="text-[10px] font-bold font-[var(--font-headline)] uppercase">Scan</span>
-        </Link>
-        <Link href="/dashboard" className="flex flex-col items-center justify-center text-secondary p-2">
-          <span className="material-symbols-outlined">person</span>
-          <span className="text-[10px] font-bold font-[var(--font-headline)] uppercase">Profile</span>
-        </Link>
-      </div>
     </div>
   );
 }
