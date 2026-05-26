@@ -13,6 +13,7 @@ interface AnalyticsData {
   peakHours: { hour: number; count: number }[];
   recentEvents: { type: string; item: string | null; amount: number | null; time: string }[];
   dailyViews?: { date: string; views: number }[];
+  dailyRevenue?: { date: string; revenue: number }[];
   meta?: { days: number; plan: string };
 }
 
@@ -100,6 +101,7 @@ export default function AnalyticsPage() {
   const peakHours = data?.peakHours ?? [];
   const recentEvents = data?.recentEvents ?? [];
   const dailyViews = data?.dailyViews ?? [];
+  const dailyRevenue = data?.dailyRevenue ?? [];
   const maxHourCount = Math.max(...peakHours.map(h => h.count), 1);
   const peakHour = peakHours.reduce((best, h) => h.count > best.count ? h : best, { hour: 0, count: 0 });
 
@@ -224,6 +226,46 @@ export default function AnalyticsPage() {
                 formatter={(v) => [v, "Views"]}
               />
               <Area type="monotone" dataKey="views" stroke="#FF6B00" strokeWidth={2} fill="url(#viewsGradient)" dot={false} activeDot={{ r: 4, fill: "#FF6B00" }} />
+            </AreaChart>
+          </ResponsiveContainer>
+        </div>
+      )}
+
+      {/* Daily Revenue Chart */}
+      {dailyRevenue.length > 0 && kpis.revenue > 0 && (
+        <div className="mb-8 bg-surface-container-lowest p-8 rounded-3xl border border-surface-container/50 shadow-sm">
+          <div className="flex justify-between items-center mb-6">
+            <div>
+              <h3 className="text-xl font-[var(--font-headline)] font-bold">Revenue Trend</h3>
+              <p className="text-xs text-secondary font-medium mt-1">Daily revenue over the selected period</p>
+            </div>
+            <span className="text-2xl font-extrabold text-tertiary">{formatPrice(kpis.revenue, currency)}</span>
+          </div>
+          <ResponsiveContainer width="100%" height={160}>
+            <AreaChart data={dailyRevenue} margin={{ top: 4, right: 4, left: -28, bottom: 0 }}>
+              <defs>
+                <linearGradient id="revenueGradient" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#00b149" stopOpacity={0.25} />
+                  <stop offset="95%" stopColor="#00b149" stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <XAxis
+                dataKey="date"
+                tickFormatter={(d) => {
+                  const dt = new Date(String(d));
+                  return `${dt.getMonth() + 1}/${dt.getDate()}`;
+                }}
+                tick={{ fontSize: 10, fill: "#9CA3AF" }}
+                axisLine={false}
+                tickLine={false}
+                interval={Math.floor(dailyRevenue.length / 6)}
+              />
+              <Tooltip
+                contentStyle={{ background: "var(--color-surface)", border: "1px solid var(--color-surface-container)", borderRadius: "1rem", fontSize: 12 }}
+                labelFormatter={(l) => new Date(String(l)).toLocaleDateString(undefined, { month: "short", day: "numeric" })}
+                formatter={(v) => [formatPrice(Number(v), currency), "Revenue"]}
+              />
+              <Area type="monotone" dataKey="revenue" stroke="#00b149" strokeWidth={2} fill="url(#revenueGradient)" dot={false} activeDot={{ r: 4, fill: "#00b149" }} />
             </AreaChart>
           </ResponsiveContainer>
         </div>

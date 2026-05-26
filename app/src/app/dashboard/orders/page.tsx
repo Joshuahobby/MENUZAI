@@ -174,8 +174,39 @@ export default function OrdersPage() {
 
     fetchOrders();
 
-    // Sound chimes
-    const audioOrder = new Audio("https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3");
+    // Web Audio API chimes — no CDN dependency
+    const playOrderChime = () => {
+      try {
+        const AC = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+        const ctx = new AC();
+        [1047, 1319, 1568].forEach((freq, i) => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.connect(gain); gain.connect(ctx.destination);
+          osc.frequency.value = freq; osc.type = "sine";
+          const t = ctx.currentTime + i * 0.16;
+          gain.gain.setValueAtTime(0.25, t);
+          gain.gain.exponentialRampToValueAtTime(0.001, t + 0.35);
+          osc.start(t); osc.stop(t + 0.35);
+        });
+      } catch {}
+    };
+    const playRequestChime = () => {
+      try {
+        const AC = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+        const ctx = new AC();
+        [0, 0.22].forEach(delay => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.connect(gain); gain.connect(ctx.destination);
+          osc.frequency.value = 880; osc.type = "sine";
+          const t = ctx.currentTime + delay;
+          gain.gain.setValueAtTime(0.28, t);
+          gain.gain.exponentialRampToValueAtTime(0.001, t + 0.28);
+          osc.start(t); osc.stop(t + 0.28);
+        });
+      } catch {}
+    };
 
     // Orders Realtime Channel
     const orderChannel = supabase
@@ -193,7 +224,7 @@ export default function OrdersPage() {
             const newOrder = payload.new as OrderRow;
             if (initialLoadDone.current) {
               if (soundEnabledRef.current) {
-                audioOrder.play().catch(() => {});
+                playOrderChime();
               }
               toast("New order received!", {
                 description: newOrder.customer_name
@@ -224,8 +255,7 @@ export default function OrdersPage() {
         const newReq = payload.payload as TableRequest;
         
         if (soundEnabledRef.current) {
-          const chime = new Audio("https://assets.mixkit.co/active_storage/sfx/911/911-preview.mp3");
-          chime.play().catch(() => {});
+          playRequestChime();
         }
 
         toast(`Assistance Request: Table ${newReq.tableNumber}`, {
@@ -309,6 +339,17 @@ export default function OrdersPage() {
   const handleResolveRequest = (id: string) => {
     setTableRequests((prev) => prev.filter((r) => r.id !== id));
     toast.success("Table request marked as resolved.");
+  };
+
+  const getWaitMinutes = (createdAt: string) =>
+    Math.floor((now - new Date(createdAt).getTime()) / 60_000);
+
+  const urgencyClass = (order: OrderRow) => {
+    if (order.status !== "pending" && order.status !== "preparing") return null;
+    const m = getWaitMinutes(order.created_at);
+    if (m >= 15) return { chip: "bg-red-500/10 text-red-600", label: `${m}m ⚠️` };
+    if (m >= 5) return { chip: "bg-amber-500/10 text-amber-600", label: `${m}m` };
+    return null;
   };
 
   const todayStart = new Date();
@@ -488,26 +529,29 @@ export default function OrdersPage() {
                   >
                     {/* Card header */}
                     <div className="flex justify-between items-start mb-4 gap-2">
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <h3 className="font-[var(--font-headline)] font-bold text-base leading-tight">
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap mb-1">
+                          {order.table_number && (
+                            <span className="inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-wide px-2.5 py-1 rounded-xl bg-primary/10 text-primary shrink-0">
+                              <span className="material-symbols-outlined text-[12px]">table_restaurant</span>
+                              Table {order.table_number}
+                            </span>
+                          )}
+                          <h3 className="font-[var(--font-headline)] font-bold text-base leading-tight truncate">
                             {order.customer_name || "Guest"}
                           </h3>
                           {isNew && order.status === "pending" && (
-                            <span className="text-[8px] font-black uppercase tracking-widest bg-primary text-white px-2 py-0.5 rounded-full">NEW</span>
+                            <span className="text-[8px] font-black uppercase tracking-widest bg-primary text-white px-2 py-0.5 rounded-full shrink-0">NEW</span>
                           )}
+                          {(() => { const u = urgencyClass(order); return u ? (
+                            <span className={`text-[9px] font-black px-2 py-0.5 rounded-full shrink-0 ${u.chip}`}>{u.label}</span>
+                          ) : null; })()}
                         </div>
-                        <div className="flex items-center gap-2 text-[10px] text-secondary mt-1">
+                        <div className="flex items-center gap-2 text-[10px] text-secondary">
                           <span className="material-symbols-outlined text-[13px]">schedule</span>
                           <span>{formatTimeOnly(order.created_at)}</span>
                           <span className="text-outline-variant">·</span>
                           <span>{formatRelativeTime(order.created_at)}</span>
-                          {order.table_number && (
-                            <>
-                              <span className="text-outline-variant">·</span>
-                              <span className="font-bold text-on-surface">Table {order.table_number}</span>
-                            </>
-                          )}
                           {order.customer_email && (
                             <>
                               <span className="text-outline-variant">·</span>

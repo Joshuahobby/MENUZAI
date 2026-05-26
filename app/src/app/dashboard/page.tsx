@@ -16,7 +16,7 @@ interface AnalyticsData {
 }
 
 export default function DashboardPage() {
-  const { restaurantId, lastSynced, menuStyle, menuItems, menuStatus, restaurantLogoUrl, userRole, menuSlug, plan } = useMenu();
+  const { restaurantId, lastSynced, menuStyle, menuItems, menuStatus, restaurantLogoUrl, userRole, menuSlug, plan, restaurantName } = useMenu();
   const currency = menuStyle.currency ?? "RWF";
   const [data, setData] = useState<AnalyticsData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -295,8 +295,43 @@ export default function DashboardPage() {
     );
   }
 
+  const greeting = (() => {
+    const h = new Date().getHours();
+    if (h < 12) return "Good morning";
+    if (h < 17) return "Good afternoon";
+    return "Good evening";
+  })();
+
   return (
     <div className="p-6 lg:p-12 pb-24 lg:pb-12">
+      {/* Greeting + quick actions */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+        <div>
+          <p className="text-xs font-bold text-secondary uppercase tracking-[0.2em] mb-0.5">{greeting}</p>
+          <h1 className="text-2xl font-[var(--font-headline)] font-extrabold tracking-tight text-on-surface">
+            {restaurantName || "Dashboard"}
+          </h1>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {[
+            { href: "/dashboard/orders", icon: "receipt_long", label: "Orders", highlight: false },
+            { href: "/dashboard/editor", icon: "edit_note", label: "Edit Menu", highlight: false },
+            { href: menuSlug ? `/menu/${menuSlug}` : "/dashboard/menus", icon: "open_in_new", label: "View Menu", highlight: false },
+            { href: "/dashboard/qr-codes", icon: "qr_code_2", label: "QR Code", highlight: false },
+          ].map((a) => (
+            <Link
+              key={a.href}
+              href={a.href}
+              target={a.href.startsWith("/menu") ? "_blank" : undefined}
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all ${a.highlight ? "bg-primary text-white shadow-md shadow-primary/20" : "bg-surface-container-lowest border border-surface-container hover:border-primary/30 hover:shadow-sm text-on-surface"}`}
+            >
+              <span className="material-symbols-outlined text-[16px]">{a.icon}</span>
+              {a.label}
+            </Link>
+          ))}
+        </div>
+      </div>
+
       {/* Quick Start — shown only when user has no activity yet */}
       {isNewUser && (
         <div className="mb-10 bg-gradient-to-br from-primary/5 to-primary-container/5 border border-primary/10 rounded-3xl p-8">
@@ -346,11 +381,11 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {/* Header */}
+      {/* Analytics range selector */}
       <header className="flex flex-col md:flex-row justify-between items-start md:items-end mb-10 gap-4">
         <div>
-          <h1 className="text-3xl font-[var(--font-headline)] font-extrabold tracking-tight text-on-surface mb-1">Performance Overview</h1>
-          <p className="text-secondary font-medium">Growing your restaurant with data-driven insights.</p>
+          <h2 className="text-xl font-[var(--font-headline)] font-extrabold tracking-tight text-on-surface mb-0.5">Performance Overview</h2>
+          <p className="text-secondary text-sm font-medium">Growing your restaurant with data-driven insights.</p>
         </div>
         <div className="flex items-center gap-3">
           {plan === "free" ? (

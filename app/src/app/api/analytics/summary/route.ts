@@ -88,6 +88,19 @@ export async function GET(request: Request) {
     dailyViews.push({ date: key, views: dailyMap[key] ?? 0 });
   }
 
+  // Build daily revenue array
+  const dailyRevenueMap: Record<string, number> = {};
+  orders.forEach(e => {
+    const day = e.created_at.split("T")[0];
+    dailyRevenueMap[day] = (dailyRevenueMap[day] || 0) + (Number(e.amount) || 0);
+  });
+  const dailyRevenue: { date: string; revenue: number }[] = [];
+  for (let i = days - 1; i >= 0; i--) {
+    const d = new Date(Date.now() - i * 24 * 60 * 60 * 1000);
+    const key = d.toISOString().split("T")[0];
+    dailyRevenue.push({ date: key, revenue: dailyRevenueMap[key] ?? 0 });
+  }
+
   // Conversion funnel counts
   const itemViews = events.filter(e => e.event_type === "item_view").length;
   const addToCarts = events.filter(e => e.event_type === "add_to_cart").length;
@@ -106,6 +119,7 @@ export async function GET(request: Request) {
     peakHours,
     recentEvents,
     dailyViews,
+    dailyRevenue,
     meta: { days, plan: restaurant?.plan ?? "free" },
   });
 }

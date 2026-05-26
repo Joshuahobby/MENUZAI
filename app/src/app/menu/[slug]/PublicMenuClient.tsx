@@ -81,6 +81,7 @@ export default function PublicMenuClient(props: PublicMenuClientProps) {
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
   const [orderPlaced, setOrderPlaced] = useState(false);
   const [orderedSnapshot, setOrderedSnapshot] = useState<{ cart: CartItem[]; total: number } | null>(null);
+  const [lastWhatsAppUrl, setLastWhatsAppUrl] = useState<string | null>(null);
 
   // Review state (inline after order)
   const [rating, setRating] = useState(0);
@@ -355,7 +356,9 @@ export default function PublicMenuClient(props: PublicMenuClientProps) {
     }
 
     const msg = buildWhatsAppMessage(cart, undefined, tableFromUrl || undefined, menuStyle.currency ?? "RWF", orderNote || undefined);
-    window.open(buildWhatsAppURL(restaurantPhone, msg), "_blank", "noopener,noreferrer");
+    const waUrl = buildWhatsAppURL(restaurantPhone, msg);
+    setLastWhatsAppUrl(waUrl);
+    window.open(waUrl, "_blank", "noopener,noreferrer");
 
     fetch("/api/notifications/order", {
       method: "POST",
@@ -406,13 +409,13 @@ export default function PublicMenuClient(props: PublicMenuClientProps) {
 
   const closeCart = () => {
     if (orderPlaced) {
-      // Reset review state for next order
       setRating(0);
       setHoverRating(0);
       setReviewComment("");
       setReviewSubmitted(false);
       setOrderPlaced(false);
       setOrderedSnapshot(null);
+      setLastWhatsAppUrl(null);
     }
     setIsCartOpen(false);
   };
@@ -862,6 +865,17 @@ export default function PublicMenuClient(props: PublicMenuClientProps) {
                       <span className="material-symbols-outlined text-[14px] text-secondary">table_restaurant</span>
                       <span className="text-xs font-bold text-secondary">Table {tableFromUrl}</span>
                     </div>
+                  )}
+                  {lastWhatsAppUrl && (
+                    <a
+                      href={lastWhatsAppUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="mt-3 inline-flex items-center gap-2 text-xs font-bold text-whatsapp hover:underline"
+                    >
+                      <span className="material-symbols-outlined text-[14px]">open_in_new</span>
+                      WhatsApp didn&apos;t open? Tap here
+                    </a>
                   )}
                 </div>
 
