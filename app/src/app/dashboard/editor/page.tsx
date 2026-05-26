@@ -7,7 +7,10 @@ import { EditorSidebar } from "./EditorSidebar";
 import { BuildSidebarContent } from "./BuildSidebarContent";
 import { StyleEditorSidebarContent } from "./StyleEditorSidebarContent";
 import { EditorItemCard } from "./EditorItemCard";
-import { prompt, confirm } from "@/components/Modals";
+import { CategoryTabStrip } from "./CategoryTabStrip";
+import { CategoryActionSheet } from "./CategoryActionSheet";
+import { MobileBottomBar } from "./MobileBottomBar";
+import { prompt } from "@/components/Modals";
 import { toast } from "sonner";
 import { PrintView } from "../templates/PrintView";
 import { DEMO_DATA, type TplData } from "../templates/TemplatePreview";
@@ -46,9 +49,6 @@ export default function MenuEditorPage() {
     menuStyle,
     addItem,
     addCategory,
-    renameCategory,
-    removeCategory,
-    toggleCategoryVisibility,
     publishMenu,
     unpublishMenu,
     renameMenu,
@@ -122,6 +122,7 @@ export default function MenuEditorPage() {
     const el = containerRef.current;
     if (el) {
       el.style.setProperty("--bg-color", menuStyle.backgroundColor);
+      el.style.setProperty("--primary-color", menuStyle.primaryColor);
       el.style.setProperty("--title-color", menuStyle.titleColor ?? "#1A1009");
       el.style.setProperty("--section-title-color", menuStyle.sectionTitleColor ?? "#3D2410");
       el.style.setProperty("--item-text-color", menuStyle.itemTextColor ?? "#4A3318");
@@ -379,109 +380,19 @@ export default function MenuEditorPage() {
         <section className="flex-1 flex flex-col overflow-hidden editor-canvas relative">
 
           {/* Mobile category tab strip */}
-          <div className="lg:hidden w-full sticky top-0 z-10 bg-surface-container-low/95 backdrop-blur-sm border-b border-surface-container px-4 py-2.5 flex gap-2 overflow-x-auto hide-scrollbar shrink-0">
-            {categories.map((cat) => (
-              <div key={cat.id} className="shrink-0 flex items-center gap-0.5">
-                <button
-                  type="button"
-                  onClick={() => setActiveCategoryId(cat.id)}
-                  className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all whitespace-nowrap flex items-center gap-1 ${activeCategoryId === cat.id ? "bg-primary text-white shadow-sm" : cat.hidden ? "bg-surface-container text-secondary/50 line-through" : "bg-surface-container-high text-secondary hover:bg-surface-container-highest"}`}
-                >
-                  {cat.hidden && <span className="material-symbols-outlined text-[11px]">visibility_off</span>}
-                  {cat.name}
-                  <span className={`text-[10px] font-black ${activeCategoryId === cat.id ? "opacity-70" : "text-primary"}`}>
-                    {menuItems.filter((i) => i.category === cat.id).length}
-                  </span>
-                </button>
-                <button
-                  type="button"
-                  title="Section options"
-                  onClick={() => setCatActionSheet({ id: cat.id, name: cat.name, hidden: cat.hidden })}
-                  className="w-6 h-6 rounded-full flex items-center justify-center text-secondary hover:bg-surface-container-highest transition-all"
-                >
-                  <span className="material-symbols-outlined text-[14px]">more_vert</span>
-                </button>
-              </div>
-            ))}
-            <button
-              type="button"
-              title="Add section"
-              onClick={async () => {
-                const name = await prompt({ title: "New Section", placeholder: "e.g. Desserts", confirmLabel: "Add Section" });
-                if (name) { addCategory(name); toast.success(`"${name}" section added.`); }
-              }}
-              className="shrink-0 w-8 h-8 rounded-full bg-surface-container-high text-primary hover:bg-primary/10 transition-all flex items-center justify-center border border-primary/20 my-auto"
-            >
-              <span className="material-symbols-outlined text-[18px]">add</span>
-            </button>
-          </div>
+          <CategoryTabStrip
+            activeCategoryId={activeCategoryId}
+            setActiveCategoryId={setActiveCategoryId}
+            onCategoryOptions={(cat) => setCatActionSheet(cat)}
+          />
 
           {/* Mobile category action sheet */}
-          {catActionSheet && (
-            <>
-              <div className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm lg:hidden" onClick={() => setCatActionSheet(null)} />
-              <div className="fixed bottom-0 left-0 right-0 z-[60] lg:hidden bg-white rounded-t-3xl p-6 shadow-2xl">
-                <div className="w-10 h-1 bg-black/10 rounded-full mx-auto mb-6" />
-                <p className="text-xs font-bold uppercase tracking-[0.2em] text-secondary mb-1">Section</p>
-                <p className="font-bold text-xl mb-6">{catActionSheet.name}</p>
-                <div className="space-y-2">
-                  <button
-                    type="button"
-                    onClick={async () => {
-                      setCatActionSheet(null);
-                      const name = await prompt({ title: "Rename Section", defaultValue: catActionSheet.name, placeholder: "Section name", confirmLabel: "Rename" });
-                      if (name && name !== catActionSheet.name) { renameCategory(catActionSheet.id, name); toast.success(`Renamed to "${name}"`); }
-                    }}
-                    className="w-full flex items-center gap-4 px-5 py-4 bg-black/3 hover:bg-black/6 rounded-2xl text-sm font-bold transition-all"
-                  >
-                    <span className="material-symbols-outlined text-primary">edit</span>
-                    Rename
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setCatActionSheet(null);
-                      toggleCategoryVisibility(catActionSheet.id);
-                      toast.success(catActionSheet.hidden ? `"${catActionSheet.name}" is now visible` : `"${catActionSheet.name}" hidden from public menu`);
-                    }}
-                    className="w-full flex items-center gap-4 px-5 py-4 bg-black/3 hover:bg-black/6 rounded-2xl text-sm font-bold transition-all"
-                  >
-                    <span className="material-symbols-outlined text-secondary">{catActionSheet.hidden ? "visibility" : "visibility_off"}</span>
-                    {catActionSheet.hidden ? "Show on public menu" : "Hide from public menu"}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={async () => {
-                      setCatActionSheet(null);
-                      const itemCount = menuItems.filter((i) => i.category === catActionSheet.id).length;
-                      const ok = await confirm({
-                        title: `Delete "${catActionSheet.name}"?`,
-                        message: itemCount > 0 ? `This will permanently delete ${itemCount} item${itemCount !== 1 ? "s" : ""} in this section.` : "This section will be permanently removed.",
-                        confirmLabel: "Delete",
-                        danger: true,
-                      });
-                      if (ok) {
-                        if (activeCategoryId === catActionSheet.id) setActiveCategoryId(undefined);
-                        removeCategory(catActionSheet.id);
-                        toast.success(`"${catActionSheet.name}" deleted.`);
-                      }
-                    }}
-                    className="w-full flex items-center gap-4 px-5 py-4 bg-red-50 hover:bg-red-100 rounded-2xl text-sm font-bold text-red-600 transition-all"
-                  >
-                    <span className="material-symbols-outlined">delete</span>
-                    Delete Section
-                  </button>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setCatActionSheet(null)}
-                  className="w-full mt-4 py-4 rounded-2xl bg-black/5 text-secondary font-bold text-sm"
-                >
-                  Cancel
-                </button>
-              </div>
-            </>
-          )}
+          <CategoryActionSheet
+            catActionSheet={catActionSheet}
+            setCatActionSheet={setCatActionSheet}
+            activeCategoryId={activeCategoryId}
+            setActiveCategoryId={setActiveCategoryId}
+          />
 
           {/* Canvas wrapper */}
           <div className="flex-1 overflow-auto flex flex-col items-center p-3 pb-20 lg:p-8 lg:pb-8">
@@ -576,67 +487,13 @@ export default function MenuEditorPage() {
       </div>
 
       {/* ── Mobile Bottom Tab Bar ── */}
-      <div className="fixed bottom-0 left-0 right-0 lg:hidden z-30 bg-white border-t border-black/6 flex h-14">
-        {/* Sections */}
-        <button
-          type="button"
-          onClick={() => setMobileSheet(v => v === "build" ? null : "build")}
-          className={`flex-1 flex flex-col items-center justify-center gap-0.5 transition-colors ${mobileSheet === "build" ? "text-primary" : "text-secondary"}`}
-        >
-          <span className={`material-symbols-outlined text-[22px] ${mobileSheet === "build" ? "icon-fill" : ""}`}>menu_book</span>
-          <span className="text-[9px] font-bold uppercase tracking-wide">Sections</span>
-        </button>
-
-        {/* Add Item */}
-        <button
-          type="button"
-          onClick={() => {
-            if (activeCategoryId) {
-              addItem(activeCategoryId);
-              toast.success("Item added — tap to edit");
-            } else {
-              setMobileSheet("build");
-              toast("Select a section first");
-            }
-          }}
-          className="flex-1 flex flex-col items-center justify-center gap-0.5 text-secondary"
-        >
-          <div className="w-8 h-8 bg-primary rounded-xl flex items-center justify-center -mt-2 shadow-md shadow-primary/20">
-            <span className="material-symbols-outlined text-white text-[20px]">add</span>
-          </div>
-          <span className="text-[9px] font-bold uppercase tracking-wide mt-0.5">Add Item</span>
-        </button>
-
-        {/* Design */}
-        <button
-          type="button"
-          onClick={() => setMobileSheet(v => v === "design" ? null : "design")}
-          className={`flex-1 flex flex-col items-center justify-center gap-0.5 transition-colors ${mobileSheet === "design" ? "text-primary" : "text-secondary"}`}
-        >
-          <span className={`material-symbols-outlined text-[22px] ${mobileSheet === "design" ? "icon-fill" : ""}`}>palette</span>
-          <span className="text-[9px] font-bold uppercase tracking-wide">Design</span>
-        </button>
-
-        {/* Publish */}
-        <button
-          type="button"
-          disabled={isSyncing}
-          onClick={async () => {
-            if (menuStatus === "published") {
-              await unpublishMenu();
-              setPublishedSlug(null);
-              toast.success("Menu unpublished");
-            } else {
-              const slug = await publishMenu();
-              if (slug) { setPublishedSlug(slug); setTimeout(() => setPublishedSlug(null), 3000); toast.success("Menu published!"); }
-            }
-          }}
-          className={`flex-1 flex flex-col items-center justify-center gap-0.5 transition-colors disabled:opacity-60 ${menuStatus === "published" ? "text-tertiary" : "text-primary"}`}
-        >
-          <span className="material-symbols-outlined text-[22px]">{menuStatus === "published" ? "cloud_done" : "publish"}</span>
-          <span className="text-[9px] font-bold uppercase tracking-wide">{menuStatus === "published" ? "Live" : "Publish"}</span>
-        </button>
-      </div>
+      <MobileBottomBar
+        mobileSheet={mobileSheet}
+        setMobileSheet={setMobileSheet}
+        setExpandedItemId={setExpandedItemId}
+        setPublishedSlug={setPublishedSlug}
+        activeCategoryId={activeCategoryId}
+      />
 
       {/* ── Mobile Bottom Sheet ── */}
       {mobileSheet && (
@@ -650,8 +507,12 @@ export default function MenuEditorPage() {
               <div className="w-10 h-1 bg-black/10 rounded-full" />
             </div>
             <div className="flex items-center justify-between px-5 py-3 border-b border-black/6 shrink-0">
-              <span className="font-bold text-sm text-on-surface">
-                {mobileSheet === "build" ? "Sections" : "Design"}
+              <span className="font-bold text-sm text-on-surface truncate max-w-[220px]">
+                {mobileSheet === "design"
+                  ? "Design"
+                  : expandedItemId
+                  ? menuItems.find((i) => i.id === expandedItemId)?.name ?? "Edit Item"
+                  : "Sections"}
               </span>
               <button
                 onClick={() => { setMobileSheet(null); setExpandedItemId(null); }}
