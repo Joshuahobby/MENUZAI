@@ -259,7 +259,7 @@ export default function OwnerDemoPage() {
         </div>
 
         {/* Sign up CTA */}
-        <div className="bg-on-surface rounded-3xl p-10 text-center">
+        <div className="bg-on-surface rounded-3xl p-6 md:p-10 text-center">
           <p className="text-white/40 text-xs font-bold uppercase tracking-widest mb-3">Ready to start?</p>
           <h2 className="text-2xl font-[var(--font-headline)] font-black text-white mb-4">Get your real dashboard in 2 minutes</h2>
           <p className="text-white/40 text-sm mb-7">Free plan — upload your menu, get your QR code, go live today.</p>

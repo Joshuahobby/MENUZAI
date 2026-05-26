@@ -78,6 +78,7 @@ export default function StaffDemoPage() {
   const [soundOn, setSoundOn] = useState(true);
   const [simIdx, setSimIdx] = useState(0);
   const [newFlash, setNewFlash] = useState<string | null>(null);
+  const [mobileTab, setMobileTab] = useState<Status>("pending");
 
   // Re-render every 30 seconds to update elapsed times
   useEffect(() => {
@@ -120,41 +121,41 @@ export default function StaffDemoPage() {
       <DemoBanner role="staff" restaurantName="Le Bistro Demo" />
 
       {/* Header */}
-      <header className="bg-white border-b border-black/6 px-6 py-4 sticky top-10 z-40">
-        <div className="max-w-6xl mx-auto flex flex-wrap items-center justify-between gap-4">
-          <div className="flex items-center gap-4">
-            <div>
-              <p className="text-xs text-secondary font-medium">Staff Orders Panel</p>
-              <h1 className="text-lg font-[var(--font-headline)] font-extrabold tracking-tight">Le Bistro Demo</h1>
+      <header className="bg-white border-b border-black/6 px-4 py-3 sticky top-10 z-40">
+        <div className="max-w-6xl mx-auto flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="min-w-0">
+              <p className="text-[10px] text-secondary font-medium leading-none mb-0.5">Staff Orders Panel</p>
+              <h1 className="text-base font-[var(--font-headline)] font-extrabold tracking-tight truncate">Le Bistro Demo</h1>
             </div>
-            <div className="hidden sm:flex items-center gap-3 text-xs text-secondary">
-              <span className="bg-[#faf8f6] border border-black/6 px-3 py-1.5 rounded-lg font-semibold">
-                {totalToday} orders today
+            <div className="flex items-center gap-2 text-xs text-secondary">
+              <span className="bg-[#faf8f6] border border-black/6 px-2 py-1 rounded-lg font-semibold whitespace-nowrap">
+                {totalToday} orders
               </span>
-              <span className="bg-[#faf8f6] border border-black/6 px-3 py-1.5 rounded-lg font-semibold">
+              <span className="hidden sm:inline bg-[#faf8f6] border border-black/6 px-2 py-1 rounded-lg font-semibold whitespace-nowrap">
                 {fmt(totalRevenue)} RWF
               </span>
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 shrink-0">
             <button
               onClick={() => setSoundOn(s => !s)}
               title={soundOn ? "Sound on" : "Sound off"}
-              className={`flex items-center gap-1.5 text-xs font-semibold px-3 py-2 rounded-lg border transition-colors cursor-pointer ${
+              className={`flex items-center gap-1 text-xs font-semibold p-2 rounded-lg border transition-colors cursor-pointer ${
                 soundOn ? "border-primary/30 text-primary bg-primary/5" : "border-black/10 text-secondary bg-white"
               }`}
             >
               <span className="material-symbols-outlined text-[15px]">{soundOn ? "volume_up" : "volume_off"}</span>
-              <span className="hidden sm:inline">{soundOn ? "Sound On" : "Sound Off"}</span>
             </button>
 
             <button
               onClick={simulateOrder}
-              className="flex items-center gap-1.5 text-xs font-bold px-3.5 py-2 rounded-lg bg-on-surface text-white hover:opacity-90 transition-opacity cursor-pointer"
+              className="flex items-center gap-1 text-xs font-bold px-3 py-2 rounded-lg bg-on-surface text-white hover:opacity-90 transition-opacity cursor-pointer"
             >
               <span className="material-symbols-outlined text-[15px]">add</span>
-              Simulate Order
+              <span className="hidden xs:inline">Simulate</span>
+              <span className="hidden sm:inline"> Order</span>
             </button>
 
             <Link href="/demo/owner"
@@ -166,9 +167,36 @@ export default function StaffDemoPage() {
         </div>
       </header>
 
+      {/* Mobile column tabs */}
+      <div className="md:hidden sticky top-[calc(2.5rem+57px)] z-30 bg-[#f0f0f0] px-4 pt-3 pb-2">
+        <div className="flex gap-2">
+          {STATUS_COLS.map(col => {
+            const count = byStatus(col.status).length;
+            return (
+              <button key={col.status} onClick={() => setMobileTab(col.status)}
+                className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                  mobileTab === col.status
+                    ? `bg-white shadow-sm ${col.color}`
+                    : "text-secondary bg-white/50"
+                }`}
+              >
+                <span className="material-symbols-outlined text-[14px]">{col.icon}</span>
+                {col.label}
+                {count > 0 && (
+                  <span className={`text-[9px] font-black px-1.5 py-0.5 rounded-full ${STATUS_CHIP[col.status]}`}>
+                    {count}
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
       {/* Columns */}
-      <main className="max-w-6xl mx-auto px-4 py-6">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+      <main className="max-w-6xl mx-auto px-4 py-4">
+        {/* Desktop: 3-col kanban */}
+        <div className="hidden md:grid md:grid-cols-3 gap-5">
           {STATUS_COLS.map(col => {
             const colOrders = byStatus(col.status);
             return (
@@ -253,8 +281,87 @@ export default function StaffDemoPage() {
           })}
         </div>
 
+        {/* Mobile: single active column */}
+        <div className="md:hidden space-y-3">
+          {(() => {
+            const col = STATUS_COLS.find(c => c.status === mobileTab)!;
+            const colOrders = byStatus(col.status);
+            return (
+              <div className={`rounded-2xl border p-4 ${col.bg}`}>
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-2">
+                    <span className={`material-symbols-outlined text-[18px] ${col.color}`}>{col.icon}</span>
+                    <span className={`text-sm font-bold ${col.color}`}>{col.label}</span>
+                  </div>
+                  {colOrders.length > 0 && (
+                    <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${STATUS_CHIP[col.status]}`}>
+                      {colOrders.length}
+                    </span>
+                  )}
+                </div>
+                <div className="space-y-3">
+                  {colOrders.length === 0 && (
+                    <div className="text-center py-8 text-secondary/50 text-xs">No orders</div>
+                  )}
+                  {colOrders.map(order => {
+                    const urgent = urgencyClass(order);
+                    const isNew = newFlash === order.id;
+                    return (
+                      <div key={order.id}
+                        className={`bg-white rounded-xl p-4 border transition-all ${urgent ?? "border-black/6"} ${isNew ? "ring-2 ring-amber-400 scale-[1.01]" : ""}`}
+                      >
+                        <div className="flex items-center justify-between mb-3">
+                          <span className="inline-flex items-center gap-1 text-[10px] font-black uppercase bg-primary/10 text-primary px-2.5 py-1 rounded-lg">
+                            <span className="material-symbols-outlined text-[11px]">table_restaurant</span>
+                            Table {order.table}
+                          </span>
+                          <div className="flex items-center gap-2">
+                            {(() => {
+                              const m = Math.floor((Date.now() - order.createdAt.getTime()) / 60_000);
+                              if (order.status !== "ready" && m >= 15) return (
+                                <span className="text-[9px] font-black text-red-600 bg-red-50 px-1.5 py-0.5 rounded-full">{m}m ⚠️</span>
+                              );
+                              if (order.status !== "ready" && m >= 8) return (
+                                <span className="text-[9px] font-black text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded-full">{m}m</span>
+                              );
+                              return null;
+                            })()}
+                            <span className="text-[10px] text-secondary">{elapsed(order.createdAt)}</span>
+                          </div>
+                        </div>
+                        <ul className="space-y-1 mb-4">
+                          {order.items.map((item, j) => (
+                            <li key={j} className="text-xs text-on-surface/80 flex items-start gap-1.5">
+                              <span className="text-primary mt-0.5">·</span>
+                              {item}
+                            </li>
+                          ))}
+                        </ul>
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-bold">{fmt(order.total)} RWF</span>
+                          {NEXT[order.status] ? (
+                            <button onClick={() => advance(order.id)}
+                              className={`text-[11px] font-bold px-3.5 py-1.5 rounded-lg transition-colors cursor-pointer ${NEXT_BTN[order.status]}`}
+                            >
+                              {NEXT_LABEL[order.status]}
+                            </button>
+                          ) : (
+                            <span className="text-[10px] font-bold text-green-700 bg-green-100 px-3 py-1.5 rounded-lg">
+                              Served ✓
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })()}
+        </div>
+
         <p className="text-center text-xs text-secondary/50 mt-6">
-          Click <strong>Simulate Order</strong> to add a new incoming order · Move cards through the pipeline with the action buttons
+          Tap <strong>Simulate</strong> to add a new order · Move cards through the pipeline with the action buttons
         </p>
 
         {/* CTA */}
