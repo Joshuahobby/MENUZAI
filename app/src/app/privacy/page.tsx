@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { PublicNav } from "@/components/PublicNav";
 
 const LAST_UPDATED = "1 January 2026";
 
@@ -11,24 +12,7 @@ export default function PrivacyPage() {
   return (
     <div className="min-h-screen bg-[#faf8f6] text-on-surface">
 
-      {/* ── Nav ── */}
-      <nav className="w-full sticky top-0 z-50 bg-[#faf8f6]/90 backdrop-blur-md border-b border-black/5">
-        <div className="flex justify-between items-center px-8 h-16 max-w-7xl mx-auto">
-          <Link href="/" className="flex items-center gap-2.5 shrink-0">
-            <div className="w-7 h-7 bg-primary rounded-md flex items-center justify-center">
-              <span className="material-symbols-outlined text-white icon-fill text-base">restaurant_menu</span>
-            </div>
-            <span className="font-[var(--font-headline)] font-black text-base tracking-tight">
-              MENUZA <span className="text-primary">AI</span>
-            </span>
-          </Link>
-          <div className="flex items-center gap-3">
-            <Link href="/login" className="px-5 py-2 bg-primary text-white text-sm font-bold rounded-lg hover:opacity-90 transition-opacity">
-              Get Started
-            </Link>
-          </div>
-        </div>
-      </nav>
+      <PublicNav />
 
       {/* ── Content ── */}
       <main className="max-w-3xl mx-auto px-6 py-20">

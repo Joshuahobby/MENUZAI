@@ -4,6 +4,7 @@ import Link from "next/link";
 import { CheckoutModal } from "@/components/CheckoutModal";
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
+import { PublicNav } from "@/components/PublicNav";
 
 const MONTHLY = { pro: 35000, business: 89000 };
 
@@ -105,34 +106,7 @@ export default function PricingPage() {
         priceAmount={selectedPlan.price}
       />
 
-      {/* ── Nav ── */}
-      <nav className="w-full sticky top-0 z-50 bg-[#faf8f6]/90 backdrop-blur-md border-b border-black/5">
-        <div className="flex justify-between items-center px-8 py-4 max-w-7xl mx-auto">
-          <Link href="/" className="flex items-center gap-2.5">
-            <div className="w-7 h-7 bg-primary rounded-md flex items-center justify-center">
-              <span className="material-symbols-outlined text-white icon-fill text-base">restaurant_menu</span>
-            </div>
-            <span className="font-[var(--font-headline)] font-black text-base tracking-tight">
-              MENUZA <span className="text-primary">AI</span>
-            </span>
-          </Link>
-          <div className="flex items-center gap-5">
-            <div className="hidden md:flex items-center gap-5">
-              <Link href="/features" className="text-sm font-medium text-secondary hover:text-on-surface transition-colors">Features</Link>
-              <Link href="/menu/demo" className="text-sm font-medium text-secondary hover:text-on-surface transition-colors">Live Demo</Link>
-            </div>
-            {isLoggedIn ? (
-              <Link href="/dashboard" className="px-5 py-2 text-sm font-bold text-white bg-primary rounded-lg hover:opacity-90 transition-opacity">
-                Dashboard
-              </Link>
-            ) : (
-              <Link href="/login" className="px-5 py-2 text-sm font-bold text-white bg-primary rounded-lg hover:opacity-90 transition-opacity">
-                Get Started
-              </Link>
-            )}
-          </div>
-        </div>
-      </nav>
+      <PublicNav activePath="/pricing" />
 
       {/* ── Hero ── */}
       <section className="pt-24 pb-16 px-6 text-center">
