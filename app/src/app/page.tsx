@@ -34,8 +34,8 @@ export default function LandingPage() {
           </Link>
 
           <div className="hidden md:flex items-center gap-6">
-            <a href="#features" className="text-sm font-medium text-secondary hover:text-on-surface transition-colors">Features</a>
-            <Link href="/pricing" className="text-sm font-medium text-secondary hover:text-on-surface transition-colors">Pricing</Link>
+            <Link href="/features" className="text-sm font-medium text-secondary hover:text-on-surface transition-colors">Features</Link>
+            <Link href="/pricing"  className="text-sm font-medium text-secondary hover:text-on-surface transition-colors">Pricing</Link>
             <Link href="/menu/demo" className="text-sm font-medium text-secondary hover:text-on-surface transition-colors">Live Demo</Link>
           </div>
 
@@ -311,7 +311,7 @@ export default function LandingPage() {
           <div>
             <p className="font-bold text-xs uppercase tracking-widest text-on-surface/40 mb-5">Product</p>
             <ul className="space-y-3 text-sm text-secondary">
-              <li><a href="#features"          className="hover:text-primary transition-colors">Features</a></li>
+              <li><Link href="/features"       className="hover:text-primary transition-colors">Features</Link></li>
               <li><Link href="/pricing"        className="hover:text-primary transition-colors">Pricing</Link></li>
               <li><Link href="/menu/demo"      className="hover:text-primary transition-colors">Live Demo</Link></li>
               <li><Link href="/dashboard"      className="hover:text-primary transition-colors">Dashboard</Link></li>

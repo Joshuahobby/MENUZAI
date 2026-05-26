@@ -117,6 +117,10 @@ export default function PricingPage() {
             </span>
           </Link>
           <div className="flex items-center gap-5">
+            <div className="hidden md:flex items-center gap-5">
+              <Link href="/features" className="text-sm font-medium text-secondary hover:text-on-surface transition-colors">Features</Link>
+              <Link href="/menu/demo" className="text-sm font-medium text-secondary hover:text-on-surface transition-colors">Live Demo</Link>
+            </div>
             {isLoggedIn ? (
               <Link href="/dashboard" className="px-5 py-2 text-sm font-bold text-white bg-primary rounded-lg hover:opacity-90 transition-opacity">
                 Dashboard
