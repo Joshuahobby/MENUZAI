@@ -498,7 +498,7 @@ export default function PublicMenuClient(props: PublicMenuClientProps) {
                   window.scrollTo({ top: y, behavior: "smooth" });
                 }
               }}
-              className={`px-6 py-2.5 font-[var(--font-headline)] font-bold text-sm whitespace-nowrap transition-all duration-300 rounded-[var(--border-radius)] ${activeCategory === cat.id
+              className={`px-6 py-2.5 font-[var(--font-headline)] font-bold text-sm whitespace-nowrap transition-all duration-300 rounded-[var(--border-radius)] cursor-pointer ${activeCategory === cat.id
                 ? "text-white shadow-lg bg-[var(--primary-color)]"
                 : "bg-surface-container-low text-on-surface-variant hover:bg-surface-container-high"}`}
             >
@@ -830,7 +830,7 @@ export default function PublicMenuClient(props: PublicMenuClientProps) {
               <span className="font-[var(--font-headline)] font-extrabold text-sm">{formatPrice(totalPrice, menuStyle.currency ?? "RWF")}</span>
             </button>
           ) : (
-            <div className="w-full h-14 bg-whatsapp/50 text-white rounded-full flex items-center justify-center gap-2.5 shadow-sm">
+            <div className="w-full h-14 bg-whatsapp/50 text-white rounded-[var(--border-radius)] flex items-center justify-center gap-2.5 shadow-sm">
               <WhatsAppIcon className="w-5 h-5" />
               <span className="font-[var(--font-headline)] font-bold tracking-tight text-sm opacity-90">Order via WhatsApp</span>
             </div>
@@ -1022,7 +1022,7 @@ export default function PublicMenuClient(props: PublicMenuClientProps) {
                           </div>
 
                           {/* Line total */}
-                          <div className="w-20 text-right shrink-0">
+                          <div className="min-w-[4.5rem] text-right shrink-0">
                             <p className="font-[var(--font-headline)] font-extrabold text-sm text-primary">{formatPrice(item.price * item.quantity, menuStyle.currency ?? "RWF")}</p>
                           </div>
                         </div>
