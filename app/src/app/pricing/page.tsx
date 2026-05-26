@@ -177,39 +177,34 @@ export default function PricingPage() {
 
       {/* ── Cards ── */}
       <section className="pb-28 px-6">
-        <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
+        <div className="max-w-3xl mx-auto">
 
-          {/* Free */}
-          <div className="bg-white rounded-3xl p-10 flex flex-col border border-black/6 shadow-sm">
-            <div className="mb-10">
-              <p className="text-xs font-bold tracking-[0.2em] uppercase text-secondary/60 mb-3">Free</p>
-              <p className="text-sm text-secondary leading-relaxed">For restaurants just getting started.</p>
+          {/* Free — inline strip */}
+          <div className="flex flex-wrap items-center justify-between gap-4 bg-white border border-black/6 rounded-2xl px-6 py-4 mb-6 shadow-sm">
+            <div className="flex flex-wrap items-center gap-x-5 gap-y-1">
+              <span className="text-xs font-black uppercase tracking-[0.2em] text-secondary/50">Free</span>
+              <span className="text-sm font-bold text-on-surface">0 RWF</span>
+              <span className="text-secondary/30 hidden sm:inline">·</span>
+              {FREE_FEATURES.map((f, i) => (
+                <span key={i} className="text-xs text-secondary/60 hidden sm:inline">
+                  {f.split(" — ")[0]}
+                  {i < FREE_FEATURES.length - 1 && <span className="text-secondary/25 ml-2">·</span>}
+                </span>
+              ))}
             </div>
-
-            <div className="mb-10">
-              <div className="flex items-baseline gap-1">
-                <span className="text-5xl font-black tracking-tight">0</span>
-                <span className="text-lg font-bold text-secondary ml-1">RWF</span>
-              </div>
-              <p className="text-xs text-secondary/60 mt-1.5">free, forever</p>
-            </div>
-
-            <div className="h-px bg-black/5 mb-8" />
-
-            <ul className="space-y-4 flex-grow mb-10">
-              {FREE_FEATURES.map((f, i) => <FeatureRow key={i} text={f} muted />)}
-            </ul>
-
             <Link
               href={isLoggedIn ? "/dashboard" : "/login"}
-              className="block w-full py-3.5 text-center text-sm font-bold rounded-xl border border-black/10 text-secondary hover:bg-black/3 transition-colors"
+              className="shrink-0 text-xs font-bold text-secondary hover:text-primary transition-colors flex items-center gap-1"
             >
               Start Free
+              <span className="material-symbols-outlined text-[14px]">arrow_forward</span>
             </Link>
           </div>
 
-          {/* Pro — elevated */}
-          <div className="bg-on-surface rounded-3xl p-10 flex flex-col relative shadow-2xl shadow-black/20 md:-mt-4 md:-mb-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+
+          {/* Pro */}
+          <div className="bg-on-surface rounded-3xl p-10 flex flex-col relative shadow-2xl shadow-black/20">
             <div className="absolute -top-px left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary to-transparent rounded-t-3xl" />
 
             <div className="mb-10">
@@ -294,6 +289,8 @@ export default function PricingPage() {
             >
               Contact Sales
             </a>
+          </div>
+
           </div>
         </div>
       </section>

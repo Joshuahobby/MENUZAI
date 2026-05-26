@@ -197,14 +197,34 @@ export default function LandingPage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
-            {pricingPlans.map((plan, i) => {
-              const displayPrice = plan.amountRwf === 0 ? "Free" : `${fmt(plan.amountRwf * (isAnnual ? 11 : 1))} RWF`;
-              const displayPeriod = plan.amountRwf === 0 ? "" : isAnnual ? "/ year" : "/ month";
-              const pricingHref = plan.amountRwf === 0 ? "/login" : `/pricing${isAnnual ? "?billing=annual" : ""}`;
+          {/* Free — inline strip */}
+          <div className="flex flex-wrap items-center justify-between gap-4 bg-[#faf8f6] border border-black/6 rounded-2xl px-6 py-4 mb-6 shadow-sm">
+            <div className="flex flex-wrap items-center gap-x-5 gap-y-1">
+              <span className="text-xs font-black uppercase tracking-[0.2em] text-secondary/50">Free</span>
+              <span className="text-sm font-bold text-on-surface">0 RWF</span>
+              <span className="text-secondary/30 hidden sm:inline">·</span>
+              {pricingPlans[0].features.map((f, j) => (
+                <span key={j} className="text-xs text-secondary/60 hidden sm:inline">
+                  {f}
+                  {j < pricingPlans[0].features.length - 1 && <span className="text-secondary/25 ml-2">·</span>}
+                </span>
+              ))}
+            </div>
+            <Link href="/login" className="shrink-0 text-xs font-bold text-secondary hover:text-primary transition-colors flex items-center gap-1">
+              Start Free
+              <span className="material-symbols-outlined text-[14px]">arrow_forward</span>
+            </Link>
+          </div>
+
+          {/* Pro + Business */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+            {pricingPlans.filter(plan => plan.amountRwf > 0).map((plan, i) => {
+              const displayPrice = `${fmt(plan.amountRwf * (isAnnual ? 11 : 1))} RWF`;
+              const displayPeriod = isAnnual ? "/ year" : "/ month";
+              const pricingHref = `/pricing${isAnnual ? "?billing=annual" : ""}`;
               return (
-                <div key={i} className={`bg-[#faf8f6] rounded-3xl p-8 flex flex-col relative ${
-                  plan.popular ? "bg-on-surface md:-mt-3 md:-mb-3 shadow-xl shadow-black/15" : "border border-black/6"
+                <div key={i} className={`rounded-3xl p-8 flex flex-col relative ${
+                  plan.popular ? "bg-on-surface shadow-xl shadow-black/15" : "bg-[#faf8f6] border border-black/6"
                 }`}>
                   {plan.popular && (
                     <div className="absolute -top-px left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary to-transparent rounded-t-3xl" />
@@ -214,8 +234,8 @@ export default function LandingPage() {
                   </p>
                   <div className="mb-8">
                     <span className={`text-4xl font-black ${plan.popular ? "text-white" : ""}`}>{displayPrice}</span>
-                    {displayPeriod && <span className={`text-sm ml-1.5 ${plan.popular ? "text-white/40" : "text-secondary"}`}>{displayPeriod}</span>}
-                    {isAnnual && plan.amountRwf > 0 && (
+                    <span className={`text-sm ml-1.5 ${plan.popular ? "text-white/40" : "text-secondary"}`}>{displayPeriod}</span>
+                    {isAnnual && (
                       <p className={`text-xs mt-1 font-semibold ${plan.popular ? "text-primary" : "text-primary/80"}`}>
                         Save {fmt(plan.amountRwf)} RWF vs monthly
                       </p>

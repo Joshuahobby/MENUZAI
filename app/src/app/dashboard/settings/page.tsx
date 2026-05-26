@@ -333,17 +333,57 @@ export default function SettingsPage() {
             {isAnnual && <p className="text-xs text-secondary">Billed once — pay 11 months, get 12.</p>}
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {pricingPlans.map((p) => {
+          {/* Free — inline strip */}
+          {(() => {
+            const fp = pricingPlans[0];
+            const fpKey = fp.name.toLowerCase();
+            const isCurrent = fpKey === restaurantPlan;
+            const fpRank = PLAN_ORDER[fpKey] ?? 0;
+            const isDowngradable = fpRank < currentRank;
+            return (
+              <div className={`flex flex-wrap items-center justify-between gap-4 rounded-2xl px-6 py-4 mb-4 border transition-all ${isCurrent ? "border-primary bg-primary/5 ring-2 ring-primary ring-offset-2" : "border-surface-container bg-surface-container-lowest"}`}>
+                <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+                  {isCurrent && (
+                    <span className="text-[10px] font-bold bg-primary text-white px-2.5 py-0.5 rounded-full uppercase tracking-widest shrink-0">
+                      Current Plan
+                    </span>
+                  )}
+                  <span className="text-xs font-black uppercase tracking-[0.2em] text-secondary/50">Free</span>
+                  <span className="text-sm font-bold text-on-surface">0 RWF</span>
+                  <span className="text-secondary/30 hidden sm:inline">·</span>
+                  {fp.features.map((f, j) => (
+                    <span key={j} className="text-xs text-secondary/60 hidden sm:inline">
+                      {f}
+                      {j < fp.features.length - 1 && <span className="text-secondary/25 ml-2">·</span>}
+                    </span>
+                  ))}
+                </div>
+                {!isCurrent && isDowngradable && (
+                  <button
+                    type="button"
+                    onClick={() => handleDowngrade(fpKey)}
+                    disabled={changingPlan}
+                    className="shrink-0 text-xs font-medium text-secondary hover:text-primary transition-colors disabled:opacity-50"
+                  >
+                    {changingPlan ? "Changing…" : "Downgrade to Free →"}
+                  </button>
+                )}
+              </div>
+            );
+          })()}
+
+          {/* Pro + Business */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {pricingPlans.filter(p => p.amountRwf > 0).map((p) => {
               const planKey = p.name.toLowerCase();
               const planRank = PLAN_ORDER[planKey] ?? 0;
               const isCurrent = planKey === restaurantPlan;
               const isUpgrade = planRank > currentRank;
               const isDowngrade = planRank < currentRank;
               const isContactSales = p.cta === "Contact Sales";
-              const computedAmount = p.amountRwf > 0 ? p.amountRwf * (isAnnual ? 11 : 1) : 0;
-              const displayPrice = p.amountRwf === 0 ? "Free" : `${fmt(computedAmount)} RWF`;
-              const displayPeriod = p.amountRwf === 0 ? "" : isAnnual ? " / year" : " / month";
+              const computedAmount = p.amountRwf * (isAnnual ? 11 : 1);
+              const displayPrice = `${fmt(computedAmount)} RWF`;
+              const displayPeriod = isAnnual ? " / year" : " / month";
 
               return (
                 <div
@@ -361,7 +401,7 @@ export default function SettingsPage() {
                       {displayPrice}
                       <span className="text-xs font-normal text-secondary">{displayPeriod}</span>
                     </p>
-                    {isAnnual && p.amountRwf > 0 && (
+                    {isAnnual && (
                       <p className="text-[10px] text-primary font-semibold mt-0.5">Save {fmt(p.amountRwf)} RWF vs monthly</p>
                     )}
                   </div>
