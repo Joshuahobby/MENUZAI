@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, Suspense, use } from "react";
+import { useState, Suspense, use, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { buildWhatsAppMessage, buildWhatsAppURL } from "@/lib/whatsapp";
@@ -14,9 +14,12 @@ function OrderContent({ slug }: { slug: string }) {
   // const router = useRouter();
   const [customerName, setCustomerName] = useState("");
   const [customerEmail, setCustomerEmail] = useState("");
-  const [tableNumber, setTableNumber] = useState(
-    searchParams.get("table") ? `Table ${searchParams.get("table")}` : ""
-  );
+  const [tableNumber, setTableNumber] = useState(() => {
+    const fromUrl = searchParams.get("table") ? `Table ${searchParams.get("table")}` : "";
+    if (fromUrl) return fromUrl;
+    if (typeof window !== "undefined") return localStorage.getItem("menuza_table") || "";
+    return "";
+  });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [orderPlaced, setOrderPlaced] = useState(false);
 
@@ -33,6 +36,12 @@ function OrderContent({ slug }: { slug: string }) {
   const currency = searchParams.get("currency") || "RWF";
 
   const { items, clearCart } = useCart();
+
+  // Persist table number so it survives page navigation
+  useEffect(() => {
+    if (tableNumber) localStorage.setItem("menuza_table", tableNumber);
+    else localStorage.removeItem("menuza_table");
+  }, [tableNumber]);
   const [paymentMethod, setPaymentMethod] = useState<"whatsapp" | "momo">("whatsapp");
 
   const total = items.reduce((s, i) => s + i.price * i.quantity, 0);
@@ -72,7 +81,8 @@ function OrderContent({ slug }: { slug: string }) {
 
     setIsSubmitting(false);
     setOrderPlaced(true);
-    clearCart(); // Clear the cart after successful order!
+    clearCart();
+    localStorage.removeItem("menuza_table");
 
     // Open WhatsApp
     window.open(whatsappUrl, "_blank", "noopener,noreferrer");

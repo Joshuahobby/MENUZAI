@@ -316,6 +316,13 @@ export default function OrdersPage() {
 
   const todayOrders = orders.filter((o) => new Date(o.created_at) >= todayStart);
   const pendingCount = orders.filter((o) => o.status === "pending").length;
+
+  // Browser tab badge shows pending count
+  useEffect(() => {
+    const base = "Staff Panel — MENUZA AI";
+    document.title = pendingCount > 0 ? `(${pendingCount}) ${base}` : base;
+    return () => { document.title = "MENUZA AI"; };
+  }, [pendingCount]);
   const todayRevenue = todayOrders.filter((o) => o.status !== "cancelled").reduce((s, o) => s + o.total, 0);
 
   const hourlyData = Array.from({ length: 24 }).map((_, i) => ({
