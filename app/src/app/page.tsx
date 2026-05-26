@@ -2,7 +2,10 @@
 
 import Link from "next/link";
 import Image from "next/image";
+import { useState } from "react";
 import { pricingPlans } from "@/data/mockData";
+
+const fmt = (n: number) => new Intl.NumberFormat("en-US").format(n);
 
 const FEATURES = [
   { icon: "support_agent",        title: "AI Digital Waiter",       desc: "Guides guests, answers questions, and upsells your highest-margin dishes — automatically." },
@@ -14,6 +17,7 @@ const FEATURES = [
 ];
 
 export default function LandingPage() {
+  const [isAnnual, setIsAnnual] = useState(false);
   return (
     <div className="min-h-screen bg-[#faf8f6] text-on-surface">
 
@@ -172,46 +176,76 @@ export default function LandingPage() {
             <p className="text-secondary">Start free. Upgrade when you grow.</p>
           </div>
 
+          {/* Billing toggle */}
+          <div className="flex justify-center mb-10">
+            <div className="inline-flex items-center bg-white border border-black/8 rounded-xl p-1 shadow-sm">
+              <button
+                onClick={() => setIsAnnual(false)}
+                className={`px-6 py-2 rounded-lg text-sm font-semibold transition-all cursor-pointer ${!isAnnual ? "bg-on-surface text-surface shadow-sm" : "text-secondary hover:text-on-surface"}`}
+              >
+                Monthly
+              </button>
+              <button
+                onClick={() => setIsAnnual(true)}
+                className={`px-6 py-2 rounded-lg text-sm font-semibold transition-all flex items-center gap-2.5 cursor-pointer ${isAnnual ? "bg-on-surface text-surface shadow-sm" : "text-secondary hover:text-on-surface"}`}
+              >
+                Annual
+                <span className={`text-[9px] font-black tracking-widest uppercase px-2 py-0.5 rounded-full transition-colors ${isAnnual ? "bg-white/15 text-white" : "bg-primary/10 text-primary"}`}>
+                  1 month free
+                </span>
+              </button>
+            </div>
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
-            {pricingPlans.map((plan, i) => (
-              <div key={i} className={`bg-[#faf8f6] rounded-3xl p-8 flex flex-col relative ${
-                plan.popular ? "bg-on-surface md:-mt-3 md:-mb-3 shadow-xl shadow-black/15" : "border border-black/6"
-              }`}>
-                {plan.popular && (
-                  <div className="absolute -top-px left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary to-transparent rounded-t-3xl" />
-                )}
-                <p className={`text-xs font-bold tracking-[0.2em] uppercase mb-3 ${plan.popular ? "text-white/40" : "text-secondary/60"}`}>
-                  {plan.name}
-                </p>
-                <div className="mb-8">
-                  <span className={`text-4xl font-black ${plan.popular ? "text-white" : ""}`}>{plan.price}</span>
-                  {plan.period && <span className={`text-sm ml-1.5 ${plan.popular ? "text-white/40" : "text-secondary"}`}>{plan.period}</span>}
+            {pricingPlans.map((plan, i) => {
+              const displayPrice = plan.amountRwf === 0 ? "Free" : `${fmt(plan.amountRwf * (isAnnual ? 11 : 1))} RWF`;
+              const displayPeriod = plan.amountRwf === 0 ? "" : isAnnual ? "/ year" : "/ month";
+              const pricingHref = plan.amountRwf === 0 ? "/login" : `/pricing${isAnnual ? "?billing=annual" : ""}`;
+              return (
+                <div key={i} className={`bg-[#faf8f6] rounded-3xl p-8 flex flex-col relative ${
+                  plan.popular ? "bg-on-surface md:-mt-3 md:-mb-3 shadow-xl shadow-black/15" : "border border-black/6"
+                }`}>
+                  {plan.popular && (
+                    <div className="absolute -top-px left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary to-transparent rounded-t-3xl" />
+                  )}
+                  <p className={`text-xs font-bold tracking-[0.2em] uppercase mb-3 ${plan.popular ? "text-white/40" : "text-secondary/60"}`}>
+                    {plan.name}
+                  </p>
+                  <div className="mb-8">
+                    <span className={`text-4xl font-black ${plan.popular ? "text-white" : ""}`}>{displayPrice}</span>
+                    {displayPeriod && <span className={`text-sm ml-1.5 ${plan.popular ? "text-white/40" : "text-secondary"}`}>{displayPeriod}</span>}
+                    {isAnnual && plan.amountRwf > 0 && (
+                      <p className={`text-xs mt-1 font-semibold ${plan.popular ? "text-primary" : "text-primary/80"}`}>
+                        Save {fmt(plan.amountRwf)} RWF vs monthly
+                      </p>
+                    )}
+                  </div>
+                  <ul className="space-y-3 flex-grow mb-8">
+                    {plan.features.map((f, j) => (
+                      <li key={j} className="flex items-start gap-2.5 text-sm">
+                        <span className="material-symbols-outlined text-[14px] text-primary mt-0.5 shrink-0">check</span>
+                        <span className={plan.popular ? "text-white/60" : "text-secondary"}>{f}</span>
+                      </li>
+                    ))}
+                  </ul>
+                  <Link
+                    href={pricingHref}
+                    className={`block w-full py-3.5 text-center text-sm font-bold rounded-xl transition-colors ${
+                      plan.popular
+                        ? "bg-primary text-white hover:opacity-90"
+                        : "border border-black/10 text-on-surface hover:bg-black/3"
+                    }`}
+                  >
+                    {plan.cta}
+                  </Link>
                 </div>
-                <ul className="space-y-3 flex-grow mb-8">
-                  {plan.features.map((f, j) => (
-                    <li key={j} className="flex items-start gap-2.5 text-sm">
-                      <span className="material-symbols-outlined text-[14px] text-primary mt-0.5 shrink-0">check</span>
-                      <span className={plan.popular ? "text-white/60" : "text-secondary"}>{f}</span>
-                    </li>
-                  ))}
-                </ul>
-                <Link
-                  href={plan.amountRwf === 0 ? "/login" : "/pricing"}
-                  className={`block w-full py-3.5 text-center text-sm font-bold rounded-xl transition-colors ${
-                    plan.popular
-                      ? "bg-primary text-white hover:opacity-90"
-                      : "border border-black/10 text-on-surface hover:bg-black/3"
-                  }`}
-                >
-                  {plan.cta}
-                </Link>
-              </div>
-            ))}
+              );
+            })}
           </div>
 
           <p className="text-center mt-8 text-sm text-secondary">
-            Annual billing available — save one month.{" "}
-            <Link href="/pricing" className="text-primary font-semibold hover:underline">See full comparison</Link>
+            <Link href={`/pricing${isAnnual ? "?billing=annual" : ""}`} className="text-primary font-semibold hover:underline">See full plan comparison →</Link>
           </p>
         </div>
       </section>

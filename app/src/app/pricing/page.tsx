@@ -76,6 +76,11 @@ function FeatureRow({ text, muted }: { text: string; muted?: boolean }) {
 export default function PricingPage() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isAnnual, setIsAnnual] = useState(false);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("billing") === "annual") setIsAnnual(true);
+  }, []);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState({ name: "", price: 0 });
 

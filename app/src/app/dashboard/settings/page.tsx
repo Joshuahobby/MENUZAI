@@ -57,6 +57,9 @@ export default function SettingsPage() {
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [checkoutPlan, setCheckoutPlan] = useState({ name: "", price: 0 });
   const [changingPlan, setChangingPlan] = useState(false);
+  const [isAnnual, setIsAnnual] = useState(false);
+
+  const fmt = (n: number) => new Intl.NumberFormat("en-US").format(n);
 
   const PLAN_ORDER: Record<string, number> = { free: 0, pro: 1, business: 2 };
   const currentRank = PLAN_ORDER[restaurantPlan] ?? 0;
@@ -300,11 +303,36 @@ export default function SettingsPage() {
         {/* Plan & Billing */}
         <div className="bg-surface-container-lowest p-8 rounded-[2rem] border border-surface-container/50 lg:col-span-2">
           <h3 className="font-[var(--font-headline)] font-bold text-lg mb-2">Subscription & Plan</h3>
-          <p className="text-sm text-secondary mb-6">
+          <p className="text-sm text-secondary mb-5">
             You are on the{" "}
             <span className="font-bold text-primary uppercase">{restaurantPlan}</span> plan.
             Upgrade for more features or downgrade at any time.
           </p>
+
+          {/* Billing toggle */}
+          <div className="flex items-center gap-4 mb-6">
+            <div className="inline-flex items-center bg-surface-container-lowest border border-surface-container rounded-xl p-1 shadow-sm">
+              <button
+                type="button"
+                onClick={() => setIsAnnual(false)}
+                className={`px-5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${!isAnnual ? "bg-on-surface text-surface shadow-sm" : "text-secondary hover:text-on-surface"}`}
+              >
+                Monthly
+              </button>
+              <button
+                type="button"
+                onClick={() => setIsAnnual(true)}
+                className={`px-5 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-2 cursor-pointer ${isAnnual ? "bg-on-surface text-surface shadow-sm" : "text-secondary hover:text-on-surface"}`}
+              >
+                Annual
+                <span className={`text-[8px] font-black tracking-widest uppercase px-1.5 py-0.5 rounded-full transition-colors ${isAnnual ? "bg-white/15 text-white" : "bg-primary/10 text-primary"}`}>
+                  1 month free
+                </span>
+              </button>
+            </div>
+            {isAnnual && <p className="text-xs text-secondary">Billed once — pay 11 months, get 12.</p>}
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {pricingPlans.map((p) => {
               const planKey = p.name.toLowerCase();
@@ -313,6 +341,9 @@ export default function SettingsPage() {
               const isUpgrade = planRank > currentRank;
               const isDowngrade = planRank < currentRank;
               const isContactSales = p.cta === "Contact Sales";
+              const computedAmount = p.amountRwf > 0 ? p.amountRwf * (isAnnual ? 11 : 1) : 0;
+              const displayPrice = p.amountRwf === 0 ? "Free" : `${fmt(computedAmount)} RWF`;
+              const displayPeriod = p.amountRwf === 0 ? "" : isAnnual ? " / year" : " / month";
 
               return (
                 <div
@@ -326,7 +357,13 @@ export default function SettingsPage() {
                   )}
                   <div className="mb-4">
                     <p className="font-[var(--font-headline)] font-bold text-base">{p.name}</p>
-                    <p className="text-2xl font-black mt-1">{p.price}<span className="text-xs font-normal text-secondary">{p.period}</span></p>
+                    <p className="text-2xl font-black mt-1">
+                      {displayPrice}
+                      <span className="text-xs font-normal text-secondary">{displayPeriod}</span>
+                    </p>
+                    {isAnnual && p.amountRwf > 0 && (
+                      <p className="text-[10px] text-primary font-semibold mt-0.5">Save {fmt(p.amountRwf)} RWF vs monthly</p>
+                    )}
                   </div>
                   <ul className="space-y-2 mb-6 flex-1">
                     {p.features.map((f) => (
@@ -350,7 +387,7 @@ export default function SettingsPage() {
                   ) : isUpgrade ? (
                     <button
                       type="button"
-                      onClick={() => handleUpgrade(p.name, p.amountRwf)}
+                      onClick={() => handleUpgrade(`${p.name} (${isAnnual ? "Annual" : "Monthly"})`, computedAmount)}
                       disabled={changingPlan}
                       className="w-full py-2.5 text-center text-xs font-bold text-white bg-gradient-to-tr from-primary to-primary-container rounded-xl shadow shadow-primary/20 hover:opacity-90 active:scale-95 transition-all disabled:opacity-50"
                     >
