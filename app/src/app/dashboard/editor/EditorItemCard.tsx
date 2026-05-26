@@ -44,13 +44,14 @@ export function EditorItemCard({
   return (
     <div
       ref={setNodeRef}
+      style={style}
       onClick={onClick}
-      className={`group relative rounded-3xl transition-all duration-300 dnd-item-style ${cardWrap} cursor-pointer ${isSelected ? "ring-2 ring-primary bg-surface-container-low" : "hover:bg-surface-container-lowest"} ${isDragging ? "opacity-50 z-10" : "opacity-100 z-[1]"}`}
+      className={`group relative rounded-3xl transition-all duration-300 ${cardWrap} cursor-pointer ${isSelected ? "ring-2 ring-primary bg-surface-container-low" : "hover:bg-surface-container-lowest"} ${isDragging ? "opacity-50 z-10" : "opacity-100 z-[1]"}`}
     >
       <div
         {...attributes}
         {...listeners}
-        className="absolute top-3 right-3 opacity-0 group-hover:opacity-40 hover:opacity-100 transition-all cursor-grab active:cursor-grabbing z-20"
+        className="absolute top-3 right-3 opacity-20 group-hover:opacity-60 hover:opacity-100 transition-all cursor-grab active:cursor-grabbing z-20"
         title="Drag to reorder"
       >
         <span className="material-symbols-outlined text-[18px]">drag_indicator</span>
@@ -115,12 +116,6 @@ export function EditorItemCard({
       </div>
 
 
-      <style jsx>{`
-        .dnd-item-style {
-          transform: ${style.transform};
-          transition: ${style.transition};
-        }
-      `}</style>
     </div>
   );
 }

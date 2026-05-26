@@ -22,17 +22,17 @@ export function EditorSidebar({
   const [tab, setTab] = useState<"build" | "design">("build");
 
   return (
-    <aside className="w-80 lg:w-96 bg-surface flex flex-col h-full border-l border-outline-variant/10 shrink-0 shadow-2xl lg:shadow-none z-50">
+    <aside className="hidden lg:flex lg:flex-col w-80 h-full bg-[#faf8f6] border-r border-black/6 shrink-0">
       {/* Tabs */}
-      <div className="flex items-center border-b border-outline-variant/10 bg-surface-container-lowest shrink-0">
+      <div className="flex items-center border-b border-black/6 bg-[#faf8f6] shrink-0">
         <button
-          className={`flex-1 py-4 text-xs font-bold uppercase tracking-widest transition-colors ${tab === "build" ? "text-primary border-b-2 border-primary bg-primary/5" : "text-secondary hover:bg-surface-container-low hover:text-on-surface"}`}
+          className={`flex-1 py-4 text-xs font-bold uppercase tracking-widest transition-colors ${tab === "build" ? "text-primary bg-primary/10" : "text-secondary hover:bg-black/3 hover:text-on-surface"}`}
           onClick={() => setTab("build")}
         >
           Build
         </button>
         <button
-          className={`flex-1 py-4 text-xs font-bold uppercase tracking-widest transition-colors ${tab === "design" ? "text-primary border-b-2 border-primary bg-primary/5" : "text-secondary hover:bg-surface-container-low hover:text-on-surface"}`}
+          className={`flex-1 py-4 text-xs font-bold uppercase tracking-widest transition-colors ${tab === "design" ? "text-primary bg-primary/10" : "text-secondary hover:bg-black/3 hover:text-on-surface"}`}
           onClick={() => setTab("design")}
         >
           Design
@@ -45,7 +45,7 @@ export function EditorSidebar({
       </div>
 
       {/* Content */}
-      <div className="flex-1 overflow-hidden flex flex-col bg-surface">
+      <div className="flex-1 overflow-hidden flex flex-col bg-[#faf8f6]">
         {tab === "build" && (
           <BuildSidebarContent
             activeCategoryId={activeCategoryId}

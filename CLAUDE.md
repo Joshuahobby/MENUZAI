@@ -85,7 +85,7 @@ MENUZAI is an AI-powered SaaS platform for restaurant menu digitization. Stack: 
 | `/upload` | Yes | File upload → `/api/extract-menu` → redirects to `/ai-result` |
 | `/ai-result` | Yes | Review/edit AI-extracted menu items before saving |
 | `/dashboard` | Yes | Auth + onboarding guard in `dashboard/layout.tsx` |
-| `/dashboard/editor` | Yes | WYSIWYG menu editor — 3-panel layout with device frame preview |
+| `/dashboard/editor` | Yes | WYSIWYG menu editor — 2-panel layout (sidebar + device-frame canvas) |
 | `/dashboard/analytics` | Yes | Menu performance charts (views, conversions) via recharts |
 | `/dashboard/menus` | Yes | List, create, and switch between menus |
 | `/dashboard/orders` | Yes | Real-time staff panel — live order stream (Supabase postgres_changes) + waiter pager (Supabase broadcast channel `table_requests:{restaurantId}`) |
@@ -107,6 +107,8 @@ MENUZAI is an AI-powered SaaS platform for restaurant menu digitization. Stack: 
 | `/api/analytics/summary` | GET | Aggregated analytics from `analytics_events` table |
 | `/api/ai-waiter` | POST | AI-powered conversational waiter in public menu; routes to configured AI provider |
 | `/api/ai-reply` | POST | Generates AI reply draft for a customer review; uses OpenRouter with fallback template |
+| `/api/ai/generate-items` | POST | Generates menu items from a natural-language prompt; bulk-inserts into the active category; uses configured AI provider |
+| `/api/ai/description` | POST | Auto-writes a single item description given the item name and tags; uses configured AI provider |
 | `/api/admin/ai-config` | GET/POST | Read/write `platform_settings`; restricted to `isPlatformAdmin()` emails |
 | `/api/notifications/order` | POST | Order notification handler |
 | `/api/orders/confirm` | POST | Confirms order, decrements `stock_count` on each item, auto-sets `available=false` when stock hits 0; requires `SUPABASE_SERVICE_ROLE_KEY` |
@@ -209,9 +211,9 @@ The dashboard auth guard lives in `app/src/app/dashboard/layout.tsx` and runs **
 The editor (`app/src/app/dashboard/editor/page.tsx`) is the core authoring experience. It uses a 2-panel layout:
 
 1. **Left: `EditorSidebar`** (`app/src/app/dashboard/editor/EditorSidebar.tsx`) — a persistent panel with two top-level tabs:
-   - **Build tab** (`BuildSidebarContent.tsx`) — category list with drag-to-reorder, banner image upload, rename/hide/delete actions, and inline item editing via `EditorItemForm.tsx`. On mobile, categories are replaced by a horizontal tab strip with a bottom-sheet action menu.
+   - **Build tab** (`BuildSidebarContent.tsx`) — category list with HTML5 drag-to-reorder, banner image upload, rename/hide/delete actions, item list per active category, and an **AI Generate Items** panel (calls `/api/ai/generate-items`). Clicking an item opens `EditorItemForm` as a detail view within the same sidebar. On mobile, a bottom-sheet replaces the sidebar for the Build and Design tabs.
    - **Design tab** (`StyleEditorSidebarContent.tsx`) — 4 sub-tabs (Theme/Colors/Fonts/Layout): headline/body font pickers (10 headline + 9 body Google Fonts), accent + background color presets, "Magic Vibes" one-click style presets, card style (flat/elevated/glass), corner radius (sharp/soft/round/pill), spacing density, currency selector (13 currencies, African focus).
-2. **Center: Device-frame canvas** — WYSIWYG preview wrapped in a phone/tablet/desktop frame. Viewport switcher (mobile `390px` / tablet `680px` / desktop `920px`) in the header. Each item renders as an **`EditorItemCard`** (`app/src/app/dashboard/editor/EditorItemCard.tsx`) — a self-contained component with image upload, gallery upload, inline price editing, name/description inputs, tag chips, and an expandable panel for availability toggle, badge picker, tag editor, duplicate, and delete.
+2. **Center: Device-frame canvas** — WYSIWYG preview wrapped in a phone/tablet/desktop frame. Viewport switcher (mobile `390px` / tablet `680px` / desktop `920px`) in the header. Items are draggable via `@dnd-kit` (`DndContext` + `SortableContext`). Each item renders as a read-only **`EditorItemCard`** — clicking it selects the item and opens `EditorItemForm` in the sidebar. **`EditorItemForm`** holds all editing controls: image upload, gallery (Pro-gated), inline price, name/description with AI auto-write, availability toggle, badge picker, dietary tag quick-toggles, custom tags, stock count, duplicate/delete.
 
 Item images upload to Supabase Storage `menu-images` bucket under `{userId}/items/{timestamp}.{ext}`. Gallery images upload under `{userId}/gallery/`. Category banners upload under `{userId}/banners/` via the `ImageUpload` component.
 
@@ -276,16 +278,17 @@ The `restaurants` table stores the current plan tier; check `canCreateMenu()`, `
 | `QRPosterRenderer` | `app/src/app/dashboard/qr-codes/QRPosterRenderer.tsx` | Renders a styled QR poster from `QRPosterData`; used for table badges and printable sheets |
 | `Skeleton` | `app/src/components/Skeleton.tsx` | Loading skeleton placeholders |
 | `PublicMenuClient` | `app/src/app/menu/[slug]/PublicMenuClient.tsx` | Client-side public menu renderer (~27KB) |
-| `EditorItemCard` | `app/src/app/dashboard/editor/EditorItemCard.tsx` | Self-contained menu item card with image upload, gallery, tags, badges |
-| `EditorSidebar` | `app/src/app/dashboard/editor/EditorSidebar.tsx` | Right panel container with Build and Design tabs |
-| `BuildSidebarContent` | `app/src/app/dashboard/editor/BuildSidebarContent.tsx` | Build tab — category management and item editing |
+| `EditorItemCard` | `app/src/app/dashboard/editor/EditorItemCard.tsx` | Read-only sortable item preview card in the canvas; click to open EditorItemForm |
+| `EditorSidebar` | `app/src/app/dashboard/editor/EditorSidebar.tsx` | Left panel container with Build and Design tabs (desktop only; mobile uses bottom sheets) |
+| `BuildSidebarContent` | `app/src/app/dashboard/editor/BuildSidebarContent.tsx` | Build tab — category management, item list, AI item generator |
 | `StyleEditorSidebarContent` | `app/src/app/dashboard/editor/StyleEditorSidebarContent.tsx` | Design tab with 4 sub-tabs (Theme/Colors/Fonts/Layout) |
-| `EditorItemForm` | `app/src/app/dashboard/editor/EditorItemForm.tsx` | Extracted item edit form used inside BuildSidebarContent |
+| `EditorItemForm` | `app/src/app/dashboard/editor/EditorItemForm.tsx` | Full item edit form (image, gallery, price, name, description with AI auto-write, availability, badge, dietary tags, stock count, duplicate/delete); shown inside BuildSidebarContent when an item is selected |
 | `useMenuBootstrap` | `app/src/hooks/useMenuBootstrap.ts` | Auth + restaurant/menu bootstrap hook used by MenuProvider |
 | `StaffManager` | `app/src/app/dashboard/settings/StaffManager.tsx` | Staff invite/remove UI in dashboard settings; calls `/api/staff` |
 
 ### Key Dependencies
 
+- `@dnd-kit/core` + `@dnd-kit/sortable` — drag-and-drop for item reordering in the editor canvas (canvas uses `DndContext`/`SortableContext`; sidebar category list uses native HTML5 drag events)
 - `recharts` — analytics charts in `/dashboard/analytics`
 - `qrcode.react` — QR code generation in `/dashboard/qr-codes`
 - `sonner` — toast notifications (Toaster registered in root layout)

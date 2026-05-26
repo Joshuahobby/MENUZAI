@@ -168,7 +168,7 @@ export function EditorItemForm({
   return (
     <div className="flex flex-col h-full overflow-y-auto bg-surface pb-10">
       <div className="sticky top-0 z-10 bg-surface/90 backdrop-blur border-b border-outline-variant/10 px-4 py-3 flex items-center justify-between">
-        <button onClick={onClose} className="flex items-center gap-1 text-sm font-bold text-secondary hover:text-on-surface">
+        <button onClick={onClose} className="flex items-center gap-1 text-sm font-bold text-secondary hover:text-on-surface p-2 -ml-2 rounded-xl hover:bg-black/5 transition-colors">
           <span className="material-symbols-outlined text-lg">arrow_back</span> Back
         </button>
         <span className="text-xs font-bold uppercase tracking-widest text-primary">Edit Item</span>
@@ -280,7 +280,7 @@ export function EditorItemForm({
               type="button" 
               onClick={handleGenerateDescription}
               disabled={isGeneratingDesc || !item.name}
-              className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-gradient-to-tr from-amber-500/10 to-orange-500/10 hover:from-amber-500/20 hover:to-orange-500/20 text-amber-600 dark:text-amber-400 text-[10px] font-bold tracking-wider transition-all disabled:opacity-50"
+              className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-50 hover:bg-amber-100 text-amber-700 text-[10px] font-bold transition-all disabled:opacity-50"
             >
               <span className="material-symbols-outlined text-[12px]">auto_awesome</span>
               {isGeneratingDesc ? "Writing..." : "Auto-write"}

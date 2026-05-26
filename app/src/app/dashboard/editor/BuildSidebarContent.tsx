@@ -374,11 +374,7 @@ export function BuildSidebarContent({
         <button
           type="button"
           onClick={() => { setShowAiPanel(v => !v); setTimeout(() => aiInputRef.current?.focus(), 50); }}
-          className={`w-full flex items-center gap-2 py-3.5 rounded-2xl font-bold text-sm transition-all group active:scale-95 border ${
-            showAiPanel
-              ? "bg-gradient-to-tr from-amber-500/15 to-orange-500/10 border-amber-500/30 text-amber-700 dark:text-amber-400"
-              : "bg-gradient-to-tr from-amber-500/5 to-orange-500/5 border-amber-500/20 hover:border-amber-500/40 text-amber-700 dark:text-amber-400 hover:from-amber-500/10 hover:to-orange-500/10"
-          }`}
+          className="w-full flex items-center gap-2 py-3.5 rounded-2xl font-bold text-sm transition-all group active:scale-95 border bg-amber-50 border-amber-200 text-amber-700 hover:bg-amber-100"
         >
           <span className={`material-symbols-outlined text-lg ml-3 transition-transform ${showAiPanel ? "rotate-180" : ""}`}>auto_awesome</span>
           <span className="flex-1 text-left">Generate Items with AI</span>
@@ -386,7 +382,7 @@ export function BuildSidebarContent({
         </button>
 
         {showAiPanel && (
-          <div className="mt-2 p-4 bg-gradient-to-br from-amber-500/5 to-orange-500/5 rounded-2xl border border-amber-500/20 space-y-3">
+          <div className="mt-2 p-4 bg-amber-50/50 rounded-2xl border border-amber-200/60 space-y-3">
             {!activeCategoryId && (
               <div className="flex items-center gap-2 p-2 bg-amber-500/10 rounded-xl">
                 <span className="material-symbols-outlined text-amber-600 text-sm">info</span>
@@ -435,7 +431,7 @@ export function BuildSidebarContent({
               type="button"
               onClick={handleGenerateItems}
               disabled={isGenerating || !aiPrompt.trim() || !activeCategoryId}
-              className="w-full py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed bg-gradient-to-tr from-amber-500 to-orange-500 text-white shadow-lg shadow-amber-500/20 hover:shadow-amber-500/30 border-none cursor-pointer"
+              className="w-full py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed bg-primary text-white shadow-md shadow-primary/20 cursor-pointer"
             >
               {isGenerating ? (
                 <><span className="material-symbols-outlined text-base animate-spin">sync</span> Generating...</>
@@ -462,15 +458,6 @@ export function BuildSidebarContent({
           </div>
           <span className="material-symbols-outlined text-secondary text-sm ml-auto shrink-0 group-hover:translate-x-0.5 transition-transform">arrow_forward</span>
         </Link>
-        <div className="bg-primary-container/5 rounded-3xl p-4 border border-primary/10">
-          <div className="flex items-center gap-2 mb-2">
-            <span className="material-symbols-outlined text-sm icon-fill">tips_and_updates</span>
-            <span className="font-[var(--font-headline)] font-bold text-sm text-primary">Editor Tips</span>
-          </div>
-          <p className="text-xs text-on-surface-variant leading-relaxed">
-            Click any item to expand it — set availability, upload a photo, add tags, and assign a badge.
-          </p>
-        </div>
       </div>
     </div>
   );
