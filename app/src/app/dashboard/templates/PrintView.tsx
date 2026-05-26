@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { TemplatePreview, type TplData, BASE_W, BASE_H } from "./TemplatePreview";
 import { toast } from "sonner";
 import { useMenu } from "@/context/MenuContext";
@@ -14,26 +14,42 @@ interface PrintViewProps {
 
 const TEMPLATE_OPTIONS = [
   { id: "vintage-parchment", name: "Vintage Parchment" },
-  { id: "dark-chalkboard", name: "Dark Chalkboard" },
-  { id: "bold-street", name: "Bold Street" },
-  { id: "bistro-split", name: "Bistro Split" },
-  { id: "photo-gallery", name: "Photo Gallery" },
-  { id: "luxury-gold", name: "Luxury Gold" },
-  { id: "organic-clean", name: "Organic Clean" },
-  { id: "midnight-luxe", name: "Midnight Luxe" },
+  { id: "dark-chalkboard",  name: "Dark Chalkboard"  },
+  { id: "bold-street",      name: "Bold Street"       },
+  { id: "bistro-split",     name: "Bistro Split"      },
+  { id: "photo-gallery",    name: "Photo Gallery"     },
+  { id: "luxury-gold",      name: "Luxury Gold"       },
+  { id: "organic-clean",    name: "Organic Clean"     },
+  { id: "midnight-luxe",    name: "Midnight Luxe"     },
 ];
+
+function useWindowWidth() {
+  const [w, setW] = useState(() => (typeof window !== "undefined" ? window.innerWidth : 1024));
+  useEffect(() => {
+    const handler = () => setW(window.innerWidth);
+    window.addEventListener("resize", handler, { passive: true });
+    return () => window.removeEventListener("resize", handler);
+  }, []);
+  return w;
+}
 
 export function PrintView({ templateId, templateName, restaurantData, onClose }: PrintViewProps) {
   const { menuStyle, setMenuStyle } = useMenu();
-  const [activeTemplate, setActiveTemplate] = useState(templateId);
+  const [activeTemplate, setActiveTemplate]     = useState(templateId);
   const [activeTemplateName, setActiveTemplateName] = useState(templateName);
-  const printRef = useRef<HTMLDivElement>(null);
+  const printRef   = useRef<HTMLDivElement>(null);
+  const windowWidth = useWindowWidth();
+
+  // Responsive preview width
+  const previewW =
+    windowWidth < 640  ? Math.floor(windowWidth * 0.88) :
+    windowWidth < 1024 ? Math.floor(windowWidth * 0.50) :
+    Math.min(520, Math.floor(windowWidth * 0.55));
 
   const handlePrint = useCallback(() => {
     const el = printRef.current;
     if (!el) return;
 
-    // Collect Google Font <link> tags loaded by TemplatePreview
     const fontLinks = Array.from(
       document.querySelectorAll<HTMLLinkElement>("link[href*='fonts.googleapis.com']")
     ).map((l) => l.outerHTML).join("\n");
@@ -59,84 +75,89 @@ export function PrintView({ templateId, templateName, restaurantData, onClose }:
 </html>`);
     win.document.close();
 
-    // Auto-print after fonts have a moment to load
     const doPrint = () => setTimeout(() => { win.focus(); win.print(); }, 700);
-    if (win.document.readyState === "complete") {
-      doPrint();
-    } else {
-      win.onload = doPrint;
-    }
+    if (win.document.readyState === "complete") doPrint();
+    else win.onload = doPrint;
   }, []);
 
   const handleCopyLink = useCallback(() => {
     navigator.clipboard.writeText(window.location.href).then(() => {
-      toast.success("Link copied to clipboard!");
+      toast.success("Link copied!");
     });
   }, []);
 
   return (
     <>
-      {/* Fullscreen overlay */}
-      <div className="fixed inset-0 z-50 flex bg-black/70 backdrop-blur-md">
+      {/* Fullscreen overlay — col on mobile, row on desktop */}
+      <div className="fixed inset-0 z-50 flex flex-col md:flex-row bg-black/70 backdrop-blur-md overflow-hidden">
 
-        {/* Left: Preview panel */}
-        <div className="flex-1 flex flex-col items-center justify-center p-8 overflow-hidden">
-          {/* Top controls */}
-          <div className="flex items-center gap-4 mb-6 w-full max-w-2xl">
+        {/* ── Preview panel ── */}
+        <div className="flex-1 flex flex-col items-center overflow-y-auto">
+
+          {/* Top bar */}
+          <div className="flex items-center gap-3 p-4 md:p-6 w-full shrink-0">
             <button
               type="button"
               onClick={onClose}
-              className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-all text-white"
+              className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-all text-white shrink-0"
             >
               <span className="material-symbols-outlined text-xl">close</span>
             </button>
-            <div>
-              <h2 className="text-white font-bold text-lg leading-tight">{activeTemplateName}</h2>
-              <p className="text-white/50 text-xs">Live preview with your restaurant data</p>
+
+            <div className="flex-1 min-w-0">
+              <h2 className="text-white font-bold text-base md:text-lg leading-tight truncate">{activeTemplateName}</h2>
+              <p className="text-white/50 text-[11px] hidden sm:block">Live preview with your restaurant data</p>
             </div>
-            <div className="flex gap-3 ml-auto">
+
+            <div className="flex items-center gap-2">
+              {/* Share — icon-only on mobile */}
               <button
                 type="button"
                 onClick={handleCopyLink}
-                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white text-sm font-bold transition-all"
+                className="w-10 h-10 sm:w-auto sm:h-auto sm:px-4 sm:py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white text-sm font-bold transition-all flex items-center justify-center gap-2"
+                title="Share link"
               >
                 <span className="material-symbols-outlined text-base">share</span>
-                Share
+                <span className="hidden sm:inline">Share</span>
               </button>
+              {/* Download PDF */}
               <button
                 type="button"
                 onClick={handlePrint}
-                className="flex items-center gap-2 px-6 py-2 rounded-xl bg-white text-black text-sm font-bold hover:bg-white/90 active:scale-95 transition-all shadow-lg"
+                className="flex items-center gap-1.5 px-3 sm:px-5 py-2 rounded-xl bg-white text-black text-sm font-bold hover:bg-white/90 active:scale-95 transition-all shadow-lg"
               >
                 <span className="material-symbols-outlined text-base">picture_as_pdf</span>
-                Download PDF
+                <span className="hidden sm:inline">Download PDF</span>
+                <span className="sm:hidden text-[11px]">PDF</span>
               </button>
             </div>
           </div>
 
-          {/* Template preview — A4 portrait (screen) */}
-          <div className="shadow-2xl shadow-black/50 rounded-xl overflow-hidden flex-shrink-0 pv-preview-container">
-            <div className="w-full h-full">
-              <TemplatePreview
-                templateId={activeTemplate}
-                containerWidth={Math.min(520, typeof window !== "undefined" ? window.innerWidth * 0.55 : 520)}
-                data={restaurantData}
-                style={menuStyle}
-              />
-            </div>
+          {/* Template preview (scaled to viewport) */}
+          <div className="shadow-2xl shadow-black/50 rounded-xl overflow-hidden shrink-0 mb-4 md:mb-8">
+            <TemplatePreview
+              templateId={activeTemplate}
+              containerWidth={previewW}
+              data={restaurantData}
+              style={menuStyle}
+            />
           </div>
         </div>
 
-        {/* Right: Customisation panel */}
-        <div className="w-72 bg-surface/95 backdrop-blur-2xl border-l border-surface-container/50 flex flex-col overflow-y-auto">
-          <div className="p-6 border-b border-surface-container/50">
-            <h3 className="font-[var(--font-headline)] font-bold text-base mb-1">Customise</h3>
-            <p className="text-secondary text-xs">Choose template &amp; adjust colors</p>
+        {/* ── Customisation panel ── */}
+        {/* Mobile: fixed-height scrollable strip at bottom. Desktop: right sidebar. */}
+        <div className="w-full md:w-72 bg-surface/95 backdrop-blur-2xl border-t md:border-t-0 md:border-l border-surface-container/50 flex flex-col overflow-y-auto max-h-[46vh] md:max-h-none md:h-auto">
+
+          <div className="px-4 md:px-6 py-3 md:py-6 border-b border-surface-container/50 shrink-0">
+            <h3 className="font-[var(--font-headline)] font-bold text-sm md:text-base mb-0.5">Customise</h3>
+            <p className="text-secondary text-[11px]">Choose template &amp; accent color</p>
           </div>
 
           {/* Template selector */}
-          <div className="px-6 pt-6">
-            <label className="block text-[10px] font-bold text-secondary uppercase tracking-[0.2em] mb-3" htmlFor="tpl-select">Template</label>
+          <div className="px-4 md:px-6 pt-4 md:pt-6 shrink-0">
+            <label className="block text-[10px] font-bold text-secondary uppercase tracking-[0.2em] mb-3" htmlFor="tpl-select">
+              Template
+            </label>
             <select
               id="tpl-select"
               className="w-full bg-surface-container-low border-none rounded-xl py-3 px-4 text-sm font-semibold focus:ring-2 focus:ring-primary/20 cursor-pointer"
@@ -155,30 +176,33 @@ export function PrintView({ templateId, templateName, restaurantData, onClose }:
             </select>
           </div>
 
-          <div className="p-6 space-y-8 flex-1">
+          <div className="p-4 md:p-6 space-y-5 md:space-y-8 flex-1">
             {/* Accent color */}
             <div>
-              <label className="block text-[10px] font-bold text-secondary uppercase tracking-[0.2em] mb-4">Accent Color</label>
+              <label className="block text-[10px] font-bold text-secondary uppercase tracking-[0.2em] mb-3">
+                Accent Color
+              </label>
               <div className="grid grid-cols-6 gap-2 mb-3">
-                {[
-                  "#C5A059", "#FF6B00", "#C0392B", "#1E1E1E", "#27AE60", "#2980B9"
-                ].map((hex) => {
-                  const isActive = menuStyle.primaryColor.toLowerCase() === hex.toLowerCase();
+                {["#C5A059", "#FF6B00", "#C0392B", "#1E1E1E", "#27AE60", "#2980B9"].map((hex) => {
+                  const active = menuStyle.primaryColor.toLowerCase() === hex.toLowerCase();
                   return (
                     <button
                       key={hex}
                       type="button"
                       onClick={() => setMenuStyle({ ...menuStyle, primaryColor: hex, accentColor: hex, priceTextColor: hex })}
-                      className={`w-full aspect-square rounded-full flex items-center justify-center transition-all color-btn-${hex.replace('#', '')} ${isActive ? "ring-4 ring-primary/20 ring-offset-2 scale-110" : "hover:scale-110"}`}
+                      style={{ backgroundColor: hex }}
+                      className={`w-full aspect-square rounded-full flex items-center justify-center transition-all ${
+                        active ? "ring-4 ring-primary/20 ring-offset-2 scale-110" : "hover:scale-110"
+                      }`}
                     >
-                      {isActive && <span className="material-symbols-outlined text-white text-xs">check</span>}
+                      {active && <span className="material-symbols-outlined text-white text-xs">check</span>}
                     </button>
                   );
                 })}
               </div>
               <label className="flex items-center gap-3 cursor-pointer group">
-                <div className="relative w-8 h-8 rounded-full overflow-hidden border-2 border-outline-variant/30 group-hover:border-primary/40 transition-all shrink-0">
-                  <div className="absolute inset-0 current-accent-bg" />
+                <div className="relative w-8 h-8 rounded-full overflow-hidden border-2 border-outline-variant/30 group-hover:border-primary/40 transition-all shrink-0"
+                     style={{ backgroundColor: menuStyle.primaryColor }}>
                   <input
                     type="color"
                     value={menuStyle.primaryColor}
@@ -192,8 +216,8 @@ export function PrintView({ templateId, templateName, restaurantData, onClose }:
               </label>
             </div>
 
-            {/* Tips */}
-            <div className="bg-surface-container-low rounded-2xl p-4 space-y-3">
+            {/* Print tips — hidden on mobile to save space */}
+            <div className="hidden md:block bg-surface-container-low rounded-2xl p-4 space-y-3">
               <p className="text-[10px] font-bold text-secondary uppercase tracking-widest">Print Tips</p>
               <div className="flex items-start gap-2">
                 <span className="material-symbols-outlined text-primary text-sm shrink-0">tips_and_updates</span>
@@ -211,26 +235,27 @@ export function PrintView({ templateId, templateName, restaurantData, onClose }:
           </div>
 
           {/* Bottom CTA */}
-          <div className="p-6 border-t border-surface-container/50">
+          <div className="p-4 md:p-6 border-t border-surface-container/50 shrink-0">
             <button
               type="button"
               onClick={handlePrint}
-              className="w-full py-4 bg-gradient-to-br from-primary to-primary-container rounded-2xl font-bold text-white shadow-lg shadow-primary/20 active:scale-95 transition-all flex items-center justify-center gap-2"
+              className="w-full py-3 md:py-4 bg-gradient-to-br from-primary to-primary-container rounded-2xl font-bold text-white shadow-lg shadow-primary/20 active:scale-95 transition-all flex items-center justify-center gap-2"
             >
               <span className="material-symbols-outlined text-lg">print</span>
               Print Now
             </button>
-            <p className="text-center text-[10px] text-secondary mt-3">Opens a clean print window</p>
+            <p className="text-center text-[10px] text-secondary mt-2">Opens a clean print window</p>
           </div>
         </div>
       </div>
 
-      {/* Hidden off-screen render at 1:1 scale — source for the print window */}
+      {/* Off-screen 1:1 render — source for the print window */}
       <div
         aria-hidden="true"
-        className="fixed left-[-200vw] top-0 overflow-hidden pointer-events-none z-[-1] pv-print-container"
+        className="fixed pointer-events-none z-[-1]"
+        style={{ left: "-200vw", top: 0, width: BASE_W, height: BASE_H, overflow: "hidden" }}
       >
-        <div ref={printRef} className="pv-print-container">
+        <div ref={printRef} style={{ width: BASE_W, height: BASE_H }}>
           <TemplatePreview
             templateId={activeTemplate}
             containerWidth={BASE_W}
@@ -239,24 +264,6 @@ export function PrintView({ templateId, templateName, restaurantData, onClose }:
           />
         </div>
       </div>
-      <style jsx>{`
-        .pv-preview-container {
-          max-height: calc(100vh - 180px);
-          aspect-ratio: ${BASE_W} / ${BASE_H};
-        }
-        .current-accent-bg {
-          background-color: ${menuStyle.primaryColor};
-        }
-        .pv-print-container {
-          width: ${BASE_W}px;
-          height: ${BASE_H}px;
-        }
-        ${[
-          "#C5A059", "#FF6B00", "#C0392B", "#1E1E1E", "#27AE60", "#2980B9"
-        ].map(hex => `
-          .color-btn-${hex.replace('#', '')} { background-color: ${hex}; }
-        `).join('')}
-      `}</style>
     </>
   );
 }

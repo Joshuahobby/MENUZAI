@@ -1,7 +1,7 @@
 "use client";
 
 import { templates, type Template, type TemplateCategory } from "@/data/mockData";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useMenu } from "@/context/MenuContext";
 import { toast } from "sonner";
@@ -17,6 +17,16 @@ const CATEGORY_LABELS: Record<"all" | TemplateCategory, string> = {
   "fast-food": "Fast Food",
 };
 
+function useWindowWidth() {
+  const [w, setW] = useState(() => (typeof window !== "undefined" ? window.innerWidth : 1024));
+  useEffect(() => {
+    const handler = () => setW(window.innerWidth);
+    window.addEventListener("resize", handler, { passive: true });
+    return () => window.removeEventListener("resize", handler);
+  }, []);
+  return w;
+}
+
 export default function TemplatesPage() {
   const router = useRouter();
   const { applyTemplate, plan, restaurantName, categories, menuItems, menuStyle, userRole, isLoading } = useMenu();
@@ -24,6 +34,7 @@ export default function TemplatesPage() {
   const [catFilter, setCatFilter] = useState<"all" | TemplateCategory>("all");
   const [previewId, setPreviewId] = useState<string | null>(null);
   const [printId, setPrintId] = useState<string | null>(null);
+  const windowWidth = useWindowWidth();
 
   const filtered = templates.filter((t) => {
     const tierMatch = tierFilter === "all" || t.tier === tierFilter;
@@ -246,11 +257,11 @@ export default function TemplatesPage() {
             onClick={(e) => e.stopPropagation()}
           >
             {/* Left: Large Live Preview */}
-            <div className="w-full md:w-[450px] h-[400px] md:h-auto bg-surface-container-low overflow-hidden relative border-r border-surface-container-high shrink-0">
+            <div className="w-full md:w-[450px] h-[360px] sm:h-[420px] md:h-auto bg-surface-container-low overflow-hidden relative border-b md:border-b-0 md:border-r border-surface-container-high shrink-0">
                <div className="absolute inset-0">
-                  <TemplatePreview 
-                    templateId={preview.id} 
-                    containerWidth={450} 
+                  <TemplatePreview
+                    templateId={preview.id}
+                    containerWidth={windowWidth < 768 ? Math.min(windowWidth - 48, 400) : 450}
                     data={tplData}
                     style={{ primaryColor: preview.config.primaryColor, backgroundColor: preview.config.backgroundColor }}
                   />
