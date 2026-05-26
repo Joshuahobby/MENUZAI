@@ -174,7 +174,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
           <div className="lg:hidden fixed inset-0 z-40 bg-black/20 backdrop-blur-sm" onClick={() => setMoreOpen(false)} />
         )}
         {moreOpen && (
-          <div className="lg:hidden fixed bottom-20 left-4 right-4 z-50 bg-surface/95 backdrop-blur-xl rounded-3xl border border-outline-variant/10 shadow-2xl p-4 grid grid-cols-4 gap-2">
+          <div className="lg:hidden fixed bottom-20 left-4 right-4 z-[60] bg-surface/95 backdrop-blur-xl rounded-3xl border border-outline-variant/10 shadow-2xl p-4 grid grid-cols-4 gap-2">
             {mobileMoreLinks.map((link) => {
               const isActive = pathname === link.href || (link.href !== "/dashboard" && pathname.startsWith(link.href));
               return (
