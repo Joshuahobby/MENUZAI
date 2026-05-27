@@ -4,7 +4,7 @@ import { BackToTop } from "@/components/BackToTop";
 
 export const metadata = {
   title: "Features — MENUZA AI",
-  description: "Everything your restaurant needs: AI menu extraction, digital ordering, real-time analytics, WhatsApp integration, and more.",
+  description: "AI Digital Waiter that greets guests, takes orders in chat, and collects reviews automatically. Plus menu extraction, live analytics, WhatsApp ordering, and more — built for African restaurants.",
 };
 
 const NAV_LINKS = [
@@ -14,8 +14,8 @@ const NAV_LINKS = [
 ];
 
 const HERO_STATS = [
-  { value: "< 30s",   label: "Average scan-to-order time" },
-  { value: "5 photos", label: "AI extracts a full menu from" },
+  { value: "< 45s",    label: "From QR scan to order placed" },
+  { value: "3 sec",    label: "Digital Waiter greets every guest" },
   { value: "Real-time", label: "Order delivery to staff panel" },
 ];
 
@@ -38,13 +38,17 @@ const DEEP_FEATURES = [
   {
     tag: "AI Digital Waiter",
     icon: "support_agent",
-    headline: "An always-on waiter who never gets an order wrong.",
-    body: "Guests chat directly with your AI waiter from the menu page. It answers ingredient questions, handles allergen queries, recommends pairings, and upsells your highest-margin dishes — tuned to the tone you set: friendly, formal, or vibrant.",
+    headline: "Your restaurant's best server — always on, always upselling, always on-brand.",
+    body: "The moment a guest scans your QR code, your AI Digital Waiter greets them, surfaces today's specials, and starts working toward a higher order value. It takes the full order in chat — no app switch, no WhatsApp dependency. And after the meal, it collects a review, upsells a dessert, and stamps a loyalty card — automatically.",
     bullets: [
-      "Trained on your live menu, prices, and descriptions",
-      "Configurable tone and custom upsell prompts",
-      "Handles multiple guests simultaneously, no wait",
+      "Greets every guest within 3 seconds of the menu loading — proactively, not reactively",
+      "Takes the full order in chat — table number, modifications, confirmation — no WhatsApp required",
+      "Recommends add-ons based on what's actually converting today, not static prompts",
+      "Collects reviews, upsells desserts, and stamps loyalty cards automatically after the meal",
       "Available in any language your guests type in",
+      "Trained on your live menu, prices, and descriptions — updates instantly when you edit",
+      "Configurable tone: friendly, formal, or vibrant — with per-item Always / Never Recommend flags",
+      "Negative reviews captured privately; positive reviews redirected to Google or TripAdvisor",
     ],
     accent: "bg-on-surface",
     iconBg: "bg-white/10 text-white",

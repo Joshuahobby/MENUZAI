@@ -10,7 +10,7 @@ import { BackToTop } from "@/components/BackToTop";
 const fmt = (n: number) => new Intl.NumberFormat("en-US").format(n);
 
 const FEATURES = [
-  { icon: "support_agent",        title: "AI Digital Waiter",       desc: "Guides guests, answers questions, and upsells your highest-margin dishes — automatically." },
+  { icon: "support_agent",        title: "AI Digital Waiter",       desc: "Greets guests on arrival, takes orders in chat, and follows up after the meal — a full-service waiter that costs nothing per shift." },
   { icon: "receipt_long",         title: "Real-time Ordering",       desc: "Orders appear on your staff panel the moment they are placed. No printers, no delays." },
   { icon: "document_scanner",     title: "Upload & Convert",         desc: "Photograph your paper menu. Our AI reads every item, price, and description in seconds." },
   { icon: "analytics",            title: "Live Analytics",           desc: "Know which dishes get viewed but not ordered. Make decisions on data, not intuition." },

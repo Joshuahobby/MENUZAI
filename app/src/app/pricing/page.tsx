@@ -23,7 +23,8 @@ const PRO_FEATURES = [
   "Everything in Free",
   "Unlimited Menus",
   "AI Menu Extraction — up to 5 photos",
-  "AI Digital Waiter",
+  "AI Digital Waiter — proactive greeting, in-chat ordering, context-aware recommendations",
+  "Post-meal review collection & dessert upsell",
   "AI Review Reply Generator",
   "Real-time Order Management",
   "Live Analytics — up to 90 days",
@@ -35,6 +36,9 @@ const PRO_FEATURES = [
 
 const BUSINESS_FEATURES = [
   "Everything in Pro",
+  "Loyalty Loop — stamp card, auto-tracking, zero account required",
+  "Owner margin priority flags for recommendation engine",
+  "Custom post-meal timing & phase configuration",
   "Multi-location Support",
   "Dedicated Account Manager",
   "Priority Support — 48 h SLA",
@@ -44,6 +48,10 @@ const BUSINESS_FEATURES = [
 ];
 
 const faqs = [
+  {
+    q: "What is the AI Digital Waiter and how is it different from a chatbot?",
+    a: "The AI Digital Waiter is trained on your live menu — not a generic script. It greets guests when they arrive, takes their order end-to-end in chat, recommends add-ons based on what's actually selling today, and follows up after the meal to collect a review and upsell a dessert. It works every table at once, never calls in sick, and gets smarter the more orders you process. Think of it as your highest-performing server — available every hour you're open.",
+  },
   {
     q: "Can I switch plans later?",
     a: "Yes. Upgrade or downgrade at any time. Changes take effect immediately.",
@@ -290,17 +298,24 @@ export default function PricingPage() {
               </thead>
               <tbody>
                 {[
-                  ["Digital Menus",        "1",        "Unlimited", "Unlimited"],
-                  ["AI Menu Extraction",   "—",        "✓",         "✓"],
-                  ["AI Digital Waiter",    "—",        "✓",         "✓"],
-                  ["AI Review Reply",      "—",        "✓",         "✓"],
-                  ["Real-time Orders",     "—",        "✓",         "✓"],
-                  ["Analytics History",    "7 days",   "90 days",   "90 days"],
-                  ["Staff Roles",          "—",        "✓",         "✓"],
-                  ["QR Poster Templates",  "Standard", "Premium",   "Premium"],
-                  ["Gallery Uploads",      "—",        "✓",         "✓"],
-                  ["Multi-location",       "—",        "—",         "✓"],
-                  ["Priority Support",     "—",        "—",         "✓"],
+                  ["Digital Menus",                      "1",        "Unlimited", "Unlimited"],
+                  ["AI Menu Extraction",                 "—",        "✓",         "✓"],
+                  ["AI Digital Waiter — Q&A",            "—",        "✓",         "✓"],
+                  ["Proactive Guest Greeting",           "—",        "✓",         "✓"],
+                  ["Cart-Based Upsell Nudges",           "—",        "✓",         "✓"],
+                  ["Full In-Chat Order-Taking",          "—",        "✓",         "✓"],
+                  ["Context-Aware Recommendations",      "—",        "✓",         "✓"],
+                  ["Post-Meal Review Prompt",            "—",        "✓",         "✓"],
+                  ["Post-Meal Dessert / Drink Upsell",   "—",        "✓",         "✓"],
+                  ["Loyalty Loop (stamp card)",          "—",        "—",         "✓"],
+                  ["AI Review Reply",                    "—",        "✓",         "✓"],
+                  ["Real-time Orders",                   "—",        "✓",         "✓"],
+                  ["Analytics History",                  "7 days",   "90 days",   "90 days"],
+                  ["Staff Roles",                        "—",        "✓",         "✓"],
+                  ["QR Poster Templates",                "Standard", "Premium",   "Premium"],
+                  ["Gallery Uploads",                    "—",        "✓",         "✓"],
+                  ["Multi-location",                     "—",        "—",         "✓"],
+                  ["Priority Support",                   "—",        "—",         "✓"],
                 ].map(([feature, free, pro, biz], i) => (
                   <tr key={i} className="border-b border-black/4 last:border-0">
                     <td className="py-4 text-on-surface/70 font-medium">{feature}</td>
