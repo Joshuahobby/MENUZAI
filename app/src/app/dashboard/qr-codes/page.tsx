@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { flushSync } from "react-dom";
 import { useMenu } from "@/context/MenuContext";
 import { QRPosterRenderer } from "./QRPosterRenderer";
 import type { QRPosterData, QRTemplate } from "@/types/menu";
@@ -61,6 +62,9 @@ export default function QRCodesPage() {
 
   const posterRef = useRef<HTMLDivElement>(null);
   const [isExporting, setIsExporting] = useState(false);
+  const [batchCount, setBatchCount] = useState(10);
+  const [isBatchExporting, setIsBatchExporting] = useState(false);
+  const [batchProgress, setBatchProgress] = useState(0);
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -124,6 +128,49 @@ export default function QRCodesPage() {
       toast.error("Failed to export poster. Please try again.");
     } finally {
       setIsExporting(false);
+    }
+  };
+
+  const downloadBatchPDF = async () => {
+    if (!posterRef.current || isBatchExporting || batchCount < 1) return;
+    setIsBatchExporting(true);
+    setBatchProgress(0);
+
+    const isA4 = posterData.pageSize === "A4";
+    const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: isA4 ? "a4" : "a5" });
+    const pdfW = isA4 ? 210 : 148;
+    const pdfH = isA4 ? 297 : 210;
+    const savedTableNumber = tableNumber;
+
+    try {
+      for (let t = 1; t <= batchCount; t++) {
+        // Synchronously update both tableNumber and posterData so the DOM re-renders before capture
+        flushSync(() => {
+          setTableNumber(String(t));
+          setPosterData((prev) => ({ ...prev, tableNumber: String(t) }));
+        });
+        // Small pause to let html-to-image pick up the new QR code render
+        await new Promise((r) => setTimeout(r, 250));
+
+        const dataUrl = await toPng(posterRef.current!, { quality: 1.0, pixelRatio: 4, cacheBust: true });
+        if (t > 1) pdf.addPage();
+        pdf.addImage(dataUrl, "PNG", 0, 0, pdfW, pdfH);
+        setBatchProgress(t);
+      }
+
+      pdf.save(`${restaurantName || "menu"}-tables-1-${batchCount}-qr.pdf`);
+      toast.success(`✅ ${batchCount} table QR posters exported!`);
+    } catch (err) {
+      console.error(err);
+      toast.error("Batch export failed. Please try again.");
+    } finally {
+      // Restore original table number
+      flushSync(() => {
+        setTableNumber(savedTableNumber);
+        setPosterData((prev) => ({ ...prev, tableNumber: savedTableNumber || undefined }));
+      });
+      setIsBatchExporting(false);
+      setBatchProgress(0);
     }
   };
 
@@ -366,6 +413,56 @@ export default function QRCodesPage() {
                   </div>
                 </div>
               </div>
+            </section>
+
+            {/* Batch Export */}
+            <section className="space-y-4 bg-primary/5 border border-primary/15 rounded-2xl p-5">
+              <div className="flex items-center gap-2">
+                <span className="material-symbols-outlined text-primary text-lg icon-fill">table_restaurant</span>
+                <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-[#1A1009]">Batch — All Tables</h3>
+              </div>
+              <p className="text-[9px] text-secondary leading-relaxed">Generate one QR poster per table in a single PDF. Print, cut, and stick.</p>
+              <div className="flex items-center gap-3">
+                <div className="flex-1">
+                  <label htmlFor="batch-count" className="text-[9px] font-black text-secondary uppercase tracking-widest mb-1.5 block">Number of Tables</label>
+                  <input
+                    id="batch-count"
+                    type="number"
+                    min={1}
+                    max={100}
+                    value={batchCount}
+                    onChange={(e) => setBatchCount(Math.max(1, Math.min(100, parseInt(e.target.value) || 1)))}
+                    className="w-full bg-white border-none rounded-xl py-2.5 px-4 text-xs font-bold focus:ring-2 focus:ring-primary/20 transition-all"
+                    disabled={isBatchExporting}
+                  />
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={downloadBatchPDF}
+                disabled={isBatchExporting || !menuUrl}
+                className="w-full py-3 rounded-xl font-bold text-xs text-white bg-primary hover:opacity-90 active:scale-95 transition-all disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer"
+              >
+                {isBatchExporting ? (
+                  <>
+                    <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    Exporting {batchProgress}/{batchCount}…
+                  </>
+                ) : (
+                  <>
+                    <span className="material-symbols-outlined text-sm">download</span>
+                    Export Tables 1–{batchCount} PDF
+                  </>
+                )}
+              </button>
+              {isBatchExporting && (
+                <div className="w-full bg-primary/10 rounded-full h-1.5 overflow-hidden">
+                  <div
+                    className="h-full bg-primary rounded-full transition-all duration-300"
+                    style={{ width: `${(batchProgress / batchCount) * 100}%` }}
+                  />
+                </div>
+              )}
             </section>
 
             {/* Visual Branding */}
