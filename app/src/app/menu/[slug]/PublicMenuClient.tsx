@@ -238,6 +238,7 @@ export default function PublicMenuClient(props: PublicMenuClientProps) {
       table_number: resolvedTable,
       whatsapp_sent: true,
       status: "pending",
+      source: "ai_waiter",
     });
 
     if (error) {

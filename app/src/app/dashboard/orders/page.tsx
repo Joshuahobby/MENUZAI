@@ -26,6 +26,7 @@ interface OrderRow {
   created_at: string;
   items: CartItem[];
   whatsapp_sent: boolean;
+  source?: string | null;
 }
 
 interface TableRequest {
@@ -38,6 +39,7 @@ interface TableRequest {
 }
 
 type StatusFilter = "all" | "pending" | "preparing" | "confirmed" | "cancelled";
+type SourceFilter = "all" | "ai_waiter" | "whatsapp";
 
 const STATUS_TABS: { value: StatusFilter; label: string }[] = [
   { value: "all", label: "All Orders" },
@@ -84,6 +86,7 @@ export default function OrdersPage() {
   const [tableRequests, setTableRequests] = useState<TableRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<StatusFilter>("all");
+  const [sourceFilter, setSourceFilter] = useState<SourceFilter>("all");
   const [orderSearch, setOrderSearch] = useState("");
   const [isLive, setIsLive] = useState(false);
   const [now, setNow] = useState(0);
@@ -394,9 +397,13 @@ export default function OrdersPage() {
     }
   });
 
+  const aiWaiterOrderCount = orders.filter((o) => o.source === "ai_waiter").length;
+
   const filtered = orders.filter((o) => {
-    const matchesFilter = filter === "all" || o.status === filter;
-    if (!matchesFilter) return false;
+    const matchesStatus = filter === "all" || o.status === filter;
+    if (!matchesStatus) return false;
+    const matchesSource = sourceFilter === "all" || o.source === sourceFilter || (sourceFilter === "whatsapp" && (!o.source || o.source === "whatsapp"));
+    if (!matchesSource) return false;
     if (!orderSearch.trim()) return true;
     const q = orderSearch.toLowerCase();
     return (
@@ -450,7 +457,7 @@ export default function OrdersPage() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 mb-8">
+      <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-6 mb-8">
         <div className="bg-surface-container-lowest rounded-3xl p-5 border border-surface-container/50">
           <div className="flex items-center gap-2 mb-2">
             <span className="material-symbols-outlined text-primary icon-fill text-lg">today</span>
@@ -467,7 +474,19 @@ export default function OrdersPage() {
           <p className="text-2xl font-extrabold text-amber-500">{pendingCount}</p>
           <p className="text-[10px] text-secondary mt-0.5">require immediate attention</p>
         </div>
-        <div className="bg-surface-container-lowest rounded-3xl p-5 border border-surface-container/50 relative overflow-hidden">
+        <div className="bg-surface-container-lowest rounded-3xl p-5 border border-violet-500/20">
+          <div className="flex items-center gap-2 mb-2">
+            <span className="material-symbols-outlined text-violet-500 icon-fill text-lg">robot_2</span>
+            <p className="text-[10px] font-bold text-secondary uppercase tracking-[0.2em]">AI Waiter Orders</p>
+          </div>
+          <p className="text-2xl font-extrabold text-violet-600 dark:text-violet-400">{aiWaiterOrderCount}</p>
+          <p className="text-[10px] text-secondary mt-0.5">
+            {todayOrders.filter((o) => o.source === "ai_waiter").length > 0
+              ? `${todayOrders.filter((o) => o.source === "ai_waiter").length} today`
+              : "placed via chat"}
+          </p>
+        </div>
+        <div className="bg-surface-container-lowest rounded-3xl p-5 border border-surface-container/50 relative overflow-hidden col-span-2 sm:col-span-1">
           <div className="relative z-10">
             <div className="flex items-center gap-2 mb-2">
               <span className="material-symbols-outlined text-emerald-500 icon-fill text-lg">payments</span>
@@ -511,7 +530,7 @@ export default function OrdersPage() {
               </div>
             </div>
 
-            {/* Filter tabs */}
+            {/* Status filter tabs */}
             <div className="flex gap-1.5 flex-wrap">
               {STATUS_TABS.map((tab) => {
                 const count = tab.value === "all" ? orders.length : orders.filter((o) => o.status === tab.value).length;
@@ -535,6 +554,34 @@ export default function OrdersPage() {
                 );
               })}
             </div>
+
+            {/* Source filter — AI Waiter vs WhatsApp */}
+            {aiWaiterOrderCount > 0 && (
+              <div className="flex gap-1.5 flex-wrap items-center">
+                <span className="text-[9px] font-bold text-secondary uppercase tracking-[0.15em] mr-1">Source:</span>
+                {([
+                  { value: "all" as SourceFilter, label: "All" },
+                  { value: "ai_waiter" as SourceFilter, label: "🤖 AI Waiter" },
+                  { value: "whatsapp" as SourceFilter, label: "💬 WhatsApp" },
+                ]).map((s) => {
+                  const isSelected = sourceFilter === s.value;
+                  const cnt = s.value === "all" ? orders.length : s.value === "ai_waiter" ? aiWaiterOrderCount : orders.length - aiWaiterOrderCount;
+                  return (
+                    <button
+                      key={s.value}
+                      type="button"
+                      onClick={() => setSourceFilter(s.value)}
+                      className={`px-3 py-1 text-[10px] font-bold rounded-lg transition-all flex items-center gap-1 cursor-pointer ${
+                        isSelected ? "bg-primary/15 text-primary ring-1 ring-primary/30" : "bg-surface-container hover:bg-surface-container-high text-secondary"
+                      }`}
+                    >
+                      {s.label}
+                      {cnt > 0 && <span className={`text-[8px] px-1 py-0.5 rounded-full ${isSelected ? "bg-primary/20" : "bg-surface-container-high"}`}>{cnt}</span>}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
           </div>
 
           {loading ? (
@@ -574,6 +621,12 @@ export default function OrdersPage() {
                             <span className="inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-wide px-2.5 py-1 rounded-xl bg-primary/10 text-primary shrink-0">
                               <span className="material-symbols-outlined text-[12px]">table_restaurant</span>
                               Table {order.table_number}
+                            </span>
+                          )}
+                          {order.source === "ai_waiter" && (
+                            <span className="inline-flex items-center gap-1 text-[9px] font-black uppercase tracking-wide px-2 py-1 rounded-xl bg-violet-500/10 text-violet-600 dark:text-violet-400 shrink-0">
+                              <span className="material-symbols-outlined text-[11px]">robot_2</span>
+                              AI Waiter
                             </span>
                           )}
                           <h3 className="font-[var(--font-headline)] font-bold text-base leading-tight truncate">
