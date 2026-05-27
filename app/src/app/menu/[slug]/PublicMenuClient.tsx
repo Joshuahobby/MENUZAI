@@ -44,6 +44,8 @@ const getTagMeta = (tag: string) => {
   return { icon: "sell", color: "text-secondary bg-surface-container-high border border-outline-variant/10" };
 };
 
+type ChatOrder = { items: CartItem[]; tableNumber: string; total: number };
+
 export default function PublicMenuClient(props: PublicMenuClientProps) {
   const {
     menuId,
@@ -135,6 +137,10 @@ export default function PublicMenuClient(props: PublicMenuClientProps) {
   const [isAssistantLoading, setIsAssistantLoading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
+  // In-chat ordering state
+  const [pendingChatOrder, setPendingChatOrder] = useState<ChatOrder | null>(null);
+  const [isPlacingChatOrder, setIsPlacingChatOrder] = useState(false);
+
   // Table Service Pager State
   const [isServiceOpen, setIsServiceOpen] = useState(false);
   const [serviceType, setServiceType] = useState<"call_waiter" | "bill" | "water" | "custom">("call_waiter");
@@ -180,10 +186,111 @@ export default function PublicMenuClient(props: PublicMenuClientProps) {
     }
   }, [assistantMessages]);
 
+  // Parse __ORDER__: marker from AI response
+  const parseChatOrder = (text: string): { cleanText: string; order: ChatOrder | null } => {
+    const MARKER = "__ORDER__:";
+    const idx = text.indexOf(MARKER);
+    if (idx === -1) return { cleanText: text, order: null };
+
+    const cleanText = text.slice(0, idx).trim();
+    try {
+      const json = JSON.parse(text.slice(idx + MARKER.length).trim()) as {
+        items: { name: string; qty: number }[];
+        table: string;
+      };
+      const orderItems: CartItem[] = [];
+      for (const entry of json.items) {
+        const found = items.find(
+          m =>
+            m.name.toLowerCase().includes(entry.name.toLowerCase()) ||
+            entry.name.toLowerCase().includes(m.name.toLowerCase())
+        );
+        if (found) {
+          const existing = orderItems.find(o => o.id === found.id);
+          if (existing) {
+            existing.quantity += entry.qty;
+          } else {
+            orderItems.push({ ...found, quantity: entry.qty });
+          }
+        }
+      }
+      if (orderItems.length === 0) return { cleanText, order: null };
+      const total = orderItems.reduce((s, i) => s + i.price * i.quantity, 0);
+      return { cleanText, order: { items: orderItems, tableNumber: json.table ?? "", total } };
+    } catch {
+      return { cleanText, order: null };
+    }
+  };
+
+  const confirmChatOrder = async () => {
+    if (!pendingChatOrder || isPlacingChatOrder) return;
+    setIsPlacingChatOrder(true);
+
+    const { items: orderItems, tableNumber: chatTable, total } = pendingChatOrder;
+    const resolvedTable = chatTable || tableFromUrl || null;
+
+    const { error } = await supabase.from("orders").insert({
+      menu_id: menuId,
+      restaurant_id: restaurantId,
+      items: orderItems,
+      total,
+      customer_name: null,
+      table_number: resolvedTable,
+      whatsapp_sent: true,
+      status: "pending",
+    });
+
+    if (error) {
+      toast.error("Failed to place order. Please try again.");
+      setIsPlacingChatOrder(false);
+      return;
+    }
+
+    // Also open WhatsApp so the restaurant gets notified
+    const msg = buildWhatsAppMessage(orderItems, undefined, resolvedTable || undefined, menuStyle.currency ?? "RWF");
+    const waUrl = buildWhatsAppURL(restaurantPhone, msg);
+    window.open(waUrl, "_blank", "noopener,noreferrer");
+
+    fetch("/api/notifications/order", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        restaurantId, items: orderItems, total,
+        currency: menuStyle.currency,
+        tableNumber: resolvedTable,
+      }),
+    }).catch(() => {});
+
+    setPendingChatOrder(null);
+    setIsPlacingChatOrder(false);
+
+    setAssistantMessages(prev => [
+      ...prev,
+      {
+        role: "assistant",
+        content: `✅ Order confirmed${resolvedTable ? ` for table ${resolvedTable}` : ""}! Your food is on its way to the kitchen. WhatsApp is opening to keep you in the loop. Enjoy your meal! 🍽️`,
+      },
+    ]);
+
+    // Trigger post-meal review flow via cart sheet
+    setOrderedSnapshot({ cart: orderItems, total });
+    setOrderPlaced(true);
+    setIsCartOpen(true);
+  };
+
+  const rejectChatOrder = () => {
+    setPendingChatOrder(null);
+    setAssistantMessages(prev => [
+      ...prev,
+      { role: "assistant", content: "No problem at all! What would you like to change? 😊" },
+    ]);
+  };
+
   const handleAssistantSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!assistantInput.trim() || isAssistantLoading) return;
 
+    setPendingChatOrder(null); // clear any stale pending order
     const userMsg = assistantInput.trim();
     setAssistantInput("");
     setAssistantMessages(prev => [...prev, { role: "user", content: userMsg }]);
@@ -195,10 +302,11 @@ export default function PublicMenuClient(props: PublicMenuClientProps) {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          messages: [...assistantMessages, { role: "user", content: userMsg }].slice(-5),
+          messages: [...assistantMessages, { role: "user", content: userMsg }].slice(-6),
           menuItems: items.map(i => ({ name: i.name, description: i.description, price: i.price, tags: i.tags })),
           restaurantName,
           restaurantId,
+          tableNumber: tableFromUrl || "",
           aiWaiterSettings: {
             tone: menuStyle.aiWaiterTone,
             upsell: menuStyle.aiWaiterUpsell,
@@ -225,6 +333,18 @@ export default function PublicMenuClient(props: PublicMenuClientProps) {
           return next;
         });
       }
+
+      // After streaming, detect and strip __ORDER__: marker
+      setAssistantMessages(prev => {
+        const next = [...prev];
+        const last = next[next.length - 1];
+        if (last.role === "assistant" && last.content.includes("__ORDER__:")) {
+          const { cleanText, order } = parseChatOrder(last.content);
+          next[next.length - 1] = { role: "assistant", content: cleanText };
+          if (order) setPendingChatOrder(order);
+        }
+        return next;
+      });
     } catch {
       setAssistantMessages(prev => {
         const next = [...prev];
@@ -245,6 +365,30 @@ export default function PublicMenuClient(props: PublicMenuClientProps) {
       trackQRScan(menuId, restaurantId);
     }
   }, [menuId, restaurantId, searchParams]);
+
+  // ── Proactive greeting: auto-open AI Waiter after 3 s (Pro/Business only) ──
+  const proactiveGreetingFired = useRef(false);
+  useEffect(() => {
+    if (!aiWaiterEnabled || proactiveGreetingFired.current) return;
+    const timer = setTimeout(() => {
+      if (proactiveGreetingFired.current) return;
+      proactiveGreetingFired.current = true;
+      const hour = new Date().getHours();
+      const timeOfDay = hour < 12 ? "morning" : hour < 17 ? "afternoon" : "evening";
+      const greetingMap: Record<string, string> = {
+        morning: `Good morning! ☀️ Ready to start your day deliciously? I'm your AI waiter for ${restaurantName}. Tell me what you're in the mood for and I'll guide you straight to the best dish.`,
+        afternoon: `Good afternoon! 🌟 Welcome to ${restaurantName}. I'm your AI waiter — tap anything on the menu to add it to your order, or just ask me what to try and I'll recommend something great.`,
+        evening: `Good evening! 🌙 Welcome to ${restaurantName}. I'm your AI waiter. Tonight's a great night to treat yourself — want me to suggest our most popular dishes?`,
+      };
+      setAssistantMessages((prev) => [
+        ...prev,
+        { role: "assistant" as const, content: greetingMap[timeOfDay] },
+      ]);
+      setIsAssistantOpen(true);
+    }, 3000);
+    return () => clearTimeout(timer);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [aiWaiterEnabled]);
 
   // Real-time menu sync
   useEffect(() => {
@@ -704,6 +848,55 @@ export default function PublicMenuClient(props: PublicMenuClientProps) {
                   </div>
                 </div>
               ))}
+              {/* ── In-chat order confirmation card ── */}
+              {pendingChatOrder && !isAssistantLoading && (
+                <div className="bg-surface-container rounded-2xl p-4 border border-primary/25 space-y-3">
+                  <p className="text-[10px] font-black text-primary uppercase tracking-[0.18em]">Confirm your order</p>
+                  <div className="space-y-2">
+                    {pendingChatOrder.items.map(item => (
+                      <div key={item.id} className="flex justify-between text-sm">
+                        <span className="font-medium text-on-surface">
+                          {item.name}
+                          <span className="text-secondary ml-1.5">×{item.quantity}</span>
+                        </span>
+                        <span className="font-bold text-primary">{formatPrice(item.price * item.quantity, menuStyle.currency ?? "RWF")}</span>
+                      </div>
+                    ))}
+                  </div>
+                  {(pendingChatOrder.tableNumber || tableFromUrl) && (
+                    <div className="flex items-center gap-1 text-xs text-secondary">
+                      <span className="material-symbols-outlined text-[13px]">table_restaurant</span>
+                      Table {pendingChatOrder.tableNumber || tableFromUrl}
+                    </div>
+                  )}
+                  <div className="flex justify-between items-center pt-1 border-t border-outline-variant/10">
+                    <span className="text-sm font-bold">Total</span>
+                    <span className="text-base font-extrabold text-primary">{formatPrice(pendingChatOrder.total, menuStyle.currency ?? "RWF")}</span>
+                  </div>
+                  <div className="flex gap-2 pt-1">
+                    <button
+                      type="button"
+                      onClick={confirmChatOrder}
+                      disabled={isPlacingChatOrder}
+                      className="flex-1 py-3 bg-primary text-white font-[var(--font-headline)] font-bold rounded-xl text-sm active:scale-95 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                    >
+                      {isPlacingChatOrder ? (
+                        <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />Placing…</>
+                      ) : (
+                        <><span className="material-symbols-outlined text-[16px]">check_circle</span>Place Order</>
+                      )}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={rejectChatOrder}
+                      className="px-4 py-3 text-secondary text-sm font-bold hover:text-on-surface transition-colors rounded-xl hover:bg-surface-container-low"
+                    >
+                      Change
+                    </button>
+                  </div>
+                </div>
+              )}
+
               {isAssistantLoading && (
                 <div className="flex justify-start">
                   <div className="bg-surface-container-low px-5 py-3 rounded-3xl rounded-tl-none flex gap-1">
