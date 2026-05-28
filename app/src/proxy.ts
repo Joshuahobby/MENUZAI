@@ -36,6 +36,32 @@ export async function proxy(request: NextRequest) {
   // refresh session
   await supabase.auth.getUser()
 
+  // Custom domain routing: if the request host matches a restaurant's custom_domain,
+  // rewrite the root path to /menu/[slug] for their published menu.
+  const host = request.headers.get("host") ?? "";
+  const knownHosts = [
+    process.env.NEXT_PUBLIC_SITE_URL?.replace(/^https?:\/\//, "") ?? "",
+    "localhost:3000",
+    "localhost",
+  ];
+  const isCustomDomain = host && !knownHosts.some((h) => host === h || host.endsWith(`.${h}`));
+
+  if (isCustomDomain && request.nextUrl.pathname === "/") {
+    const { data: menu } = await supabase
+      .from("menus")
+      .select("slug, restaurants!inner(custom_domain)")
+      .eq("status", "published")
+      .eq("restaurants.custom_domain", host)
+      .limit(1)
+      .maybeSingle();
+
+    if (menu?.slug) {
+      const url = request.nextUrl.clone();
+      url.pathname = `/menu/${menu.slug}`;
+      return NextResponse.rewrite(url);
+    }
+  }
+
   return response
 }
 

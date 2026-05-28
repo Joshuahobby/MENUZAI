@@ -1,4 +1,4 @@
-export type Plan = "free" | "pro" | "business";
+export type Plan = "free" | "trial" | "pro" | "business";
 
 export interface PlanFeatures {
   aiWaiter: boolean;
@@ -10,6 +10,7 @@ export interface PlanFeatures {
 
 const FEATURES: Record<Plan, PlanFeatures> = {
   free:     { aiWaiter: false, aiReply: false, galleryUpload: false, staffManagement: false, premiumQrTemplates: false },
+  trial:    { aiWaiter: true,  aiReply: true,  galleryUpload: true,  staffManagement: true,  premiumQrTemplates: true },
   pro:      { aiWaiter: true,  aiReply: true,  galleryUpload: true,  staffManagement: true,  premiumQrTemplates: true },
   business: { aiWaiter: true,  aiReply: true,  galleryUpload: true,  staffManagement: true,  premiumQrTemplates: true },
 };
@@ -27,12 +28,14 @@ interface PlanMeta {
 
 const LIMITS: Record<Plan, PlanLimits> = {
   free:     { maxDrafts: 1, maxPublished: 1, maxTotal: 1 },
+  trial:    { maxDrafts: Infinity, maxPublished: Infinity, maxTotal: Infinity },
   pro:      { maxDrafts: Infinity, maxPublished: Infinity, maxTotal: Infinity },
   business: { maxDrafts: Infinity, maxPublished: Infinity, maxTotal: Infinity },
 };
 
 const META: Record<Plan, PlanMeta> = {
   free:     { label: "Free",     badgeClass: "bg-surface-container-highest text-secondary" },
+  trial:    { label: "Trial",    badgeClass: "bg-violet-100 text-violet-700" },
   pro:      { label: "Pro",      badgeClass: "bg-primary/10 text-primary" },
   business: { label: "Business", badgeClass: "bg-tertiary/10 text-tertiary" },
 };
@@ -85,6 +88,21 @@ export function canCreateMenu(plan: string, currentTotalCount: number): PlanChec
       maxTotal === 1
         ? "Free plan allows 1 menu. Delete it or upgrade to create another."
         : `You have reached the menu limit (${maxTotal}).`,
+  };
+}
+
+const MAX_LOCATIONS: Record<string, number> = {
+  free: 1, trial: 1, pro: 1, business: 5,
+};
+
+export function canCreateRestaurant(plan: string, currentCount: number): PlanCheckResult {
+  const max = MAX_LOCATIONS[resolve(plan)] ?? 1;
+  if (currentCount < max) return { allowed: true };
+  return {
+    allowed: false,
+    reason: plan === "business"
+      ? `Business plan allows up to ${max} locations.`
+      : "Multiple locations require a Business plan.",
   };
 }
 

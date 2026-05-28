@@ -24,6 +24,7 @@ interface MenuContextType {
   plan: string;
   setPlan: (plan: string) => void;
   planExpiresAt: string | null;
+  trialEndsAt: string | null;
   categories: MenuCategory[];
   setCategories: (cats: MenuCategory[] | ((prev: MenuCategory[]) => MenuCategory[])) => void;
   menuItems: MenuItem[];
@@ -58,6 +59,9 @@ interface MenuContextType {
   isLoading: boolean;
   user: User | null;
   userRole: "owner" | "manager" | "staff" | null;
+  ownedRestaurants: Array<{ id: string; name: string }>;
+  switchRestaurantLocation: (restaurantId: string) => Promise<void>;
+  createRestaurantLocation: (name: string) => Promise<string | null>;
 }
 
 const MenuContext = createContext<MenuContextType | undefined>(undefined);
@@ -75,6 +79,7 @@ export function MenuProvider({ children }: { children: React.ReactNode }) {
     restaurantLogoUrl, setRestaurantLogoUrl,
     plan, setPlan,
     planExpiresAt,
+    trialEndsAt,
     onboarded, setOnboarded,
     activeMenuId, setActiveMenuId,
     activeMenuName, setActiveMenuName,
@@ -87,6 +92,8 @@ export function MenuProvider({ children }: { children: React.ReactNode }) {
     isSyncing, setIsSyncing,
     updateItem: storeUpdateItem,
     userRole,
+    ownedRestaurants,
+    setOwnedRestaurants,
   } = useMenuStore();
 
   const menuSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -472,6 +479,53 @@ export function MenuProvider({ children }: { children: React.ReactNode }) {
     return newMenu.id;
   }, [user, restaurantId, plan]);
 
+  const switchRestaurantLocation = useCallback(async (targetId: string) => {
+    if (!user || targetId === restaurantId) return;
+    const { data: resto } = await supabase
+      .from("restaurants")
+      .select("id, name, phone, plan, plan_expires_at, trial_ends_at, logo_url, onboarded")
+      .eq("id", targetId)
+      .eq("user_id", user.id)
+      .single();
+    if (!resto) return;
+    const { setRestaurantId, setRestaurantName, setRestaurantPhone, setRestaurantLogoUrl, setPlan, setPlanExpiresAt, setOnboarded, setCategories, setMenuItems, setActiveMenuId, setActiveMenuName, setMenuStatus, setMenuSlug } = useMenuStore.getState();
+    setRestaurantId(resto.id);
+    setRestaurantName(resto.name);
+    setRestaurantPhone(resto.phone ?? "");
+    setRestaurantLogoUrl(resto.logo_url ?? "");
+    setPlan(resto.plan ?? "free");
+    setPlanExpiresAt(resto.plan_expires_at ?? null);
+    setOnboarded(resto.onboarded ?? false);
+    setCategories([]);
+    setMenuItems([]);
+    setActiveMenuId(null);
+    setActiveMenuName("My Menu");
+    setMenuStatus("draft");
+    setMenuSlug(null);
+    // Load latest menu for this restaurant
+    const { data: menu } = await supabase.from("menus").select("*").eq("restaurant_id", resto.id).order("updated_at", { ascending: false }).limit(1).maybeSingle();
+    if (menu) {
+      setActiveMenuId(menu.id);
+      setActiveMenuName(menu.name ?? "My Menu");
+      setMenuStatus(menu.status ?? "draft");
+      setMenuSlug(menu.slug ?? null);
+      setCategories(menu.categories ?? []);
+      setMenuItems(menu.items ?? []);
+    }
+  }, [user, restaurantId]);
+
+  const createRestaurantLocation = useCallback(async (name: string): Promise<string | null> => {
+    if (!user) return null;
+    const { canCreateRestaurant } = await import("@/lib/plans");
+    const check = canCreateRestaurant(plan, ownedRestaurants.length);
+    if (!check.allowed) { toast.error(check.reason ?? "Upgrade to Business to add locations."); return null; }
+    const { data, error } = await supabase.from("restaurants").insert({ user_id: user.id, name, onboarded: true, plan }).select("id").single();
+    if (error || !data) { toast.error("Failed to create location."); return null; }
+    setOwnedRestaurants([...ownedRestaurants, { id: data.id, name }]);
+    toast.success(`Location "${name}" created.`);
+    return data.id;
+  }, [user, plan, ownedRestaurants, setOwnedRestaurants]);
+
   return (
     <MenuContext.Provider value={{
       restaurantName,
@@ -484,6 +538,7 @@ export function MenuProvider({ children }: { children: React.ReactNode }) {
       plan,
       setPlan,
       planExpiresAt,
+      trialEndsAt,
       categories,
       setCategories,
       menuItems,
@@ -517,6 +572,9 @@ export function MenuProvider({ children }: { children: React.ReactNode }) {
       isLoading,
       user,
       userRole,
+      ownedRestaurants,
+      switchRestaurantLocation,
+      createRestaurantLocation,
     }}>
       {children}
     </MenuContext.Provider>

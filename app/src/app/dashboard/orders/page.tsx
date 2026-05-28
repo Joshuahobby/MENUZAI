@@ -93,6 +93,8 @@ export default function OrdersPage() {
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [printingOrder, setPrintingOrder] = useState<OrderRow | null>(null);
   const [notifPermission, setNotifPermission] = useState<NotificationPermission | null>(null);
+  const [newOrderFlash, setNewOrderFlash] = useState(false);
+  const [showPermissionPrompt, setShowPermissionPrompt] = useState(false);
   const initialLoadDone = useRef(false);
   const soundEnabledRef = useRef(soundEnabled);
 
@@ -103,6 +105,11 @@ export default function OrdersPage() {
   useEffect(() => {
     if (typeof window !== "undefined" && "Notification" in window) {
       setNotifPermission(Notification.permission);
+      // Show in-page prompt if permission not yet decided, after a short delay
+      if (Notification.permission === "default") {
+        const t = setTimeout(() => setShowPermissionPrompt(true), 4000);
+        return () => clearTimeout(t);
+      }
     }
   }, []);
 
@@ -117,7 +124,11 @@ export default function OrdersPage() {
     try {
       const reg = await navigator.serviceWorker.ready;
       const vapidKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
-      if (!vapidKey) { toast.error("Push not configured (missing VAPID key)."); return; }
+      if (!vapidKey) {
+        toast.success("Sound alerts are active. For push notifications, ask your admin to configure VAPID keys.");
+        setShowPermissionPrompt(false);
+        return;
+      }
       const sub = await reg.pushManager.subscribe({
         userVisibleOnly: true,
         applicationServerKey: urlBase64ToUint8Array(vapidKey),
@@ -129,6 +140,7 @@ export default function OrdersPage() {
       });
       if (!res.ok) throw new Error("Subscribe API failed");
       toast.success("Push notifications enabled!");
+      setShowPermissionPrompt(false);
     } catch (err) {
       console.error("Push subscription failed:", err);
       toast.error("Failed to enable push notifications.");
@@ -230,6 +242,8 @@ export default function OrdersPage() {
               if (soundEnabledRef.current) {
                 playOrderChime();
               }
+              setNewOrderFlash(true);
+              setTimeout(() => setNewOrderFlash(false), 2000);
               toast("New order received!", {
                 description: newOrder.customer_name
                   ? `From ${newOrder.customer_name}${newOrder.table_number ? ` · Table ${newOrder.table_number}` : ""}`
@@ -415,6 +429,29 @@ export default function OrdersPage() {
 
   return (
     <div className="p-6 lg:p-12 pb-24 lg:pb-12 max-w-7xl mx-auto">
+      {/* Permission prompt banner */}
+      {showPermissionPrompt && notifPermission === "default" && (
+        <div className="mb-6 flex items-center justify-between gap-4 bg-primary/10 border border-primary/20 rounded-2xl px-5 py-4">
+          <div className="flex items-center gap-3">
+            <span className="material-symbols-outlined text-primary text-[22px]">notifications</span>
+            <div>
+              <p className="font-bold text-sm text-on-surface">Enable push notifications</p>
+              <p className="text-xs text-secondary">Get alerts even when this tab isn&apos;t focused — never miss an order.</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
+            <button type="button" onClick={enableNotifications}
+              className="px-4 py-2 bg-primary text-white text-xs font-bold rounded-xl hover:bg-primary/90 transition-colors">
+              Enable
+            </button>
+            <button type="button" onClick={() => setShowPermissionPrompt(false)}
+              className="p-2 text-secondary hover:text-on-surface transition-colors">
+              <span className="material-symbols-outlined text-[18px]">close</span>
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-8 gap-4">
         <div>
@@ -466,9 +503,9 @@ export default function OrdersPage() {
           <p className="text-2xl font-extrabold">{todayOrders.length}</p>
           <p className="text-[10px] text-secondary mt-0.5">orders processed today</p>
         </div>
-        <div className="bg-surface-container-lowest rounded-3xl p-5 border border-surface-container/50">
+        <div className={`rounded-3xl p-5 border transition-all duration-300 ${newOrderFlash ? "bg-amber-50 border-amber-400 scale-[1.02] shadow-lg shadow-amber-200/50 dark:bg-amber-950/30 dark:border-amber-500" : "bg-surface-container-lowest border-surface-container/50"}`}>
           <div className="flex items-center gap-2 mb-2">
-            <span className="material-symbols-outlined text-amber-500 icon-fill text-lg">pending</span>
+            <span className={`material-symbols-outlined text-amber-500 icon-fill text-lg ${newOrderFlash ? "animate-bounce" : ""}`}>pending</span>
             <p className="text-[10px] font-bold text-secondary uppercase tracking-[0.2em]">Pending Action</p>
           </div>
           <p className="text-2xl font-extrabold text-amber-500">{pendingCount}</p>

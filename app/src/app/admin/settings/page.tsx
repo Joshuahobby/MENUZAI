@@ -126,13 +126,22 @@ export default function PlatformAdminSettings() {
           <h1 className="text-3xl font-[var(--font-headline)] font-extrabold tracking-tight text-on-surface">
             Platform Admin
           </h1>
-          <button
-            onClick={() => router.push("/dashboard")}
-            className="flex items-center gap-2 px-4 py-2 text-xs font-bold text-secondary bg-surface-container-high hover:bg-surface-container-highest rounded-xl transition-all"
-          >
-            <span className="material-symbols-outlined text-[16px]">dashboard</span>
-            Dashboard
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => router.push("/admin/metrics")}
+              className="flex items-center gap-2 px-4 py-2 text-xs font-bold text-primary bg-primary/10 hover:bg-primary/20 rounded-xl transition-all"
+            >
+              <span className="material-symbols-outlined text-[16px]">bar_chart</span>
+              Metrics
+            </button>
+            <button
+              onClick={() => router.push("/dashboard")}
+              className="flex items-center gap-2 px-4 py-2 text-xs font-bold text-secondary bg-surface-container-high hover:bg-surface-container-highest rounded-xl transition-all"
+            >
+              <span className="material-symbols-outlined text-[16px]">dashboard</span>
+              Dashboard
+            </button>
+          </div>
         </div>
         <p className="text-secondary mb-10">Configure the underlying AI provider stack for MENUZAI.</p>
 

@@ -15,6 +15,12 @@ import { useMenuStore } from "@/store/menuStore";
  * - Components that selectively subscribe to store slices avoid
  *   re-rendering when unrelated state changes
  */
+function resolvePlan(plan: string | null, trialEndsAt: string | null): string {
+  if (plan && plan !== "free") return plan;
+  if (trialEndsAt && new Date(trialEndsAt) > new Date()) return "trial";
+  return "free";
+}
+
 export function useMenuBootstrap() {
   const [user, setUser] = useState<User | null>(null);
   const [authChecked, setAuthChecked] = useState(false);
@@ -36,6 +42,7 @@ export function useMenuBootstrap() {
     setMenuItems,
     setMenuStyle,
     setLastSynced,
+    setOwnedRestaurants,
     hydrate,
   } = useMenuStore.getState();
 
@@ -112,7 +119,7 @@ export function useMenuBootstrap() {
 
         const { data: existingRestaurant, error: selectError, status: selectStatus } = await supabase
           .from("restaurants")
-          .select("id, name, phone, plan, plan_expires_at, logo_url, onboarded, user_id")
+          .select("id, name, phone, plan, plan_expires_at, trial_ends_at, logo_url, onboarded, user_id")
           .eq("user_id", user.id)
           .order("created_at", { ascending: true })
           .limit(1)
@@ -129,14 +136,23 @@ export function useMenuBootstrap() {
           restoId = existingRestaurant.id;
           userRole = "owner";
 
+          // Load all restaurants this owner has (for multi-location switcher)
+          const { data: allOwned } = await supabase
+            .from("restaurants")
+            .select("id, name")
+            .eq("user_id", user.id)
+            .order("created_at", { ascending: true });
+          if (!cancelled) setOwnedRestaurants(allOwned ?? [{ id: restoId, name: existingRestaurant.name }]);
+
           if (!cancelled) {
             hydrate({
               restaurantId: restoId,
               restaurantName: existingRestaurant.name,
               restaurantPhone: existingRestaurant.phone ?? "",
               restaurantLogoUrl: existingRestaurant.logo_url ?? "",
-              plan: existingRestaurant.plan ?? "free",
+              plan: resolvePlan(existingRestaurant.plan, existingRestaurant.trial_ends_at),
               planExpiresAt: existingRestaurant.plan_expires_at ?? null,
+              trialEndsAt: existingRestaurant.trial_ends_at ?? null,
               onboarded: existingRestaurant.onboarded ?? false,
               userRole,
             });
@@ -157,7 +173,7 @@ export function useMenuBootstrap() {
             // Staff member — load the employer's restaurant directly.
             const { data: staffRestaurant } = await supabase
               .from("restaurants")
-              .select("id, name, phone, plan, plan_expires_at, logo_url, onboarded")
+              .select("id, name, phone, plan, plan_expires_at, trial_ends_at, logo_url, onboarded")
               .eq("id", staffRow.restaurant_id)
               .maybeSingle();
 
@@ -171,17 +187,23 @@ export function useMenuBootstrap() {
                 restaurantName: staffRestaurant.name,
                 restaurantPhone: staffRestaurant.phone ?? "",
                 restaurantLogoUrl: staffRestaurant.logo_url ?? "",
-                plan: staffRestaurant.plan ?? "free",
+                plan: resolvePlan(staffRestaurant.plan, staffRestaurant.trial_ends_at),
                 planExpiresAt: staffRestaurant.plan_expires_at ?? null,
+                trialEndsAt: staffRestaurant.trial_ends_at ?? null,
                 onboarded: staffRestaurant.onboarded ?? false,
                 userRole,
               });
             }
           } else {
             // New owner — no restaurant, no staff role anywhere. Create their restaurant.
+            const trialEnd = new Date();
+            trialEnd.setDate(trialEnd.getDate() + 14);
             const { data: upsertedRestaurant, error: upsertError, status: upsertStatus } = await supabase
               .from("restaurants")
-              .upsert({ user_id: user.id, name: "My Restaurant", onboarded: false }, { onConflict: "user_id", ignoreDuplicates: false })
+              .upsert(
+                { user_id: user.id, name: "My Restaurant", onboarded: false, plan: "trial", trial_ends_at: trialEnd.toISOString() },
+                { onConflict: "user_id", ignoreDuplicates: false }
+              )
               .select("id")
               .single();
 
@@ -212,7 +234,7 @@ export function useMenuBootstrap() {
             }
             userRole = "owner";
             if (!cancelled) {
-              hydrate({ restaurantId: restoId, onboarded: false, userRole });
+              hydrate({ restaurantId: restoId, onboarded: false, userRole, plan: "trial", trialEndsAt: trialEnd.toISOString() });
             }
           }
         }

@@ -33,6 +33,7 @@ interface MenuStoreState {
   restaurantLogoUrl: string;
   plan: string;
   planExpiresAt: string | null;
+  trialEndsAt: string | null;
   onboarded: boolean;
   activeMenuId: string | null;
   activeMenuName: string;
@@ -47,6 +48,7 @@ interface MenuStoreState {
   isLoading: boolean;
   // ── RBAC state ─────────────────────────────────────────────────────────
   userRole: "owner" | "manager" | "staff" | null;
+  ownedRestaurants: Array<{ id: string; name: string }>;
 }
 
 interface MenuStoreActions {
@@ -73,6 +75,7 @@ interface MenuStoreActions {
   // Granular item update — avoids full array replacement
   updateItem: (itemId: string, updates: Partial<MenuItem>) => void;
   setUserRole: (role: "owner" | "manager" | "staff" | null) => void;
+  setOwnedRestaurants: (list: Array<{ id: string; name: string }>) => void;
 }
 
 export type MenuStore = MenuStoreState & MenuStoreActions;
@@ -86,6 +89,7 @@ export const useMenuStore = create<MenuStore>()(
     restaurantLogoUrl: "",
     plan: "free",
     planExpiresAt: null,
+    trialEndsAt: null,
     onboarded: false,
     activeMenuId: null,
     activeMenuName: "My Menu",
@@ -98,6 +102,7 @@ export const useMenuStore = create<MenuStore>()(
     lastSynced: null,
     isLoading: true,
     userRole: null,
+    ownedRestaurants: [],
 
     // ── Setters ─────────────────────────────────────────────────────────
     setRestaurantName: (name) => set({ restaurantName: name }),
@@ -138,6 +143,7 @@ export const useMenuStore = create<MenuStore>()(
         ),
       })),
     setUserRole: (role) => set({ userRole: role }),
+    setOwnedRestaurants: (list) => set({ ownedRestaurants: list }),
   }))
 );
 

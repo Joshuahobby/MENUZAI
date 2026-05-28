@@ -28,14 +28,22 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   const router = useRouter();
   const [moreOpen, setMoreOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
-  const { restaurantLogoUrl, restaurantName, onboarded, isLoading, user, userRole, plan, planExpiresAt } = useMenu();
+  const { restaurantLogoUrl, restaurantName, onboarded, isLoading, user, userRole, plan, planExpiresAt, trialEndsAt, restaurantId, ownedRestaurants, switchRestaurantLocation } = useMenu();
 
   const daysUntilExpiry = (() => {
-    if (!planExpiresAt || plan === "free") return null;
+    if (!planExpiresAt || plan === "free" || plan === "trial") return null;
     const diff = new Date(planExpiresAt).getTime() - Date.now();
     const days = Math.ceil(diff / (1000 * 60 * 60 * 24));
     return days <= 3 ? days : null;
   })();
+
+  const trialDaysLeft = (() => {
+    if (plan !== "trial" || !trialEndsAt) return null;
+    const diff = new Date(trialEndsAt).getTime() - Date.now();
+    return Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)));
+  })();
+
+  const showBanner = (daysUntilExpiry !== null || trialDaysLeft !== null) && userRole === "owner";
 
   const navLinks = getNavLinks(userRole);
   const mobileNavLinks = navLinks.slice(0, Math.min(4, navLinks.length));
@@ -114,6 +122,22 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
           </button>
         </div>
 
+        {/* Location switcher — Business plan with multiple restaurants */}
+        {!collapsed && ownedRestaurants.length > 1 && (
+          <div className="px-4 mb-4">
+            <label className="block text-[9px] font-bold uppercase text-secondary opacity-60 mb-1">Location</label>
+            <select
+              value={restaurantId ?? ""}
+              onChange={(e) => switchRestaurantLocation(e.target.value)}
+              className="w-full text-xs font-semibold bg-surface-container border border-outline-variant/30 rounded-xl px-3 py-2 text-on-surface focus:outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer"
+            >
+              {ownedRestaurants.map((r) => (
+                <option key={r.id} value={r.id}>{r.name}</option>
+              ))}
+            </select>
+          </div>
+        )}
+
         {/* Nav */}
         <nav className="space-y-1 px-2 flex-1">
           {navLinks.map((link) => {
@@ -168,17 +192,29 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
         </div>
       </aside>
 
-      {/* Subscription expiry banner */}
-      {daysUntilExpiry !== null && userRole === "owner" && (
+      {/* Subscription / trial banner */}
+      {showBanner && (
         <div className={`fixed top-0 z-[60] transition-all duration-300 ${collapsed ? "lg:left-16" : "lg:left-64"} left-0 right-0`}>
           <Link
             href="/dashboard/settings"
-            className={`flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-semibold w-full ${daysUntilExpiry <= 0 ? "bg-red-600 text-white" : "bg-amber-400 text-amber-950"} hover:opacity-90 transition-opacity`}
+            className={`flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-semibold w-full hover:opacity-90 transition-opacity ${
+              trialDaysLeft !== null
+                ? "bg-violet-600 text-white"
+                : daysUntilExpiry! <= 0
+                ? "bg-red-600 text-white"
+                : "bg-amber-400 text-amber-950"
+            }`}
           >
             <span className="material-symbols-outlined text-[18px]">
-              {daysUntilExpiry <= 0 ? "error" : "schedule"}
+              {trialDaysLeft !== null ? "experiment" : daysUntilExpiry! <= 0 ? "error" : "schedule"}
             </span>
-            {daysUntilExpiry <= 0
+            {trialDaysLeft !== null
+              ? trialDaysLeft === 0
+                ? "Your free trial ends today — upgrade to keep Pro features"
+                : trialDaysLeft === 1
+                ? "1 day left on your free trial — upgrade to keep access"
+                : `${trialDaysLeft} days left on your free trial — upgrade anytime`
+              : daysUntilExpiry! <= 0
               ? "Your plan has expired — renew now to keep Pro features"
               : daysUntilExpiry === 1
               ? "Your plan expires tomorrow — renew to avoid interruption"
@@ -189,7 +225,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
       )}
 
       {/* Main Content */}
-      <main className={`transition-all duration-300 min-h-screen pb-24 lg:pb-0 ${collapsed ? "lg:ml-16" : "lg:ml-64"} ${daysUntilExpiry !== null && userRole === "owner" ? "pt-10" : ""}`}>
+      <main className={`transition-all duration-300 min-h-screen pb-24 lg:pb-0 ${collapsed ? "lg:ml-16" : "lg:ml-64"} ${showBanner ? "pt-10" : ""}`}>
         <div className="w-full h-full bg-surface-container-lowest lg:rounded-[3rem] shadow-2xl border border-surface-container-high/50 overflow-hidden relative min-h-[calc(100vh-48px)]">
           {children}
         </div>

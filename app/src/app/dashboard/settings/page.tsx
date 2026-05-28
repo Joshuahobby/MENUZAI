@@ -39,6 +39,9 @@ export default function SettingsPage() {
     user,
     userRole,
     isLoading,
+    ownedRestaurants,
+    createRestaurantLocation,
+    switchRestaurantLocation,
   } = useMenu();
 
   const [name, setName] = useState(restaurantName);
@@ -763,6 +766,57 @@ export default function SettingsPage() {
           <StaffManager />
         )}
 
+        {/* Custom Domain — Business plan only */}
+        {restaurantPlan === "business" && userRole === "owner" && (
+          <CustomDomainSection restaurantId={restaurantId} />
+        )}
+
+        {/* Locations — Business plan only */}
+        {restaurantPlan === "business" && userRole === "owner" && (
+          <div className="bg-surface-container-lowest p-6 sm:p-8 rounded-[2rem] border border-surface-container/50 lg:col-span-2">
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <p className="font-[var(--font-headline)] font-bold text-lg">Locations</p>
+                <p className="text-sm text-secondary mt-0.5">Manage multiple restaurant locations under one account.</p>
+              </div>
+              <button
+                type="button"
+                onClick={async () => {
+                  const { prompt } = await import("@/components/Modals");
+                  const locationName = await prompt({ title: "New Location", message: "Enter the name for this location:", placeholder: "e.g. Kimironko Branch" });
+                  if (locationName) await createRestaurantLocation(locationName);
+                }}
+                className="flex items-center gap-2 px-4 py-2 bg-primary text-white text-sm font-bold rounded-xl hover:bg-primary/90 transition-colors"
+              >
+                <span className="material-symbols-outlined text-[18px]">add_location</span>
+                Add Location
+              </button>
+            </div>
+            <div className="space-y-2">
+              {ownedRestaurants.map((r) => (
+                <div key={r.id} className="flex items-center justify-between p-4 bg-surface-container rounded-xl">
+                  <div className="flex items-center gap-3">
+                    <span className="material-symbols-outlined text-secondary text-[20px]">store</span>
+                    <span className="font-semibold text-sm">{r.name}</span>
+                  </div>
+                  {r.id !== restaurantId && (
+                    <button
+                      type="button"
+                      onClick={() => switchRestaurantLocation(r.id)}
+                      className="text-xs font-bold text-primary hover:underline"
+                    >
+                      Switch
+                    </button>
+                  )}
+                  {r.id === restaurantId && (
+                    <span className="text-xs font-bold text-tertiary bg-tertiary/10 px-2 py-0.5 rounded-full">Active</span>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* WhatsApp Settings */}
         <div className="bg-surface-container-lowest p-6 sm:p-8 rounded-[2rem] border border-surface-container/50 lg:col-span-2">
           <div className="flex items-center justify-between mb-6">
@@ -829,6 +883,61 @@ export default function SettingsPage() {
           )}
         </div>
       </div>
+    </div>
+  );
+}
+
+function CustomDomainSection({ restaurantId }: { restaurantId: string | null }) {
+  const [domain, setDomain] = useState("");
+  const [saved, setSaved] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (!restaurantId) return;
+    supabase.from("restaurants").select("custom_domain").eq("id", restaurantId).single()
+      .then(({ data }) => { if (data?.custom_domain) { setDomain(data.custom_domain); setSaved(data.custom_domain); } });
+  }, [restaurantId]);
+
+  const handleSave = async () => {
+    if (!restaurantId) return;
+    setSaving(true);
+    const cleaned = domain.trim().toLowerCase().replace(/^https?:\/\//, "");
+    const { error } = await supabase.from("restaurants").update({ custom_domain: cleaned || null }).eq("id", restaurantId);
+    if (error) { toast.error("Failed to save domain."); } else { setSaved(cleaned); toast.success("Custom domain saved."); }
+    setSaving(false);
+  };
+
+  return (
+    <div className="bg-surface-container-lowest p-6 sm:p-8 rounded-[2rem] border border-surface-container/50 lg:col-span-2">
+      <p className="font-[var(--font-headline)] font-bold text-lg mb-1">Custom Domain</p>
+      <p className="text-sm text-secondary mb-6">Point your own domain to this menu. Visitors who open your domain will see your published menu directly.</p>
+
+      <div className="flex gap-3 mb-6">
+        <input
+          type="text"
+          placeholder="menu.yourrestaurant.com"
+          value={domain}
+          onChange={(e) => setDomain(e.target.value)}
+          className="flex-1 bg-surface-container-low border border-outline-variant/30 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 font-mono"
+        />
+        <button type="button" onClick={handleSave} disabled={saving || domain === saved}
+          className="px-5 py-3 bg-primary text-white text-sm font-bold rounded-xl hover:bg-primary/90 transition-colors disabled:opacity-50">
+          {saving ? "Saving…" : "Save"}
+        </button>
+      </div>
+
+      {saved && (
+        <div className="bg-surface-container rounded-xl p-4 text-xs font-mono space-y-2">
+          <p className="font-bold text-on-surface text-sm mb-3 font-sans">DNS Setup Instructions</p>
+          <p className="text-secondary">Add this CNAME record at your domain registrar:</p>
+          <div className="grid grid-cols-3 gap-2 mt-2">
+            <div className="bg-surface p-2 rounded-lg"><p className="text-[10px] text-secondary uppercase font-bold mb-1">Type</p><p>CNAME</p></div>
+            <div className="bg-surface p-2 rounded-lg"><p className="text-[10px] text-secondary uppercase font-bold mb-1">Name</p><p>{saved.split(".")[0]}</p></div>
+            <div className="bg-surface p-2 rounded-lg"><p className="text-[10px] text-secondary uppercase font-bold mb-1">Value</p><p className="truncate">{process.env.NEXT_PUBLIC_SITE_URL?.replace(/^https?:\/\//, "") ?? "menuzai.com"}</p></div>
+          </div>
+          <p className="text-secondary mt-3 font-sans">DNS changes can take up to 24 hours to propagate. Once set, your menu will be live at <span className="text-primary">{saved}</span>.</p>
+        </div>
+      )}
     </div>
   );
 }
