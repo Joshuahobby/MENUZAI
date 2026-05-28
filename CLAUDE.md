@@ -63,7 +63,13 @@ NEXT_PUBLIC_SITE_URL=http://localhost:3000   # set to production domain on Verce
 # PAWAPAY_MODE=sandbox           # "sandbox" (default) or "live"
 # PAWAPAY_BASE_URL=              # override; auto-set from PAWAPAY_MODE if omitted
 # PAWAPAY_WEBHOOK_PUBLIC_KEY="-----BEGIN PUBLIC KEY-----\n..."
-# RESEND_API_KEY=re_...          # order confirmation & plan-upgrade emails
+# RESEND_API_KEY=re_...          # order confirmation, plan-upgrade & welcome emails
+# RESEND_FROM_EMAIL=welcome@menuzaai.com  # sender address for welcome emails (optional, has default)
+# CRON_SECRET=                   # optional bearer token to secure /api/cron/* endpoints
+# NEXT_PUBLIC_VAPID_PUBLIC_KEY=  # alias for VAPID_PUBLIC_KEY — needed client-side for push subscribe
+# VAPID_PUBLIC_KEY=              # Web Push VAPID public key
+# VAPID_PRIVATE_KEY=             # Web Push VAPID private key
+# VAPID_CONTACT_EMAIL=           # Web Push contact email (mailto: in VAPID details)
 # For Playwright E2E tests:
 # E2E_TEST_EMAIL=
 # E2E_TEST_PASSWORD=
@@ -97,6 +103,12 @@ MENUZAI is an AI-powered SaaS platform for restaurant menu digitization. Stack: 
 | `/menu/[slug]` | No | Public menu — only renders if `status = 'published'` |
 | `/menu/[slug]/order` | No | Cart + WhatsApp checkout for public menus |
 | `/menu/demo` | No | Demo using hardcoded mock data |
+| `/demo` | No | Demo role chooser — links to customer, owner, and staff demos |
+| `/demo/owner` | No | Interactive owner dashboard demo (no auth required) |
+| `/demo/staff` | No | Interactive staff orders panel demo (no auth required) |
+| `/features` | No | Features marketing page |
+| `/terms` | No | Terms of Service |
+| `/privacy` | No | Privacy Policy |
 
 ### API Routes
 
@@ -117,6 +129,10 @@ MENUZAI is an AI-powered SaaS platform for restaurant menu digitization. Stack: 
 | `/api/plan/change` | POST | Subscription plan upgrade/downgrade |
 | `/api/reviews` | POST | Submit a customer review (unauthenticated); writes to `reviews` table via admin client |
 | `/api/staff` | GET/POST/DELETE | List/add/remove `restaurant_staff` entries; owner-only writes, owner+manager reads; uses admin client to resolve emails via `auth.admin.listUsers` |
+| `/api/push/subscribe` | POST | Upserts a Web Push subscription for the authenticated restaurant; requires VAPID env vars |
+| `/api/push/send` | POST | Sends a Web Push notification to all subscribers of a `restaurantId`; auto-purges expired (410) subscriptions; admin client |
+| `/api/notifications/welcome` | POST | Sends a welcome onboarding email via Resend on first restaurant creation; body: `{ userId, restaurantName }` |
+| `/api/cron/expire-transactions` | POST | Expires `transactions` rows stuck in `pending` for >15 min; runs on Vercel cron at 02:00 UTC daily; secured by optional `CRON_SECRET` bearer token |
 
 ### Platform Admin Access
 
@@ -155,13 +171,15 @@ Migrations live in `app/supabase/migrations/` — run them in order in the Supab
 | `015_restaurants_category.sql` | Adds `category varchar(50)` and `terms_accepted_at timestamptz` columns to `restaurants` |
 | `016_push_subscriptions.sql` | `push_subscriptions` table — stores Web Push subscription objects per restaurant; unique index on `(restaurant_id, endpoint)`; used by `/api/push/subscribe` and `/api/push/send` |
 | `017_orders_update_with_check.sql` | Adds explicit `WITH CHECK` to orders UPDATE policy (mirrors USING clause; prevents PostgREST ambiguity) |
+| `018_fix_orders_status_check.sql` | Recreates `orders_status_check` constraint with the full valid set: `pending`, `preparing`, `confirmed`, `cancelled` |
+| `019_orders_source.sql` | Adds `source text not null default 'whatsapp'` to `orders`; tracks whether an order came from the WhatsApp button or AI Waiter chat |
 
 Key tables:
 
 - **`restaurants`** — one row per user, created on first login. Has `onboarded boolean` checked by dashboard layout.
 - **`menus`** — many per restaurant. `categories` and `items` are JSONB arrays. `status` is `'draft' | 'published'`. Has a legacy `restaurant_name` column (nullable, unused — do not rely on it).
 - **`analytics_events`** — fired client-side via `app/src/lib/analytics.ts` (fire-and-forget, no error handling by design).
-- **`orders`** — created via WhatsApp flow. `status`: `pending` → `preparing` → `confirmed` → `cancelled`. Use `POST /api/orders/confirm` to mark ready (sets `confirmed`, decrements stock). `preparing` and `cancelled` are set directly via Supabase client. Also stores `customer_email` (added in migration 013) for Resend receipt emails.
+- **`orders`** — created via WhatsApp flow. `status`: `pending` → `preparing` → `confirmed` → `cancelled`. Use `POST /api/orders/confirm` to mark ready (sets `confirmed`, decrements stock). `preparing` and `cancelled` are set directly via Supabase client. Also stores `customer_email` (migration 013) for Resend receipt emails and `source` (migration 019): `'whatsapp'` or `'ai_waiter'`.
 - **`platform_settings`** — single row ('global') managing global AI provider and model orchestration.
 - **`restaurant_staff`** — RBAC join table: `(restaurant_id, user_id, role)`. Roles: `owner`, `manager`, `staff`. Unique per `(restaurant_id, user_id)`. Backfilled from `restaurants.user_id` on migration.
 - **`reviews`** — customer reviews: `(restaurant_id, rating 1–5, customer_name?, comment?, order_id?, sentiment, reply?, replied_at?)`. Open insert, staff-only read. `sentiment` is `"positive" | "negative" | "neutral"`. Staff can draft and save replies via `/dashboard/reviews`.
