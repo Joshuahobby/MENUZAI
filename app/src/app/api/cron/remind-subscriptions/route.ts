@@ -1,0 +1,87 @@
+import { NextResponse } from "next/server";
+import { getSupabaseAdmin } from "@/lib/supabase-admin";
+
+export const dynamic = "force-dynamic";
+
+export async function POST(req: Request) {
+  const secret = process.env.CRON_SECRET;
+  if (secret) {
+    const auth = req.headers.get("authorization");
+    if (auth !== `Bearer ${secret}`) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+  }
+
+  const admin = getSupabaseAdmin();
+  if (!admin) return NextResponse.json({ error: "Configuration missing" }, { status: 500 });
+
+  // Match restaurants expiring on exactly the same calendar day as now()+3 days.
+  // The daily cron guarantees this fires once per restaurant.
+  const targetDate = new Date();
+  targetDate.setDate(targetDate.getDate() + 3);
+  const targetDay = targetDate.toISOString().slice(0, 10); // "YYYY-MM-DD"
+
+  const { data: expiring, error } = await admin
+    .from("restaurants")
+    .select("id, name, user_id, plan")
+    .gte("plan_expires_at", `${targetDay}T00:00:00Z`)
+    .lt("plan_expires_at", `${targetDay}T23:59:59Z`)
+    .neq("plan", "free");
+
+  if (error) {
+    console.error("remind-subscriptions query error:", error);
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+
+  if (!expiring?.length) {
+    return NextResponse.json({ reminded: 0 });
+  }
+
+  const resendKey = process.env.RESEND_API_KEY;
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://menuzai.com";
+  let reminded = 0;
+
+  for (const restaurant of expiring) {
+    const { data: { user } } = await admin.auth.admin.getUserById(restaurant.user_id);
+    const email = user?.email;
+    if (!email || !resendKey) continue;
+
+    const planLabel = (restaurant.plan as string).charAt(0).toUpperCase() + (restaurant.plan as string).slice(1);
+
+    const html = `
+      <div style="font-family:sans-serif;max-width:560px;margin:auto;color:#1c1c1e">
+        <div style="background:#FF6B00;padding:24px 32px;border-radius:16px 16px 0 0">
+          <h1 style="color:white;margin:0;font-size:20px">Your ${planLabel} plan expires in 3 days</h1>
+        </div>
+        <div style="background:#fff;padding:24px 32px;border:1px solid #e5e5ea;border-top:none;border-radius:0 0 16px 16px">
+          <p style="font-size:16px">Hi there,</p>
+          <p>Your <strong>${planLabel} plan</strong> for <strong>${restaurant.name ?? "your restaurant"}</strong> on MENUZA AI expires in <strong>3 days</strong>.</p>
+          <p>To keep your AI Digital Waiter, unlimited menus, and all Pro features running without interruption, renew now with a quick Mobile Money payment.</p>
+          <a href="${siteUrl}/dashboard/settings" style="display:inline-block;margin-top:16px;padding:12px 28px;background:#FF6B00;color:white;font-weight:bold;border-radius:12px;text-decoration:none">
+            Renew My Plan
+          </a>
+          <p style="font-size:13px;color:#555;margin-top:24px">If you don't renew, your account will automatically switch to the Free plan on the expiry date and features like the AI Waiter and staff management will be paused.</p>
+          <p style="font-size:12px;color:#888;margin-top:16px">Sent by MENUZA AI · Questions? Reply to this email.</p>
+        </div>
+      </div>`;
+
+    await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${resendKey}`,
+      },
+      body: JSON.stringify({
+        from: `MENUZA AI <${process.env.RESEND_FROM_EMAIL ?? "orders@ikoranabuhanga.tech"}>`,
+        to: [email],
+        subject: `Renew your ${planLabel} plan — expires in 3 days`,
+        html,
+      }),
+    }).catch((e) => console.error(`Reminder email failed for ${restaurant.id}:`, e));
+
+    reminded++;
+  }
+
+  console.log(`remind-subscriptions: sent ${reminded} reminder(s)`);
+  return NextResponse.json({ reminded });
+}

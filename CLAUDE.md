@@ -94,11 +94,11 @@ MENUZAI is an AI-powered SaaS platform for restaurant menu digitization. Stack: 
 | `/dashboard/editor` | Yes | WYSIWYG menu editor — 2-panel layout (sidebar + device-frame canvas) |
 | `/dashboard/analytics` | Yes | Menu performance charts (views, conversions) via recharts |
 | `/dashboard/menus` | Yes | List, create, and switch between menus |
-| `/dashboard/orders` | Yes | Real-time staff panel — live order stream (Supabase postgres_changes) + waiter pager (Supabase broadcast channel `table_requests:{restaurantId}`) |
-| `/dashboard/qr-codes` | Yes | Generate custom QR poster badges with logo overlay; uses `QRPosterRenderer` |
+| `/dashboard/orders` | Yes | Real-time staff panel — live order stream (Supabase postgres_changes) + waiter pager (Supabase broadcast channel `table_requests:{restaurantId}`); filterable by status and source (WhatsApp / AI Waiter) |
+| `/dashboard/qr-codes` | Yes | Generate custom QR poster badges with logo overlay; batch export N table QR codes as a single PDF; uses `QRPosterRenderer` |
 | `/dashboard/reviews` | Yes | View customer reviews; AI-generated reply drafts via `/api/ai-reply` |
 | `/dashboard/settings` | Yes | Restaurant and account settings, plan upgrade/downgrade |
-| `/dashboard/templates` | Yes | Choose pre-designed menu templates (6 templates, live-rendered) |
+| `/dashboard/templates` | Yes | Choose pre-designed menu templates (8 templates, live-rendered) |
 | `/admin/settings` | Yes (platform admin) | Super-admin AI provider config; guarded by `isPlatformAdmin()` |
 | `/menu/[slug]` | No | Public menu — only renders if `status = 'published'` |
 | `/menu/[slug]/order` | No | Cart + WhatsApp checkout for public menus |
@@ -118,21 +118,23 @@ MENUZAI is an AI-powered SaaS platform for restaurant menu digitization. Stack: 
 | `/api/auth/callback` | GET | Supabase OAuth redirect handler |
 | `/api/analytics/summary` | GET | Aggregated analytics from `analytics_events` table |
 | `/api/ai-waiter` | POST | AI-powered conversational waiter in public menu; routes to configured AI provider |
-| `/api/ai-reply` | POST | Generates AI reply draft for a customer review; uses OpenRouter with fallback template |
+| `/api/ai-reply` | POST | Generates AI reply draft for a customer review; **Pro-only** (auth + plan checked server-side); uses OpenRouter with fallback template |
 | `/api/ai/generate-items` | POST | Generates menu items from a natural-language prompt; bulk-inserts into the active category; uses configured AI provider |
 | `/api/ai/description` | POST | Auto-writes a single item description given the item name and tags; uses configured AI provider |
 | `/api/admin/ai-config` | GET/POST | Read/write `platform_settings`; restricted to `isPlatformAdmin()` emails |
 | `/api/notifications/order` | POST | Order notification handler |
 | `/api/orders/confirm` | POST | Confirms order, decrements `stock_count` on each item, auto-sets `available=false` when stock hits 0; requires `SUPABASE_SERVICE_ROLE_KEY` |
-| `/api/payments/pawapay` | POST | Payment initiation; falls back to simulation if `PAWAPAY_API_KEY` not set |
-| `/api/webhooks/pawapay` | POST | Payment webhook; verifies `X-Pawapay-Signature` RSA-SHA256 against `PAWAPAY_WEBHOOK_PUBLIC_KEY` |
-| `/api/plan/change` | POST | Subscription plan upgrade/downgrade |
+| `/api/payments/pawapay` | POST | Payment initiation; amount is looked up server-side from `PLAN_PRICES` (not trusted from client); falls back to simulation if `PAWAPAY_API_KEY` not set |
+| `/api/payments/status` | GET | Poll transaction status by `?depositId=`; auth-scoped to the requesting user; returns `{ status, plan }` |
+| `/api/webhooks/pawapay` | POST | Payment webhook; verifies `X-Pawapay-Signature` RSA-SHA256; on `COMPLETED` upgrades plan and sets `plan_expires_at = now()+30d` |
+| `/api/plan/change` | POST | Voluntary downgrade only (upgrades require payment); clears `plan_expires_at` on downgrade |
 | `/api/reviews` | POST | Submit a customer review (unauthenticated); writes to `reviews` table via admin client |
-| `/api/staff` | GET/POST/DELETE | List/add/remove `restaurant_staff` entries; owner-only writes, owner+manager reads; uses admin client to resolve emails via `auth.admin.listUsers` |
+| `/api/staff` | GET/POST/DELETE | List/add/remove `restaurant_staff` entries; owner-only writes (POST/DELETE), owner+manager reads; POST is **Pro-only** (plan checked server-side); uses admin client to resolve emails via `auth.admin.listUsers` |
 | `/api/push/subscribe` | POST | Upserts a Web Push subscription for the authenticated restaurant; requires VAPID env vars |
 | `/api/push/send` | POST | Sends a Web Push notification to all subscribers of a `restaurantId`; auto-purges expired (410) subscriptions; admin client |
 | `/api/notifications/welcome` | POST | Sends a welcome onboarding email via Resend on first restaurant creation; body: `{ userId, restaurantName }` |
 | `/api/cron/expire-transactions` | POST | Expires `transactions` rows stuck in `pending` for >15 min; runs on Vercel cron at 02:00 UTC daily; secured by optional `CRON_SECRET` bearer token |
+| `/api/cron/expire-subscriptions` | POST | Downgrades restaurants whose `plan_expires_at` has passed to `free`; runs on Vercel cron at 03:00 UTC daily; secured by optional `CRON_SECRET` |
 
 ### Platform Admin Access
 
@@ -173,10 +175,11 @@ Migrations live in `app/supabase/migrations/` — run them in order in the Supab
 | `017_orders_update_with_check.sql` | Adds explicit `WITH CHECK` to orders UPDATE policy (mirrors USING clause; prevents PostgREST ambiguity) |
 | `018_fix_orders_status_check.sql` | Recreates `orders_status_check` constraint with the full valid set: `pending`, `preparing`, `confirmed`, `cancelled` |
 | `019_orders_source.sql` | Adds `source text not null default 'whatsapp'` to `orders`; tracks whether an order came from the WhatsApp button or AI Waiter chat |
+| `020_plan_expires_at.sql` | Adds `plan_expires_at timestamptz` to `restaurants`; `null` = free/no expiry; set to `now()+30d` by PawaPay webhook on each payment |
 
 Key tables:
 
-- **`restaurants`** — one row per user, created on first login. Has `onboarded boolean` checked by dashboard layout.
+- **`restaurants`** — one row per user, created on first login. Has `onboarded boolean` checked by dashboard layout. `plan_expires_at timestamptz` tracks subscription expiry — `null` for free; set 30 days forward on each successful payment; cleared on voluntary downgrade.
 - **`menus`** — many per restaurant. `categories` and `items` are JSONB arrays. `status` is `'draft' | 'published'`. Has a legacy `restaurant_name` column (nullable, unused — do not rely on it).
 - **`analytics_events`** — fired client-side via `app/src/lib/analytics.ts` (fire-and-forget, no error handling by design).
 - **`orders`** — created via WhatsApp flow. `status`: `pending` → `preparing` → `confirmed` → `cancelled`. Use `POST /api/orders/confirm` to mark ready (sets `confirmed`, decrements stock). `preparing` and `cancelled` are set directly via Supabase client. Also stores `customer_email` (migration 013) for Resend receipt emails and `source` (migration 019): `'whatsapp'` or `'ai_waiter'`.
@@ -242,7 +245,7 @@ The editor also integrates a **Print Menu** overlay using `PrintView` from the t
 `app/src/app/dashboard/templates/` contains the live-rendered template engine:
 
 - **`TemplatePreview.tsx`** — renders 8 distinct menu templates as pure React/inline-style components, scaled to fit any container width. Templates: `vintage-parchment`, `dark-chalkboard`, `bold-street`, `bistro-split`, `photo-gallery`, `luxury-gold`, `organic-clean`, `midnight-luxe`. Each template uses its own Google Fonts (Playfair Display, Oswald, Bebas Neue, Cormorant Garamond, Outfit). Exports `TplData`, `TplItem`, `TplCategory`, `TplStyle` types and `DEMO_DATA` constant. Canvas base dimensions: 700×990px.
-- **`PrintView.tsx`** — print/PDF overlay with template switcher dropdown (all 6 templates), accent color picker, and a "Download PDF" button that opens the browser print dialog targeting "Save as PDF". Also includes a share link button.
+- **`PrintView.tsx`** — print/PDF overlay with template switcher dropdown (all 8 templates), accent color picker, and a "Download PDF" button that opens the browser print dialog targeting "Save as PDF". Also includes a share link button.
 - **`page.tsx`** — template gallery page for browsing and applying templates.
 
 ### AI Provider Stack & Admin Dashboard
@@ -259,7 +262,7 @@ The platform uses a dynamic AI provider stack configurable by the platform admin
 
 ### AI Waiter
 
-`POST /api/ai-waiter` handles customer queries via a conversational interface in the public menu. It dynamically routes queries to the configured AI provider, using the restaurant's menu items as context. Per-restaurant tone and upsell behavior is controlled by `MenuStyle.aiWaiter*` fields.
+`POST /api/ai-waiter` handles customer queries via a conversational interface in the public menu. It dynamically routes queries to the configured AI provider, using the restaurant's menu items as context. Per-restaurant tone and upsell behavior is controlled by `MenuStyle.aiWaiter*` fields. The chat widget auto-opens with a time-of-day greeting after 3 seconds on Pro/Business plans (proactive greeting fires once per page load via `useRef` guard in `PublicMenuClient`). Customers can place full orders in-chat; these are saved with `source = 'ai_waiter'` in the `orders` table.
 
 ### Styling
 
@@ -301,6 +304,7 @@ The `restaurants` table stores the current plan tier; check `canCreateMenu()`, `
 | `BuildSidebarContent` | `app/src/app/dashboard/editor/BuildSidebarContent.tsx` | Build tab — category management, item list, AI item generator |
 | `StyleEditorSidebarContent` | `app/src/app/dashboard/editor/StyleEditorSidebarContent.tsx` | Design tab with 4 sub-tabs (Theme/Colors/Fonts/Layout) |
 | `EditorItemForm` | `app/src/app/dashboard/editor/EditorItemForm.tsx` | Full item edit form (image, gallery, price, name, description with AI auto-write, availability, badge, dietary tags, stock count, duplicate/delete); shown inside BuildSidebarContent when an item is selected |
+| `ItemDetailsModal` | `app/src/components/menu/ItemDetailsModal.tsx` | Public menu item detail sheet — shows gallery, dietary tags, add-to-cart; opened from `PublicMenuClient` |
 | `useMenuBootstrap` | `app/src/hooks/useMenuBootstrap.ts` | Auth + restaurant/menu bootstrap hook used by MenuProvider |
 | `StaffManager` | `app/src/app/dashboard/settings/StaffManager.tsx` | Staff invite/remove UI in dashboard settings; calls `/api/staff` |
 

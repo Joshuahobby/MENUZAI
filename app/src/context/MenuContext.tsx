@@ -23,6 +23,7 @@ interface MenuContextType {
   setRestaurantLogoUrl: (url: string) => void;
   plan: string;
   setPlan: (plan: string) => void;
+  planExpiresAt: string | null;
   categories: MenuCategory[];
   setCategories: (cats: MenuCategory[] | ((prev: MenuCategory[]) => MenuCategory[])) => void;
   menuItems: MenuItem[];
@@ -73,6 +74,7 @@ export function MenuProvider({ children }: { children: React.ReactNode }) {
     restaurantPhone, setRestaurantPhone,
     restaurantLogoUrl, setRestaurantLogoUrl,
     plan, setPlan,
+    planExpiresAt,
     onboarded, setOnboarded,
     activeMenuId, setActiveMenuId,
     activeMenuName, setActiveMenuName,
@@ -481,6 +483,7 @@ export function MenuProvider({ children }: { children: React.ReactNode }) {
       setRestaurantLogoUrl,
       plan,
       setPlan,
+      planExpiresAt,
       categories,
       setCategories,
       menuItems,

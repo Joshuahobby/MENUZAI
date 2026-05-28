@@ -300,6 +300,10 @@ export default function SettingsPage() {
         onClose={() => setCheckoutOpen(false)}
         planName={checkoutPlan.name}
         priceAmount={checkoutPlan.price}
+        onSuccess={(newPlan) => {
+          setPlan(newPlan);
+          setCheckoutOpen(false);
+        }}
       />
 
       <div className="mb-10">

@@ -1,7 +1,6 @@
 "use client";
 
-import { useState } from "react";
-import { supabase } from "@/lib/supabase";
+import { useState, useEffect, useRef } from "react";
 import { toast } from "sonner";
 
 interface CheckoutModalProps {
@@ -9,12 +8,61 @@ interface CheckoutModalProps {
   onClose: () => void;
   planName: string;
   priceAmount: number;
+  onSuccess?: (plan: string) => void;
 }
 
-export function CheckoutModal({ isOpen, onClose, planName, priceAmount }: CheckoutModalProps) {
+type PaymentStage = "form" | "awaiting" | "confirmed" | "failed";
+
+const POLL_INTERVAL_MS = 3_000;
+const POLL_MAX_ATTEMPTS = 40; // 2 minutes
+
+export function CheckoutModal({ isOpen, onClose, planName, priceAmount, onSuccess }: CheckoutModalProps) {
   const [phoneNumber, setPhoneNumber] = useState("");
   const [loading, setLoading] = useState(false);
-  const [awaitingConfirmation, setAwaitingConfirmation] = useState(false);
+  const [stage, setStage] = useState<PaymentStage>("form");
+  const [depositId, setDepositId] = useState<string | null>(null);
+  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const attemptsRef = useRef(0);
+
+  useEffect(() => {
+    if (!isOpen) {
+      setStage("form");
+      setPhoneNumber("");
+      setDepositId(null);
+      attemptsRef.current = 0;
+    }
+  }, [isOpen]);
+
+  useEffect(() => {
+    if (stage !== "awaiting" || !depositId) return;
+
+    pollRef.current = setInterval(async () => {
+      attemptsRef.current += 1;
+      if (attemptsRef.current > POLL_MAX_ATTEMPTS) {
+        clearInterval(pollRef.current!);
+        return;
+      }
+
+      try {
+        const res = await fetch(`/api/payments/status?depositId=${depositId}`);
+        if (!res.ok) return;
+        const { status, plan } = await res.json();
+
+        if (status === "completed") {
+          clearInterval(pollRef.current!);
+          setStage("confirmed");
+          onSuccess?.(plan ?? planName.toLowerCase());
+        } else if (status === "failed") {
+          clearInterval(pollRef.current!);
+          setStage("failed");
+        }
+      } catch {
+        // network blip — keep polling
+      }
+    }, POLL_INTERVAL_MS);
+
+    return () => clearInterval(pollRef.current!);
+  }, [stage, depositId, planName, onSuccess]);
 
   if (!isOpen) return null;
 
@@ -23,14 +71,6 @@ export function CheckoutModal({ isOpen, onClose, planName, priceAmount }: Checko
     if (!phoneNumber) return toast.error("Please enter a valid mobile money number.");
 
     setLoading(true);
-    const { data: { session } } = await supabase.auth.getSession();
-
-    if (!session) {
-      toast.error("Please log in to continue.");
-      setLoading(false);
-      return;
-    }
-
     try {
       const res = await fetch("/api/payments/pawapay", {
         method: "POST",
@@ -38,17 +78,14 @@ export function CheckoutModal({ isOpen, onClose, planName, priceAmount }: Checko
         body: JSON.stringify({
           phoneNumber: `250${phoneNumber.replace(/^0+/, "")}`,
           plan: planName,
-          amount: priceAmount,
         }),
       });
 
       const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Payment failed");
 
-      if (res.ok) {
-        setAwaitingConfirmation(true);
-      } else {
-        throw new Error(data.error || "Payment failed");
-      }
+      setDepositId(data.depositId);
+      setStage("awaiting");
     } catch (err: unknown) {
       toast.error((err as Error).message);
     } finally {
@@ -59,48 +96,85 @@ export function CheckoutModal({ isOpen, onClose, planName, priceAmount }: Checko
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
       <div className="bg-surface-container-lowest rounded-[2rem] w-full max-w-md shadow-2xl p-8 relative animate-in fade-in zoom-in-95 duration-200">
-        <button
-          type="button"
-          onClick={onClose}
-          className="absolute top-6 right-6 w-8 h-8 flex items-center justify-center rounded-full hover:bg-surface-container-high transition-colors text-secondary hover:text-on-surface"
-        >
-          <span className="material-symbols-outlined text-[20px]">close</span>
-        </button>
+        {stage !== "confirmed" && (
+          <button
+            type="button"
+            onClick={onClose}
+            className="absolute top-6 right-6 w-8 h-8 flex items-center justify-center rounded-full hover:bg-surface-container-high transition-colors text-secondary hover:text-on-surface"
+          >
+            <span className="material-symbols-outlined text-[20px]">close</span>
+          </button>
+        )}
 
-        {awaitingConfirmation ? (
+        {stage === "confirmed" && (
+          <div className="flex flex-col items-center text-center py-4">
+            <span className="material-symbols-outlined text-[64px] text-tertiary mb-4">check_circle</span>
+            <h2 className="text-2xl font-[var(--font-headline)] font-black tracking-tight mb-2">You&apos;re on {planName}!</h2>
+            <p className="text-secondary text-sm mb-8 leading-relaxed">
+              Payment confirmed. Your plan has been upgraded — enjoy all the new features.
+            </p>
+            <button
+              type="button"
+              onClick={onClose}
+              className="w-full py-3 bg-tertiary text-white font-bold rounded-xl text-sm hover:bg-tertiary/90 transition-colors"
+            >
+              Close
+            </button>
+          </div>
+        )}
+
+        {stage === "failed" && (
+          <div className="flex flex-col items-center text-center py-4">
+            <span className="material-symbols-outlined text-[64px] text-error mb-4">cancel</span>
+            <h2 className="text-2xl font-[var(--font-headline)] font-black tracking-tight mb-2">Payment failed</h2>
+            <p className="text-secondary text-sm mb-8 leading-relaxed">
+              The payment was not completed. Please check your Mobile Money balance and try again.
+            </p>
+            <button
+              type="button"
+              onClick={() => setStage("form")}
+              className="w-full py-3 bg-primary text-white font-bold rounded-xl text-sm hover:bg-primary/90 transition-colors"
+            >
+              Try again
+            </button>
+          </div>
+        )}
+
+        {stage === "awaiting" && (
           <div className="flex flex-col items-center text-center py-4">
             <span className="material-symbols-outlined text-[56px] text-primary mb-4 animate-pulse">smartphone</span>
             <h2 className="text-2xl font-[var(--font-headline)] font-black tracking-tight mb-3">Check your phone</h2>
             <p className="text-secondary text-sm mb-6 leading-relaxed">
-              A Mobile Money prompt has been sent to <span className="font-bold text-on-surface">250{phoneNumber.replace(/^0+/, "")}</span>. Enter your PIN to complete the payment.
+              A Mobile Money prompt has been sent to{" "}
+              <span className="font-bold text-on-surface">250{phoneNumber.replace(/^0+/, "")}</span>.
+              Enter your PIN to complete the payment.
             </p>
-            <p className="text-xs text-secondary mb-8 bg-surface-container p-3 rounded-xl">
-              Your <span className="font-bold text-primary">{planName}</span> plan will activate automatically once the payment is confirmed. This usually takes under a minute.
-            </p>
+            <div className="flex items-center gap-2 text-xs text-secondary mb-8 bg-surface-container p-3 rounded-xl w-full justify-center">
+              <span className="w-3 h-3 rounded-full bg-primary animate-ping inline-block shrink-0"></span>
+              Waiting for confirmation…
+            </div>
             <button
               type="button"
-              onClick={() => { onClose(); window.location.reload(); }}
+              onClick={onClose}
               className="w-full py-3 bg-primary/10 text-primary font-bold rounded-xl text-sm hover:bg-primary/20 transition-colors"
             >
-              Done — Refresh Dashboard
+              I&apos;ll check back later
             </button>
           </div>
-        ) : (
+        )}
+
+        {stage === "form" && (
           <>
-            {process.env.NEXT_PUBLIC_PAWAPAY_MODE === "sandbox" && (
-              <div className="mb-5 flex items-center gap-2.5 bg-amber-50 border border-amber-200 text-amber-800 rounded-xl px-4 py-3 text-xs font-medium">
-                <span className="material-symbols-outlined text-[16px] text-amber-500">science</span>
-                Test Mode — no real money will be charged
-              </div>
-            )}
             <div className="mb-8">
               <h2 className="text-2xl font-[var(--font-headline)] font-black tracking-tight mb-2">Checkout</h2>
-              <p className="text-secondary text-sm">You are upgrading to the <span className="font-bold text-primary">{planName}</span> plan.</p>
+              <p className="text-secondary text-sm">
+                You are upgrading to the <span className="font-bold text-primary">{planName}</span> plan.
+              </p>
             </div>
 
             <div className="flex justify-between items-center bg-surface-container p-4 rounded-xl mb-6 border border-outline-variant/20">
               <span className="font-bold">Total Due:</span>
-              <span className="text-xl font-black">{priceAmount.toLocaleString()} RWF</span>
+              <span className="text-xl font-black">{priceAmount.toLocaleString()} RWF / month</span>
             </div>
 
             <form onSubmit={handlePayment} className="space-y-6">

@@ -3,6 +3,11 @@ import { createSupabaseServerClient } from "@/lib/supabase-server";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
 import { headers } from "next/headers";
 
+const PLAN_PRICES: Record<string, number> = {
+  pro: 35_000,
+  business: 89_000,
+};
+
 const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
 const RATE_LIMIT_MAX = 3;
 const RATE_LIMIT_WINDOW_MS = 5 * 60_000;
@@ -26,7 +31,12 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Too many requests. Please wait a few minutes." }, { status: 429 });
   }
   try {
-    const { phoneNumber, plan, amount } = await req.json();
+    const { phoneNumber, plan } = await req.json();
+
+    const amount = PLAN_PRICES[plan?.toLowerCase()];
+    if (!amount) {
+      return NextResponse.json({ error: "Invalid plan" }, { status: 400 });
+    }
 
     // 1. Get authenticated user
     const supabase = await createSupabaseServerClient();

@@ -87,7 +87,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
-    // Only owners can add staff (or managers, depending on exact logic. Let's restrict to owner for now)
+    // Only owners can add staff
     const { data: staffData, error: staffError } = await supabase
       .from("restaurant_staff")
       .select("role")
@@ -100,8 +100,20 @@ export async function POST(req: Request) {
     }
 
     const adminClient = getSupabaseAdmin();
-    if (!adminClient) {
-      return NextResponse.json({ error: "Server misconfiguration" }, { status: 500 });
+    if (!adminClient) return NextResponse.json({ error: "Server misconfiguration" }, { status: 500 });
+
+    // Plan gate: staff management is Pro-only
+    const { data: restaurant } = await adminClient
+      .from("restaurants")
+      .select("plan")
+      .eq("id", restaurantId)
+      .single();
+
+    if (!restaurant || restaurant.plan === "free") {
+      return NextResponse.json(
+        { error: "Staff management requires a Pro plan. Upgrade in Settings to unlock." },
+        { status: 402 }
+      );
     }
 
     // Attempt to invite the user. If they already exist, this sends an invite magic link

@@ -56,8 +56,14 @@ export async function POST(req: Request) {
 
       const planName = (tx.plan_name as string | null)?.toLowerCase() ?? "pro";
 
+      const expiresAt = new Date();
+      expiresAt.setDate(expiresAt.getDate() + 30);
+
       const [{ error: upgradeError }, { data: restaurant }, { data: { user } }] = await Promise.all([
-        supabaseAdmin.from("restaurants").update({ plan: planName }).eq("id", tx.restaurant_id),
+        supabaseAdmin
+          .from("restaurants")
+          .update({ plan: planName, plan_expires_at: expiresAt.toISOString() })
+          .eq("id", tx.restaurant_id),
         supabaseAdmin.from("restaurants").select("name").eq("id", tx.restaurant_id).single(),
         supabaseAdmin.auth.admin.getUserById(tx.user_id),
       ]);

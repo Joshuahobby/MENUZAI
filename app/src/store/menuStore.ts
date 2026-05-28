@@ -32,6 +32,7 @@ interface MenuStoreState {
   restaurantPhone: string;
   restaurantLogoUrl: string;
   plan: string;
+  planExpiresAt: string | null;
   onboarded: boolean;
   activeMenuId: string | null;
   activeMenuName: string;
@@ -55,6 +56,7 @@ interface MenuStoreActions {
   setRestaurantPhone: (phone: string) => void;
   setRestaurantLogoUrl: (url: string) => void;
   setPlan: (plan: string) => void;
+  setPlanExpiresAt: (date: string | null) => void;
   setOnboarded: (value: boolean) => void;
   setActiveMenuId: (id: string | null) => void;
   setActiveMenuName: (name: string) => void;
@@ -83,6 +85,7 @@ export const useMenuStore = create<MenuStore>()(
     restaurantPhone: "",
     restaurantLogoUrl: "",
     plan: "free",
+    planExpiresAt: null,
     onboarded: false,
     activeMenuId: null,
     activeMenuName: "My Menu",
@@ -102,6 +105,7 @@ export const useMenuStore = create<MenuStore>()(
     setRestaurantPhone: (phone) => set({ restaurantPhone: phone }),
     setRestaurantLogoUrl: (url) => set({ restaurantLogoUrl: url }),
     setPlan: (plan) => set({ plan }),
+    setPlanExpiresAt: (date) => set({ planExpiresAt: date }),
     setOnboarded: (value) => set({ onboarded: value }),
     setActiveMenuId: (id) => set({ activeMenuId: id }),
     setActiveMenuName: (name) => set({ activeMenuName: name }),

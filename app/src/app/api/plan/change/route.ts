@@ -41,7 +41,7 @@ export async function POST(req: Request) {
 
     const { error } = await admin
       .from("restaurants")
-      .update({ plan: targetPlan })
+      .update({ plan: targetPlan, plan_expires_at: null })
       .eq("id", restaurant.id);
 
     if (error) throw error;

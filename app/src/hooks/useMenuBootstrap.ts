@@ -112,7 +112,7 @@ export function useMenuBootstrap() {
 
         const { data: existingRestaurant, error: selectError, status: selectStatus } = await supabase
           .from("restaurants")
-          .select("id, name, phone, plan, logo_url, onboarded, user_id")
+          .select("id, name, phone, plan, plan_expires_at, logo_url, onboarded, user_id")
           .eq("user_id", user.id)
           .order("created_at", { ascending: true })
           .limit(1)
@@ -136,6 +136,7 @@ export function useMenuBootstrap() {
               restaurantPhone: existingRestaurant.phone ?? "",
               restaurantLogoUrl: existingRestaurant.logo_url ?? "",
               plan: existingRestaurant.plan ?? "free",
+              planExpiresAt: existingRestaurant.plan_expires_at ?? null,
               onboarded: existingRestaurant.onboarded ?? false,
               userRole,
             });
@@ -156,7 +157,7 @@ export function useMenuBootstrap() {
             // Staff member — load the employer's restaurant directly.
             const { data: staffRestaurant } = await supabase
               .from("restaurants")
-              .select("id, name, phone, plan, logo_url, onboarded")
+              .select("id, name, phone, plan, plan_expires_at, logo_url, onboarded")
               .eq("id", staffRow.restaurant_id)
               .maybeSingle();
 
@@ -171,6 +172,7 @@ export function useMenuBootstrap() {
                 restaurantPhone: staffRestaurant.phone ?? "",
                 restaurantLogoUrl: staffRestaurant.logo_url ?? "",
                 plan: staffRestaurant.plan ?? "free",
+                planExpiresAt: staffRestaurant.plan_expires_at ?? null,
                 onboarded: staffRestaurant.onboarded ?? false,
                 userRole,
               });

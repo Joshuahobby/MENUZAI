@@ -3,6 +3,8 @@
   "framework": "nextjs",
   "regions": ["cdg1"],
   "crons": [
-    { "path": "/api/cron/expire-transactions", "schedule": "0 2 * * *" }
+    { "path": "/api/cron/expire-transactions",   "schedule": "0 2 * * *" },
+    { "path": "/api/cron/expire-subscriptions",  "schedule": "0 3 * * *" },
+    { "path": "/api/cron/remind-subscriptions",  "schedule": "0 9 * * *" }
   ]
 }

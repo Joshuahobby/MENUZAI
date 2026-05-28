@@ -28,7 +28,14 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   const router = useRouter();
   const [moreOpen, setMoreOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
-  const { restaurantLogoUrl, restaurantName, onboarded, isLoading, user, userRole } = useMenu();
+  const { restaurantLogoUrl, restaurantName, onboarded, isLoading, user, userRole, plan, planExpiresAt } = useMenu();
+
+  const daysUntilExpiry = (() => {
+    if (!planExpiresAt || plan === "free") return null;
+    const diff = new Date(planExpiresAt).getTime() - Date.now();
+    const days = Math.ceil(diff / (1000 * 60 * 60 * 24));
+    return days <= 3 ? days : null;
+  })();
 
   const navLinks = getNavLinks(userRole);
   const mobileNavLinks = navLinks.slice(0, Math.min(4, navLinks.length));
@@ -161,8 +168,28 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
         </div>
       </aside>
 
+      {/* Subscription expiry banner */}
+      {daysUntilExpiry !== null && userRole === "owner" && (
+        <div className={`fixed top-0 z-[60] transition-all duration-300 ${collapsed ? "lg:left-16" : "lg:left-64"} left-0 right-0`}>
+          <Link
+            href="/dashboard/settings"
+            className={`flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-semibold w-full ${daysUntilExpiry <= 0 ? "bg-red-600 text-white" : "bg-amber-400 text-amber-950"} hover:opacity-90 transition-opacity`}
+          >
+            <span className="material-symbols-outlined text-[18px]">
+              {daysUntilExpiry <= 0 ? "error" : "schedule"}
+            </span>
+            {daysUntilExpiry <= 0
+              ? "Your plan has expired — renew now to keep Pro features"
+              : daysUntilExpiry === 1
+              ? "Your plan expires tomorrow — renew to avoid interruption"
+              : `Your plan expires in ${daysUntilExpiry} days — tap to renew`}
+            <span className="material-symbols-outlined text-[16px] opacity-70">chevron_right</span>
+          </Link>
+        </div>
+      )}
+
       {/* Main Content */}
-      <main className={`transition-all duration-300 min-h-screen pb-24 lg:pb-0 ${collapsed ? "lg:ml-16" : "lg:ml-64"}`}>
+      <main className={`transition-all duration-300 min-h-screen pb-24 lg:pb-0 ${collapsed ? "lg:ml-16" : "lg:ml-64"} ${daysUntilExpiry !== null && userRole === "owner" ? "pt-10" : ""}`}>
         <div className="w-full h-full bg-surface-container-lowest lg:rounded-[3rem] shadow-2xl border border-surface-container-high/50 overflow-hidden relative min-h-[calc(100vh-48px)]">
           {children}
         </div>

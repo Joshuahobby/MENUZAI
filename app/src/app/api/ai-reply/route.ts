@@ -1,8 +1,31 @@
 import { NextResponse } from "next/server";
+import { createSupabaseServerClient } from "@/lib/supabase-server";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
 
 export async function POST(req: Request) {
   try {
+    const supabase = await createSupabaseServerClient();
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const admin = getSupabaseAdmin();
+    if (!admin) return NextResponse.json({ error: "Configuration missing" }, { status: 500 });
+
+    const { data: restaurant } = await admin
+      .from("restaurants")
+      .select("plan")
+      .eq("user_id", user.id)
+      .single();
+
+    if (!restaurant || restaurant.plan === "free") {
+      return NextResponse.json(
+        { error: "AI reply drafts require a Pro plan. Upgrade in Settings to unlock." },
+        { status: 402 }
+      );
+    }
+
     const { rating, customerName, comment, restaurantName } = await req.json();
 
     if (rating === undefined || rating === null) {
@@ -11,11 +34,6 @@ export async function POST(req: Request) {
 
     const name = customerName || "our valued guest";
     const commentContext = comment ? `and left the following feedback: "${comment}"` : "with no written comment.";
-
-    const admin = getSupabaseAdmin();
-    if (!admin) {
-      return NextResponse.json({ error: "Configuration missing" }, { status: 500 });
-    }
 
     // Fallback template builder if external API is slow or offline
     const buildFallbackReply = () => {
