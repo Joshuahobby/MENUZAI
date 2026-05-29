@@ -1,0 +1,24 @@
+{
+  "name": "menuza-demo-video",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "start": "remotion studio",
+    "build": "remotion render src/index.ts MainVideo out/menuza-demo.mp4 --codec=h264 --crf=18 --concurrency=4",
+    "build:preview": "remotion render src/index.ts MainVideo out/menuza-demo-preview.mp4 --scale=0.5 --codec=h264 --crf=28"
+  },
+  "dependencies": {
+    "remotion": "^4.0.0",
+    "@remotion/bundler": "^4.0.0",
+    "@remotion/cli": "^4.0.0",
+    "@remotion/renderer": "^4.0.0",
+    "@remotion/google-fonts": "^4.0.0",
+    "react": "18.3.1",
+    "react-dom": "18.3.1"
+  },
+  "devDependencies": {
+    "@types/react": "^18",
+    "@types/react-dom": "^18",
+    "typescript": "^5"
+  }
+}

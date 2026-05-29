@@ -24,7 +24,8 @@ Rwanda's restaurant sector is digitalising fast, driven by Kigali's growing midd
 **What we're raising:**
 We're raising a $250K seed round to hire 2 engineers, sign 50 restaurants in Rwanda, and expand to Uganda and Kenya by Q4 2026. We're already profitable on a per-restaurant basis.
 
-I've attached our pitch deck — 11 slides, 3 minutes to read. Happy to jump on a call this week.
+**Watch the 90-second product demo:** [VIDEO LINK]
+Pitch deck attached — 11 slides, 3 minutes to read. Happy to jump on a call this week.
 
 Best,  
 Joe  
