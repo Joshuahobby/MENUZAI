@@ -16,7 +16,7 @@ interface AnalyticsData {
 }
 
 export default function DashboardPage() {
-  const { restaurantId, lastSynced, menuStyle, menuItems, menuStatus, restaurantLogoUrl, userRole, menuSlug, plan, restaurantName, restaurantPhone } = useMenu();
+  const { restaurantId, lastSynced, menuStyle, menuItems, menuStatus, restaurantLogoUrl, userRole, menuSlug, plan, restaurantName, restaurantPhone, trialEndsAt } = useMenu();
   const currency = menuStyle.currency ?? "RWF";
   const [data, setData] = useState<AnalyticsData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -69,7 +69,16 @@ export default function DashboardPage() {
   const hasItems = menuItems && menuItems.length > 0;
   const isPublished = menuStatus === "published";
   const hasPhone = !!(restaurantPhone && restaurantPhone.trim().length > 5);
-  const allStepsDone = hasLogo && hasItems && isPublished && hasPhone;
+  const hasFirstOrder = kpis.orders > 0;
+  const allStepsDone = hasLogo && hasItems && isPublished && hasPhone && hasFirstOrder;
+
+  const trialDaysLeft = (() => {
+    if (!trialEndsAt || (plan !== "trial" && plan !== "free")) return null;
+    if (plan !== "trial") return null;
+    const diff = new Date(trialEndsAt).getTime() - Date.now();
+    const days = Math.ceil(diff / (1000 * 60 * 60 * 24));
+    return days > 0 ? days : 0;
+  })();
 
   const isNewUser = kpis.views === 0 && kpis.orders === 0;
 
@@ -351,45 +360,56 @@ export default function DashboardPage() {
       {/* Setup checklist — shown until all steps complete */}
       {!allStepsDone && (
         <div className="mb-10 bg-gradient-to-br from-primary/5 to-primary-container/5 border border-primary/10 rounded-3xl p-8">
-          <div className="flex items-center justify-between gap-4 mb-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center shadow-md shadow-primary/20">
+              <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center shadow-md shadow-primary/20 shrink-0">
                 <span className="material-symbols-outlined text-white icon-fill text-xl">rocket_launch</span>
               </div>
               <div>
-                <h2 className="font-[var(--font-headline)] font-bold text-lg">Get your menu live in 4 steps</h2>
-                <p className="text-secondary text-xs">Complete these to start receiving orders</p>
+                <h2 className="font-[var(--font-headline)] font-bold text-lg">Get your first order in your trial</h2>
+                <p className="text-secondary text-xs">
+                  {[hasItems, isPublished, hasPhone, hasLogo, hasFirstOrder].filter(Boolean).length} of 5 steps complete
+                </p>
               </div>
             </div>
-            {allStepsDone && (
-              <div className="bg-tertiary/10 text-tertiary px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2">
-                <span className="material-symbols-outlined text-sm icon-fill">check_circle</span> Ready to go!
+            {trialDaysLeft !== null && (
+              <div className={`shrink-0 flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold ${trialDaysLeft <= 3 ? "bg-red-50 text-red-700 border border-red-200" : "bg-violet-50 text-violet-700 border border-violet-200"}`}>
+                <span className="material-symbols-outlined text-[16px]">experiment</span>
+                {trialDaysLeft === 0 ? "Trial ends today" : `${trialDaysLeft} day${trialDaysLeft === 1 ? "" : "s"} left in trial`}
               </div>
             )}
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+
+          {/* Progress bar */}
+          <div className="h-1.5 bg-black/5 rounded-full mb-6 overflow-hidden">
+            <div
+              className="h-full bg-primary rounded-full transition-all duration-500"
+              style={{ width: `${([hasItems, isPublished, hasPhone, hasLogo, hasFirstOrder].filter(Boolean).length / 5) * 100}%` }}
+            />
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
             {[
-              { step: 1, done: hasItems, icon: "edit_note", label: "Add menu items", desc: "Create your first category and item", href: "/dashboard/editor", cta: "Open Editor" },
-              { step: 2, done: isPublished, icon: "public", label: "Publish your menu", desc: "Make it live so customers can scan", href: "/dashboard/menus", cta: "Publish Now" },
-              { step: 3, done: hasPhone, icon: "whatsapp", label: "Add WhatsApp number", desc: "Required for customers to place orders", href: "/dashboard/settings", cta: "Add in Settings" },
-              { step: 4, done: hasLogo, icon: "image", label: "Upload your logo", desc: "Brand your menu with your restaurant logo", href: "/dashboard/settings", cta: "Go to Settings" },
+              { step: 1, done: hasItems,       icon: "edit_note",   label: "Add menu items",       desc: "Create your first category and item",          href: "/dashboard/editor",   cta: "Open Editor"     },
+              { step: 2, done: isPublished,    icon: "public",      label: "Publish your menu",    desc: "Make it live so customers can scan",            href: "/dashboard/menus",    cta: "Publish Now"     },
+              { step: 3, done: hasPhone,       icon: "whatsapp",    label: "Add WhatsApp number",  desc: "Required for customers to place orders",        href: "/dashboard/settings", cta: "Add in Settings" },
+              { step: 4, done: hasLogo,        icon: "image",       label: "Upload your logo",     desc: "Brand your menu with your restaurant logo",     href: "/dashboard/settings", cta: "Go to Settings"  },
+              { step: 5, done: hasFirstOrder,  icon: "celebration", label: "Receive first order",  desc: "Print your QR code and put it on a table",      href: "/dashboard/qr-codes", cta: "Get QR Code"     },
             ].map(({ step, done, icon, label, desc, href, cta }) => (
-              <Link key={step} href={href} className={`group flex flex-col gap-3 rounded-2xl p-5 border transition-all ${done ? 'bg-surface-container-low border-transparent opacity-80' : 'bg-surface-container-lowest border-outline-variant/20 hover:border-primary/30 hover:shadow-md'}`}>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-black text-sm ${done ? 'bg-tertiary text-white' : 'bg-primary/10 text-primary'}`}>
-                      {done ? <span className="material-symbols-outlined text-base">check</span> : step}
-                    </div>
-                    <span className={`material-symbols-outlined ${done ? 'text-tertiary' : 'text-primary'}`}>{icon}</span>
+              <Link key={step} href={href} className={`group flex flex-col gap-3 rounded-2xl p-4 border transition-all ${done ? "bg-surface-container-low border-transparent opacity-70" : "bg-surface-container-lowest border-outline-variant/20 hover:border-primary/30 hover:shadow-md"}`}>
+                <div className="flex items-center gap-2.5">
+                  <div className={`w-7 h-7 rounded-lg flex items-center justify-center font-black text-xs shrink-0 ${done ? "bg-tertiary text-white" : "bg-primary/10 text-primary"}`}>
+                    {done ? <span className="material-symbols-outlined text-sm">check</span> : step}
                   </div>
+                  <span className={`material-symbols-outlined text-[18px] ${done ? "text-tertiary" : "text-primary"}`}>{icon}</span>
                 </div>
-                <div>
-                  <p className={`font-bold text-sm ${done ? 'line-through text-secondary' : 'text-on-surface'}`}>{label}</p>
-                  <p className="text-secondary text-xs mt-0.5">{desc}</p>
+                <div className="flex-1">
+                  <p className={`font-bold text-xs ${done ? "line-through text-secondary" : "text-on-surface"}`}>{label}</p>
+                  <p className="text-secondary text-[10px] mt-0.5 leading-snug">{desc}</p>
                 </div>
                 {!done && (
-                  <span className="text-xs font-bold text-primary flex items-center gap-1 group-hover:translate-x-0.5 transition-transform mt-auto">
-                    {cta} <span className="material-symbols-outlined text-sm">arrow_forward</span>
+                  <span className="text-[10px] font-bold text-primary flex items-center gap-1 group-hover:translate-x-0.5 transition-transform">
+                    {cta} <span className="material-symbols-outlined text-xs">arrow_forward</span>
                   </span>
                 )}
               </Link>
