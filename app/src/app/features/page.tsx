@@ -157,17 +157,20 @@ export default function FeaturesPage() {
         <h1 className="text-5xl md:text-[64px] font-[var(--font-headline)] font-extrabold tracking-tighter leading-[1.05] mb-5 max-w-3xl mx-auto">
           One platform.<br className="hidden sm:block" /> Everything your restaurant needs.
         </h1>
-        <p className="text-lg text-secondary max-w-xl mx-auto mb-14 leading-relaxed">
+        <p className="text-lg text-secondary max-w-xl mx-auto mb-10 leading-relaxed">
           AI menu extraction, smart ordering, live analytics, and more — built specifically for restaurants in Africa.
         </p>
-        <div className="flex flex-wrap gap-3 justify-center mb-20">
+        <div className="flex flex-wrap gap-3 justify-center mb-6">
           <Link href="/login" className="px-7 py-3.5 bg-primary text-white font-bold rounded-xl text-sm hover:opacity-90 transition-opacity shadow-md shadow-primary/20">
-            Start Free — No Card Required
+            Start Free Trial — No Card Required
           </Link>
-          <Link href="/menu/demo" className="px-7 py-3.5 border border-black/10 text-on-surface font-bold rounded-xl text-sm hover:bg-black/3 transition-colors">
+          <Link href="/demo" className="px-7 py-3.5 border border-black/10 text-on-surface font-bold rounded-xl text-sm hover:bg-black/3 transition-colors">
             See Live Demo
           </Link>
         </div>
+        <p className="text-xs text-secondary/50 mb-16">
+          14-day free trial · Full Pro features · No credit card · Cancel anytime
+        </p>
 
         {/* Stats strip */}
         <div className="max-w-2xl mx-auto grid grid-cols-3 gap-6 border-t border-black/6 pt-12">
@@ -242,11 +245,11 @@ export default function FeaturesPage() {
             Ready to modernise your restaurant?
           </h2>
           <p className="text-white/40 text-base mb-12 leading-relaxed">
-            Start on the free plan. No card required. Upgrade when your restaurant is ready to grow.
+            14-day free trial — no credit card required. Try every Pro feature, then choose your plan.
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <Link href="/login" className="px-8 py-4 bg-primary text-white font-bold rounded-xl text-sm hover:opacity-90 transition-opacity shadow-lg shadow-primary/20">
-              Start Free
+              Start Free Trial
             </Link>
             <Link href="/pricing" className="px-8 py-4 bg-white/8 text-white/70 font-bold rounded-xl text-sm hover:bg-white/12 transition-colors border border-white/10">
               View Pricing
