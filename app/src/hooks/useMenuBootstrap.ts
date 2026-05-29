@@ -201,7 +201,7 @@ export function useMenuBootstrap() {
             const { data: upsertedRestaurant, error: upsertError, status: upsertStatus } = await supabase
               .from("restaurants")
               .upsert(
-                { user_id: user.id, name: "My Restaurant", onboarded: false, plan: "trial", trial_ends_at: trialEnd.toISOString() },
+                { user_id: user.id, name: "My Restaurant", onboarded: false, plan: "free", trial_ends_at: trialEnd.toISOString() },
                 { onConflict: "user_id", ignoreDuplicates: false }
               )
               .select("id")

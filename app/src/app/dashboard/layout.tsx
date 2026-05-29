@@ -7,6 +7,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { useMenu } from "@/context/MenuContext";
 import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
+import TrialExpiredModal from "@/components/TrialExpiredModal";
 
 const getNavLinks = (role: "owner" | "manager" | "staff" | null) => {
   const allLinks = [
@@ -28,7 +29,15 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   const router = useRouter();
   const [moreOpen, setMoreOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
+  const [trialChoiceMade, setTrialChoiceMade] = useState(true); // start true to avoid flash
   const { restaurantLogoUrl, restaurantName, onboarded, isLoading, user, userRole, plan, planExpiresAt, trialEndsAt, restaurantId, ownedRestaurants, switchRestaurantLocation } = useMenu();
+
+  // Check localStorage on mount (client-only)
+  useEffect(() => {
+    if (!restaurantId) return;
+    const made = !!localStorage.getItem(`trial-choice-made-${restaurantId}`);
+    setTrialChoiceMade(made);
+  }, [restaurantId]);
 
   const daysUntilExpiry = (() => {
     if (!planExpiresAt || plan === "free" || plan === "trial") return null;
@@ -43,7 +52,16 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     return Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)));
   })();
 
-  const showBanner = (daysUntilExpiry !== null || trialDaysLeft !== null) && userRole === "owner";
+  // Trial has ended when plan resolved to 'free' but they had a trial_ends_at
+  const trialHasEnded =
+    plan === "free" &&
+    trialEndsAt !== null &&
+    new Date(trialEndsAt) < new Date();
+
+  const showTrialExpiredModal =
+    trialHasEnded && !trialChoiceMade && userRole === "owner" && !isLoading;
+
+  const showBanner = (daysUntilExpiry !== null || trialDaysLeft !== null || (trialHasEnded && !trialChoiceMade)) && userRole === "owner";
 
   const navLinks = getNavLinks(userRole);
   const mobileNavLinks = navLinks.slice(0, Math.min(4, navLinks.length));
@@ -198,7 +216,9 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
           <Link
             href="/dashboard/settings"
             className={`flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-semibold w-full hover:opacity-90 transition-opacity ${
-              trialDaysLeft !== null
+              trialHasEnded && !trialChoiceMade
+                ? "bg-red-600 text-white"
+                : trialDaysLeft !== null
                 ? "bg-violet-600 text-white"
                 : daysUntilExpiry! <= 0
                 ? "bg-red-600 text-white"
@@ -206,9 +226,17 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
             }`}
           >
             <span className="material-symbols-outlined text-[18px]">
-              {trialDaysLeft !== null ? "experiment" : daysUntilExpiry! <= 0 ? "error" : "schedule"}
+              {trialHasEnded && !trialChoiceMade
+                ? "error"
+                : trialDaysLeft !== null
+                ? "experiment"
+                : daysUntilExpiry! <= 0
+                ? "error"
+                : "schedule"}
             </span>
-            {trialDaysLeft !== null
+            {trialHasEnded && !trialChoiceMade
+              ? "Your free trial has ended — choose your plan to continue"
+              : trialDaysLeft !== null
               ? trialDaysLeft === 0
                 ? "Your free trial ends today — upgrade to keep Pro features"
                 : trialDaysLeft === 1
@@ -222,6 +250,14 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
             <span className="material-symbols-outlined text-[16px] opacity-70">chevron_right</span>
           </Link>
         </div>
+      )}
+
+      {/* Trial expired — choose your plan modal */}
+      {showTrialExpiredModal && restaurantId && (
+        <TrialExpiredModal
+          restaurantId={restaurantId}
+          onDismiss={() => setTrialChoiceMade(true)}
+        />
       )}
 
       {/* Main Content */}

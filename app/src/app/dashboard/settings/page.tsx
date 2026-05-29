@@ -61,7 +61,7 @@ export default function SettingsPage() {
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [checkoutPlan, setCheckoutPlan] = useState({ name: "", price: 0 });
   const [changingPlan, setChangingPlan] = useState(false);
-  const [isAnnual, setIsAnnual] = useState(false);
+  const [isAnnual, setIsAnnual] = useState(true);
 
   const fmt = (n: number) => new Intl.NumberFormat("en-US").format(n);
 
@@ -441,14 +441,20 @@ export default function SettingsPage() {
                       Contact Sales
                     </a>
                   ) : isUpgrade ? (
-                    <button
-                      type="button"
-                      onClick={() => handleUpgrade(`${p.name} (${isAnnual ? "Annual" : "Monthly"})`, computedAmount)}
-                      disabled={changingPlan}
-                      className="w-full py-2.5 text-center text-xs font-bold text-white bg-gradient-to-tr from-primary to-primary-container rounded-xl shadow shadow-primary/20 hover:opacity-90 active:scale-95 transition-all disabled:opacity-50"
-                    >
-                      Upgrade to {p.name}
-                    </button>
+                    <>
+                      <div className="flex items-center gap-1.5 mb-3 bg-tertiary/10 rounded-xl px-3 py-2">
+                        <span className="material-symbols-outlined text-[13px] text-tertiary shrink-0">verified</span>
+                        <span className="text-[10px] text-tertiary font-semibold">14-day money-back guarantee</span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => handleUpgrade(`${p.name} (${isAnnual ? "Annual" : "Monthly"})`, computedAmount)}
+                        disabled={changingPlan}
+                        className="w-full py-2.5 text-center text-xs font-bold text-white bg-gradient-to-tr from-primary to-primary-container rounded-xl shadow shadow-primary/20 hover:opacity-90 active:scale-95 transition-all disabled:opacity-50"
+                      >
+                        Upgrade to {p.name}
+                      </button>
+                    </>
                   ) : isDowngrade ? (
                     <button
                       type="button"

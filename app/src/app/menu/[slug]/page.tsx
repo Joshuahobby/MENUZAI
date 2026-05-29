@@ -2,6 +2,7 @@ import { createSupabaseServerClient } from "@/lib/supabase-server";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import PublicMenuClient from "./PublicMenuClient";
+import { showBranding } from "@/lib/plans";
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -54,7 +55,7 @@ export default async function PublicMenuPage({ params }: PageProps) {
 
   const { data: menu } = await supabase
     .from("menus")
-    .select("id, name, slug, categories, items, style, view_count, restaurant_id, restaurants!inner(name, phone, tagline, logo_url, plan)")
+    .select("id, name, slug, categories, items, style, view_count, restaurant_id, restaurants!inner(name, phone, tagline, logo_url, plan, trial_ends_at)")
     .eq("slug", slug)
     .eq("status", "published")
     .limit(1)
@@ -63,6 +64,10 @@ export default async function PublicMenuPage({ params }: PageProps) {
   if (!menu) notFound();
 
   const restaurant = Array.isArray(menu.restaurants) ? menu.restaurants[0] : menu.restaurants;
+  const branded = showBranding(
+    (restaurant as { plan?: string })?.plan ?? "free",
+    (restaurant as { trial_ends_at?: string | null })?.trial_ends_at ?? null,
+  );
 
   // Increment view count (fire and forget)
   supabase
@@ -79,6 +84,7 @@ export default async function PublicMenuPage({ params }: PageProps) {
       restaurantPhone={restaurant?.phone ?? ""}
       restaurantLogoUrl={(restaurant as { logo_url?: string })?.logo_url ?? ""}
       restaurantPlan={(restaurant as { plan?: string })?.plan ?? "free"}
+      branded={branded}
       slug={slug}
       categories={menu.categories ?? []}
       items={menu.items ?? []}

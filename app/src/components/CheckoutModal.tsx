@@ -210,7 +210,15 @@ export function CheckoutModal({ isOpen, onClose, planName, priceAmount, onSucces
               </button>
             </form>
 
-            <div className="mt-6 flex items-center justify-center gap-1 text-[10px] text-secondary font-bold uppercase tracking-wider">
+            <div className="mt-4 flex items-center gap-2 text-xs bg-surface-container rounded-xl p-3">
+              <span className="material-symbols-outlined text-[16px] text-tertiary shrink-0">verified</span>
+              <span className="text-secondary">
+                <strong className="text-on-surface">14-day money-back guarantee.</strong>{" "}
+                Not happy? Full refund, no questions asked.
+              </span>
+            </div>
+
+            <div className="mt-4 flex items-center justify-center gap-1 text-[10px] text-secondary font-bold uppercase tracking-wider">
               <span className="material-symbols-outlined text-[14px]">lock</span>
               Secured by pawaPay
             </div>

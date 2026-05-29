@@ -20,6 +20,7 @@ interface PublicMenuClientProps {
   restaurantPhone: string;
   restaurantLogoUrl: string;
   restaurantPlan?: string;
+  branded?: boolean;
   slug: string;
   categories: MenuCategory[];
   items: MenuItem[];
@@ -790,6 +791,20 @@ export default function PublicMenuClient(props: PublicMenuClientProps) {
             );
           })
         )}
+      {/* Free Lite branding footer */}
+      {props.branded && (
+        <div className="py-6 text-center border-t border-outline-variant/10 mt-8">
+          <a
+            href="https://menuzai.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 text-xs text-secondary opacity-50 hover:opacity-90 transition-opacity"
+          >
+            <span className="material-symbols-outlined text-[14px]">bolt</span>
+            Powered by MENUZA AI
+          </a>
+        </div>
+      )}
       </main>
 
       {/* Item Details Modal */}

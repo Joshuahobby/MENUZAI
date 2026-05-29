@@ -43,11 +43,13 @@ export async function POST(req: Request) {
     .neq("plan", "trial");
 
   // ── Trial: day-12 warning (2 days until expiry) ────────────────────────
+  // trial users now have plan='free' with a non-null trial_ends_at
   const trial12Day = dayMatch("", 2);
   const { data: trialExpiring } = await admin
     .from("restaurants")
     .select("id, name, user_id, plan")
-    .eq("plan", "trial")
+    .eq("plan", "free")
+    .not("trial_ends_at", "is", null)
     .gte("trial_ends_at", `${trial12Day}T00:00:00Z`)
     .lt("trial_ends_at", `${trial12Day}T23:59:59Z`);
 
@@ -56,7 +58,8 @@ export async function POST(req: Request) {
   const { data: trialMid } = await admin
     .from("restaurants")
     .select("id, name, user_id, plan")
-    .eq("plan", "trial")
+    .eq("plan", "free")
+    .not("trial_ends_at", "is", null)
     .gte("trial_ends_at", `${trial7Day}T00:00:00Z`)
     .lt("trial_ends_at", `${trial7Day}T23:59:59Z`);
 
@@ -65,7 +68,8 @@ export async function POST(req: Request) {
   const { data: trialNew } = await admin
     .from("restaurants")
     .select("id, name, user_id, plan")
-    .eq("plan", "trial")
+    .eq("plan", "free")
+    .not("trial_ends_at", "is", null)
     .gte("trial_ends_at", `${trial1Day}T00:00:00Z`)
     .lt("trial_ends_at", `${trial1Day}T23:59:59Z`);
 

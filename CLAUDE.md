@@ -122,7 +122,8 @@ MENUZAI is an AI-powered SaaS platform for restaurant menu digitization. Stack: 
 | `/api/ai/generate-items` | POST | Generates menu items from a natural-language prompt; bulk-inserts into the active category; uses configured AI provider |
 | `/api/ai/description` | POST | Auto-writes a single item description given the item name and tags; uses configured AI provider |
 | `/api/admin/ai-config` | GET/POST | Read/write `platform_settings`; restricted to `isPlatformAdmin()` emails |
-| `/api/notifications/order` | POST | Order notification handler |
+| `/api/notifications/order` | POST | Sends order receipt emails to restaurant owner and (if provided) customer via Resend; body: `{ restaurantId, items, total, currency, customerName?, customerEmail?, tableNumber? }` |
+| `/api/public/stats` | GET | Returns `{ restaurants, orders }` counts for landing page social proof; cached 1 hr (`s-maxage=3600`); falls back to seed values if admin client unavailable |
 | `/api/orders/confirm` | POST | Confirms order, decrements `stock_count` on each item, auto-sets `available=false` when stock hits 0; requires `SUPABASE_SERVICE_ROLE_KEY` |
 | `/api/payments/pawapay` | POST | Payment initiation; amount is looked up server-side from `PLAN_PRICES` (not trusted from client); falls back to simulation if `PAWAPAY_API_KEY` not set |
 | `/api/payments/status` | GET | Poll transaction status by `?depositId=`; auth-scoped to the requesting user; returns `{ status, plan }` |
@@ -135,6 +136,7 @@ MENUZAI is an AI-powered SaaS platform for restaurant menu digitization. Stack: 
 | `/api/notifications/welcome` | POST | Sends a welcome onboarding email via Resend on first restaurant creation; body: `{ userId, restaurantName }` |
 | `/api/cron/expire-transactions` | POST | Expires `transactions` rows stuck in `pending` for >15 min; runs on Vercel cron at 02:00 UTC daily; secured by optional `CRON_SECRET` bearer token |
 | `/api/cron/expire-subscriptions` | POST | Downgrades restaurants whose `plan_expires_at` has passed to `free`; runs on Vercel cron at 03:00 UTC daily; secured by optional `CRON_SECRET` |
+| `/api/cron/remind-subscriptions` | POST | Sends lifecycle emails via Resend: trial day-1 welcome, day-7 midpoint nudge, day-12 expiry warning, and 3-day paid-plan expiry reminder; runs on Vercel cron at 09:00 UTC daily; secured by optional `CRON_SECRET` |
 
 ### Platform Admin Access
 
@@ -176,10 +178,14 @@ Migrations live in `app/supabase/migrations/` — run them in order in the Supab
 | `018_fix_orders_status_check.sql` | Recreates `orders_status_check` constraint with the full valid set: `pending`, `preparing`, `confirmed`, `cancelled` |
 | `019_orders_source.sql` | Adds `source text not null default 'whatsapp'` to `orders`; tracks whether an order came from the WhatsApp button or AI Waiter chat |
 | `020_plan_expires_at.sql` | Adds `plan_expires_at timestamptz` to `restaurants`; `null` = free/no expiry; set to `now()+30d` by PawaPay webhook on each payment |
+| `021_trial_period.sql` | Adds `trial_ends_at timestamptz` to `restaurants`; set to `now()+14 days` on creation; backfills existing free restaurants created within the last 14 days |
+| `022_multi_location.sql` | Drops the unique constraint on `restaurants.user_id` to allow Business plan owners to have multiple restaurant rows (locations) |
+| `023_custom_domain.sql` | Adds `custom_domain varchar(255)` to `restaurants` with a unique partial index; Business plan only; used by the public menu route to serve on a custom hostname |
+| `024_remove_trial_tier.sql` | Normalizes all `plan = 'trial'` rows to `plan = 'free'`; trial state is now derived from `trial_ends_at` being in the future, not a separate plan tier |
 
 Key tables:
 
-- **`restaurants`** — one row per user, created on first login. Has `onboarded boolean` checked by dashboard layout. `plan_expires_at timestamptz` tracks subscription expiry — `null` for free; set 30 days forward on each successful payment; cleared on voluntary downgrade.
+- **`restaurants`** — one row per user (or multiple rows for Business plan multi-location owners — migration 022 dropped the unique constraint on `user_id`). Has `onboarded boolean` checked by dashboard layout. `plan_expires_at timestamptz` tracks subscription expiry — `null` for free; set 30 days forward on each successful payment; cleared on voluntary downgrade. `trial_ends_at timestamptz` marks end of the 14-day free trial (set on creation, `null` after trial or for pre-trial accounts). `custom_domain varchar(255)` maps a custom hostname to the restaurant's public menu (Business only).
 - **`menus`** — many per restaurant. `categories` and `items` are JSONB arrays. `status` is `'draft' | 'published'`. Has a legacy `restaurant_name` column (nullable, unused — do not rely on it).
 - **`analytics_events`** — fired client-side via `app/src/lib/analytics.ts` (fire-and-forget, no error handling by design).
 - **`orders`** — created via WhatsApp flow. `status`: `pending` → `preparing` → `confirmed` → `cancelled`. Use `POST /api/orders/confirm` to mark ready (sets `confirmed`, decrements stock). `preparing` and `cancelled` are set directly via Supabase client. Also stores `customer_email` (migration 013) for Resend receipt emails and `source` (migration 019): `'whatsapp'` or `'ai_waiter'`.
@@ -278,15 +284,19 @@ Icons are **Material Symbols Outlined** loaded via Google Fonts — use `<span c
 
 ### Plan Limits
 
-`app/src/lib/plans.ts` defines per-plan feature limits. Three tiers: `free`, `pro`, `business`.
+`app/src/lib/plans.ts` defines per-plan feature limits. Three DB tiers: `free`, `pro`, `business`. `"trial"` is a computed/ephemeral label returned by `resolvePlan()` when `plan = 'free'` and `trial_ends_at` is in the future — it is never stored in the DB.
 
-| Plan | Max Total Menus | Max Published | Max Drafts |
-| --- | --- | --- | --- |
-| Free | 1 | 1 | 1 |
-| Pro | ∞ | ∞ | ∞ |
-| Business | ∞ | ∞ | ∞ |
+**Pricing model (A+B Hybrid):** All new users get a 14-day trial (full Pro features) tracked by `trial_ends_at` on the `free`-plan record. After trial: pay Pro (14-day money-back guarantee) or remain on Free Lite (public menu works but shows "Powered by MENUZA AI" branding; no AI features). The `TrialExpiredModal` component surfaces this choice in the dashboard.
 
-The `restaurants` table stores the current plan tier; check `canCreateMenu()`, `canPublishMenu()`, and `canCreateDraft()` before adding any feature that should be gated by plan.
+| Plan | Max Total Menus | Max Published | Max Drafts | Max Locations |
+| --- | --- | --- | --- | --- |
+| Free / Trial | 1 / ∞ | 1 / ∞ | 1 / ∞ | 1 |
+| Pro | ∞ | ∞ | ∞ | 1 |
+| Business | ∞ | ∞ | ∞ | 5 |
+
+`showBranding(storedPlan, trialEndsAt)` in `plans.ts` is the single authority for whether the "Powered by MENUZA AI" footer renders on the public menu.
+
+The `restaurants` table stores the current plan tier; check `canCreateMenu()`, `canPublishMenu()`, `canCreateDraft()`, and `canCreateRestaurant()` before adding any feature that should be gated by plan.
 
 ### Key Components
 

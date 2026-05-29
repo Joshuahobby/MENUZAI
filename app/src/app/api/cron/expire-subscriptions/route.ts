@@ -17,28 +17,19 @@ export async function POST(req: Request) {
 
   const now = new Date().toISOString();
 
-  const [paidResult, trialResult] = await Promise.all([
-    // Expire paid subscriptions
-    admin
-      .from("restaurants")
-      .update({ plan: "free", plan_expires_at: null })
-      .lt("plan_expires_at", now)
-      .neq("plan", "free")
-      .neq("plan", "trial")
-      .select("id"),
-    // Expire trials
-    admin
-      .from("restaurants")
-      .update({ plan: "free" })
-      .eq("plan", "trial")
-      .lt("trial_ends_at", now)
-      .select("id"),
-  ]);
+  // Expire paid subscriptions whose plan_expires_at has passed.
+  // Trial expiry is no longer handled here — trial state is derived from trial_ends_at
+  // being in the future; the plan column is already 'free' for all trial users.
+  const paidResult = await admin
+    .from("restaurants")
+    .update({ plan: "free", plan_expires_at: null })
+    .lt("plan_expires_at", now)
+    .neq("plan", "free")
+    .select("id");
 
   if (paidResult.error) console.error("expire-subscriptions paid error:", paidResult.error);
-  if (trialResult.error) console.error("expire-subscriptions trial error:", trialResult.error);
 
-  const downgraded = (paidResult.data?.length ?? 0) + (trialResult.data?.length ?? 0);
+  const downgraded = paidResult.data?.length ?? 0;
   console.log(`expire-subscriptions: downgraded ${downgraded} restaurant(s) to free`);
   return NextResponse.json({ downgraded });
 }

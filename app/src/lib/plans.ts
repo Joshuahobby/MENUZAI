@@ -106,6 +106,15 @@ export function canCreateRestaurant(plan: string, currentCount: number): PlanChe
   };
 }
 
+// Returns true when the public menu should show "Powered by MENUZA AI" branding.
+// Shows for free-plan users whose trial has expired (or never started).
+// Hidden during active trial and for any paid plan.
+export function showBranding(storedPlan: string, trialEndsAt: string | null): boolean {
+  if (storedPlan === "pro" || storedPlan === "business") return false;
+  if (trialEndsAt && new Date(trialEndsAt) > new Date()) return false;
+  return true;
+}
+
 export function canPublishMenu(plan: string, currentPublishedCount: number): PlanCheckResult {
   const { maxPublished } = getPlanLimits(plan);
   if (currentPublishedCount < maxPublished) return { allowed: true };

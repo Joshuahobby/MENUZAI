@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
+import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { useMenu } from "@/context/MenuContext";
 import { formatPrice, formatRelativeTime, formatTimeOnly } from "@/lib/utils";
@@ -79,7 +80,8 @@ function SkeletonOrder() {
 }
 
 export default function OrdersPage() {
-  const { restaurantId, menuStyle, restaurantName } = useMenu();
+  const { restaurantId, menuStyle, restaurantName, plan } = useMenu();
+  const router = useRouter();
   const currency = menuStyle.currency ?? "RWF";
 
   const [orders, setOrders] = useState<OrderRow[]>([]);
@@ -251,6 +253,23 @@ export default function OrdersPage() {
                 icon: "🛎️",
                 duration: 6000,
               });
+              // First-order upgrade nudge for free/trial users
+              if ((plan === "free" || plan === "trial") && restaurantId) {
+                const nudgeKey = `first-order-nudge-${restaurantId}`;
+                if (!localStorage.getItem(nudgeKey)) {
+                  localStorage.setItem(nudgeKey, "1");
+                  setTimeout(() => {
+                    toast("Your first order just came in!", {
+                      description: "Keep the momentum — upgrade to Pro to unlock AI Waiter and full analytics.",
+                      duration: 12000,
+                      action: {
+                        label: "Upgrade to Pro",
+                        onClick: () => router.push("/dashboard/settings"),
+                      },
+                    });
+                  }, 3000);
+                }
+              }
             }
             setOrders((prev) => [newOrder, ...prev]);
           } else if (payload.eventType === "UPDATE") {

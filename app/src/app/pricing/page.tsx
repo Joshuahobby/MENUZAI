@@ -57,8 +57,8 @@ const faqs = [
     a: "Yes. Upgrade or downgrade at any time. Changes take effect immediately.",
   },
   {
-    q: "Is there a free trial for Pro?",
-    a: "The Free plan is free forever — no credit card required. Pro includes a 14-day money-back guarantee.",
+    q: "Is there a free trial?",
+    a: "Yes — all new accounts get a 14-day trial with full Pro features, no credit card required. After the trial, choose Pro (with a 14-day money-back guarantee) or continue on Free Lite.",
   },
   {
     q: "What payment methods do you accept?",
@@ -85,7 +85,7 @@ function FeatureRow({ text, muted }: { text: string; muted?: boolean }) {
 
 export default function PricingPage() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [isAnnual, setIsAnnual] = useState(false);
+  const [isAnnual, setIsAnnual] = useState(true);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -124,7 +124,7 @@ export default function PricingPage() {
           Simple,<br className="hidden sm:block" /> transparent pricing
         </h1>
         <p className="text-lg text-secondary max-w-xl mx-auto mb-12 leading-relaxed">
-          Start free. Upgrade when your restaurant is ready to grow.
+          14-day free trial, no credit card required. Upgrade when you&apos;re ready.
         </p>
 
         {/* Billing Toggle */}
@@ -231,6 +231,12 @@ export default function PricingPage() {
               })}
             </ul>
 
+            <div className="flex items-center gap-2 bg-white/10 rounded-xl px-3 py-2 mb-4">
+              <span className="material-symbols-outlined text-[14px] text-primary-container">verified</span>
+              <span className="text-[10px] text-white/70">
+                <strong className="text-white">14-day money-back guarantee.</strong> Full refund if you&apos;re not happy.
+              </span>
+            </div>
             <Link
               href={isLoggedIn ? "/dashboard" : "/login"}
               onClick={(e) => openCheckout(`Pro (${isAnnual ? "Annual" : "Monthly"})`, proPrice, e)}
@@ -238,7 +244,6 @@ export default function PricingPage() {
             >
               Go Pro
             </Link>
-            <p className="text-center text-[10px] text-white/30 mt-3">14-day money-back guarantee</p>
           </div>
 
           {/* Business */}
