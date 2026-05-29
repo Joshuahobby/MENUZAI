@@ -1,80 +1,79 @@
-# MENUZAI — Templates Archive & Selection Stitch AI Handover Package
+# MENUZA AI — Templates System (Live)
+
+> **Status: LIVE** — 8 templates are deployed and selectable at `/dashboard/templates`.
+> Source: `app/src/app/dashboard/templates/TemplatePreview.tsx`
+> Original document was a pre-build Stitch AI handover spec; updated May 2026.
 
 ---
 
-## 1️⃣ Flowchart (Templates Archive & Selection Funnel)
+## Live Templates (8 total)
+
+All templates are rendered as pure React/inline-style components (no images), scaled to fit any container. Canvas base: 700×990px.
+
+| ID | Name | Style | Google Fonts used |
+|---|---|---|---|
+| `vintage-parchment` | Vintage Parchment | Warm sepia, decorative borders | Playfair Display |
+| `dark-chalkboard` | Dark Chalkboard | Dark bg, chalk-style text, rustic | Oswald |
+| `bold-street` | Bold Street | Urban, high-contrast, bold type | Bebas Neue |
+| `bistro-split` | Bistro Split | Two-column layout, elegant | Cormorant Garamond |
+| `photo-gallery` | Photo Gallery | Full-bleed food photos, modern | Outfit |
+| `luxury-gold` | Luxury Gold | Dark + gold accents, premium | Cormorant Garamond |
+| `organic-clean` | Organic Clean | Minimal, green accents, health-focused | Outfit |
+| `midnight-luxe` | Midnight Luxe | Deep navy, luxury typography | Playfair Display |
+
+---
+
+## How It Works
+
+### Template gallery (`/dashboard/templates`)
+- Grid of all 8 templates rendered live with the restaurant's real menu data
+- Click any template → confirmation → applies to active menu immediately via `applyTemplate()`
+
+### Print/PDF overlay
+- Accessible from the editor
+- Template switcher dropdown (all 8 templates)
+- Accent color picker
+- "Download PDF" → browser print dialog targeting "Save as PDF"
+- Share link button
+
+### Template types exported
+- `TplData` — `{ restaurantName, website?, phone?, currency?, categories[] }`
+- `TplItem` — `{ name, description?, price, image? }`
+- `TplCategory` — `{ name, icon?, items[] }`
+- `TplStyle` — full style object (colors, fonts, sizes, spacing)
+- `DEMO_DATA` — constant used when no real menu data is available
+
+---
+
+## Selection Flow (Actual)
 
 ```
-[01_Templates Archive Entry]
-    │ User clicks "Browse Templates" or "Start from Template"
-    ▼
-[02_Templates Grid View]
-    │ Grid: 3-column desktop, 2-column mobile
-    │ Filter: Free / Premium / Cuisine Type / Layout
-    │ Search bar: By keyword
-    │ Hover effect: Scale up + subtle shadow
-    ▼
-[03_Template Preview Modal]
-    │ Full-screen preview of template
-    │ Click-through pages if multi-page
-    │ Buttons: "Select Template" / "Back"
-    ▼
-[04_Template Selection Confirmation]
-    │ Message: "Template Selected! Ready to Customize"
-    │ Button: "Go to Menu Editor"
-    ▼
-[05_Menu Editor]
-    │ Pre-populates selected template
-    │ User can edit categories, items, layout, colors, fonts
-    │ Save & Publish available
+/dashboard/templates
+    → User browses 8 live-rendered templates
+    → Clicks a template card
+    → Confirmation prompt ("Apply this template?")
+    → applyTemplate(style) called on MenuContext
+    → Active menu style updated + auto-saved (1s debounce)
+    → User redirected to /dashboard/editor to see result
 ```
 
 ---
 
-## 2️⃣ Figma Component Map
+## Plan Gating
 
-| Component | Variants | Notes / Interactions |
-|-----------|---------|--------------------|
-| **Template Card** | Free / Premium / Hover / Selected | Shows thumbnail, title, category, badge (Free/Premium) |
-| **Filter Buttons** | Default / Active / Pressed | Filters templates by type or cuisine |
-| **Search Bar** | Default / Focused | Filters templates in real-time |
-| **Preview Modal** | Open / Closed | Full-screen template view with scrollable pages |
-| **Select Template Button** | Default / Pressed | Confirms selection and transitions to Menu Editor |
-| **Back Button** | Default / Pressed | Closes preview modal and returns to grid view |
-| **Category Badge** | Free / Premium | Visual badge for template type |
-| **Template Pagination** | Default / Hover | Optional, supports multiple pages of templates |
-| **Menu Editor Preload** | Default / Active | Pre-populates template content for editing |
+- All 8 templates are available to **Pro and Business** plan users
+- Free and Trial users see templates but are prompted to upgrade on selection
+- The `canUseFeature(plan, 'premiumQrTemplates')` check gates access
 
 ---
 
-## 3️⃣ Prototype Interactions
+## What Changed vs Original Spec
 
-1. **Templates Archive → Templates Grid View**
-   - User taps "Browse Templates" → displays grid
-2. **Filter/Search**
-   - Filters update grid dynamically
-3. **Hover / Tap Template Card**
-   - Hover: scale + shadow effect
-   - Tap: opens Template Preview Modal
-4. **Template Preview → Select Template**
-   - User previews template pages → taps "Select Template"
-   - Confirmation → Button to Menu Editor
-5. **Menu Editor**
-   - Loads selected template pre-populated
-   - User can edit items, layout, colors, fonts
-   - Save & Publish actions available
-
----
-
-## 4️⃣ CEO-Level Conversion Insights (for UI in Prototype)
-
-- Highlight Free vs Premium templates for upsell clarity
-- Ensure search and filter are **fast and intuitive**
-- Preview modal must **match live Menu Editor look & feel**
-- Hover/selection effects increase interactivity perception
-- Smooth transition to Menu Editor maintains user engagement
-
----
-
-✅ This package provides Stitch AI everything needed to **auto-generate a Templates Archive & Selection interactive flow** for MENUZAI, ready to integrate into the full app prototype.
-
+| Original Stitch spec | Live implementation |
+|---|---|
+| 4 templates (Classic, Modern, Luxury, Fast Food) | 8 templates, all custom-designed |
+| "Free / Premium" badge filter | All templates available on Pro+ (no individual paywalls) |
+| Figma components for filter/search | Implemented as simple grid with apply-on-click |
+| "Template Selection Confirmation" step | Inline confirmation modal |
+| Filter by cuisine type | Not implemented (8 templates are enough variety) |
+| Search bar | Not implemented |

@@ -1,102 +1,96 @@
-# MENUZAI — Antigravity Development Handover Package
+# MENUZA AI — Platform Status (May 2026)
+
+> **Note:** This file was originally a development handover package for Google Antigravity (Stitch AI → production build).
+> The platform is now **fully built and live**. This document has been repurposed as a current-state summary.
 
 ---
 
-## 1️⃣ Objective
+## Platform: LIVE
 
-Transform the Stitch-designed UI for MENUZAI into a fully functional, production-ready SaaS platform with responsive web pages, dynamic menu handling, QR integration, WhatsApp ordering, templates archive, analytics, and admin functionalities.
-
----
-
-## 2️⃣ Provided Assets
-
-- HTML files of the designed UI (desktop + mobile)
-- Screenshots of each screen and flow (for reference)
-- Optional: Figma design notes or Stitch AI metadata
+**URL:** [menuzaai.com](https://menuzaai.com)
+**Demo:** [youtu.be/G4vp5NQnk-I](https://youtu.be/G4vp5NQnk-I)
+**Stack:** Next.js 16 · Supabase · OpenRouter / Anthropic · PawaPay · Resend · Vercel
 
 ---
 
-## 3️⃣ Platform Scope
+## What Was Built (vs Original Scope)
 
-**Web App Type:** Progressive Web App (PWA), mobile-first design
+### Original scope → Delivered
 
-**Key Features:**
+| Original requirement | Status |
+|---|---|
+| Menu upload (PDF / Image / Text) → AI parse | ✓ Live — up to 5 images, parallel AI extraction, merges duplicates |
+| Edit categories, items, prices, highlights | ✓ Live — full WYSIWYG editor with drag-to-reorder |
+| Drag & drop layout in Menu Editor | ✓ Live — @dnd-kit sortable on canvas |
+| Save & Publish menu | ✓ Live — auto-save (1s debounce) + publish with slug |
+| QR-code-enabled link generation | ✓ Live — QR posters, batch export, 3 templates |
+| Customer QR scan → mobile menu page | ✓ Live |
+| Add items to cart → sticky floating cart | ✓ Live |
+| Order via WhatsApp → prefilled message | ✓ Live |
+| Templates archive & selection | ✓ Live — 8 templates, apply on click |
+| Analytics: orders, revenue, insights | ✓ Live — views, conversions, funnel, peak hours, CSV export |
+| Admin / Settings | ✓ Live — restaurant info, staff RBAC, plan management |
+| Mobile-first, responsive | ✓ Live — bottom nav on mobile, collapsible sidebar on desktop |
+| PWA-ready | ✓ Live — service worker, offline page, Web Push subscriptions |
 
-1. **Menu Management**
-   - Upload PDF / Image / Text menus → Parse automatically
-   - Edit categories, items, prices, highlights (Most Popular / Chef’s Choice)
-   - Drag & drop layout in Menu Editor
-   - Save & Publish menu
-   - Export menu as PDF or QR-code-enabled link
+### Beyond original scope (shipped)
 
-2. **Customer Flow**
-   - QR scan → Mobile menu page
-   - Add items to cart → Sticky floating cart
-   - View order summary → Optional inputs: Name, Table
-   - Order via WhatsApp → Prefilled message
-
-3. **Templates Archive & Selection**
-   - Browse Free / Premium templates
-   - Filter, search, preview templates
-   - Select template → Pre-populate Menu Editor
-
-4. **Analytics Dashboard**
-   - Most ordered dishes, revenue insights, category performance
-   - Graphs & tables (interactive, real-time data display)
-
-5. **Admin / Settings**
-   - Manage templates, menu items, QR codes
-   - Update restaurant info and hours
-
----
-
-## 4️⃣ Technical Requirements
-
-- **Frontend:** React.js / Next.js (mobile-first, responsive)
-- **State Management:** Redux or Context API for cart & menu state
-- **Styling:** TailwindCSS or styled-components matching UI screenshots
-- **Routing:** React Router / Next.js routing for pages
-- **Backend (optional):** Node.js + Express or Firebase for data storage
-- **Database:** Firestore / Supabase / PostgreSQL for menus, templates, analytics
-- **QR Codes:** Auto-generate per menu, downloadable PNG
-- **WhatsApp Integration:** Prefilled message links using `https://wa.me/{phone}?text={encoded_message}`
-- **Export Options:** PDF generation for menus
-- **Analytics:** Chart.js / Recharts for visual reports
+| Feature | Notes |
+|---|---|
+| **AI Digital Waiter** | Conversational AI that greets, upsells, and takes full orders in-chat |
+| **Real-time order dashboard** | Supabase Realtime; live order stream; audio chime; push notifications |
+| **Subscription billing** | PawaPay Mobile Money; Pro 35K/Business 89K RWF/month; annual option |
+| **14-day free trial** | Auto-start on signup; day-1/7/12 email sequence; auto-expire cron |
+| **Staff roles (RBAC)** | Owner / Manager / Staff; email invite with branded welcome email |
+| **Customer reviews** | Star ratings; AI-drafted replies; sentiment tagging |
+| **Multi-location** (Business) | Up to 5 restaurant profiles; location switcher in sidebar |
+| **Custom domain** (Business) | CNAME setup instructions; proxy rewrite for custom hostname |
+| **Order source tracking** | `whatsapp` vs `ai_waiter` per order; dashboard filter + stat card |
+| **Batch QR export** | Generate posters for tables 1–N as single PDF |
+| **Admin metrics page** | Platform-admin only; MRR, restaurant count, plan breakdown, orders |
+| **Remotion demo video** | 90-second 1080p investor/sales video; embedded on landing page |
 
 ---
 
-## 5️⃣ Interactions & Behavior
+## Architecture Summary
 
-- Menu items dynamically added to cart
-- Floating sticky cart updates live
-- Template selection pre-populates editor
-- Inline edit updates reflected in live preview
-- Smooth transitions & animations matching Stitch UI
-- Mobile-first UX, PWA-ready
-- WhatsApp CTA opens app/web with prefilled order message
+```
+app/                          Next.js 16 App Router
+├── src/app/                  Routes (App Router convention)
+│   ├── dashboard/            Protected owner/staff routes
+│   ├── menu/[slug]/          Public customer menu
+│   ├── admin/                Platform admin (metrics, AI config)
+│   └── api/                  API routes (payments, AI, cron, etc.)
+├── src/context/MenuContext   Central state + autosave
+├── src/store/menuStore.ts    Zustand (fine-grained selectors)
+├── src/lib/                  Supabase clients, plans, utils
+├── src/types/menu.ts         Canonical MenuItem, MenuCategory, etc.
+└── supabase/migrations/      020 migrations (run in order)
 
----
-
-## 6️⃣ Deliverables
-
-1. Fully functional MENUZAI web app
-2. Responsive layouts (desktop + mobile)
-3. QR-code menu links generation
-4. WhatsApp order integration
-5. Admin dashboard for menu management and analytics
-6. Exportable menus (PDF & QR)
-7. Template archive and selection flow
-
----
-
-## 7️⃣ Instructions for Google Antigravity
-
-- Use the attached HTML and screenshots as the authoritative design reference
-- Map all interactive behaviors exactly as defined in Stitch UI
-- Produce production-ready code with clean folder structure
-- Provide reusable React components, styled according to design
-- Document deployment instructions and configuration
-- Ensure the app is mobile-first, PWA-ready, and scalable for SaaS
+demo-video/                   Remotion v4 (standalone)
+├── src/compositions/         5 scenes
+├── src/components/           Recreated UI components
+└── out/menuza-demo.mp4       Rendered output (gitignored)
+```
 
 ---
 
+## Deployment & Ops
+
+- **Vercel** — auto-deploys from `main`; region `cdg1` (Paris); root dir `app`
+- **Supabase** — Postgres + RLS + Realtime + Auth + Storage (2 buckets)
+- **Crons** (Vercel, `app/vercel.json`):
+  - 02:00 UTC — expire stuck payment transactions
+  - 03:00 UTC — downgrade lapsed subscriptions and trials
+  - 09:00 UTC — send renewal/trial reminder emails (Resend)
+- **CI/CD** (GitHub Actions, `.github/workflows/ci.yml`):
+  - Lint → Type-check → Vitest (56 tests) → Build
+
+---
+
+## Fundraising Status
+
+Raising **$250K seed** to hire 2 engineers, sign 50 restaurants in Rwanda, expand to Uganda and Kenya by Q4 2026.
+
+Investor outreach template: `Investor_Outreach_Email.md`
+Target list: Partech Africa, Savannah Fund, Africa Tech Ventures, Consonance, Founders Factory Africa, DOB Equity, AlphaCode, RICA angels.

@@ -1,402 +1,207 @@
-Good—this is where the product either wins or dies.
+# MENUZA AI — Product Structure, Screens & UX Logic
 
-You’ll design this  **real SaaS you can hand to a designer or dev team immediately**: structure, screens, UX logic, and conversion-driven copy.
-
----
-
-# **🎯 PRODUCT NAME: MENUZAI**
-
-**Positioning:** “Turn your menu into a revenue engine.”
+> **Status: LIVE** — This document reflects the product as built and deployed at [menuzaai.com](https://menuzaai.com).
+> Original spec written pre-build; this version updated May 2026 to match reality.
 
 ---
 
-# **🧭 1\. USER FLOW (CORE EXPERIENCE)**
+## Positioning
 
-### **Primary Flow:**
+**"The AI Waiter for Every Restaurant."**
 
-**Signup → Upload Menu → AI Processing → Customize → Publish → Share (QR / WhatsApp)**
+MENUZA AI is an AI-powered SaaS for African restaurants. A restaurant owner uploads their menu, the AI extracts every item, the owner customises the design and publishes — customers then scan a QR code and an AI Digital Waiter greets them, takes their order in chat, and upsells automatically. Orders appear on the staff dashboard in real time.
 
----
-
-## **🔁 DEMO FLOW (What user experiences)**
-
-Scan QR → Opens Menu → Select Dish → Click Order → View Order Summary → Opens WhatsApp with pre-filled message
-
-This flow must feel **instant, frictionless, mobile-first**.
+**Live demo video:** [youtu.be/G4vp5NQnk-I](https://youtu.be/G4vp5NQnk-I)
 
 ---
 
-# **🖥️ 2\. APP STRUCTURE (NAVIGATION)**
+## 1. User Flow
 
-### **Sidebar (Desktop) / Bottom Nav (Mobile)**
+### Owner onboarding
+**Signup → Onboarding setup → Upload menu photo → AI extraction → Review/edit items → Choose template → Customize style → Publish → Download QR poster → Go live**
 
-* Dashboard  
-* My Menus  
-* Analytics  
-* Templates  
-* QR Codes  
-* Settings
+### Customer flow
+**Scan QR → Public menu loads → AI Waiter greets (auto, after 3s on Pro) → Customer orders in chat → Order confirmed → Receipt to kitchen → Staff dashboard updates in real time**
 
 ---
 
-# **📱 3\. CORE SCREENS (UX \+ COPY)**
+## 2. App Structure (Navigation)
+
+### Desktop: collapsible sidebar
+### Mobile: bottom tab bar + "More" overflow sheet
+
+**Nav links by role:**
+
+| Link | Owner | Manager | Staff |
+|---|---|---|---|
+| Dashboard | ✓ | ✓ | ✓ |
+| Orders | ✓ | ✓ | ✓ |
+| My Menus | ✓ | ✓ | — |
+| Analytics | ✓ | ✓ | — |
+| Reviews | ✓ | ✓ | — |
+| Templates | ✓ | — | — |
+| QR Codes | ✓ | ✓ | — |
+| Editor | ✓ | ✓ | — |
+| Settings | ✓ | — | — |
 
 ---
 
-## **🟢 1\. ONBOARDING SCREEN**
+## 3. Core Screens
 
-### **UI:**
+### Dashboard (Home)
+- Greeting + restaurant name
+- **4-step setup checklist** (shown until complete): add items → publish → set WhatsApp number → upload logo
+- **WhatsApp guard**: amber warning if menu is published but no phone set
+- KPI cards: total revenue, orders, views, conversion rate (7/30/90 day range)
+- AI Revenue Insight: top-performing dish
+- Peak ordering hours chart
+- Live activity feed
+- Staff role sees: live orders monitor, kitchen best practices, operations feed
 
-* Clean minimal  
-* Illustration (restaurant owner using phone)
+### Menu Upload (`/upload`)
+- Accepts up to 5 images (JPG/PNG/WebP/GIF, max 10 MB each)
+- AI extraction runs in parallel for multi-image uploads
+- Duplicate categories and items are merged automatically
+- Rate-limited: 5 requests/IP/minute
 
-### **Copy:**
+### AI Result (`/ai-result`)
+- Split view: extracted categories (left) + items with prices (right)
+- Inline edit before saving
+- Confirm → saves to active menu, redirects to editor
 
-**Headline:**
+### Menu Editor (`/dashboard/editor`)
+**2-panel layout:**
+- **Left sidebar** — Build tab (categories, items, AI item generator) + Design tab (Theme/Colors/Fonts/Layout)
+- **Center canvas** — Device-frame WYSIWYG preview (mobile 390px / tablet 680px / desktop 920px)
 
-“Create your smart menu in 60 seconds”
+Item editing: image upload, gallery (Pro), price, name, AI auto-description, availability toggle, badge picker, dietary tags, stock count, duplicate/delete.
 
-**Subtext:**
+Design: 10 headline + 9 body Google Fonts, accent + background presets, "Magic Vibes" one-click style presets, card style (flat/elevated/glass), corner radius, spacing density, 13 currencies (African focus).
 
-Upload your menu and let AI do the work.
+### Orders Dashboard (`/dashboard/orders`)
+**Real-time staff panel:**
+- Live order stream via Supabase Realtime (postgres_changes)
+- Status tabs: All / Pending / Preparing / Ready / Cancelled
+- Source filter: AI Waiter / WhatsApp
+- Stat cards: today's orders, pending, AI Waiter count, revenue
+- Order cards: status badge, items, total, accept/decline/ready/serve actions
+- Waiter pager: broadcast channel for table requests (call waiter, bill, water)
+- **New order visual flash** on pending card + audio chime
+- **Push notification prompt** after 4s if permission not granted
+- Tab title shows pending count e.g. "(3) Real-Time Staff Panel"
 
-### **CTA:**
+### QR Codes (`/dashboard/qr-codes`)
+- Elegant-minimal / dark-premium / classic-frame poster templates
+- A4 or A5 size, custom primary color, logo overlay
+- **Batch export**: generate QR posters for tables 1–N as single PDF
+- Single poster export as PNG or PDF
 
-* “Upload Menu”  
-* “Start from Template”
+### Reviews (`/dashboard/reviews`)
+- All customer reviews with star rating, sentiment (positive/negative/neutral)
+- **AI Reply drafts** (Pro): one-click AI-generated professional response
+- Save and publish replies
 
----
+### Analytics (`/dashboard/analytics`)
+- Menu views, orders, revenue, conversion rate, cart abandonment
+- Top performing dishes
+- Peak ordering hours
+- Daily views trend
+- Conversion funnel
+- Download CSV report
+- 7/30/90-day range (90 days = Pro/Business)
 
-## **🟢 2\. MENU UPLOAD (AI ENTRY POINT)**
+### Templates (`/dashboard/templates`)
+8 live-rendered templates: `vintage-parchment`, `dark-chalkboard`, `bold-street`, `bistro-split`, `photo-gallery`, `luxury-gold`, `organic-clean`, `midnight-luxe`.
 
-### **UI:**
+Template gallery for applying; Print/PDF overlay with template switcher for print menus.
 
-* Drag & drop box  
-* Upload options:  
-  * Image  
-  * PDF  
-  * Text
+### Settings (`/dashboard/settings`)
+- Restaurant info: name, phone, logo, currency
+- AI Waiter config: tone (friendly/formal/vibrant), upsell prompt, custom instructions
+- Plan management: upgrade (MoMo payment), downgrade, annual toggle (11 months price)
+- **Staff management** (Pro): invite by email, assign roles, remove members → new members receive a branded welcome email
+- **Custom domain** (Business): enter domain, CNAME instructions shown
+- **Locations** (Business): create up to 5 restaurant profiles, location switcher
 
-### **Microcopy:**
-
-“Snap a photo of your menu or upload a file”
-
-### **After Upload:**
-
-Loader screen:
-
-“MENUZAI is reading your menu...”
-
----
-
-## **🟢 3\. AI PROCESSING RESULT**
-
-### **UI:**
-
-Split screen:
-
-LEFT:
-
-* Extracted categories  
-  RIGHT:  
-* Items with price
-
-### **Features:**
-
-* Edit inline  
-* Auto suggestions:  
-  * “Move to Popular Items”  
-  * “Improve name”
-
-### **CTA:**
-
-* “Continue to Design”
-
----
-
-## **🟢 4\. TEMPLATE SELECTION**
-
-### **UI:**
-
-Grid of templates:
-
-* Classic  
-* Modern  
-* Luxury  
-* Fast Food
-
-### **Tags:**
-
-* FREE  
-* PRO
-
-### **UX Trick:**
-
-Show preview with real user data
-
-### **CTA:**
-
-* “Use Template”
+### Public Menu (`/menu/[slug]`)
+- Only renders for `status = 'published'`
+- AI Digital Waiter floating button (Pro/Business): auto-opens after 3s with time-of-day greeting
+- Full in-chat ordering: takes order, shows confirm card, saves to `orders` with `source = 'ai_waiter'`
+- WhatsApp cart checkout as fallback
+- Customer review submission after order
+- Item detail modal with gallery, dietary tags, add-to-cart
+- Custom domain support (Business plan)
 
 ---
 
-## **🟢 5\. MENU EDITOR (CORE BUILDER)**
+## 4. Plans & Subscription System
 
-### **UI:**
+| Feature | Free | Trial (14 days) | Pro | Business |
+|---|---|---|---|---|
+| Menus | 1 | Unlimited | Unlimited | Unlimited |
+| AI Waiter | — | ✓ | ✓ | ✓ |
+| AI Review Replies | — | ✓ | ✓ | ✓ |
+| Gallery uploads | — | ✓ | ✓ | ✓ |
+| Staff management | — | ✓ | ✓ | ✓ |
+| Premium QR templates | — | ✓ | ✓ | ✓ |
+| Multi-location | — | — | — | Up to 5 |
+| Custom domain | — | — | — | ✓ |
 
-Drag & drop editor (like Canva)
+**Payment:** PawaPay (MTN MoMo + Airtel Rwanda). Pro = 35,000 RWF/month or 385,000 RWF/year. Business = 89,000 RWF/month or 979,000 RWF/year.
 
-LEFT PANEL:
+**Lifecycle:** new signup → 14-day trial (full Pro) → day-1/7/12 emails → upgrade or drop to free → monthly payment → renewal reminder at day −3 → auto-downgrade on expiry.
 
-* Sections (Starters, Drinks…)  
-* Add Item
-
-CENTER:
-
-* Live preview
-
-RIGHT PANEL:
-
-* Style settings:  
-  * Fonts  
-  * Colors  
-  * Layout
-
----
-
-### **Smart Features:**
-
-* “🔥 Highlight Best Seller”  
-* “💰 Increase price by 10% suggestion”  
-* “📈 Low performing item”
+**Dashboard banners:**
+- Purple banner during trial (shows days left)
+- Amber banner 3 days before plan expiry
+- Red banner on expiry
 
 ---
 
-## **🟢 6\. QR CODE GENERATOR**
+## 5. Design System (Actual)
 
-### **UI:**
+**Colors (from `globals.css @theme`):**
+- Primary: `#a04100` (warm orange-brown)
+- Primary container / accent: `#FF6B00` (vibrant orange)
+- Tertiary: `#006e2a` / `#00b149` (green — success, live indicators)
+- Surface: `#fcf9f8` (off-white cream)
+- On-surface: `#1b1b1c`
 
-* Big QR preview  
-* Download button  
-* Customization:  
-  * Logo inside QR  
-  * Color
+**Fonts:**
+- Headlines: **Plus Jakarta Sans** (weights 400–800)
+- Body: **Inter** (weights 400–600)
+- Icons: **Material Symbols Outlined** (Google Fonts)
 
-### **Copy:**
-
-“Print this and place it on your tables”
-
-### **CTA:**
-
-* Download PNG  
-* Download PDF
-
----
-
-## **🟢 7\. ANALYTICS DASHBOARD**
-
-### **UI:**
-
-Cards \+ charts
-
-Metrics:
-
-* Most viewed dishes  
-* Most ordered dishes  
-* Conversion rate  
-* Peak hours
+**Style:**
+- Tailwind CSS v4 (`@theme {}` block in globals.css — no tailwind.config.js)
+- Material Design 3 token naming
+- Custom utilities: `.glass-nav`, `.editor-canvas`, `.hide-scrollbar`, `.premium-shadow`
+- Device frames via `data-viewport` attribute
 
 ---
 
-### **Insight Box:**
+## 6. UX Principles (Unchanged)
 
-“Your Burger is your top seller. Consider promoting it.”
-
----
-
-## **🟢 8\. WHATSAPP ORDER FLOW**
-
-### **UI:**
-
-Toggle:
-
-* Enable WhatsApp ordering
-
-Field:
-
-* Phone number
-
-Preview:
-
-Hello, I’d like to order:  
-\- Chicken Burger  
-\- 2x Soda
+1. Speed > Features
+2. Mobile-first always
+3. 1-click actions
+4. No learning curve
+5. Everything editable instantly
 
 ---
 
-# **🌍 4\. CUSTOMER VIEW (CRITICAL UX)**
-
-This is what customers see after scanning QR.
-
----
-
-## **📱 MOBILE MENU UI**
-
-### **Layout:**
-
-* Sticky category tabs (Drinks | Food | Specials)  
-* Clean cards
-
-Each item:
-
-* Image  
-* Name  
-* Price  
-* “Order” button
-
----
-
-### **CTA:**
-
-**“Order via WhatsApp”**
-
----
-
-# **🧲 5\. LANDING PAGE (HIGH-CONVERTING COPY)**
-
----
-
-## **🟢 HERO SECTION**
-
-**Headline:**
-
-Turn your menu into a money-making machine
-
-**Subheadline:**
-
-Create, optimize, and track your restaurant menu with AI.
-
-**CTA:**
-
-* “Start Free”  
-* “See Demo”
-
----
-
-## **🟢 SECTION 2 — PROBLEM**
-
-Most menus don’t sell — they just list.
-
-* No data  
-* Poor design  
-* Hard to update
-
----
-
-## **🟢 SECTION 3 — SOLUTION**
-
-MENUZAI turns your menu into a sales tool.
-
-* AI-powered design  
-* Real-time updates  
-* Smart insights
-
----
-
-## **🟢 SECTION 4 — FEATURES**
-
-### **1\. Upload & Convert**
-
-Turn your menu into digital instantly
-
-### **2\. Smart Templates**
-
-Designed to increase orders
-
-### **3\. QR Code Menus**
-
-No printing. No hassle.
-
-### **4\. Analytics**
-
-Know what sells
-
-### **5\. WhatsApp Orders**
-
-Customers order instantly
-
----
-
-## **🟢 SECTION 5 — SOCIAL PROOF**
-
-“We increased our orders by 30% using MENUZAI”
-
-(Add real testimonials later)
-
----
-
-## **🟢 SECTION 6 — PRICING**
-
-Simple 3-tier pricing
-
-CTA:
-
-“Start Free — No Card Required”
-
----
-
-## **🟢 SECTION 7 — FINAL CTA**
-
-Your menu is your \#1 sales tool. Upgrade it.
-
-CTA:
-
-* “Create Your Menu Now”
-
----
-
-# **🎨 6\. DESIGN SYSTEM**
-
-### **Colors:**
-
-* Primary: Deep Orange (\#FF6B00) → food psychology  
-* Secondary: Dark (\#1E1E1E)  
-* Accent: Green (\#00C853) → success/action
-
----
-
-### **Fonts:**
-
-* Headings: Bold modern (Poppins)  
-* Body: Clean (Inter)
-
----
-
-### **Style:**
-
-* Rounded cards  
-* Soft shadows  
-* Mobile-first
-
----
-
-# **⚙️ 7\. UX PRINCIPLES (DO NOT BREAK)**
-
-1. **Speed \> Features**  
-2. **Mobile-first always**  
-3. **1-click actions**  
-4. **No learning curve**  
-5. **Everything editable instantly**
-
----
-
-# **🔥 FINAL PRODUCT VISION**
-
-MENUZAI should feel like:
-
-* Canva (ease of use)  
-  * WhatsApp (ordering layer)  
-  * Business intelligence tool
-
----
-
+## 7. What Was Built vs Original Spec
+
+| Original spec | Actual implementation |
+|---|---|
+| "Mobile Money arriving soon" | PawaPay fully live — MTN MoMo + Airtel Rwanda |
+| 4 templates (Classic, Modern, Luxury, Fast Food) | 8 fully live templates |
+| "WhatsApp order flow" | WhatsApp AND AI Waiter in-chat ordering |
+| Basic analytics | Full analytics + conversion funnel + CSV export |
+| "AI Upload" | Multi-image AI extraction (up to 5 images parallel) |
+| Plan gates (UI only) | Server-side enforcement on all API routes |
+| No subscription system | Full lifecycle: trial → paid → expiry → reminders → cron downgrade |
+| No staff roles | RBAC: owner / manager / staff with email invites |
+| No reviews | Customer reviews with AI-drafted replies |
+| No real-time | Supabase Realtime on orders table + broadcast for table requests |
+| Poppins font | Plus Jakarta Sans |

@@ -335,6 +335,7 @@ The `restaurants` table stores the current plan tier; check `canCreateMenu()`, `
 - **SEO** — `robots.ts` and `sitemap.ts` are configured. Root layout includes Open Graph and Twitter Card metadata.
 - **Error handling** — `global-error.tsx` at app root, `error.tsx` in dashboard and public menu routes.
 - **`app/scratch/`** — untracked utility scripts for one-off admin tasks (`check_rls.js`, `get_all_users.js`, `reset_user_password.js`); not part of the app.
+- **`demo-video/`** — standalone Remotion v4 project. 90-second 1920×1080 investor demo video. `cd demo-video && npm install && npm run start` (Studio) or `npm run build` (MP4). YouTube: https://youtu.be/G4vp5NQnk-I. Output at `demo-video/out/` is gitignored.
 
 ### Deployment
 
