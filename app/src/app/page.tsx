@@ -52,12 +52,12 @@ export default function LandingPage() {
           <div className="relative">
             <div className="bg-black rounded-3xl overflow-hidden shadow-2xl border border-black/10 aspect-video">
               <iframe
-                src="https://www.youtube.com/embed/G4vp5NQnk-I?rel=0&modestbranding=1&color=white"
+                src="https://www.youtube.com/embed/G4vp5NQnk-I?autoplay=1&mute=1&loop=1&playlist=G4vp5NQnk-I&controls=0&rel=0&modestbranding=1&playsinline=1&disablekb=1"
                 title="MENUZA AI — Product Demo"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                 allowFullScreen
                 className="w-full h-full"
-                style={{ display: "block" }}
+                style={{ display: "block", pointerEvents: "none" }}
               />
             </div>
             {/* Caption */}
