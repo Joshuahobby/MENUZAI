@@ -16,7 +16,7 @@ interface AnalyticsData {
 }
 
 export default function DashboardPage() {
-  const { restaurantId, lastSynced, menuStyle, menuItems, menuStatus, restaurantLogoUrl, userRole, menuSlug, plan, restaurantName } = useMenu();
+  const { restaurantId, lastSynced, menuStyle, menuItems, menuStatus, restaurantLogoUrl, userRole, menuSlug, plan, restaurantName, restaurantPhone } = useMenu();
   const currency = menuStyle.currency ?? "RWF";
   const [data, setData] = useState<AnalyticsData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -68,7 +68,8 @@ export default function DashboardPage() {
   const hasLogo = !!restaurantLogoUrl;
   const hasItems = menuItems && menuItems.length > 0;
   const isPublished = menuStatus === "published";
-  const allStepsDone = hasLogo && hasItems && isPublished;
+  const hasPhone = !!(restaurantPhone && restaurantPhone.trim().length > 5);
+  const allStepsDone = hasLogo && hasItems && isPublished && hasPhone;
 
   const isNewUser = kpis.views === 0 && kpis.orders === 0;
 
@@ -332,8 +333,23 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* Quick Start — shown only when user has no activity yet */}
-      {isNewUser && (
+      {/* WhatsApp number warning — orders silently fail without it */}
+      {isPublished && !hasPhone && (
+        <Link
+          href="/dashboard/settings"
+          className="flex items-center gap-3 mb-6 px-5 py-4 bg-amber-50 border border-amber-300 rounded-2xl hover:bg-amber-100 transition-colors"
+        >
+          <span className="material-symbols-outlined text-amber-600 text-[22px]">warning</span>
+          <div className="flex-1 min-w-0">
+            <p className="font-bold text-sm text-amber-900">No WhatsApp number set — orders can&apos;t be placed</p>
+            <p className="text-xs text-amber-700 mt-0.5">Your menu is live but customers can&apos;t order without your WhatsApp number. Add it in Settings.</p>
+          </div>
+          <span className="material-symbols-outlined text-amber-600 text-[18px] shrink-0">chevron_right</span>
+        </Link>
+      )}
+
+      {/* Setup checklist — shown until all steps complete */}
+      {!allStepsDone && (
         <div className="mb-10 bg-gradient-to-br from-primary/5 to-primary-container/5 border border-primary/10 rounded-3xl p-8">
           <div className="flex items-center justify-between gap-4 mb-6">
             <div className="flex items-center gap-3">
@@ -341,7 +357,7 @@ export default function DashboardPage() {
                 <span className="material-symbols-outlined text-white icon-fill text-xl">rocket_launch</span>
               </div>
               <div>
-                <h2 className="font-[var(--font-headline)] font-bold text-lg">Get your menu live in 3 steps</h2>
+                <h2 className="font-[var(--font-headline)] font-bold text-lg">Get your menu live in 4 steps</h2>
                 <p className="text-secondary text-xs">Complete these to start receiving orders</p>
               </div>
             </div>
@@ -351,11 +367,12 @@ export default function DashboardPage() {
               </div>
             )}
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {[
-              { step: 1, done: hasLogo, icon: "image", label: "Upload logo", desc: "Add your restaurant branding", href: "/dashboard/settings", cta: "Go to Settings" },
-              { step: 2, done: hasItems, icon: "edit_note", label: "Add menu items", desc: "Create your first category and item", href: "/dashboard/editor", cta: "Open Editor" },
-              { step: 3, done: isPublished, icon: "qr_code_2", label: "Publish & Share", desc: "Get your QR code for tables", href: "/dashboard/qr-codes", cta: "Get QR Code" },
+              { step: 1, done: hasItems, icon: "edit_note", label: "Add menu items", desc: "Create your first category and item", href: "/dashboard/editor", cta: "Open Editor" },
+              { step: 2, done: isPublished, icon: "public", label: "Publish your menu", desc: "Make it live so customers can scan", href: "/dashboard/menus", cta: "Publish Now" },
+              { step: 3, done: hasPhone, icon: "whatsapp", label: "Add WhatsApp number", desc: "Required for customers to place orders", href: "/dashboard/settings", cta: "Add in Settings" },
+              { step: 4, done: hasLogo, icon: "image", label: "Upload your logo", desc: "Brand your menu with your restaurant logo", href: "/dashboard/settings", cta: "Go to Settings" },
             ].map(({ step, done, icon, label, desc, href, cta }) => (
               <Link key={step} href={href} className={`group flex flex-col gap-3 rounded-2xl p-5 border transition-all ${done ? 'bg-surface-container-low border-transparent opacity-80' : 'bg-surface-container-lowest border-outline-variant/20 hover:border-primary/30 hover:shadow-md'}`}>
                 <div className="flex items-center justify-between">

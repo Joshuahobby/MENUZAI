@@ -61,7 +61,10 @@ export default function MenuEditorPage() {
     user,
     restaurantName,
     userRole,
+    restaurantPhone,
   } = useMenu();
+
+  const hasPhone = !!(restaurantPhone && restaurantPhone.trim().length > 5);
 
   const [publishedSlug, setPublishedSlug] = useState<string | null>(null);
   const [isEditingName, setIsEditingName] = useState(false);
@@ -366,6 +369,15 @@ export default function MenuEditorPage() {
           )}
         </div>
       </header>
+
+      {/* WhatsApp warning — orders won't work without a phone number */}
+      {menuStatus === "published" && !hasPhone && (
+        <div className="bg-amber-50 border-b border-amber-200 px-4 py-2.5 flex items-center gap-2 text-xs font-semibold text-amber-800 shrink-0">
+          <span className="material-symbols-outlined text-amber-500 text-[16px]">warning</span>
+          Menu is live but no WhatsApp number is set — customers can&apos;t order.
+          <a href="/dashboard/settings" className="underline font-bold ml-1 hover:text-amber-900">Fix in Settings →</a>
+        </div>
+      )}
 
       <div className="flex flex-1 overflow-hidden">
         {/* Left Panel — desktop only (hidden on mobile via EditorSidebar) */}

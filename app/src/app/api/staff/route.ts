@@ -151,6 +151,50 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: insertError.message }, { status: 500 });
     }
 
+    // Send branded welcome email to the new staff member
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://menuzai.com";
+    const resendKey = process.env.RESEND_API_KEY;
+    const { data: restaurantData } = await adminClient
+      .from("restaurants")
+      .select("name")
+      .eq("id", restaurantId)
+      .single();
+    const restaurantDisplayName = restaurantData?.name ?? "your restaurant";
+    const roleLabel = (role as string).charAt(0).toUpperCase() + (role as string).slice(1);
+
+    if (resendKey) {
+      await fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${resendKey}` },
+        body: JSON.stringify({
+          from: `MENUZA AI <${process.env.RESEND_FROM_EMAIL ?? "orders@ikoranabuhanga.tech"}>`,
+          to: [email],
+          subject: `You've been added to ${restaurantDisplayName} on MENUZA AI`,
+          html: `
+            <div style="font-family:sans-serif;max-width:560px;margin:auto;color:#1c1c1e">
+              <div style="background:#FF6B00;padding:24px 32px;border-radius:16px 16px 0 0">
+                <h1 style="color:white;margin:0;font-size:20px">Welcome to ${restaurantDisplayName}</h1>
+              </div>
+              <div style="background:#fff;padding:24px 32px;border:1px solid #e5e5ea;border-top:none;border-radius:0 0 16px 16px">
+                <p style="font-size:16px">Hi there,</p>
+                <p>You've been added as a <strong>${roleLabel}</strong> at <strong>${restaurantDisplayName}</strong> on MENUZA AI.</p>
+                <p>MENUZA AI is the restaurant's digital menu and ordering platform. As ${roleLabel === "Staff" ? "a staff member" : `a ${roleLabel.toLowerCase()}`}, you can:</p>
+                <ul style="line-height:2.2">
+                  ${roleLabel === "Staff"
+                    ? "<li>Monitor incoming orders in real-time</li><li>Manage table requests</li><li>Update order status</li>"
+                    : "<li>Monitor and manage all orders</li><li>View analytics and reports</li><li>Manage menu items and categories</li><li>Manage staff members</li>"}
+                </ul>
+                <a href="${siteUrl}/dashboard/orders" style="display:inline-block;margin-top:16px;padding:12px 28px;background:#FF6B00;color:white;font-weight:bold;border-radius:12px;text-decoration:none">
+                  Open Orders Dashboard
+                </a>
+                <p style="font-size:13px;color:#555;margin-top:24px">If you don't have an account yet, check your inbox for a separate sign-up link from MENUZA AI.</p>
+                <p style="font-size:12px;color:#888;margin-top:16px">Sent by MENUZA AI on behalf of ${restaurantDisplayName}</p>
+              </div>
+            </div>`,
+        }),
+      }).catch((e) => console.error("Staff invite email failed:", e));
+    }
+
     return NextResponse.json({ success: true, message: "Staff added successfully." });
 
   } catch (err) {

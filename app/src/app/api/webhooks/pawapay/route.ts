@@ -56,8 +56,9 @@ export async function POST(req: Request) {
 
       const planName = (tx.plan_name as string | null)?.toLowerCase() ?? "pro";
 
+      const isAnnualPlan = (tx.plan_name as string ?? "").toLowerCase().includes("annual");
       const expiresAt = new Date();
-      expiresAt.setDate(expiresAt.getDate() + 30);
+      expiresAt.setDate(expiresAt.getDate() + (isAnnualPlan ? 365 : 30));
 
       const [{ error: upgradeError }, { data: restaurant }, { data: { user } }] = await Promise.all([
         supabaseAdmin
@@ -101,7 +102,7 @@ export async function POST(req: Request) {
           body: JSON.stringify({
             from: `MENUZA AI <${process.env.RESEND_FROM_EMAIL ?? "orders@ikoranabuhanga.tech"}>`,
             to: [ownerEmail],
-            subject: `Your ${planLabel} plan is now active — MENUZA AI`,
+            subject: `Your ${planLabel} plan is now active${isAnnualPlan ? " (Annual)" : ""} — MENUZA AI`,
             html,
           }),
         }).catch((e) => console.error("Upgrade email failed:", e));

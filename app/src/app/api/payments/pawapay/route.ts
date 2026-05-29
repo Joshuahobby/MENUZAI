@@ -6,6 +6,10 @@ import { headers } from "next/headers";
 const PLAN_PRICES: Record<string, number> = {
   pro: 35_000,
   business: 89_000,
+  "pro (monthly)": 35_000,
+  "business (monthly)": 89_000,
+  "pro (annual)": 35_000 * 11,
+  "business (annual)": 89_000 * 11,
 };
 
 const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
@@ -33,10 +37,12 @@ export async function POST(req: Request) {
   try {
     const { phoneNumber, plan } = await req.json();
 
-    const amount = PLAN_PRICES[plan?.toLowerCase()];
+    const planKey = plan?.toLowerCase() ?? "";
+    const amount = PLAN_PRICES[planKey];
     if (!amount) {
       return NextResponse.json({ error: "Invalid plan" }, { status: 400 });
     }
+    const isAnnual = planKey.includes("annual");
 
     // 1. Get authenticated user
     const supabase = await createSupabaseServerClient();
