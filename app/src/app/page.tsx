@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { pricingPlans } from "@/data/mockData";
 import { PublicNav } from "@/components/PublicNav";
 import { BackToTop } from "@/components/BackToTop";
@@ -254,9 +254,11 @@ export default function LandingPage() {
           <h2 className="text-4xl md:text-5xl font-[var(--font-headline)] font-black text-white tracking-tight leading-tight mb-5">
             Elevate your restaurant&apos;s digital presence
           </h2>
-          <p className="text-white/40 text-base mb-10 leading-relaxed max-w-lg mx-auto">
+          <p className="text-white/40 text-base mb-6 leading-relaxed max-w-lg mx-auto">
             Join restaurants across Africa using MENUZA AI to serve more guests, more efficiently.
           </p>
+          <LiveStats />
+
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <Link href="/login" className="px-8 py-4 bg-primary text-white font-bold rounded-xl text-sm hover:opacity-90 transition-opacity shadow-lg shadow-primary/20">
               Start Free — No Card Required
@@ -314,6 +316,33 @@ export default function LandingPage() {
         </div>
       </footer>
       <BackToTop />
+    </div>
+  );
+}
+
+function LiveStats() {
+  const [stats, setStats] = useState<{ restaurants: number; orders: number } | null>(null);
+
+  useEffect(() => {
+    fetch("/api/public/stats")
+      .then((r) => r.json())
+      .then(setStats)
+      .catch(() => {});
+  }, []);
+
+  if (!stats) return <div className="mb-8 h-8" />;
+
+  return (
+    <div className="flex items-center justify-center gap-6 mb-8 text-white/60 text-sm">
+      <div className="flex items-center gap-2">
+        <span className="material-symbols-outlined text-primary text-[18px] icon-fill">store</span>
+        <span><strong className="text-white font-black">{fmt(stats.restaurants)}+</strong> restaurants</span>
+      </div>
+      <span className="w-px h-4 bg-white/10" />
+      <div className="flex items-center gap-2">
+        <span className="material-symbols-outlined text-primary text-[18px] icon-fill">receipt_long</span>
+        <span><strong className="text-white font-black">{fmt(stats.orders)}+</strong> orders served</span>
+      </div>
     </div>
   );
 }

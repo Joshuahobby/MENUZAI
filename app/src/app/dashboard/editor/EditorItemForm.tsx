@@ -6,6 +6,7 @@ import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { prompt, confirm } from "@/components/Modals";
 import type { MenuItem, MenuStyle } from "@/types/menu";
+import { useUpgrade } from "@/components/UpgradeModal";
 
 const BADGES = ["bestseller", "popular", "healthy", "chefs-pick", "new"] as const;
 
@@ -44,6 +45,7 @@ export function EditorItemForm({
   onUploadStart,
   onUploadEnd,
 }: EditorItemFormProps) {
+  const { showUpgrade } = useUpgrade();
   const imgInputRef = useRef<HTMLInputElement | null>(null);
   const galleryInputRef = useRef<HTMLInputElement | null>(null);
   const [isGeneratingDesc, setIsGeneratingDesc] = useState(false);
@@ -355,14 +357,15 @@ export function EditorItemForm({
                 </div>
               ))}
               {plan === "free" ? (
-                <a
-                  href="/pricing"
+                <button
+                  type="button"
+                  onClick={() => showUpgrade({ feature: "Gallery uploads", description: "Add multiple photos per item so customers can browse before they order." })}
                   title="Gallery upload requires Pro"
                   className="w-16 h-16 border-2 border-dashed border-outline-variant flex flex-col items-center justify-center rounded-lg text-secondary hover:text-primary transition-colors gap-0.5"
                 >
                   <span className="material-symbols-outlined text-sm">lock</span>
                   <span className="text-[8px] font-bold uppercase">Pro</span>
-                </a>
+                </button>
               ) : (
                 <button
                   type="button"

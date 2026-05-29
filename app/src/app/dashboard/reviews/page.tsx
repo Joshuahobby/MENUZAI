@@ -6,6 +6,7 @@ import { useMenu } from "@/context/MenuContext";
 import { formatRelativeTime } from "@/lib/utils";
 import { Skeleton } from "@/components/Skeleton";
 import { toast } from "sonner";
+import { useUpgrade } from "@/components/UpgradeModal";
 
 interface ReviewRow {
   id: string;
@@ -32,6 +33,7 @@ function StarRow({ rating, filled }: { rating: number; filled: boolean }) {
 
 export default function ReviewsPage() {
   const { restaurantId, restaurantName, userRole, isLoading: menuLoading, plan } = useMenu();
+  const { showUpgrade } = useUpgrade();
   const [reviews, setReviews] = useState<ReviewRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [filterRating, setFilterRating] = useState<number | null>(null);
@@ -444,14 +446,14 @@ export default function ReviewsPage() {
                   {!hasReply && !isEditing && (
                     <div className="flex justify-end">
                       {plan === "free" ? (
-                        <a
-                          href="/pricing"
+                        <button
+                          type="button"
+                          onClick={() => showUpgrade({ feature: "AI Review Replies", description: "Instantly draft professional replies to every customer review — one click, always on-brand." })}
                           className="flex items-center gap-2 px-4 py-2 bg-surface-container text-secondary text-xs font-extrabold rounded-xl transition-all hover:bg-primary/10 hover:text-primary"
-                          title="Upgrade to Pro to use AI Reply"
                         >
                           <span className="material-symbols-outlined text-[16px]">lock</span>
-                          <span>AI Reply — Pro</span>
-                        </a>
+                          <span>AI Reply — Upgrade to Pro</span>
+                        </button>
                       ) : (
                         <button
                           type="button"

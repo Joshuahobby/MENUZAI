@@ -3,104 +3,182 @@ import { getSupabaseAdmin } from "@/lib/supabase-admin";
 
 export const dynamic = "force-dynamic";
 
+const RESEND_FROM = process.env.RESEND_FROM_EMAIL ?? "orders@ikoranabuhanga.tech";
+
+async function sendEmail(to: string, subject: string, html: string, resendKey: string) {
+  await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "Authorization": `Bearer ${resendKey}` },
+    body: JSON.stringify({ from: `MENUZA AI <${RESEND_FROM}>`, to: [to], subject, html }),
+  }).catch((e) => console.error(`Email failed to ${to}:`, e));
+}
+
+function dayMatch(isoDate: string, daysFromNow: number): string {
+  const d = new Date();
+  d.setDate(d.getDate() + daysFromNow);
+  return d.toISOString().slice(0, 10);
+}
+
+
 export async function POST(req: Request) {
   const secret = process.env.CRON_SECRET;
-  if (secret) {
-    const auth = req.headers.get("authorization");
-    if (auth !== `Bearer ${secret}`) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+  if (secret && req.headers.get("authorization") !== `Bearer ${secret}`) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const admin = getSupabaseAdmin();
   if (!admin) return NextResponse.json({ error: "Configuration missing" }, { status: 500 });
 
-  // Match restaurants expiring on exactly the same calendar day as now()+3 days.
-  // The daily cron guarantees this fires once per restaurant.
-  const targetDate = new Date();
-  targetDate.setDate(targetDate.getDate() + 3);
-  const targetDay = targetDate.toISOString().slice(0, 10); // "YYYY-MM-DD"
+  const resendKey = process.env.RESEND_API_KEY;
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://menuzai.com";
 
-  const { data: expiring, error } = await admin
+  // ── Paid plan expiry reminder (3 days out) ─────────────────────────────
+  const paidDay = dayMatch("", 3);
+  const { data: expiringPaid } = await admin
     .from("restaurants")
     .select("id, name, user_id, plan")
-    .gte("plan_expires_at", `${targetDay}T00:00:00Z`)
-    .lt("plan_expires_at", `${targetDay}T23:59:59Z`)
-    .neq("plan", "free");
+    .gte("plan_expires_at", `${paidDay}T00:00:00Z`)
+    .lt("plan_expires_at", `${paidDay}T23:59:59Z`)
+    .neq("plan", "free")
+    .neq("plan", "trial");
 
-  if (error) {
-    console.error("remind-subscriptions query error:", error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
-  }
-
-  // Also find trials expiring in 2 days (day 12 of 14 = first noticeable warning)
-  const trialTargetDate = new Date();
-  trialTargetDate.setDate(trialTargetDate.getDate() + 2);
-  const trialTargetDay = trialTargetDate.toISOString().slice(0, 10);
-
-  const { data: expiringTrials } = await admin
+  // ── Trial: day-12 warning (2 days until expiry) ────────────────────────
+  const trial12Day = dayMatch("", 2);
+  const { data: trialExpiring } = await admin
     .from("restaurants")
     .select("id, name, user_id, plan")
     .eq("plan", "trial")
-    .gte("trial_ends_at", `${trialTargetDay}T00:00:00Z`)
-    .lt("trial_ends_at", `${trialTargetDay}T23:59:59Z`);
+    .gte("trial_ends_at", `${trial12Day}T00:00:00Z`)
+    .lt("trial_ends_at", `${trial12Day}T23:59:59Z`);
 
-  const allExpiring = [...(expiring ?? []), ...(expiringTrials ?? [])];
+  // ── Trial: day-7 midpoint nudge (7 days until expiry) ─────────────────
+  const trial7Day = dayMatch("", 7);
+  const { data: trialMid } = await admin
+    .from("restaurants")
+    .select("id, name, user_id, plan")
+    .eq("plan", "trial")
+    .gte("trial_ends_at", `${trial7Day}T00:00:00Z`)
+    .lt("trial_ends_at", `${trial7Day}T23:59:59Z`);
 
-  if (!allExpiring.length) {
-    return NextResponse.json({ reminded: 0 });
+  // ── Trial: day-1 welcome / get-started (13 days until expiry) ─────────
+  const trial1Day = dayMatch("", 13);
+  const { data: trialNew } = await admin
+    .from("restaurants")
+    .select("id, name, user_id, plan")
+    .eq("plan", "trial")
+    .gte("trial_ends_at", `${trial1Day}T00:00:00Z`)
+    .lt("trial_ends_at", `${trial1Day}T23:59:59Z`);
+
+  let sent = 0;
+  if (!resendKey) {
+    console.warn("remind-subscriptions: RESEND_API_KEY not set, skipping emails");
+    return NextResponse.json({ sent: 0, reason: "no resend key" });
   }
 
-  const resendKey = process.env.RESEND_API_KEY;
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://menuzai.com";
-  let reminded = 0;
+  // Helper to get user email
+  const getEmail = async (userId: string) => {
+    const { data } = await admin.auth.admin.getUserById(userId);
+    return data.user?.email ?? null;
+  };
 
-  for (const restaurant of allExpiring) {
-    const { data: { user } } = await admin.auth.admin.getUserById(restaurant.user_id);
-    const email = user?.email;
-    if (!email || !resendKey) continue;
-
-    const isTrial = restaurant.plan === "trial";
-    const accentColor = isTrial ? "#7c3aed" : "#FF6B00";
-    const subject = isTrial
-      ? "Your free trial ends in 2 days — upgrade to keep your features"
-      : `Renew your ${(restaurant.plan as string).charAt(0).toUpperCase() + (restaurant.plan as string).slice(1)} plan — expires in 3 days`;
-    const heading = isTrial ? "Your free trial ends in 2 days" : `Your plan expires in 3 days`;
-    const body = isTrial
-      ? `Your <strong>14-day free trial</strong> for <strong>${restaurant.name ?? "your restaurant"}</strong> ends in 2 days. Upgrade now to keep your AI Digital Waiter, unlimited menus, staff management, and all Pro features.`
-      : `Your <strong>Pro plan</strong> for <strong>${restaurant.name ?? "your restaurant"}</strong> expires in 3 days. Renew now with a quick Mobile Money payment to avoid interruption.`;
-    const ctaLabel = isTrial ? "Upgrade to Pro" : "Renew My Plan";
-
-    const html = `
+  // ── Send paid expiry reminders ─────────────────────────────────────────
+  for (const r of expiringPaid ?? []) {
+    const email = await getEmail(r.user_id);
+    if (!email) continue;
+    const planLabel = (r.plan as string).charAt(0).toUpperCase() + (r.plan as string).slice(1);
+    await sendEmail(email, `Renew your ${planLabel} plan — expires in 3 days`, `
       <div style="font-family:sans-serif;max-width:560px;margin:auto;color:#1c1c1e">
-        <div style="background:${accentColor};padding:24px 32px;border-radius:16px 16px 0 0">
-          <h1 style="color:white;margin:0;font-size:20px">${heading}</h1>
+        <div style="background:#FF6B00;padding:24px 32px;border-radius:16px 16px 0 0">
+          <h1 style="color:white;margin:0;font-size:20px">Your ${planLabel} plan expires in 3 days</h1>
         </div>
         <div style="background:#fff;padding:24px 32px;border:1px solid #e5e5ea;border-top:none;border-radius:0 0 16px 16px">
-          <p style="font-size:16px">Hi there,</p>
-          <p>${body}</p>
-          <a href="${siteUrl}/dashboard/settings" style="display:inline-block;margin-top:16px;padding:12px 28px;background:${accentColor};color:white;font-weight:bold;border-radius:12px;text-decoration:none">
-            ${ctaLabel}
-          </a>
-          <p style="font-size:13px;color:#555;margin-top:24px">If you don't upgrade, your account will automatically switch to the Free plan and features like the AI Waiter and staff management will be paused.</p>
-          <p style="font-size:12px;color:#888;margin-top:16px">Sent by MENUZA AI · Questions? Reply to this email.</p>
+          <p>Your <strong>${planLabel} plan</strong> for <strong>${r.name ?? "your restaurant"}</strong> expires in 3 days.</p>
+          <p>Renew now with a quick Mobile Money payment to keep your AI Waiter and all Pro features running.</p>
+          <a href="${siteUrl}/dashboard/settings" style="display:inline-block;margin-top:16px;padding:12px 28px;background:#FF6B00;color:white;font-weight:bold;border-radius:12px;text-decoration:none">Renew My Plan</a>
+          <p style="font-size:12px;color:#888;margin-top:24px">Sent by MENUZA AI · Reply with any questions.</p>
         </div>
-      </div>`;
-
-    await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${resendKey}` },
-      body: JSON.stringify({
-        from: `MENUZA AI <${process.env.RESEND_FROM_EMAIL ?? "orders@ikoranabuhanga.tech"}>`,
-        to: [email],
-        subject,
-        html,
-      }),
-    }).catch((e) => console.error(`Reminder email failed for ${restaurant.id}:`, e));
-
-    reminded++;
+      </div>`, resendKey);
+    sent++;
   }
 
-  console.log(`remind-subscriptions: sent ${reminded} reminder(s)`);
-  return NextResponse.json({ reminded });
+  // ── Send trial day-12 warning ──────────────────────────────────────────
+  for (const r of trialExpiring ?? []) {
+    const email = await getEmail(r.user_id);
+    if (!email) continue;
+    await sendEmail(email, "Your free trial ends in 2 days — upgrade to keep access", `
+      <div style="font-family:sans-serif;max-width:560px;margin:auto;color:#1c1c1e">
+        <div style="background:#7c3aed;padding:24px 32px;border-radius:16px 16px 0 0">
+          <h1 style="color:white;margin:0;font-size:20px">Your free trial ends in 2 days</h1>
+        </div>
+        <div style="background:#fff;padding:24px 32px;border:1px solid #e5e5ea;border-top:none;border-radius:0 0 16px 16px">
+          <p>Your 14-day trial for <strong>${r.name ?? "your restaurant"}</strong> ends in 2 days.</p>
+          <p>Upgrade now to keep your AI Digital Waiter, unlimited menus, staff management, and live analytics.</p>
+          <a href="${siteUrl}/dashboard/settings" style="display:inline-block;margin-top:16px;padding:12px 28px;background:#7c3aed;color:white;font-weight:bold;border-radius:12px;text-decoration:none">Upgrade to Pro</a>
+          <p style="font-size:13px;color:#555;margin-top:24px">After your trial, your account switches to the Free plan (1 menu, no AI features) unless you upgrade.</p>
+          <p style="font-size:12px;color:#888;margin-top:16px">Sent by MENUZA AI · Reply with any questions.</p>
+        </div>
+      </div>`, resendKey);
+    sent++;
+  }
+
+  // ── Send trial day-7 midpoint nudge ───────────────────────────────────
+  for (const r of trialMid ?? []) {
+    const email = await getEmail(r.user_id);
+    if (!email) continue;
+    await sendEmail(email, `How's your MENUZA AI trial going, ${r.name ?? ""}?`.trim(), `
+      <div style="font-family:sans-serif;max-width:560px;margin:auto;color:#1c1c1e">
+        <div style="background:#7c3aed;padding:24px 32px;border-radius:16px 16px 0 0">
+          <h1 style="color:white;margin:0;font-size:20px">You're halfway through your trial 🎉</h1>
+        </div>
+        <div style="background:#fff;padding:24px 32px;border:1px solid #e5e5ea;border-top:none;border-radius:0 0 16px 16px">
+          <p>Hi there,</p>
+          <p>You've had 7 days with MENUZA AI for <strong>${r.name ?? "your restaurant"}</strong>. Here are three things to make the most of your remaining 7 days:</p>
+          <ol style="line-height:2;padding-left:20px">
+            <li><strong>Share your QR code</strong> — put it on every table and let the AI Waiter greet your customers automatically.</li>
+            <li><strong>Check your orders dashboard</strong> — see real-time orders come in and track your best-selling items.</li>
+            <li><strong>Read your reviews</strong> — the AI drafts replies for you. One click to respond professionally.</li>
+          </ol>
+          <a href="${siteUrl}/dashboard" style="display:inline-block;margin-top:16px;padding:12px 28px;background:#7c3aed;color:white;font-weight:bold;border-radius:12px;text-decoration:none">Open My Dashboard</a>
+          <p style="font-size:13px;color:#555;margin-top:24px">Your trial ends in 7 days. To keep everything running, upgrade to Pro for 35,000 RWF/month via Mobile Money.</p>
+          <p style="font-size:12px;color:#888;margin-top:16px">Sent by MENUZA AI · Questions? Just reply to this email.</p>
+        </div>
+      </div>`, resendKey);
+    sent++;
+  }
+
+  // ── Send trial day-1 welcome / get-started ────────────────────────────
+  for (const r of trialNew ?? []) {
+    const email = await getEmail(r.user_id);
+    if (!email) continue;
+    await sendEmail(email, `Welcome to MENUZA AI — here's how to get your first order in 10 minutes`, `
+      <div style="font-family:sans-serif;max-width:560px;margin:auto;color:#1c1c1e">
+        <div style="background:#FF6B00;padding:24px 32px;border-radius:16px 16px 0 0">
+          <h1 style="color:white;margin:0;font-size:20px">Your 14-day trial has started 🚀</h1>
+        </div>
+        <div style="background:#fff;padding:24px 32px;border:1px solid #e5e5ea;border-top:none;border-radius:0 0 16px 16px">
+          <p>Welcome to MENUZA AI! Here's how to get <strong>${r.name ?? "your restaurant"}</strong> live in 10 minutes:</p>
+          <ol style="line-height:2.2;padding-left:20px">
+            <li><strong>Upload your menu</strong> — take a photo and our AI will extract every item automatically.</li>
+            <li><strong>Customise your style</strong> — pick colours, fonts, and a template that matches your brand.</li>
+            <li><strong>Publish and get your QR code</strong> — print it and put it on every table.</li>
+            <li><strong>Watch orders come in</strong> — your AI Digital Waiter handles the rest.</li>
+          </ol>
+          <a href="${siteUrl}/upload" style="display:inline-block;margin-top:8px;padding:12px 28px;background:#FF6B00;color:white;font-weight:bold;border-radius:12px;text-decoration:none">Upload My Menu Now</a>
+          <p style="font-size:13px;color:#555;margin-top:24px">Your trial includes all Pro features for 14 days — AI Waiter, unlimited menus, real-time orders, staff management, and more. No credit card needed.</p>
+          <p style="font-size:12px;color:#888;margin-top:16px">Sent by MENUZA AI · Reply to this email if you need any help getting set up.</p>
+        </div>
+      </div>`, resendKey);
+    sent++;
+  }
+
+  console.log(`remind-subscriptions: sent ${sent} email(s)`);
+  return NextResponse.json({
+    sent,
+    breakdown: {
+      paidExpiry: (expiringPaid ?? []).length,
+      trialDay12: (trialExpiring ?? []).length,
+      trialDay7: (trialMid ?? []).length,
+      trialDay1: (trialNew ?? []).length,
+    },
+  });
 }

@@ -6,6 +6,7 @@ import { CartProvider } from "@/contexts/CartContext";
 import { Toaster } from "sonner";
 import { ConfirmModal, PromptModal } from "@/components/Modals";
 import { SWRegister } from "@/components/SWRegister";
+import { UpgradeProvider } from "@/components/UpgradeModal";
 
 const plusJakartaSans = Plus_Jakarta_Sans({
   subsets: ["latin"],
@@ -83,6 +84,7 @@ export default function RootLayout({
       </head>
       <body className="bg-surface text-on-surface antialiased">
         <MenuProvider>
+          <UpgradeProvider>
           <CartProvider>
             {children}
             <ConfirmModal />
@@ -103,6 +105,7 @@ export default function RootLayout({
             />
             <SWRegister />
           </CartProvider>
+          </UpgradeProvider>
         </MenuProvider>
       </body>
     </html>
