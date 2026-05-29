@@ -35,12 +35,12 @@ const ROLES = [
     color: "bg-primary",
     border: "border-primary/20",
     ring: "hover:border-primary/60",
-    desc: "See your restaurant's performance at a glance — revenue, menu views, conversion rates, and recent orders.",
+    desc: "Explore the full owner experience — analytics, AI menu extraction, templates, reviews, and QR codes.",
     features: [
       "Analytics: views, orders, revenue trends",
-      "Quick actions: edit menu, view QR, analytics",
-      "Recent orders with live status",
-      "Menu item management",
+      "AI extraction: photo → menu items in seconds",
+      "8 live templates + reviews with AI replies",
+      "QR poster generator with batch export",
     ],
     cta: "Try Owner Demo",
     highlight: true,
@@ -139,7 +139,7 @@ export default function DemoHubPage() {
         <p className="text-center text-sm text-secondary mt-10">
           Ready to set up your own menu?{" "}
           <Link href="/login" className="text-primary font-semibold hover:underline">
-            Create a free account →
+            Start your free trial →
           </Link>
         </p>
       </section>
@@ -155,16 +155,20 @@ export default function DemoHubPage() {
               These aren&apos;t screenshots. You can actually use the features below in the demo.
             </p>
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
             {[
-              { icon: "add_shopping_cart", text: "Add items to cart" },
-              { icon: "whatsapp",          text: "Place a WhatsApp order" },
-              { icon: "support_agent",     text: "Chat with AI Waiter" },
-              { icon: "analytics",         text: "View revenue charts" },
-              { icon: "swap_horiz",        text: "Change order status" },
-              { icon: "notifications",     text: "Simulate new orders" },
-              { icon: "table_restaurant",  text: "Track table numbers" },
-              { icon: "timer",             text: "See urgency timers" },
+              { icon: "add_shopping_cart",  text: "Add items to cart" },
+              { icon: "whatsapp",           text: "Place a WhatsApp order" },
+              { icon: "support_agent",      text: "Chat with AI Waiter" },
+              { icon: "document_scanner",   text: "AI menu extraction" },
+              { icon: "analytics",          text: "View revenue charts" },
+              { icon: "style",              text: "Switch menu templates" },
+              { icon: "star",               text: "AI-generated review replies" },
+              { icon: "qr_code_2",          text: "Generate QR posters" },
+              { icon: "swap_horiz",         text: "Change order status" },
+              { icon: "notifications",      text: "Simulate new orders" },
+              { icon: "table_restaurant",   text: "Track table numbers" },
+              { icon: "timer",              text: "See urgency timers" },
             ].map((item, i) => (
               <div key={i} className="flex flex-col items-center gap-3 p-5 bg-[#faf8f6] rounded-2xl border border-black/5 text-center">
                 <span className="material-symbols-outlined text-primary text-[28px]">{item.icon}</span>
@@ -181,10 +185,10 @@ export default function DemoHubPage() {
           <h2 className="text-3xl font-[var(--font-headline)] font-black tracking-tight mb-4">
             Convinced? Get your restaurant online in minutes.
           </h2>
-          <p className="text-secondary mb-8">Free plan — no card required. Upgrade when you&apos;re ready.</p>
+          <p className="text-secondary mb-8">14-day free trial — no credit card required.</p>
           <Link href="/login"
             className="inline-block px-8 py-4 bg-primary text-white font-bold rounded-xl text-sm hover:opacity-90 transition-opacity shadow-lg shadow-primary/20">
-            Start Free — No Card Required
+            Start Free Trial — No Card Required
           </Link>
         </div>
       </section>

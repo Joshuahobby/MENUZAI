@@ -15,6 +15,7 @@ import {
 import type { MenuItem } from "@/types/menu";
 
 interface CartItem { id: string; name: string; price: number; quantity: number; }
+interface ChatMsg { role: "ai" | "user"; text: string; }
 
 const DEMO_STYLE = {
   primaryColor:  "#a04100",
@@ -28,10 +29,38 @@ const DEMO_STYLE = {
 // Convert USD prices from mockData to RWF for demo (×1000)
 const ITEMS: MenuItem[] = MOCK_ITEMS.map(item => ({ ...item, price: item.price * 1000 }));
 
+// Simple keyword-based AI Waiter responses for the demo (no API calls)
+function getDemoAiReply(input: string): string {
+  const q = input.toLowerCase();
+  if (q.match(/popular|best|recommend|top/))
+    return "Our most popular dish right now is the **Truffle Ribeye Steak** 🥩 — guests absolutely love it! The Menuza Royale burger is also a crowd favourite. Shall I add either to your cart?";
+  if (q.match(/vegetarian|vegan|plant/))
+    return "Great news — we have excellent plant-based options! The **Superfood Bowl** (quinoa, avocado, roasted chickpeas) and the **Garden Margherita** are both favourites. Would you like to try one?";
+  if (q.match(/cheap|budget|affordable|price|cost/))
+    return "Our most affordable options start from 8,000 RWF for beverages and 14,000 RWF for desserts. The **Molten Lava Cake** at 14,000 RWF is a steal — many guests order it even when full! 😄";
+  if (q.match(/dessert|sweet|cake|chocolate/))
+    return "For desserts, I highly recommend the **Molten Lava Cake** 🍫 — warm chocolate centre, vanilla ice cream on the side. Divine! The Yuzu Cheesecake is also very popular. Want me to add one?";
+  if (q.match(/drink|beverage|water|wine|juice|cocktail/))
+    return "We have a great selection! The **Summer Spritz** (Prosecco + Aperol) is our bestselling cocktail, and we also have still/sparkling water, fresh juices, and a curated wine list. What sounds good?";
+  if (q.match(/order|add|want|take|get/))
+    return "I'd be happy to help you order! 🛎️ Just tell me what you'd like and I'll guide you through it. You can also tap **Add to Cart** directly on any item below.";
+  if (q.match(/hello|hi|hey|good|morning|evening|night/))
+    return "Good evening! 🌙 Welcome to Le Bistro — I'm your AI Digital Waiter. I can help you choose dishes, answer questions about ingredients, or take your order. What are you in the mood for tonight?";
+  if (q.match(/allergen|allergy|gluten|nut|dairy|lactose/))
+    return "I take allergies seriously! Our **Superfood Bowl** and **Mediterranean Salmon** are gluten-free. Please mention any allergies when ordering and our kitchen will accommodate you. Want to see the full allergen list?";
+  return "Great question! 🍽️ Our menu changes seasonally, but right now the **Truffle Ribeye** and **Mediterranean Salmon** are getting the most praise. Is there anything specific I can help you find?";
+}
+
 export default function CustomerMenuPage() {
   const containerRef = useRef<HTMLDivElement>(null);
   const [activeCategory, setActiveCategory] = useState(MOCK_CATEGORIES[0]?.id ?? "specials");
   const [cart, setCart] = useState<CartItem[]>([]);
+  const [chatOpen, setChatOpen] = useState(false);
+  const [chatInput, setChatInput] = useState("");
+  const [chatMsgs, setChatMsgs] = useState<ChatMsg[]>([
+    { role: "ai", text: "Good evening! Welcome to Le Bistro 🍽️ I'm your AI Digital Waiter. Ask me anything — what dishes are popular, allergen info, or just tell me what you're in the mood for!" },
+  ]);
+  const [aiTyping, setAiTyping] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -205,6 +234,103 @@ export default function CustomerMenuPage() {
       </main>
 
       <BackToTop />
+
+      {/* AI Waiter FAB */}
+      {!chatOpen && (
+        <button
+          onClick={() => setChatOpen(true)}
+          className="fixed bottom-28 right-6 w-14 h-14 bg-primary text-white rounded-full shadow-2xl flex items-center justify-center z-50 hover:scale-110 active:scale-95 transition-all"
+          title="Chat with AI Waiter"
+        >
+          <span className="material-symbols-outlined text-2xl icon-fill">robot_2</span>
+          <div className="absolute -top-1 -right-1 w-4 h-4 bg-tertiary rounded-full border-2 border-white animate-pulse" />
+        </button>
+      )}
+
+      {/* AI Waiter Chat Panel */}
+      {chatOpen && (
+        <div className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center p-0 sm:p-6 bg-black/40 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-surface w-full max-w-sm sm:rounded-[2rem] shadow-2xl flex flex-col h-[70vh] sm:h-[520px] overflow-hidden animate-in slide-in-from-bottom duration-300">
+            {/* Header */}
+            <div className="bg-primary px-5 py-4 flex items-center gap-3">
+              <div className="w-9 h-9 bg-white/20 rounded-xl flex items-center justify-center shrink-0">
+                <span className="material-symbols-outlined text-white text-lg icon-fill">robot_2</span>
+              </div>
+              <div className="flex-1">
+                <p className="text-white font-bold text-sm">AI Digital Waiter</p>
+                <p className="text-white/60 text-[9px] uppercase tracking-widest font-black">Le Bistro · Demo</p>
+              </div>
+              <button onClick={() => setChatOpen(false)} className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors">
+                <span className="material-symbols-outlined text-white text-sm">close</span>
+              </button>
+            </div>
+
+            {/* Messages */}
+            <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-surface-container-lowest">
+              {chatMsgs.map((m, i) => (
+                <div key={i} className={`flex ${m.role === "user" ? "justify-end" : "items-end gap-2"}`}>
+                  {m.role === "ai" && (
+                    <div className="w-6 h-6 bg-primary/10 rounded-lg flex items-center justify-center shrink-0">
+                      <span className="material-symbols-outlined text-primary text-xs icon-fill">robot_2</span>
+                    </div>
+                  )}
+                  <div className={`max-w-[78%] px-4 py-3 text-xs leading-relaxed rounded-2xl ${m.role === "ai" ? "bg-surface-container rounded-bl-sm text-on-surface" : "bg-primary text-white rounded-br-sm"}`}>
+                    {m.text.replace(/\*\*(.*?)\*\*/g, "$1")}
+                  </div>
+                </div>
+              ))}
+              {aiTyping && (
+                <div className="flex items-end gap-2">
+                  <div className="w-6 h-6 bg-primary/10 rounded-lg flex items-center justify-center shrink-0">
+                    <span className="material-symbols-outlined text-primary text-xs icon-fill">robot_2</span>
+                  </div>
+                  <div className="bg-surface-container px-4 py-3 rounded-2xl rounded-bl-sm flex gap-1">
+                    {[0,1,2].map(d => <span key={d} className="w-1.5 h-1.5 bg-secondary rounded-full animate-bounce" style={{ animationDelay: `${d * 150}ms` }} />)}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Input */}
+            <div className="p-3 bg-surface-container-lowest border-t border-surface-container flex gap-2">
+              <input
+                type="text"
+                value={chatInput}
+                onChange={e => setChatInput(e.target.value)}
+                onKeyDown={e => {
+                  if (e.key !== "Enter" || !chatInput.trim() || aiTyping) return;
+                  const msg = chatInput.trim();
+                  setChatInput("");
+                  setChatMsgs(prev => [...prev, { role: "user", text: msg }]);
+                  setAiTyping(true);
+                  setTimeout(() => {
+                    setChatMsgs(prev => [...prev, { role: "ai", text: getDemoAiReply(msg) }]);
+                    setAiTyping(false);
+                  }, 900 + Math.random() * 600);
+                }}
+                placeholder="Ask about the menu…"
+                className="flex-1 bg-surface-container rounded-xl px-3 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-primary/20"
+              />
+              <button
+                onClick={() => {
+                  if (!chatInput.trim() || aiTyping) return;
+                  const msg = chatInput.trim();
+                  setChatInput("");
+                  setChatMsgs(prev => [...prev, { role: "user", text: msg }]);
+                  setAiTyping(true);
+                  setTimeout(() => {
+                    setChatMsgs(prev => [...prev, { role: "ai", text: getDemoAiReply(msg) }]);
+                    setAiTyping(false);
+                  }, 900 + Math.random() * 600);
+                }}
+                className="w-9 h-9 bg-primary rounded-xl flex items-center justify-center shrink-0 hover:opacity-90 active:scale-95 transition-all"
+              >
+                <span className="material-symbols-outlined text-white text-sm">send</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Floating Cart / WhatsApp CTA */}
       <div className="fixed bottom-0 left-0 w-full p-6 z-50 pointer-events-none">
