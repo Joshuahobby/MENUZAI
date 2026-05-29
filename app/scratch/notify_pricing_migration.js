@@ -13,7 +13,18 @@
  *   NEXT_PUBLIC_SITE_URL
  */
 
-require("dotenv").config({ path: ".env.local" });
+// Load .env.local manually (no dotenv dependency)
+const fs = require("fs");
+const path = require("path");
+const envFile = path.join(__dirname, "../.env.local");
+if (fs.existsSync(envFile)) {
+  fs.readFileSync(envFile, "utf8").split("\n").forEach(line => {
+    const [key, ...rest] = line.split("=");
+    if (key && rest.length && !process.env[key.trim()]) {
+      process.env[key.trim()] = rest.join("=").trim().replace(/^["']|["']$/g, "");
+    }
+  });
+}
 const { createClient } = require("@supabase/supabase-js");
 
 const supabase = createClient(
