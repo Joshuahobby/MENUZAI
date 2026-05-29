@@ -42,31 +42,28 @@ export default function LandingPage() {
               <Link href="/login" className="px-7 py-3.5 bg-primary text-white font-bold rounded-xl text-sm hover:opacity-90 transition-opacity shadow-md shadow-primary/20">
                 Start Free — No Card Required
               </Link>
-              <Link href="/menu/demo" className="px-7 py-3.5 border border-black/10 text-on-surface font-bold rounded-xl text-sm hover:bg-black/3 transition-colors">
-                See Live Demo
-              </Link>
+              <a href="https://youtu.be/G4vp5NQnk-I" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 px-7 py-3.5 border border-black/10 text-on-surface font-bold rounded-xl text-sm hover:bg-black/3 transition-colors">
+                <span className="material-symbols-outlined text-[18px] text-primary">play_circle</span>
+                Watch Demo (90s)
+              </a>
             </div>
           </div>
 
           <div className="relative">
-            <div className="bg-white rounded-3xl p-3 shadow-lg border border-black/6 overflow-hidden">
-              <div className="relative w-full h-[440px]">
-                <Image
-                  alt="Modern Restaurant Menu"
-                  className="rounded-2xl object-cover"
-                  src="https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=800&h=600&fit=crop"
-                  fill
-                  sizes="(max-width: 1024px) 100vw, 50vw"
-                  priority
-                />
-              </div>
-              <div className="absolute bottom-6 left-6 right-6 bg-white/95 backdrop-blur-sm p-5 rounded-2xl border border-black/6 flex items-center justify-between">
-                <div>
-                  <p className="text-[10px] font-bold text-primary uppercase tracking-widest mb-1">Live Insight</p>
-                  <p className="text-sm font-bold text-on-surface">Spicy Ramen conversion up 24%</p>
-                </div>
-                <span className="material-symbols-outlined text-primary text-2xl">trending_up</span>
-              </div>
+            <div className="bg-black rounded-3xl overflow-hidden shadow-2xl border border-black/10 aspect-video">
+              <iframe
+                src="https://www.youtube.com/embed/G4vp5NQnk-I?rel=0&modestbranding=1&color=white"
+                title="MENUZA AI — Product Demo"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+                className="w-full h-full"
+                style={{ display: "block" }}
+              />
+            </div>
+            {/* Caption */}
+            <div className="mt-4 flex items-center gap-2 text-xs text-secondary font-medium justify-center">
+              <span className="material-symbols-outlined text-[14px] text-primary">play_circle</span>
+              90 seconds · QR scan → AI order → staff dashboard
             </div>
           </div>
         </div>

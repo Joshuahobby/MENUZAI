@@ -24,7 +24,7 @@ Rwanda's restaurant sector is digitalising fast, driven by Kigali's growing midd
 **What we're raising:**
 We're raising a $250K seed round to hire 2 engineers, sign 50 restaurants in Rwanda, and expand to Uganda and Kenya by Q4 2026. We're already profitable on a per-restaurant basis.
 
-**Watch the 90-second product demo:** [VIDEO LINK]
+**Watch the 90-second product demo:** https://youtu.be/G4vp5NQnk-I
 Pitch deck attached — 11 slides, 3 minutes to read. Happy to jump on a call this week.
 
 Best,  
@@ -66,5 +66,5 @@ Joe — Founder, MENUZA AI
 ## Follow-up Sequence
 
 **Day 0** — Send email with deck attached  
-**Day 3** — Follow up: "Wanted to make sure this didn't get buried — happy to share a 2-minute demo video if easier."  
+**Day 3** — Follow up: "Wanted to make sure this didn't get buried — here's the 90-second product demo if easier: https://youtu.be/G4vp5NQnk-I"  
 **Day 7** — Final follow-up: "Closing this round in 6 weeks — last check before I move on."  
