@@ -445,12 +445,12 @@ export const analyticsData = {
 
 export const pricingPlans = [
   {
-    name: "Free",
+    name: "Free Lite",
     price: "Free",
     period: "",
     amountRwf: 0,
-    features: ["1 Digital Menu", "Standard QR Code", "Basic Analytics (7 days)", "WhatsApp Ordering"],
-    cta: "Start Free",
+    features: ["1 Digital Menu", "QR Code Generation", "WhatsApp Ordering", "Powered by MENUZA AI branding"],
+    cta: "Start Free Trial",
     popular: false,
   },
   {

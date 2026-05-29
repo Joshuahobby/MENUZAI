@@ -19,7 +19,7 @@ const FEATURES = [
 ];
 
 export default function LandingPage() {
-  const [isAnnual, setIsAnnual] = useState(false);
+  const [isAnnual, setIsAnnual] = useState(true);
   return (
     <div className="min-h-screen bg-[#faf8f6] text-on-surface">
 
@@ -40,7 +40,7 @@ export default function LandingPage() {
             </p>
             <div className="flex flex-wrap gap-3">
               <Link href="/login" className="px-7 py-3.5 bg-primary text-white font-bold rounded-xl text-sm hover:opacity-90 transition-opacity shadow-md shadow-primary/20">
-                Start Free — No Card Required
+                Start Free Trial — No Card Required
               </Link>
               <a href="https://youtu.be/G4vp5NQnk-I" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 px-7 py-3.5 border border-black/10 text-on-surface font-bold rounded-xl text-sm hover:bg-black/3 transition-colors">
                 <span className="material-symbols-outlined text-[18px] text-primary">play_circle</span>
@@ -141,13 +141,127 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* ── AI Waiter Showcase ── */}
+      <section className="py-28 px-6 bg-white border-y border-black/5">
+        <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+          {/* Left — copy */}
+          <div>
+            <p className="text-xs font-bold tracking-[0.25em] uppercase text-primary/70 mb-5">AI Digital Waiter</p>
+            <h2 className="text-4xl md:text-5xl font-[var(--font-headline)] font-black tracking-tight leading-[1.06] mb-6">
+              Your best waiter.<br />Works every shift.
+            </h2>
+            <p className="text-secondary text-lg leading-relaxed mb-8 max-w-md">
+              The moment a customer scans your QR code, your AI Waiter greets them, answers questions, upsells high-margin dishes, and places their order — all in chat, no app required.
+            </p>
+            <ul className="space-y-4 mb-10">
+              {[
+                { icon: "schedule", text: "Available 24/7 — never calls in sick" },
+                { icon: "trending_up", text: "Proactively suggests add-ons to increase order value" },
+                { icon: "translate", text: "Adapts tone — friendly, formal, or vibrant" },
+                { icon: "rate_review", text: "Follows up after the meal to prompt a review" },
+              ].map((item) => (
+                <li key={item.icon} className="flex items-center gap-3 text-sm text-secondary">
+                  <span className="material-symbols-outlined text-[18px] text-primary shrink-0">{item.icon}</span>
+                  {item.text}
+                </li>
+              ))}
+            </ul>
+            <div className="flex items-center gap-3">
+              <Link href="/demo/owner" className="px-6 py-3 bg-primary text-white font-bold rounded-xl text-sm hover:opacity-90 transition-opacity shadow-md shadow-primary/20">
+                See live demo
+              </Link>
+              <span className="text-xs text-secondary/50">Pro &amp; Business plans</span>
+            </div>
+          </div>
+
+          {/* Right — mock chat UI */}
+          <div className="relative">
+            <div className="bg-on-surface rounded-[2rem] overflow-hidden shadow-2xl max-w-sm mx-auto">
+              {/* Chat header */}
+              <div className="bg-primary px-6 py-5 flex items-center gap-3">
+                <div className="w-10 h-10 bg-white/20 rounded-2xl flex items-center justify-center shrink-0">
+                  <span className="material-symbols-outlined text-white text-xl icon-fill">robot_2</span>
+                </div>
+                <div>
+                  <p className="text-white font-bold text-sm">AI Digital Waiter</p>
+                  <p className="text-white/60 text-[10px] uppercase tracking-widest font-black">Powered by MENUZA AI</p>
+                </div>
+                <div className="ml-auto w-2 h-2 bg-emerald-400 rounded-full animate-pulse" />
+              </div>
+
+              {/* Messages */}
+              <div className="px-4 py-5 space-y-4 bg-surface-container-lowest">
+                {/* AI */}
+                <div className="flex items-end gap-2">
+                  <div className="w-7 h-7 bg-primary/10 rounded-xl flex items-center justify-center shrink-0">
+                    <span className="material-symbols-outlined text-primary text-sm icon-fill">robot_2</span>
+                  </div>
+                  <div className="bg-surface-container rounded-2xl rounded-bl-sm px-4 py-3 max-w-[80%]">
+                    <p className="text-xs text-on-surface leading-relaxed">Good evening! Welcome to Kigali Grill 🍽️ I&apos;m your digital waiter. What can I get for you tonight?</p>
+                  </div>
+                </div>
+                {/* Customer */}
+                <div className="flex justify-end">
+                  <div className="bg-primary rounded-2xl rounded-br-sm px-4 py-3 max-w-[75%]">
+                    <p className="text-xs text-white leading-relaxed">What&apos;s your most popular dish?</p>
+                  </div>
+                </div>
+                {/* AI */}
+                <div className="flex items-end gap-2">
+                  <div className="w-7 h-7 bg-primary/10 rounded-xl flex items-center justify-center shrink-0">
+                    <span className="material-symbols-outlined text-primary text-sm icon-fill">robot_2</span>
+                  </div>
+                  <div className="bg-surface-container rounded-2xl rounded-bl-sm px-4 py-3 max-w-[80%]">
+                    <p className="text-xs text-on-surface leading-relaxed">Our guests love the <strong>Grilled Tilapia</strong> 🐟 — crispy skin, served with plantain and kachumbari. It&apos;s our bestseller this week! Shall I add it for you?</p>
+                  </div>
+                </div>
+                {/* Customer */}
+                <div className="flex justify-end">
+                  <div className="bg-primary rounded-2xl rounded-br-sm px-4 py-3 max-w-[75%]">
+                    <p className="text-xs text-white leading-relaxed">Yes! And a Fanta please.</p>
+                  </div>
+                </div>
+                {/* AI */}
+                <div className="flex items-end gap-2">
+                  <div className="w-7 h-7 bg-primary/10 rounded-xl flex items-center justify-center shrink-0">
+                    <span className="material-symbols-outlined text-primary text-sm icon-fill">robot_2</span>
+                  </div>
+                  <div className="bg-surface-container rounded-2xl rounded-bl-sm px-4 py-3 max-w-[80%]">
+                    <p className="text-xs text-on-surface leading-relaxed">Perfect! 🛎️ <strong>Grilled Tilapia + Fanta Orange</strong> — 7,500 RWF total. Confirming your order now...</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Input bar */}
+              <div className="px-4 py-4 bg-surface-container-lowest border-t border-surface-container flex items-center gap-2">
+                <div className="flex-1 bg-surface-container rounded-xl px-4 py-2.5 text-xs text-secondary/40">
+                  Ask about the menu…
+                </div>
+                <button type="button" className="w-9 h-9 bg-primary rounded-xl flex items-center justify-center shrink-0">
+                  <span className="material-symbols-outlined text-white text-sm">send</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Floating badge */}
+            <div className="absolute -bottom-4 -right-4 bg-white rounded-2xl shadow-xl border border-black/6 px-4 py-3 flex items-center gap-2.5 hidden lg:flex">
+              <span className="material-symbols-outlined text-tertiary text-xl">receipt_long</span>
+              <div>
+                <p className="text-xs font-black text-on-surface">Order confirmed</p>
+                <p className="text-[10px] text-secondary">Sent to kitchen · 12:47 PM</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* ── Pricing Preview ── */}
       <section className="py-24 px-6 bg-white border-y border-black/5" id="pricing">
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-16">
             <p className="text-xs font-bold tracking-[0.25em] uppercase text-secondary/50 mb-4">Pricing</p>
             <h2 className="text-4xl font-[var(--font-headline)] font-black tracking-tight mb-4">Transparent pricing</h2>
-            <p className="text-secondary">Start free. Upgrade when you grow.</p>
+            <p className="text-secondary">14-day free trial — no credit card required. Upgrade when you&apos;re ready.</p>
           </div>
 
           {/* Billing toggle */}
@@ -171,10 +285,10 @@ export default function LandingPage() {
             </div>
           </div>
 
-          {/* Free — inline strip */}
+          {/* Free Lite — inline strip */}
           <div className="flex flex-wrap items-center justify-between gap-4 bg-[#faf8f6] border border-black/6 rounded-2xl px-6 py-4 mb-6 shadow-sm">
             <div className="flex flex-wrap items-center gap-x-5 gap-y-1">
-              <span className="text-xs font-black uppercase tracking-[0.2em] text-secondary/50">Free</span>
+              <span className="text-xs font-black uppercase tracking-[0.2em] text-secondary/50">Free Lite</span>
               <span className="text-sm font-bold text-on-surface">0 RWF</span>
               <span className="text-secondary/30 hidden sm:inline">·</span>
               {pricingPlans[0].features.map((f, j) => (
@@ -185,7 +299,7 @@ export default function LandingPage() {
               ))}
             </div>
             <Link href="/login" className="shrink-0 text-xs font-bold text-secondary hover:text-primary transition-colors flex items-center gap-1">
-              Start Free
+              Start 14-day Trial
               <span className="material-symbols-outlined text-[14px]">arrow_forward</span>
             </Link>
           </div>
@@ -258,7 +372,7 @@ export default function LandingPage() {
 
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <Link href="/login" className="px-8 py-4 bg-primary text-white font-bold rounded-xl text-sm hover:opacity-90 transition-opacity shadow-lg shadow-primary/20">
-              Start Free — No Card Required
+              Start Free Trial — No Card Required
             </Link>
             <a href="mailto:hello@ikoranabuhanga.tech" className="px-8 py-4 bg-white/8 text-white/60 font-bold rounded-xl text-sm hover:bg-white/12 transition-colors border border-white/10">
               Talk to Sales
