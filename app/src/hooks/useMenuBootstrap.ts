@@ -196,27 +196,29 @@ export function useMenuBootstrap() {
             }
           } else {
             // New owner — no restaurant, no staff role anywhere. Create their restaurant.
+            // Plain INSERT (not upsert) — onConflict:"user_id" was removed in migration 022
+            // which dropped the unique constraint on user_id to support multi-location.
             const trialEnd = new Date();
             trialEnd.setDate(trialEnd.getDate() + 14);
-            const { data: upsertedRestaurant, error: upsertError, status: upsertStatus } = await supabase
+            const { data: insertedRestaurant, error: insertError, status: insertStatus } = await supabase
               .from("restaurants")
-              .upsert(
-                { user_id: user.id, name: "My Restaurant", onboarded: false, plan: "free", trial_ends_at: trialEnd.toISOString() },
-                { onConflict: "user_id", ignoreDuplicates: false }
-              )
+              .insert({ user_id: user.id, name: "My Restaurant", onboarded: false, plan: "free", trial_ends_at: trialEnd.toISOString() })
               .select("id")
               .single();
 
-            if (isAuthFailure(upsertStatus, upsertError)) {
+            if (isAuthFailure(insertStatus, insertError)) {
               handleUnauthorized();
               return;
             }
 
-            if (upsertError || !upsertedRestaurant) {
+            if (insertError || !insertedRestaurant) {
+              // INSERT failed — race condition or RLS issue. Fall back to querying by user_id.
               const { data: fallback, error: fallbackError, status: fallbackStatus } = await supabase
                 .from("restaurants")
                 .select("id")
                 .eq("user_id", user.id)
+                .order("created_at", { ascending: true })
+                .limit(1)
                 .maybeSingle();
 
               if (isAuthFailure(fallbackStatus, fallbackError)) {
@@ -230,11 +232,17 @@ export function useMenuBootstrap() {
               }
               restoId = fallback.id;
             } else {
-              restoId = upsertedRestaurant.id;
+              restoId = insertedRestaurant.id;
             }
             userRole = "owner";
             if (!cancelled) {
-              hydrate({ restaurantId: restoId, onboarded: false, userRole, plan: "trial", trialEndsAt: trialEnd.toISOString() });
+              hydrate({
+                restaurantId: restoId,
+                onboarded: false,
+                userRole,
+                plan: resolvePlan("free", trialEnd.toISOString()),
+                trialEndsAt: trialEnd.toISOString(),
+              });
             }
           }
         }
