@@ -1,8 +1,12 @@
-import { createSupabaseServerClient } from "@/lib/supabase-server";
+import { getSupabasePublicClient } from "@/lib/supabase-public";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import PublicMenuClient from "./PublicMenuClient";
 import { showBranding } from "@/lib/plans";
+
+// Re-render at most every 60 seconds — menu content rarely changes mid-service.
+// View count increments fire on each regeneration only (approximate, intentional).
+export const revalidate = 60;
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -10,7 +14,7 @@ interface PageProps {
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
-  const supabase = await createSupabaseServerClient();
+  const supabase = getSupabasePublicClient();
 
   const { data: menu } = await supabase
     .from("menus")
@@ -51,7 +55,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function PublicMenuPage({ params }: PageProps) {
   const { slug } = await params;
-  const supabase = await createSupabaseServerClient();
+  const supabase = getSupabasePublicClient();
 
   const { data: menu } = await supabase
     .from("menus")

@@ -48,21 +48,13 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: allStaffError.message }, { status: 500 });
     }
 
-    // Get all users to map emails
-    // Note: For large projects, this should be an RPC function inside Supabase
-    const { data: authUsers, error: usersError } = await adminClient.auth.admin.listUsers();
-    
-    if (usersError) {
-      return NextResponse.json({ error: usersError.message }, { status: 500 });
-    }
-
-    const staffWithEmails = allStaff.map(staff => {
-      const authUser = authUsers.users.find(u => u.id === staff.user_id);
-      return {
-        ...staff,
-        email: authUser?.email || "Unknown",
-      };
-    });
+    // Fetch each user's email in parallel rather than loading all workspace users
+    const staffWithEmails = await Promise.all(
+      allStaff.map(async (staff) => {
+        const { data } = await adminClient.auth.admin.getUserById(staff.user_id);
+        return { ...staff, email: data.user?.email ?? "Unknown" };
+      })
+    );
 
     return NextResponse.json({ staff: staffWithEmails });
   } catch (err) {

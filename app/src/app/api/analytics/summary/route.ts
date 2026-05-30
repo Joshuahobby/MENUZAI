@@ -30,13 +30,15 @@ export async function GET(request: Request) {
 
   const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
 
-  // RLS ensures only the authenticated owner's events are returned
+  // RLS ensures only the authenticated owner's events are returned.
+  // Cap at 5000 rows — JS aggregation above is the bottleneck beyond this.
   const { data: events } = await supabase
     .from("analytics_events")
     .select("event_type, item_name, amount, created_at")
     .eq("restaurant_id", restaurantId)
     .gte("created_at", since)
-    .order("created_at", { ascending: false });
+    .order("created_at", { ascending: false })
+    .limit(5000);
 
   if (!events) {
     return Response.json({ kpis: {}, topItems: [], peakHours: [], recentEvents: [] });

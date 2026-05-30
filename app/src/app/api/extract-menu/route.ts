@@ -1,7 +1,7 @@
 import { EXTRACTION_PROMPT, parseExtractionResponse, mergeExtractionResults, type ExtractionResult } from "@/lib/ai-extract";
-import { headers } from "next/headers";
 import Anthropic from "@anthropic-ai/sdk";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
+import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 
 // Ordered list of free OpenRouter models that support vision (image) inputs.
 // The first model is tried first; if OpenRouter returns a provider error we
@@ -14,22 +14,6 @@ const VISION_FALLBACK_MODELS = [
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024;
 const MAX_FILES = 5;
-
-const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
-const RATE_LIMIT_MAX = 5;
-const RATE_LIMIT_WINDOW_MS = 60_000;
-
-function checkRateLimit(ip: string): boolean {
-  const now = Date.now();
-  const entry = rateLimitMap.get(ip);
-  if (!entry || now > entry.resetAt) {
-    rateLimitMap.set(ip, { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS });
-    return true;
-  }
-  if (entry.count >= RATE_LIMIT_MAX) return false;
-  entry.count += 1;
-  return true;
-}
 
 const MEDIA_TYPES: Record<string, string> = {
   "image/jpeg": "image/jpeg",
@@ -110,10 +94,7 @@ async function extractWithAnthropic(file: File, apiKey: string, model: string): 
 }
 
 export async function POST(request: Request) {
-  const headersList = await headers();
-  const ip = headersList.get("x-forwarded-for")?.split(",")[0]?.trim() ?? headersList.get("x-real-ip") ?? "unknown";
-
-  if (!checkRateLimit(ip)) {
+  if (!checkRateLimit(getClientIp(request), { id: "extract-menu", max: 5, windowMs: 60_000 })) {
     return Response.json(
       { error: "Too many requests. Please wait a minute before trying again." },
       { status: 429, headers: { "Retry-After": "60" } }
