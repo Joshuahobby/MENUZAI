@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import webpush from "web-push";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
+import { createSupabaseServerClient } from "@/lib/supabase-server";
 
 export const dynamic = "force-dynamic";
 
@@ -15,6 +16,11 @@ function getWebPushConfig() {
 
 export async function POST(req: Request) {
   try {
+    // Accept internal service calls (via CRON_SECRET) or authenticated restaurant staff
+    const cronSecret = process.env.CRON_SECRET;
+    const authHeader = req.headers.get("authorization");
+    const isInternalCall = cronSecret && authHeader === `Bearer ${cronSecret}`;
+
     const vapid = getWebPushConfig();
     if (!vapid) {
       return NextResponse.json({ sent: 0, reason: "VAPID keys not configured" });
@@ -22,9 +28,25 @@ export async function POST(req: Request) {
 
     webpush.setVapidDetails(`mailto:${vapid.contact}`, vapid.publicKey, vapid.privateKey);
 
-    const { restaurantId, title, body, url } = await req.json();
+    const body_raw = await req.json();
+    const { restaurantId, title, body, url } = body_raw;
     if (!restaurantId) {
       return NextResponse.json({ error: "restaurantId required" }, { status: 400 });
+    }
+
+    if (!isInternalCall) {
+      const supabase = await createSupabaseServerClient();
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      if (authError || !user) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      }
+      const admin = getSupabaseAdmin();
+      const { data: staffRow } = admin
+        ? await admin.from("restaurant_staff").select("role").eq("restaurant_id", restaurantId).eq("user_id", user.id).single()
+        : { data: null };
+      if (!staffRow) {
+        return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+      }
     }
 
     const admin = getSupabaseAdmin();

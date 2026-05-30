@@ -26,10 +26,11 @@ export async function POST(request: Request) {
         if (adminClient) {
           const { data: restaurant } = await adminClient
             .from("restaurants")
-            .select("plan")
+            .select("plan, trial_ends_at")
             .eq("id", restaurantId)
             .maybeSingle();
-          if (restaurant?.plan === "free") {
+          const isOnTrial = restaurant?.trial_ends_at && new Date(restaurant.trial_ends_at) > new Date();
+          if (restaurant?.plan === "free" && !isOnTrial) {
             return Response.json(
               { error: "AI Digital Waiter requires a Pro plan. Upgrade at /pricing to unlock it." },
               { status: 402 }

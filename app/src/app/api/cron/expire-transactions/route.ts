@@ -4,10 +4,12 @@ import { getSupabaseAdmin } from "@/lib/supabase-admin";
 export const dynamic = "force-dynamic";
 
 export async function POST(req: Request) {
-  const authHeader = req.headers.get("authorization");
   const cronSecret = process.env.CRON_SECRET;
-
-  if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
+  if (!cronSecret) {
+    console.error("CRON_SECRET is not set — cron endpoint is disabled");
+    return NextResponse.json({ error: "CRON_SECRET not configured" }, { status: 500 });
+  }
+  if (req.headers.get("authorization") !== `Bearer ${cronSecret}`) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 

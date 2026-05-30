@@ -1,6 +1,7 @@
 import { createClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
 import type { MenuItem } from "@/types/menu";
+import { createSupabaseServerClient } from "@/lib/supabase-server";
 
 /**
  * POST /api/orders/confirm
@@ -34,6 +35,22 @@ export async function POST(req: Request) {
   const { orderId, restaurantId } = body;
   if (!orderId || !restaurantId) {
     return NextResponse.json({ error: "orderId and restaurantId are required" }, { status: 400 });
+  }
+
+  // Verify the caller is authenticated and is staff of this restaurant
+  const supabase = await createSupabaseServerClient();
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  if (authError || !user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+  const { data: staffRow } = await admin
+    .from("restaurant_staff")
+    .select("role")
+    .eq("restaurant_id", restaurantId)
+    .eq("user_id", user.id)
+    .single();
+  if (!staffRow) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
   // 1. Fetch the order
@@ -113,6 +130,7 @@ export async function POST(req: Request) {
 
   // Fire order notification email (fire-and-forget — don't block the response)
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
+  const cronSecret = process.env.CRON_SECRET;
   if (siteUrl) {
     const notifItems = orderedItems
       .map((o) => {
@@ -141,7 +159,10 @@ export async function POST(req: Request) {
     const itemCount = orderedItems.length;
     fetch(`${siteUrl}/api/push/send`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        ...(cronSecret ? { Authorization: `Bearer ${cronSecret}` } : {}),
+      },
       body: JSON.stringify({
         restaurantId,
         title: "Order Ready",

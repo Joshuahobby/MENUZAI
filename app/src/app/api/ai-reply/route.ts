@@ -15,11 +15,12 @@ export async function POST(req: Request) {
 
     const { data: restaurant } = await admin
       .from("restaurants")
-      .select("plan")
+      .select("plan, trial_ends_at")
       .eq("user_id", user.id)
       .single();
 
-    if (!restaurant || restaurant.plan === "free") {
+    const isOnTrial = restaurant?.trial_ends_at && new Date(restaurant.trial_ends_at) > new Date();
+    if (!restaurant || (restaurant.plan === "free" && !isOnTrial)) {
       return NextResponse.json(
         { error: "AI reply drafts require a Pro plan. Upgrade in Settings to unlock." },
         { status: 402 }

@@ -72,7 +72,7 @@ export function getOptimizedImageUrl(url: string | null | undefined, width = 600
  */
 export function isPlatformAdmin(email: string | null | undefined): boolean {
   if (!email) return false;
-  const adminEmailsStr = process.env.NEXT_PUBLIC_ADMIN_EMAILS || "admin@menuzai.com,e2e-test@menuzai.test";
+  const adminEmailsStr = process.env.NEXT_PUBLIC_ADMIN_EMAILS || "admin@menuzai.com";
   const adminEmails = adminEmailsStr.split(",").map(e => e.trim().toLowerCase());
   return adminEmails.includes(email.toLowerCase());
 }
