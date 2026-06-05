@@ -6,7 +6,7 @@ export const dynamic = "force-dynamic";
 
 export async function POST(req: Request) {
   try {
-    if (!checkRateLimit(getClientIp(req), { id: "reviews", max: 5, windowMs: 5 * 60_000 })) {
+    if (!await checkRateLimit(getClientIp(req), { id: "reviews", max: 5, windowMs: 5 * 60_000 })) {
       return NextResponse.json({ error: "Too many requests. Please try again later." }, { status: 429 });
     }
 

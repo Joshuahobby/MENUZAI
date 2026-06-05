@@ -1,20 +1,9 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
+import { getPlatformAIConfig } from "@/lib/ai-config";
 
 export async function POST(request: Request) {
-  let provider = "openrouter";
-  let model = "google/gemma-4-31b-it:free";
-
-  try {
-    const admin = getSupabaseAdmin();
-    if (admin) {
-      const { data } = await admin.from("platform_settings").select("*").eq("id", "global").single();
-      if (data?.ai_provider) provider = data.ai_provider;
-      if (data?.ai_model) model = data.ai_model;
-    }
-  } catch (e) {
-    console.warn("Could not fetch platform settings, falling back to OpenRouter", e);
-  }
+  const { provider, model } = await getPlatformAIConfig();
 
   try {
     const { messages, menuItems, restaurantName, aiWaiterSettings, restaurantId, tableNumber } = await request.json();

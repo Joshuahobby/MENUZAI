@@ -37,6 +37,7 @@ export async function GET() {
     return NextResponse.json({
       provider: data?.ai_provider || "openrouter",
       model: data?.ai_model || "meta-llama/llama-3.2-11b-vision-instruct:free",
+      updated_at: data?.updated_at || null,
     });
   } catch (err) {
     console.warn("Failed to fetch platform_settings (table might not exist yet):", err);
@@ -68,18 +69,35 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Invalid provider" }, { status: 400 });
     }
 
+    // Read current config for audit log old_value
+    const { data: current } = await admin
+      .from("platform_settings")
+      .select("ai_provider, ai_model")
+      .eq("id", "global")
+      .single();
+
+    const savedAt = new Date().toISOString();
     const { error } = await admin
       .from("platform_settings")
       .upsert(
-        { id: "global", ai_provider: provider, ai_model: model, updated_at: new Date().toISOString() },
+        { id: "global", ai_provider: provider, ai_model: model, updated_at: savedAt },
         { onConflict: "id" }
       );
 
-    if (error) {
-      throw error;
-    }
+    if (error) throw error;
 
-    return NextResponse.json({ success: true, provider, model });
+    // Write audit log (non-blocking)
+    void Promise.resolve(
+      admin.from("admin_audit_log").insert({
+        action: "ai_config_change",
+        performed_by: user.email!,
+        target_type: "platform",
+        old_value: { provider: current?.ai_provider ?? null, model: current?.ai_model ?? null },
+        new_value: { provider, model },
+      })
+    ).catch((e: unknown) => console.warn("audit log insert failed", e));
+
+    return NextResponse.json({ success: true, provider, model, updated_at: savedAt });
   } catch (err: unknown) {
     console.error("Failed to update platform_settings:", err);
     return NextResponse.json({ 

@@ -54,6 +54,16 @@ export async function POST(req: Request) {
         .update({ status: "completed" })
         .eq("deposit_id", depositId);
 
+      // Handle food order payments separately from plan upgrades
+      if ((tx.plan_name as string | null)?.toLowerCase() === "food_order") {
+        await supabaseAdmin
+          .from("orders")
+          .update({ paid: true, status: "pending" })
+          .eq("payment_deposit_id", depositId);
+        console.log(`✅ Food order payment completed: ${depositId}`);
+        return NextResponse.json({ received: true }, { status: 200 });
+      }
+
       const planName = (tx.plan_name as string | null)?.toLowerCase() ?? "pro";
 
       const isAnnualPlan = (tx.plan_name as string ?? "").toLowerCase().includes("annual");

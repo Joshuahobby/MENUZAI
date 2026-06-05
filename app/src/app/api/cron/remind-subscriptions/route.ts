@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
+import { startCronRun, completeCronRun, failCronRun } from "@/lib/cron-logger";
 
 export const dynamic = "force-dynamic";
 
@@ -77,9 +78,12 @@ export async function POST(req: Request) {
     .gte("trial_ends_at", `${trial1Day}T00:00:00Z`)
     .lt("trial_ends_at", `${trial1Day}T23:59:59Z`);
 
+  const runId = await startCronRun("remind-subscriptions");
+
   let sent = 0;
   if (!resendKey) {
     console.warn("remind-subscriptions: RESEND_API_KEY not set, skipping emails");
+    await completeCronRun(runId, 0, { reason: "no resend key" });
     return NextResponse.json({ sent: 0, reason: "no resend key" });
   }
 
@@ -179,14 +183,13 @@ export async function POST(req: Request) {
     sent++;
   }
 
+  const breakdown = {
+    paidExpiry: (expiringPaid ?? []).length,
+    trialDay12: (trialExpiring ?? []).length,
+    trialDay7: (trialMid ?? []).length,
+    trialDay1: (trialNew ?? []).length,
+  };
   console.log(`remind-subscriptions: sent ${sent} email(s)`);
-  return NextResponse.json({
-    sent,
-    breakdown: {
-      paidExpiry: (expiringPaid ?? []).length,
-      trialDay12: (trialExpiring ?? []).length,
-      trialDay7: (trialMid ?? []).length,
-      trialDay1: (trialNew ?? []).length,
-    },
-  });
+  await completeCronRun(runId, sent, breakdown);
+  return NextResponse.json({ sent, breakdown });
 }

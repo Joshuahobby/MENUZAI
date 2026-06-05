@@ -2,9 +2,10 @@ import { NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
+import { getPlatformAIConfig } from "@/lib/ai-config";
 
 export async function POST(request: Request) {
-  if (!checkRateLimit(getClientIp(request), { id: "ai-generate-items", max: 10, windowMs: 60_000 })) {
+  if (!await checkRateLimit(getClientIp(request), { id: "ai-generate-items", max: 10, windowMs: 60_000 })) {
     return NextResponse.json({ error: "Rate limit exceeded. Please wait a moment." }, { status: 429 });
   }
 
@@ -15,19 +16,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Prompt and categoryId are required" }, { status: 400 });
     }
 
-    let provider = "anthropic";
-    let model = "claude-3-5-sonnet-20241022";
-
-    try {
-      const admin = getSupabaseAdmin();
-      if (admin) {
-        const { data } = await admin.from("platform_settings").select("*").eq("id", "global").single();
-        if (data?.ai_provider) provider = data.ai_provider;
-        if (data?.ai_model) model = data.ai_model;
-      }
-    } catch (e) {
-      console.warn("Could not fetch platform settings", e);
-    }
+    const { provider, model } = await getPlatformAIConfig();
 
     const currencyCode = currency || "RWF";
 

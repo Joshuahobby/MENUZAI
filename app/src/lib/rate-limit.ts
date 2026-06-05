@@ -1,41 +1,71 @@
-// In-memory rate limiter — per-instance only (acceptable for abuse deterrence;
-// does not coordinate across Vercel serverless instances).
-// For distributed enforcement, replace the store with Upstash Redis.
+import { Ratelimit } from "@upstash/ratelimit";
+import { Redis } from "@upstash/redis";
 
-interface Entry { count: number; resetAt: number }
-
-const stores = new Map<string, Map<string, Entry>>();
-
-function getStore(key: string): Map<string, Entry> {
-  let store = stores.get(key);
-  if (!store) { store = new Map(); stores.set(key, store); }
-  return store;
+// Lazy singleton — reused across warm invocations on the same Vercel instance.
+// Fails gracefully if KV env vars aren't set (never throws on import).
+let _redis: Redis | null = null;
+function getRedis(): Redis | null {
+  if (_redis) return _redis;
+  try {
+    _redis = Redis.fromEnv();
+    return _redis;
+  } catch {
+    return null;
+  }
 }
 
+// Cache Ratelimit instances by config string — avoids rebuilding on every request.
+const _limiters = new Map<string, Ratelimit>();
+
 export interface RateLimitOptions {
-  /** Unique name for this limiter (e.g. "extract-menu") */
+  /** Unique name for this limiter (used as Redis key prefix) */
   id: string;
-  /** Max requests allowed per window */
+  /** Max requests allowed in the window */
   max: number;
   /** Window length in milliseconds */
   windowMs: number;
 }
 
+function getLimiter(opts: RateLimitOptions): Ratelimit | null {
+  const redis = getRedis();
+  if (!redis) return null;
+
+  const cacheKey = `${opts.id}:${opts.max}:${opts.windowMs}`;
+  if (!_limiters.has(cacheKey)) {
+    // Convert ms to whole seconds for Upstash Duration string
+    const secs = Math.max(1, Math.round(opts.windowMs / 1000));
+    _limiters.set(
+      cacheKey,
+      new Ratelimit({
+        redis,
+        limiter: Ratelimit.slidingWindow(opts.max, `${secs} s`),
+        prefix: `rl:${opts.id}`,
+      })
+    );
+  }
+  return _limiters.get(cacheKey)!;
+}
+
 /**
- * Returns true if the request is allowed, false if the limit is exceeded.
- * Pass the client IP as `key`.
+ * Returns true if the request is within the rate limit, false if exceeded.
+ * Falls back to allowing (true) if Redis is unavailable — never hard-fails.
  */
-export function checkRateLimit(key: string, opts: RateLimitOptions): boolean {
-  const store = getStore(opts.id);
-  const now = Date.now();
-  const entry = store.get(key);
-  if (!entry || now > entry.resetAt) {
-    store.set(key, { count: 1, resetAt: now + opts.windowMs });
+export async function checkRateLimit(
+  key: string,
+  opts: RateLimitOptions
+): Promise<boolean> {
+  const limiter = getLimiter(opts);
+  if (!limiter) {
+    console.warn(`rate-limit: Redis unavailable, skipping check for "${opts.id}"`);
     return true;
   }
-  if (entry.count >= opts.max) return false;
-  entry.count += 1;
-  return true;
+  try {
+    const { success } = await limiter.limit(key);
+    return success;
+  } catch (err) {
+    console.error(`rate-limit: Redis error for "${opts.id}":`, err);
+    return true; // fail open on Redis errors
+  }
 }
 
 export function getClientIp(req: Request): string {

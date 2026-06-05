@@ -12,6 +12,7 @@ import { formatPrice, getOptimizedImageUrl } from "@/lib/utils";
 import { buildWhatsAppMessage, buildWhatsAppURL } from "@/lib/whatsapp";
 import { toast } from "sonner";
 import ItemDetailsModal from "@/components/menu/ItemDetailsModal";
+import FoodPaymentModal from "@/components/menu/FoodPaymentModal";
 
 interface PublicMenuClientProps {
   menuId: string;
@@ -21,6 +22,7 @@ interface PublicMenuClientProps {
   restaurantLogoUrl: string;
   restaurantPlan?: string;
   branded?: boolean;
+  paymentsEnabled?: boolean;
   slug: string;
   categories: MenuCategory[];
   items: MenuItem[];
@@ -55,6 +57,7 @@ export default function PublicMenuClient(props: PublicMenuClientProps) {
     restaurantPhone,
     restaurantLogoUrl,
     restaurantPlan = "free",
+    paymentsEnabled = false,
     slug,
   } = props;
 
@@ -85,6 +88,7 @@ export default function PublicMenuClient(props: PublicMenuClientProps) {
   const [orderPlaced, setOrderPlaced] = useState(false);
   const [orderedSnapshot, setOrderedSnapshot] = useState<{ cart: CartItem[]; total: number } | null>(null);
   const [lastWhatsAppUrl, setLastWhatsAppUrl] = useState<string | null>(null);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
 
   // Review state (inline after order)
   const [rating, setRating] = useState(0);
@@ -818,6 +822,26 @@ export default function PublicMenuClient(props: PublicMenuClientProps) {
         currency={menuStyle.currency ?? "RWF"}
       />
 
+      {/* Food Payment Modal */}
+      {showPaymentModal && (
+        <FoodPaymentModal
+          restaurantId={restaurantId}
+          menuId={menuId}
+          items={cart}
+          total={totalPrice}
+          currency={menuStyle.currency ?? "RWF"}
+          tableNumber={tableFromUrl || null}
+          customerName={null}
+          onSuccess={() => {
+            setShowPaymentModal(false);
+            setOrderedSnapshot({ cart: [...cart], total: totalPrice });
+            setCart([]);
+            setOrderPlaced(true);
+          }}
+          onClose={() => setShowPaymentModal(false)}
+        />
+      )}
+
       {/* AI Assistant FAB — Pro plan only */}
       {aiWaiterEnabled && (
         <button
@@ -1297,24 +1321,37 @@ export default function PublicMenuClient(props: PublicMenuClientProps) {
                         {formatPrice(totalPrice, menuStyle.currency ?? "RWF")}
                       </span>
                     </div>
-                    <button
-                      type="button"
-                      onClick={placeOrder}
-                      disabled={isPlacingOrder}
-                      className="w-full h-14 bg-whatsapp hover:bg-whatsapp-dark text-white rounded-2xl flex items-center justify-center gap-3 shadow-[0_8px_24px_rgba(37,211,102,0.35)] active:scale-[0.98] transition-all disabled:opacity-60 disabled:cursor-not-allowed font-[var(--font-headline)] font-extrabold tracking-tight uppercase text-sm"
-                    >
-                      {isPlacingOrder ? (
-                        <>
-                          <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                          Placing Order…
-                        </>
-                      ) : (
-                        <>
-                          <WhatsAppIcon className="w-5 h-5" />
-                          Order Now
-                        </>
+                    <div className="flex flex-col gap-2">
+                      <button
+                        type="button"
+                        onClick={placeOrder}
+                        disabled={isPlacingOrder}
+                        className="w-full h-14 bg-whatsapp hover:bg-whatsapp-dark text-white rounded-2xl flex items-center justify-center gap-3 shadow-[0_8px_24px_rgba(37,211,102,0.35)] active:scale-[0.98] transition-all disabled:opacity-60 disabled:cursor-not-allowed font-[var(--font-headline)] font-extrabold tracking-tight uppercase text-sm"
+                      >
+                        {isPlacingOrder ? (
+                          <>
+                            <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                            Placing Order…
+                          </>
+                        ) : (
+                          <>
+                            <WhatsAppIcon className="w-5 h-5" />
+                            Order via WhatsApp
+                          </>
+                        )}
+                      </button>
+                      {paymentsEnabled && (
+                        <button
+                          type="button"
+                          onClick={() => setShowPaymentModal(true)}
+                          disabled={isPlacingOrder}
+                          className="w-full h-12 bg-primary hover:bg-primary/90 text-white rounded-2xl flex items-center justify-center gap-2 active:scale-[0.98] transition-all disabled:opacity-60 font-bold text-sm"
+                        >
+                          <span className="material-symbols-outlined text-[18px]">payments</span>
+                          Pay with Mobile Money
+                        </button>
                       )}
-                    </button>
+                    </div>
                   </div>
                 )}
               </>

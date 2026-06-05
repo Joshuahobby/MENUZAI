@@ -50,6 +50,8 @@ export default function SettingsPage() {
   const [phone, setPhone] = useState(restaurantPhone);
   const [currency, setCurrency] = useState(menuStyle.currency ?? "RWF");
   const [whatsappEnabled, setWhatsappEnabled] = useState(true);
+  const [paymentsEnabled, setPaymentsEnabled] = useState(false);
+  const [savingPayments, setSavingPayments] = useState(false);
 
   // AI Waiter Settings
   const [aiTone, setAiTone] = useState<"friendly" | "formal" | "vibrant">((menuStyle.aiWaiterTone as "friendly" | "formal" | "vibrant") ?? "friendly");
@@ -119,7 +121,7 @@ export default function SettingsPage() {
     const load = async () => {
       const { data } = await supabase
         .from("restaurants")
-        .select("name, tagline, phone, hours")
+        .select("name, tagline, phone, hours, payments_enabled")
         .eq("id", restaurantId)
         .single();
       if (data) {
@@ -128,6 +130,7 @@ export default function SettingsPage() {
         setHours(data.hours ?? "");
         setPhone(data.phone ?? "");
         setWhatsappEnabled(!!data.phone);
+        setPaymentsEnabled(data.payments_enabled ?? false);
       }
     };
     load();
@@ -773,8 +776,25 @@ export default function SettingsPage() {
         )}
 
         {/* Custom Domain — Business plan only */}
-        {restaurantPlan === "business" && userRole === "owner" && (
-          <CustomDomainSection restaurantId={restaurantId} />
+        {userRole === "owner" && (
+          restaurantPlan === "business" ? (
+            <CustomDomainSection restaurantId={restaurantId} />
+          ) : (
+            <div className="bg-surface-container-lowest p-6 sm:p-8 rounded-[2rem] border border-surface-container/50 lg:col-span-2">
+              <p className="font-[var(--font-headline)] font-bold text-lg mb-1">Custom Domain</p>
+              <p className="text-sm text-secondary mb-4">Point your own domain to your menu so customers see your brand, not ours.</p>
+              <div className="flex items-center gap-3 p-4 bg-amber-500/5 border border-amber-500/20 rounded-xl">
+                <span className="material-symbols-outlined text-amber-600 text-[20px] icon-fill">workspace_premium</span>
+                <div className="flex-1">
+                  <p className="text-sm font-semibold text-on-surface">Business plan only</p>
+                  <p className="text-xs text-secondary">Upgrade to Business to use a custom domain (e.g. menu.yourrestaurant.com).</p>
+                </div>
+                <a href="/pricing" className="shrink-0 px-4 py-2 bg-amber-500 text-white font-bold rounded-xl text-xs hover:bg-amber-600 transition-all">
+                  Upgrade →
+                </a>
+              </div>
+            </div>
+          )
         )}
 
         {/* Locations — Business plan only */}
@@ -888,6 +908,42 @@ export default function SettingsPage() {
             </div>
           )}
         </div>
+
+        {/* Online Payments */}
+        {userRole === "owner" && (
+          <div className="bg-surface-container-lowest p-6 sm:p-8 rounded-[2rem] border border-surface-container/50 lg:col-span-2">
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="font-[var(--font-headline)] font-bold text-lg flex items-center gap-2">
+                <span className="material-symbols-outlined text-primary icon-fill text-[22px]">payments</span>
+                Online Payments
+              </h3>
+              <button
+                type="button"
+                disabled={savingPayments}
+                onClick={async () => {
+                  if (!restaurantId) return;
+                  setSavingPayments(true);
+                  const next = !paymentsEnabled;
+                  const { error } = await supabase.from("restaurants").update({ payments_enabled: next }).eq("id", restaurantId);
+                  if (error) { toast.error("Failed to save."); } else { setPaymentsEnabled(next); toast.success(next ? "Online payments enabled." : "Online payments disabled."); }
+                  setSavingPayments(false);
+                }}
+                aria-label={paymentsEnabled ? "Disable online payments" : "Enable online payments"}
+                className={`w-12 h-7 rounded-full transition-all relative disabled:opacity-50 ${paymentsEnabled ? "bg-primary" : "bg-surface-container-highest"}`}
+              >
+                <div className={`w-5 h-5 bg-white rounded-full absolute top-1 transition-all shadow-sm ${paymentsEnabled ? "right-1" : "left-1"}`} />
+              </button>
+            </div>
+            <p className="text-sm text-secondary mb-4">Let customers pay via Mobile Money (MTN MoMo / Airtel) directly at checkout instead of paying on delivery.</p>
+            {paymentsEnabled && (
+              <div className="flex items-center gap-2 p-3 bg-primary/5 rounded-xl text-xs text-secondary">
+                <span className="material-symbols-outlined text-primary text-[16px]">info</span>
+                Customers will see a &ldquo;Pay with Mobile Money&rdquo; button on your public menu checkout.
+              </div>
+            )}
+          </div>
+        )}
+
       </div>
     </div>
   );

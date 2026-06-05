@@ -8,6 +8,7 @@ import { supabase } from "@/lib/supabase";
 import { useMenu } from "@/context/MenuContext";
 import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
 import TrialExpiredModal from "@/components/TrialExpiredModal";
+import { isPlatformAdmin } from "@/lib/utils";
 
 const getNavLinks = (role: "owner" | "manager" | "staff" | null) => {
   const allLinks = [
@@ -174,6 +175,20 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
           })}
         </nav>
 
+        {/* Platform admin shortcut — only shown to admin emails */}
+        {isPlatformAdmin(user?.email) && (
+          <div className="px-2 mt-2 mb-2">
+            <Link
+              href="/admin/settings"
+              title={collapsed ? "Platform Admin" : undefined}
+              className={`flex items-center ${collapsed ? "justify-center px-3" : "gap-3 px-4"} py-2.5 rounded-xl transition-all text-secondary hover:text-primary hover:bg-surface-container-low`}
+            >
+              <span className="material-symbols-outlined shrink-0 text-[18px]">admin_panel_settings</span>
+              {!collapsed && <span className="text-xs font-bold uppercase tracking-wider">Platform Admin</span>}
+            </Link>
+          </div>
+        )}
+
         {/* User profile */}
         <div className={`${collapsed ? "px-2" : "px-8"} mt-auto pt-6 border-t border-surface-container`}>
           <div className={`flex items-center ${collapsed ? "justify-center" : "gap-3"}`}>
@@ -284,6 +299,15 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                 </Link>
               );
             })}
+            {isPlatformAdmin(user?.email) && (
+              <Link
+                href="/admin/settings"
+                className={`flex flex-col items-center justify-center p-3 rounded-2xl gap-1 transition-all ${pathname.startsWith("/admin") ? "bg-primary/10 text-primary" : "text-secondary hover:bg-surface-container-low"}`}
+              >
+                <span className={`material-symbols-outlined text-lg ${pathname.startsWith("/admin") ? "icon-fill" : ""}`}>admin_panel_settings</span>
+                <span className="text-[9px] font-bold uppercase">Admin</span>
+              </Link>
+            )}
           </div>
         )}
         <div className="lg:hidden fixed bottom-0 left-0 w-full z-50 flex justify-around items-end px-4 pb-4 pt-2 bg-surface/90 backdrop-blur-xl border-t border-outline-variant/10 shadow-[0_-4px_20px_rgba(0,0,0,0.04)] rounded-t-[2rem]">

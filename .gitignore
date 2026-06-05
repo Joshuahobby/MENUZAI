@@ -9,3 +9,5 @@ demo-video/out/
 demo-video/node_modules/
 demo-video/out/
 demo-video/node_modules/
+
+.env*

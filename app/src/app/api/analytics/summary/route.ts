@@ -108,9 +108,21 @@ export async function GET(request: Request) {
   const addToCarts = events.filter(e => e.event_type === "add_to_cart").length;
   const cartAbandons = events.filter(e => e.event_type === "cart_abandon").length;
   const abandonRate = addToCarts > 0 ? (cartAbandons / addToCarts) * 100 : 0;
+  const qrScans = events.filter(e => e.event_type === "qr_scan").length;
+
+  const dayOfWeek = new Array(7).fill(0);
+  events.forEach(e => { dayOfWeek[new Date(e.created_at).getDay()]++; });
+
+  const { data: orderRows } = await supabase
+    .from("orders")
+    .select("source")
+    .eq("restaurant_id", restaurantId)
+    .gte("created_at", since);
+  const whatsappOrders = orderRows?.filter(o => o.source === "whatsapp").length ?? 0;
+  const aiWaiterOrders = orderRows?.filter(o => o.source === "ai_waiter").length ?? 0;
 
   return Response.json({
-    kpis: { views, orders: orderCount, revenue, avgOrderValue, conversionRate, addToCarts, cartAbandons, abandonRate },
+    kpis: { views, orders: orderCount, revenue, avgOrderValue, conversionRate, addToCarts, cartAbandons, abandonRate, qrScans, whatsappOrders, aiWaiterOrders },
     funnel: [
       { label: "Menu Views", count: views },
       { label: "Item Views", count: itemViews },
@@ -122,6 +134,7 @@ export async function GET(request: Request) {
     recentEvents,
     dailyViews,
     dailyRevenue,
+    dayOfWeek,
     meta: { days, plan: restaurant?.plan ?? "free" },
   });
 }

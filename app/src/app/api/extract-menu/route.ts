@@ -1,6 +1,6 @@
 import { EXTRACTION_PROMPT, parseExtractionResponse, mergeExtractionResults, type ExtractionResult } from "@/lib/ai-extract";
 import Anthropic from "@anthropic-ai/sdk";
-import { getSupabaseAdmin } from "@/lib/supabase-admin";
+import { getPlatformAIConfig } from "@/lib/ai-config";
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 
 // Ordered list of free OpenRouter models that support vision (image) inputs.
@@ -94,27 +94,14 @@ async function extractWithAnthropic(file: File, apiKey: string, model: string): 
 }
 
 export async function POST(request: Request) {
-  if (!checkRateLimit(getClientIp(request), { id: "extract-menu", max: 5, windowMs: 60_000 })) {
+  if (!await checkRateLimit(getClientIp(request), { id: "extract-menu", max: 5, windowMs: 60_000 })) {
     return Response.json(
       { error: "Too many requests. Please wait a minute before trying again." },
       { status: 429, headers: { "Retry-After": "60" } }
     );
   }
 
-  // Fetch admin settings for AI provider
-  let provider = "openrouter";
-  let model = VISION_FALLBACK_MODELS[0]; // default: first vision-capable free model
-  
-  try {
-    const admin = getSupabaseAdmin();
-    if (admin) {
-      const { data } = await admin.from("platform_settings").select("*").eq("id", "global").single();
-      if (data?.ai_provider) provider = data.ai_provider;
-      if (data?.ai_model) model = data.ai_model;
-    }
-  } catch (e) {
-    console.warn("Could not fetch platform settings, falling back to OpenRouter", e);
-  }
+  const { provider, model } = await getPlatformAIConfig();
 
   let formData: FormData;
   try {

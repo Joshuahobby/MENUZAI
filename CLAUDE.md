@@ -55,8 +55,12 @@ NEXT_PUBLIC_SUPABASE_URL=
 NEXT_PUBLIC_SUPABASE_ANON_KEY=
 SUPABASE_SERVICE_ROLE_KEY=       # Required for admin tasks, emails, E2E tests
 OPENROUTER_API_KEY=              # from openrouter.ai
-OPENROUTER_MODEL=meta-llama/llama-3.2-11b-vision-instruct:free  # swap without redeploying; auto-selects best free vision model if unset
+OPENROUTER_MODEL=meta-llama/llama-3.2-11b-vision-instruct:free  # swap without redeploying; falls back through VISION_FALLBACK_MODELS chain if unset
 NEXT_PUBLIC_SITE_URL=http://localhost:3000   # set to production domain on Vercel
+# Upstash Redis — for persistent rate limiting across Vercel instances
+# UPSTASH_REDIS_REST_URL=        # from Upstash console → REST API
+# UPSTASH_REDIS_REST_TOKEN=      # from Upstash console → REST API
+# (rate limiting fails open / allows requests if these are absent)
 # ANTHROPIC_API_KEY=sk-ant-...   # set in Admin → AI Settings to switch provider to Anthropic
 # NEXT_PUBLIC_ADMIN_EMAILS=admin@menuzai.com,other@example.com  # comma-separated; gates /admin/settings
 # PAWAPAY_API_KEY=               # from pawaPay dashboard → API Keys
@@ -65,7 +69,7 @@ NEXT_PUBLIC_SITE_URL=http://localhost:3000   # set to production domain on Verce
 # PAWAPAY_WEBHOOK_PUBLIC_KEY="-----BEGIN PUBLIC KEY-----\n..."
 # RESEND_API_KEY=re_...          # order confirmation, plan-upgrade & welcome emails
 # RESEND_FROM_EMAIL=welcome@menuzaai.com  # sender address for welcome emails (optional, has default)
-# CRON_SECRET=                   # optional bearer token to secure /api/cron/* endpoints
+CRON_SECRET=                     # REQUIRED — cron endpoints return 500 if not set; use openssl rand -hex 32
 # NEXT_PUBLIC_VAPID_PUBLIC_KEY=  # alias for VAPID_PUBLIC_KEY — needed client-side for push subscribe
 # VAPID_PUBLIC_KEY=              # Web Push VAPID public key
 # VAPID_PRIVATE_KEY=             # Web Push VAPID private key
@@ -114,7 +118,7 @@ MENUZAI is an AI-powered SaaS platform for restaurant menu digitization. Stack: 
 
 | Route | Method | Notes |
 | --- | --- | --- |
-| `/api/extract-menu` | POST | Image → OpenRouter LLM → parsed menu JSON; auto-selects best free vision model if `OPENROUTER_MODEL` not set; rate-limited 5 req/IP/min (in-memory) |
+| `/api/extract-menu` | POST | Image → OpenRouter LLM → parsed menu JSON; if `OPENROUTER_MODEL` not set, tries vision models in order: llama-3.2-11b → gemini-2.0-flash-exp → qwen2-vl-7b; rate-limited 5 req/IP/min via Upstash Redis (fails open if Redis unavailable) |
 | `/api/auth/callback` | GET | Supabase OAuth redirect handler |
 | `/api/analytics/summary` | GET | Aggregated analytics from `analytics_events` table |
 | `/api/ai-waiter` | POST | AI-powered conversational waiter in public menu; routes to configured AI provider |
@@ -129,12 +133,12 @@ MENUZAI is an AI-powered SaaS platform for restaurant menu digitization. Stack: 
 | `/api/payments/status` | GET | Poll transaction status by `?depositId=`; auth-scoped to the requesting user; returns `{ status, plan }` |
 | `/api/webhooks/pawapay` | POST | Payment webhook; verifies `X-Pawapay-Signature` RSA-SHA256; on `COMPLETED` upgrades plan and sets `plan_expires_at = now()+30d` |
 | `/api/plan/change` | POST | Voluntary downgrade only (upgrades require payment); clears `plan_expires_at` on downgrade |
-| `/api/reviews` | POST | Submit a customer review (unauthenticated); writes to `reviews` table via admin client |
+| `/api/reviews` | POST | Submit a customer review (unauthenticated); writes to `reviews` table via admin client; rate-limited 5 req/IP per 5 min |
 | `/api/staff` | GET/POST/DELETE | List/add/remove `restaurant_staff` entries; owner-only writes (POST/DELETE), owner+manager reads; POST is **Pro-only** (plan checked server-side); uses admin client to resolve emails via `auth.admin.listUsers` |
 | `/api/push/subscribe` | POST | Upserts a Web Push subscription for the authenticated restaurant; requires VAPID env vars |
 | `/api/push/send` | POST | Sends a Web Push notification to all subscribers of a `restaurantId`; auto-purges expired (410) subscriptions; admin client |
 | `/api/notifications/welcome` | POST | Sends a welcome onboarding email via Resend on first restaurant creation; body: `{ userId, restaurantName }` |
-| `/api/cron/expire-transactions` | POST | Expires `transactions` rows stuck in `pending` for >15 min; runs on Vercel cron at 02:00 UTC daily; secured by optional `CRON_SECRET` bearer token |
+| `/api/cron/expire-transactions` | POST | Expires `transactions` rows stuck in `pending` for >15 min; runs on Vercel cron at 02:00 UTC daily; secured by `CRON_SECRET` bearer token (required) |
 | `/api/cron/expire-subscriptions` | POST | Downgrades restaurants whose `plan_expires_at` has passed to `free`; runs on Vercel cron at 03:00 UTC daily; secured by optional `CRON_SECRET` |
 | `/api/cron/remind-subscriptions` | POST | Sends lifecycle emails via Resend: trial day-1 welcome, day-7 midpoint nudge, day-12 expiry warning, and 3-day paid-plan expiry reminder; runs on Vercel cron at 09:00 UTC daily; secured by optional `CRON_SECRET` |
 

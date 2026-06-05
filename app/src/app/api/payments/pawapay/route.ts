@@ -13,7 +13,7 @@ const PLAN_PRICES: Record<string, number> = {
 };
 
 export async function POST(req: Request) {
-  if (!checkRateLimit(getClientIp(req), { id: "payments-pawapay", max: 3, windowMs: 5 * 60_000 })) {
+  if (!await checkRateLimit(getClientIp(req), { id: "payments-pawapay", max: 3, windowMs: 5 * 60_000 })) {
     return NextResponse.json({ error: "Too many requests. Please wait a few minutes." }, { status: 429 });
   }
   try {

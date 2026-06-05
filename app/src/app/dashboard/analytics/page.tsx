@@ -1,19 +1,20 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { AreaChart, Area, XAxis, Tooltip, ResponsiveContainer } from "recharts";
+import { AreaChart, Area, BarChart, Bar, XAxis, Tooltip, ResponsiveContainer, Cell } from "recharts";
 import { useMenu } from "@/context/MenuContext";
 import { formatPrice, formatEventType, formatRelativeTime } from "@/lib/utils";
 import { SkeletonKpi, SkeletonRow } from "@/components/Skeleton";
 
 interface AnalyticsData {
-  kpis: { views: number; orders: number; revenue: number; avgOrderValue: number; conversionRate: number; addToCarts?: number; cartAbandons?: number; abandonRate?: number };
+  kpis: { views: number; orders: number; revenue: number; avgOrderValue: number; conversionRate: number; addToCarts?: number; cartAbandons?: number; abandonRate?: number; qrScans?: number; whatsappOrders?: number; aiWaiterOrders?: number };
   funnel?: { label: string; count: number }[];
   topItems: { name: string; count: number }[];
   peakHours: { hour: number; count: number }[];
   recentEvents: { type: string; item: string | null; amount: number | null; time: string }[];
   dailyViews?: { date: string; views: number }[];
   dailyRevenue?: { date: string; revenue: number }[];
+  dayOfWeek?: number[];
   meta?: { days: number; plan: string };
 }
 
@@ -95,15 +96,20 @@ export default function AnalyticsPage() {
     );
   }
 
-  const kpis = data?.kpis ?? { views: 0, orders: 0, revenue: 0, avgOrderValue: 0, conversionRate: 0, addToCarts: 0, cartAbandons: 0, abandonRate: 0 };
+  const kpis = data?.kpis ?? { views: 0, orders: 0, revenue: 0, avgOrderValue: 0, conversionRate: 0, addToCarts: 0, cartAbandons: 0, abandonRate: 0, qrScans: 0, whatsappOrders: 0, aiWaiterOrders: 0 };
   const funnel = data?.funnel ?? [];
   const topItems = data?.topItems ?? [];
   const peakHours = data?.peakHours ?? [];
   const recentEvents = data?.recentEvents ?? [];
   const dailyViews = data?.dailyViews ?? [];
   const dailyRevenue = data?.dailyRevenue ?? [];
+  const dayOfWeek = data?.dayOfWeek ?? new Array(7).fill(0);
   const maxHourCount = Math.max(...peakHours.map(h => h.count), 1);
   const peakHour = peakHours.reduce((best, h) => h.count > best.count ? h : best, { hour: 0, count: 0 });
+  const DOW_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+  const maxDowCount = Math.max(...dayOfWeek, 1);
+  const peakDowIdx = dayOfWeek.indexOf(Math.max(...dayOfWeek));
+  const dowData = DOW_LABELS.map((label, i) => ({ label, count: dayOfWeek[i] ?? 0 }));
 
   const isEmpty = kpis.views === 0 && kpis.orders === 0;
 
@@ -178,12 +184,18 @@ export default function AnalyticsPage() {
           { label: "Revenue", value: formatPrice(kpis.revenue, currency), icon: "payments" },
           { label: "Conversion Rate", value: `${kpis.conversionRate.toFixed(1)}%`, icon: "conversion_path" },
           ...(typeof kpis.abandonRate === "number" && kpis.addToCarts ? [
-            { label: "Cart Abandonment", value: `${kpis.abandonRate.toFixed(1)}%`, icon: "remove_shopping_cart" },
+            { label: "Cart Abandonment", value: `${kpis.abandonRate.toFixed(1)}%`, icon: "remove_shopping_cart", color: "text-primary" },
+          ] : []),
+          ...((kpis.qrScans ?? 0) > 0 ? [
+            { label: "QR Scans", value: (kpis.qrScans ?? 0).toLocaleString(), icon: "qr_code_scanner", color: "text-primary" },
+          ] : []),
+          ...((kpis.aiWaiterOrders ?? 0) > 0 ? [
+            { label: "AI Waiter Orders", value: (kpis.aiWaiterOrders ?? 0).toLocaleString(), icon: "smart_toy", color: "text-violet-600" },
           ] : []),
         ].map((kpi) => (
           <div key={kpi.label} className="bg-surface-container-lowest p-6 rounded-3xl shadow-sm border border-surface-container/50">
             <div className="flex items-center gap-2 mb-3">
-              <span className="material-symbols-outlined text-primary icon-fill">{kpi.icon}</span>
+              <span className={`material-symbols-outlined icon-fill ${"color" in kpi ? kpi.color : "text-primary"}`}>{kpi.icon}</span>
               <p className="text-secondary text-xs font-bold uppercase tracking-wider">{kpi.label}</p>
             </div>
             <h3 className="text-2xl font-extrabold">{kpi.value}</h3>
@@ -388,6 +400,59 @@ export default function AnalyticsPage() {
             )})}
           </div>
         </div>
+
+        {/* Day of Week */}
+        {maxDowCount > 0 && (
+          <div className="bg-surface-container-lowest p-8 rounded-3xl border border-surface-container/50 shadow-sm">
+            <div className="flex justify-between items-center mb-6">
+              <div>
+                <h3 className="text-xl font-[var(--font-headline)] font-bold">Day of Week</h3>
+                <p className="text-xs text-secondary font-medium mt-1">Activity by day — peak: <span className="text-primary font-bold">{DOW_LABELS[peakDowIdx]}</span></p>
+              </div>
+            </div>
+            <ResponsiveContainer width="100%" height={160}>
+              <BarChart data={dowData} margin={{ top: 4, right: 4, left: -28, bottom: 0 }} barSize={24}>
+                <XAxis dataKey="label" tick={{ fontSize: 10, fill: "#9CA3AF" }} axisLine={false} tickLine={false} />
+                <Tooltip
+                  contentStyle={{ background: "var(--color-surface)", border: "1px solid var(--color-surface-container)", borderRadius: "1rem", fontSize: 12 }}
+                  formatter={(v) => [v, "Events"]}
+                />
+                <Bar dataKey="count" radius={[6, 6, 0, 0]}>
+                  {dowData.map((entry, i) => (
+                    <Cell key={entry.label} fill={i === peakDowIdx ? "var(--color-primary-container)" : "var(--color-surface-container-high)"} />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        )}
+
+        {/* Order Source Split */}
+        {((kpis.whatsappOrders ?? 0) + (kpis.aiWaiterOrders ?? 0)) > 0 && (
+          <div className="bg-surface-container-lowest p-8 rounded-3xl border border-surface-container/50 shadow-sm">
+            <h3 className="text-xl font-[var(--font-headline)] font-bold mb-6">Order Sources</h3>
+            <div className="space-y-4">
+              {[
+                { label: "WhatsApp", count: kpis.whatsappOrders ?? 0, color: "bg-tertiary-container" },
+                { label: "AI Waiter", count: kpis.aiWaiterOrders ?? 0, color: "bg-violet-400" },
+              ].map((src) => {
+                const total = (kpis.whatsappOrders ?? 0) + (kpis.aiWaiterOrders ?? 0);
+                const pct = total > 0 ? (src.count / total) * 100 : 0;
+                return (
+                  <div key={src.label}>
+                    <div className="flex justify-between text-sm mb-1.5">
+                      <span className="font-bold">{src.label}</span>
+                      <span className="text-secondary font-mono">{src.count} <span className="text-[10px]">({pct.toFixed(0)}%)</span></span>
+                    </div>
+                    <div className="h-2.5 w-full bg-surface-container rounded-full overflow-hidden">
+                      <div className={`h-full rounded-full ${src.color} transition-all duration-700`} style={{ width: `${pct}%` }} />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
         {/* Live Activity */}
         <div className="bg-surface-container-lowest p-8 rounded-3xl border border-surface-container/50 shadow-sm lg:col-span-2">
