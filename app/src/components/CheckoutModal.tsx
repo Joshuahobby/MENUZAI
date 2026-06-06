@@ -174,7 +174,9 @@ export function CheckoutModal({ isOpen, onClose, planName, priceAmount, onSucces
 
             <div className="flex justify-between items-center bg-surface-container p-4 rounded-xl mb-6 border border-outline-variant/20">
               <span className="font-bold">Total Due:</span>
-              <span className="text-xl font-black">{priceAmount.toLocaleString()} RWF / month</span>
+              <span className="text-xl font-black">
+                {priceAmount.toLocaleString()} RWF / {planName.includes("Annual") ? "year" : "month"}
+              </span>
             </div>
 
             <form onSubmit={handlePayment} className="space-y-6">
