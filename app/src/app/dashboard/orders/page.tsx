@@ -23,7 +23,7 @@ interface OrderRow {
   customer_email: string | null;
   table_number: string | null;
   total: number;
-  status: "pending" | "confirmed" | "preparing" | "cancelled";
+  status: "pending" | "pending_payment" | "confirmed" | "preparing" | "cancelled";
   created_at: string;
   items: CartItem[];
   whatsapp_sent: boolean;
@@ -39,11 +39,12 @@ interface TableRequest {
   status: "pending" | "resolved";
 }
 
-type StatusFilter = "all" | "pending" | "preparing" | "confirmed" | "cancelled";
+type StatusFilter = "all" | "pending" | "pending_payment" | "preparing" | "confirmed" | "cancelled";
 type SourceFilter = "all" | "ai_waiter" | "whatsapp";
 
 const STATUS_TABS: { value: StatusFilter; label: string }[] = [
   { value: "all", label: "All Orders" },
+  { value: "pending_payment", label: "Awaiting Payment" },
   { value: "pending", label: "Pending" },
   { value: "preparing", label: "Preparing" },
   { value: "confirmed", label: "Ready" },
@@ -51,10 +52,11 @@ const STATUS_TABS: { value: StatusFilter; label: string }[] = [
 ];
 
 const STATUS_STYLE = {
-  pending:   { badge: "bg-amber-500/10 text-amber-700 dark:text-amber-400",   dot: "bg-amber-500",   icon: "pending" },
-  preparing: { badge: "bg-blue-500/10 text-blue-700 dark:text-blue-400",     dot: "bg-blue-500",    icon: "skillet" },
-  confirmed: { badge: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400",  dot: "bg-emerald-500",    icon: "check_circle" },
-  cancelled: { badge: "bg-rose-500/10 text-rose-700 dark:text-rose-400",        dot: "bg-rose-500",       icon: "cancel" },
+  pending_payment: { badge: "bg-violet-500/10 text-violet-700 dark:text-violet-400", dot: "bg-violet-500",  icon: "hourglass_top" },
+  pending:         { badge: "bg-amber-500/10 text-amber-700 dark:text-amber-400",     dot: "bg-amber-500",   icon: "pending" },
+  preparing:       { badge: "bg-blue-500/10 text-blue-700 dark:text-blue-400",       dot: "bg-blue-500",    icon: "skillet" },
+  confirmed:       { badge: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400", dot: "bg-emerald-500", icon: "check_circle" },
+  cancelled:       { badge: "bg-rose-500/10 text-rose-700 dark:text-rose-400",       dot: "bg-rose-500",    icon: "cancel" },
 };
 
 function SkeletonOrder() {
@@ -310,9 +312,9 @@ export default function OrdersPage() {
       .subscribe();
 
     const handleVisibilityChange = () => {
+      // Refresh stale data when tab regains focus without killing the realtime channels.
+      // Removing channels here would break live updates for the rest of the session.
       if (document.visibilityState === "visible") {
-        supabase.removeChannel(orderChannel);
-        supabase.removeChannel(requestChannel);
         fetchOrders();
       }
     };
@@ -344,7 +346,7 @@ export default function OrdersPage() {
       toast.error("Failed to update order status.", { description: error.message });
       fetchOrdersRefresh();
     } else {
-      const labels: Record<OrderRow["status"], string> = { confirmed: "ready", cancelled: "declined", pending: "restored", preparing: "preparing" };
+      const labels: Record<OrderRow["status"], string> = { confirmed: "ready", cancelled: "declined", pending: "restored", preparing: "preparing", pending_payment: "awaiting payment" };
       toast.success(`Order ${labels[newStatus]}.`, {
         duration: 4000,
         action: previousStatus ? {
@@ -397,7 +399,7 @@ export default function OrdersPage() {
     Math.floor((now - new Date(createdAt).getTime()) / 60_000);
 
   const urgencyClass = (order: OrderRow) => {
-    if (order.status !== "pending" && order.status !== "preparing") return null;
+    if (order.status !== "pending" && order.status !== "preparing" && order.status !== "pending_payment") return null;
     const m = getWaitMinutes(order.created_at);
     if (m >= 15) return { chip: "bg-red-500/10 text-red-600", label: `${m}m ⚠️` };
     if (m >= 5) return { chip: "bg-amber-500/10 text-amber-600", label: `${m}m` };
@@ -751,6 +753,12 @@ export default function OrdersPage() {
 
                     {/* Actions */}
                     <div className="grid grid-cols-2 gap-3">
+                      {order.status === "pending_payment" && (
+                        <div className="col-span-2 py-2.5 px-4 rounded-xl text-xs font-bold bg-violet-500/10 text-violet-600 dark:text-violet-400 flex items-center justify-center gap-1.5">
+                          <span className="material-symbols-outlined text-sm">hourglass_top</span>
+                          Awaiting payment confirmation
+                        </div>
+                      )}
                       {order.status === "pending" && (
                         <>
                           <button
@@ -979,7 +987,7 @@ export default function OrdersPage() {
             
             <div className="text-center text-xs pb-8">
               <p>Powered by MENUZA AI</p>
-              <p>www.menuza.ai</p>
+              <p>www.menuzaai.com</p>
             </div>
           </div>
         )}

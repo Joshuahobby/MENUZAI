@@ -222,7 +222,7 @@ export default function QRCodesPage() {
           {!menuUrl && (
             <div className="bg-amber-50 border border-amber-100 px-3 py-1.5 rounded-full flex items-center gap-2 text-amber-700 text-[10px] font-black uppercase tracking-wider">
               <span className="material-symbols-outlined text-sm">warning</span>
-              Menu Unscheduled
+              Menu Not Published
             </div>
           )}
           <button

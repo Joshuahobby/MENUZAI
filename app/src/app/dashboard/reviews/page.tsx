@@ -123,7 +123,7 @@ export default function ReviewsPage() {
         throw error;
       }
 
-      toast.success("Response sent to customer successfully!");
+      toast.success("Response saved successfully!");
       setEditingReplyId(null);
       fetchReviews();
     } catch (err) {
