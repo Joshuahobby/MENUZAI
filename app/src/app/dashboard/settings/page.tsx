@@ -995,7 +995,7 @@ function CustomDomainSection({ restaurantId }: { restaurantId: string | null }) 
           <div className="grid grid-cols-3 gap-2 mt-2">
             <div className="bg-surface p-2 rounded-lg"><p className="text-[10px] text-secondary uppercase font-bold mb-1">Type</p><p>CNAME</p></div>
             <div className="bg-surface p-2 rounded-lg"><p className="text-[10px] text-secondary uppercase font-bold mb-1">Name</p><p>{saved.split(".")[0]}</p></div>
-            <div className="bg-surface p-2 rounded-lg"><p className="text-[10px] text-secondary uppercase font-bold mb-1">Value</p><p className="truncate">{process.env.NEXT_PUBLIC_SITE_URL?.replace(/^https?:\/\//, "") ?? "menuzai.com"}</p></div>
+            <div className="bg-surface p-2 rounded-lg"><p className="text-[10px] text-secondary uppercase font-bold mb-1">Value</p><p className="truncate">{process.env.NEXT_PUBLIC_SITE_URL?.replace(/^https?:\/\//, "") ?? "menuzaai.com"}</p></div>
           </div>
           <p className="text-secondary mt-3 font-sans">DNS changes can take up to 24 hours to propagate. Once set, your menu will be live at <span className="text-primary">{saved}</span>.</p>
         </div>

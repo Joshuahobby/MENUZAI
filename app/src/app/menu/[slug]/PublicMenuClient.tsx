@@ -799,7 +799,7 @@ export default function PublicMenuClient(props: PublicMenuClientProps) {
       {props.branded && (
         <div className="py-6 text-center border-t border-outline-variant/10 mt-8">
           <a
-            href="https://menuzai.com"
+            href="https://menuzaai.com"
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-1.5 text-xs text-secondary opacity-50 hover:opacity-90 transition-opacity"
