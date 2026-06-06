@@ -149,7 +149,7 @@ export default function OnboardingPage() {
         </Link>
         <div className="flex items-center gap-4">
           <span className="hidden sm:inline text-xs text-secondary/50 font-medium">Takes about 2 minutes</span>
-          <a href="mailto:support@menuzai.com" className="text-sm font-medium text-secondary hover:text-primary transition-colors">
+          <a href="mailto:support@menuzaai.com" className="text-sm font-medium text-secondary hover:text-primary transition-colors">
             Need help?
           </a>
         </div>

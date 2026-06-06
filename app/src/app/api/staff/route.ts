@@ -144,7 +144,7 @@ export async function POST(req: Request) {
     }
 
     // Send branded welcome email to the new staff member
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://menuzai.com";
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://menuzaai.com";
     const resendKey = process.env.RESEND_API_KEY;
     const { data: restaurantData } = await adminClient
       .from("restaurants")

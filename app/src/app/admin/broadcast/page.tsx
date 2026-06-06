@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { toast } from "sonner";
+import { confirm } from "@/components/Modals";
 import type { RestaurantRow } from "@/app/api/admin/restaurants/route";
 
 const SEGMENTS = [
@@ -47,8 +48,13 @@ export default function AdminBroadcastPage() {
     if (!subject.trim()) { toast.error("Subject is required"); return; }
     if (!html.trim()) { toast.error("Email body is required"); return; }
     const count = estimateCount(segment);
-    const confirmed = window.confirm(`Send to ~${count} recipient${count !== 1 ? "s" : ""}?\n\nSubject: ${subject}\nSegment: ${segment}`);
-    if (!confirmed) return;
+    const ok = await confirm({
+      title: `Send broadcast to ~${count} recipient${count !== 1 ? "s" : ""}?`,
+      message: `Segment: ${SEGMENTS.find(s => s.value === segment)?.label} — Subject: "${subject}". This will send real emails via Resend and cannot be undone.`,
+      confirmLabel: "Send",
+      danger: true,
+    });
+    if (!ok) return;
 
     setSending(true);
     try {
@@ -86,6 +92,7 @@ export default function AdminBroadcastPage() {
               const isActive = segment === s.value;
               return (
                 <button
+                  type="button"
                   key={s.value}
                   onClick={() => setSegment(s.value)}
                   className={`flex items-start justify-between gap-3 p-4 rounded-2xl border-2 text-left transition-all ${
@@ -138,6 +145,7 @@ export default function AdminBroadcastPage() {
 
         {/* Send */}
         <button
+          type="button"
           onClick={handleSend}
           disabled={sending || !subject.trim() || !html.trim()}
           className="w-full py-3.5 rounded-2xl text-sm font-bold bg-gradient-to-br from-primary to-primary-container text-white shadow-lg shadow-primary/20 hover:opacity-90 transition-all disabled:opacity-50"

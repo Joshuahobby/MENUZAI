@@ -35,7 +35,7 @@ export default function PlatformAdminSettings() {
           if (config.provider) setProvider(config.provider as Provider);
           if (config.model) setModel(config.model);
           if (config.updated_at) setUpdatedAt(config.updated_at);
-          if (!keys.error) setApiKeys(keys as ApiKeys);
+          if (!keys.error && typeof keys.openrouter === "boolean") setApiKeys(keys as ApiKeys);
         })
         .catch((err) => console.error("Failed to load admin config", err))
         .finally(() => setLoading(false));
@@ -140,7 +140,7 @@ export default function PlatformAdminSettings() {
                     <p className="text-xs opacity-80 font-medium">
                       {p === "openrouter"
                         ? "Default fallback. Uses Llama / Gemma models."
-                        : "Premium tier. Uses Claude 3.5 Sonnet."}
+                        : "Premium tier. Uses Claude Sonnet."}
                     </p>
                     {apiKeys && !apiKeys[p] && (
                       <p className="text-[10px] text-amber-500 font-bold mt-2 flex items-center gap-1">

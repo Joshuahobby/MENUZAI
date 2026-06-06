@@ -94,8 +94,6 @@ __ORDER__:{"items":[{"name":"<exact item name>","qty":<number>}],"table":"<table
         (m: { role: string }) => m.role === "user" || m.role === "assistant"
       );
 
-      console.log(`AI Waiter: Streaming via Claude (${model})...`);
-
       const stream = new ReadableStream({
         async start(controller) {
           const encoder = new TextEncoder();
@@ -133,8 +131,6 @@ __ORDER__:{"items":[{"name":"<exact item name>","qty":<number>}],"table":"<table
     // Default: OpenRouter with streaming
     const apiKey = process.env.OPENROUTER_API_KEY;
     if (!apiKey) return Response.json({ error: "OPENROUTER_API_KEY not configured" }, { status: 500 });
-
-    console.log(`AI Waiter: Streaming via OpenRouter (${model})...`);
 
     const upstreamRes = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",

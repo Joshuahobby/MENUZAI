@@ -35,7 +35,7 @@ export async function POST(req: Request) {
   if (!admin) return NextResponse.json({ error: "Configuration missing" }, { status: 500 });
 
   const resendKey = process.env.RESEND_API_KEY;
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://menuzai.com";
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://menuzaai.com";
 
   // ── Paid plan expiry reminder (3 days out) ─────────────────────────────
   const paidDay = dayMatch("", 3);
@@ -189,7 +189,6 @@ export async function POST(req: Request) {
     trialDay7: (trialMid ?? []).length,
     trialDay1: (trialNew ?? []).length,
   };
-  console.log(`remind-subscriptions: sent ${sent} email(s)`);
   await completeCronRun(runId, sent, breakdown);
   return NextResponse.json({ sent, breakdown });
 }

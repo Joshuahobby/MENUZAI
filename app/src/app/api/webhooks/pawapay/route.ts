@@ -60,7 +60,6 @@ export async function POST(req: Request) {
           .from("orders")
           .update({ paid: true, status: "pending" })
           .eq("payment_deposit_id", depositId);
-        console.log(`✅ Food order payment completed: ${depositId}`);
         return NextResponse.json({ received: true }, { status: 200 });
       }
 
@@ -81,8 +80,6 @@ export async function POST(req: Request) {
 
       if (upgradeError) {
         console.error("Failed to upgrade restaurant plan:", upgradeError);
-      } else {
-        console.log(`✅ Restaurant ${tx.restaurant_id} upgraded to ${planName}`);
       }
 
       // Send upgrade confirmation email
@@ -122,7 +119,7 @@ export async function POST(req: Request) {
         .from("transactions")
         .update({ status: "failed" })
         .eq("deposit_id", depositId);
-      console.log(`❌ pawaPay payment ${depositId} marked as failed`);
+      console.warn(`pawaPay payment ${depositId} marked as failed`);
     }
 
     return NextResponse.json({ received: true }, { status: 200 });

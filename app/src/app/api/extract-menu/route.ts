@@ -163,7 +163,6 @@ export async function POST(request: Request) {
               : `Analysing image ${i + 1} of ${files.length}...`;
             const pct = Math.round(10 + ((i / files.length) * 75));
             send({ type: "progress", step: label, pct });
-            console.log(`Extracting with Anthropic (${model}) — image ${i + 1}/${files.length}`);
             results.push(await extractWithAnthropic(files[i], apiKey, model));
           }
         } else {
@@ -187,7 +186,6 @@ export async function POST(request: Request) {
             let lastError: Error | null = null;
             for (const candidate of fallbackChain) {
               try {
-                console.log(`Extracting with OpenRouter (${candidate}) — image ${i + 1}/${files.length}`);
                 extracted = await extractWithOpenRouter(files[i], apiKey, candidate);
                 break; // success — stop trying
               } catch (err) {

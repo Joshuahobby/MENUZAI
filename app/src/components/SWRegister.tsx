@@ -8,7 +8,7 @@ export function SWRegister() {
     if (!("serviceWorker" in navigator)) return;
 
     navigator.serviceWorker.register("/sw.js").catch((err) => {
-      console.log("ServiceWorker registration failed:", err);
+      console.error("ServiceWorker registration failed:", err);
     });
 
     // Show a reload toast when a new SW version takes control

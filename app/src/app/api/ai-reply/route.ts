@@ -54,7 +54,7 @@ export async function POST(req: Request) {
         headers: {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${process.env.OPENROUTER_API_KEY}`,
-          "HTTP-Referer": "https://menuza.ai",
+          "HTTP-Referer": "https://menuzaai.com",
           "X-Title": "MenuZAI"
         },
         body: JSON.stringify({

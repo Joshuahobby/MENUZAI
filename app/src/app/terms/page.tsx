@@ -80,7 +80,7 @@ export default function TermsPage() {
 
           <section>
             <h2 className="text-lg font-bold text-on-surface mb-3">11. Contact</h2>
-            <p>For questions about these Terms, contact us at <a href="mailto:support@menuzai.com" className="text-primary hover:underline">support@menuzai.com</a>.</p>
+            <p>For questions about these Terms, contact us at <a href="mailto:support@menuzaai.com" className="text-primary hover:underline">support@menuzaai.com</a>.</p>
           </section>
 
         </div>

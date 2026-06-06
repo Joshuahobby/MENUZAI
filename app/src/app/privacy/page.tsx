@@ -80,7 +80,7 @@ export default function PrivacyPage() {
 
           <section>
             <h2 className="text-lg font-bold text-on-surface mb-3">8. Your Rights</h2>
-            <p>You have the right to access, correct, or delete your personal data at any time. To delete your account and all associated data, contact us at <a href="mailto:support@menuzai.com" className="text-primary hover:underline">support@menuzai.com</a>. We will process your request within 30 days.</p>
+            <p>You have the right to access, correct, or delete your personal data at any time. You can delete your account and all associated data directly from your dashboard under Settings → Danger Zone. Alternatively, email <a href="mailto:support@menuzaai.com" className="text-primary hover:underline">support@menuzaai.com</a> and we will process your request within 30 days.</p>
           </section>
 
           <section>
@@ -95,7 +95,7 @@ export default function PrivacyPage() {
 
           <section>
             <h2 className="text-lg font-bold text-on-surface mb-3">11. Contact</h2>
-            <p>For privacy-related questions or requests, email us at <a href="mailto:support@menuzai.com" className="text-primary hover:underline">support@menuzai.com</a>.</p>
+            <p>For privacy-related questions or requests, email us at <a href="mailto:support@menuzaai.com" className="text-primary hover:underline">support@menuzaai.com</a>.</p>
           </section>
 
         </div>

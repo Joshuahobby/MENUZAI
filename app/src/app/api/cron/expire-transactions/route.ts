@@ -37,7 +37,6 @@ export async function POST(req: Request) {
     }
 
     const expired = data?.length ?? 0;
-    if (expired > 0) console.log(`Expired ${expired} stale transaction(s).`);
     await completeCronRun(runId, expired, { cutoff });
     return NextResponse.json({ expired });
   } catch (err) {

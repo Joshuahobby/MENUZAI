@@ -34,7 +34,6 @@ export async function POST(req: Request) {
     if (paidResult.error) console.error("expire-subscriptions paid error:", paidResult.error);
 
     const downgraded = paidResult.data?.length ?? 0;
-    console.log(`expire-subscriptions: downgraded ${downgraded} restaurant(s) to free`);
     await completeCronRun(runId, downgraded);
     return NextResponse.json({ downgraded });
   } catch (err) {
