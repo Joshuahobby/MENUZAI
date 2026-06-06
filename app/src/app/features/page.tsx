@@ -161,7 +161,7 @@ export default function FeaturesPage() {
           AI menu extraction, smart ordering, live analytics, and more — built specifically for restaurants in Africa.
         </p>
         <div className="flex flex-wrap gap-3 justify-center mb-6">
-          <Link href="/login" className="px-7 py-3.5 bg-primary text-white font-bold rounded-xl text-sm hover:opacity-90 transition-opacity shadow-md shadow-primary/20">
+          <Link href="/login?signup=true" className="px-7 py-3.5 bg-primary text-white font-bold rounded-xl text-sm hover:opacity-90 transition-opacity shadow-md shadow-primary/20">
             Start Free Trial — No Card Required
           </Link>
           <Link href="/demo" className="px-7 py-3.5 border border-black/10 text-on-surface font-bold rounded-xl text-sm hover:bg-black/3 transition-colors">
@@ -248,7 +248,7 @@ export default function FeaturesPage() {
             14-day free trial — no credit card required. Try every Pro feature, then choose your plan.
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            <Link href="/login" className="px-8 py-4 bg-primary text-white font-bold rounded-xl text-sm hover:opacity-90 transition-opacity shadow-lg shadow-primary/20">
+            <Link href="/login?signup=true" className="px-8 py-4 bg-primary text-white font-bold rounded-xl text-sm hover:opacity-90 transition-opacity shadow-lg shadow-primary/20">
               Start Free Trial
             </Link>
             <Link href="/pricing" className="px-8 py-4 bg-white/8 text-white/70 font-bold rounded-xl text-sm hover:bg-white/12 transition-colors border border-white/10">

@@ -180,7 +180,7 @@ export default function OwnerDemoPage() {
               <span className="material-symbols-outlined text-[14px]">open_in_new</span>
               Public Menu
             </Link>
-            <Link href="/login" className="text-xs font-bold text-white bg-primary px-4 py-2 rounded-lg hover:opacity-90 transition-opacity">
+            <Link href="/login?signup=true" className="text-xs font-bold text-white bg-primary px-4 py-2 rounded-lg hover:opacity-90 transition-opacity">
               Start Free Trial
             </Link>
           </div>
@@ -428,7 +428,7 @@ export default function OwnerDemoPage() {
                       </div>
                     ))}
                   </div>
-                  <Link href="/login"
+                  <Link href="/login?signup=true"
                     className="inline-flex items-center gap-2 px-5 py-3 bg-gradient-to-tr from-primary to-primary-container text-white font-bold rounded-xl text-sm shadow shadow-primary/20 hover:opacity-90 transition-opacity">
                     <span className="material-symbols-outlined text-[18px]">add_circle</span>
                     Add {checkedItems.size} items to my real menu — sign up free
@@ -493,7 +493,7 @@ export default function OwnerDemoPage() {
                 </div>
               </div>
 
-              <Link href="/login"
+              <Link href="/login?signup=true"
                 className="inline-flex items-center gap-2 px-5 py-3 bg-gradient-to-tr from-primary to-primary-container text-white font-bold rounded-xl text-sm shadow shadow-primary/20 hover:opacity-90 transition-opacity">
                 <span className="material-symbols-outlined text-[18px]">style</span>
                 Apply this template — start free trial
@@ -575,7 +575,7 @@ export default function OwnerDemoPage() {
               </div>
 
               <div className="mt-5 pt-5 border-t border-black/5">
-                <Link href="/login"
+                <Link href="/login?signup=true"
                   className="inline-flex items-center gap-2 px-5 py-3 bg-gradient-to-tr from-primary to-primary-container text-white font-bold rounded-xl text-sm shadow shadow-primary/20 hover:opacity-90 transition-opacity">
                   <span className="material-symbols-outlined text-[18px]">star</span>
                   See all reviews &amp; replies — start free trial
@@ -672,7 +672,7 @@ export default function OwnerDemoPage() {
                     </div>
                   </div>
 
-                  <Link href="/login"
+                  <Link href="/login?signup=true"
                     className="flex items-center justify-center gap-2 w-full px-5 py-3 bg-gradient-to-tr from-primary to-primary-container text-white font-bold rounded-xl text-sm shadow shadow-primary/20 hover:opacity-90 transition-opacity">
                     <span className="material-symbols-outlined text-[18px]">download</span>
                     Download QR Posters — start free trial
@@ -688,7 +688,7 @@ export default function OwnerDemoPage() {
           <p className="text-white/40 text-xs font-bold uppercase tracking-widest mb-3">Ready to start?</p>
           <h2 className="text-2xl font-[var(--font-headline)] font-black text-white mb-4">Get your real dashboard in 2 minutes</h2>
           <p className="text-white/40 text-sm mb-7">14-day free trial — upload your menu, get your QR code, go live today.</p>
-          <Link href="/login"
+          <Link href="/login?signup=true"
             className="inline-block px-8 py-3.5 bg-primary text-white font-bold rounded-xl text-sm hover:opacity-90 transition-opacity shadow-lg shadow-primary/30">
             Start Free Trial
           </Link>

@@ -467,7 +467,7 @@ export const pricingPlans = [
     price: "89,000 RWF",
     period: "/ month",
     amountRwf: 89000,
-    features: ["Everything in Pro", "Multi-location Support", "Priority Support", "Custom Domain Mapping", "POS & CRM Integration"],
+    features: ["Everything in Pro", "Multi-location Support", "Priority Support", "Custom Domain Mapping", "Dedicated Account Support"],
     cta: "Contact Sales",
     popular: false,
   },

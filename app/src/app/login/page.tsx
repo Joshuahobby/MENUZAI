@@ -8,7 +8,6 @@ import Link from "next/link";
 function LoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [isSignUp, setIsSignUp] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [confirmationSent, setConfirmationSent] = useState(false);
@@ -16,6 +15,7 @@ function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const callbackError = searchParams.get("error");
+  const [isSignUp, setIsSignUp] = useState(() => searchParams.get("signup") === "true");
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();

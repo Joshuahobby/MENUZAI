@@ -39,7 +39,7 @@ export default function LandingPage() {
               Turn every QR scan into a seamless guest experience. Manage orders, track performance, and let AI handle the upselling — all from one dashboard.
             </p>
             <div className="flex flex-wrap gap-3">
-              <Link href="/login" className="px-7 py-3.5 bg-primary text-white font-bold rounded-xl text-sm hover:opacity-90 transition-opacity shadow-md shadow-primary/20">
+              <Link href="/login?signup=true" className="px-7 py-3.5 bg-primary text-white font-bold rounded-xl text-sm hover:opacity-90 transition-opacity shadow-md shadow-primary/20">
                 Start Free Trial — No Card Required
               </Link>
               <a href="https://youtu.be/G4vp5NQnk-I" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 px-7 py-3.5 border border-black/10 text-on-surface font-bold rounded-xl text-sm hover:bg-black/3 transition-colors">
@@ -134,7 +134,7 @@ export default function LandingPage() {
           </div>
 
           <div className="mt-8 text-center">
-            <Link href="/login" className="inline-block px-7 py-3.5 bg-primary text-white font-bold rounded-xl text-sm hover:opacity-90 transition-opacity">
+            <Link href="/login?signup=true" className="inline-block px-7 py-3.5 bg-primary text-white font-bold rounded-xl text-sm hover:opacity-90 transition-opacity">
               Start building your menu
             </Link>
           </div>
@@ -298,7 +298,7 @@ export default function LandingPage() {
                 </span>
               ))}
             </div>
-            <Link href="/login" className="shrink-0 text-xs font-bold text-secondary hover:text-primary transition-colors flex items-center gap-1">
+            <Link href="/login?signup=true" className="shrink-0 text-xs font-bold text-secondary hover:text-primary transition-colors flex items-center gap-1">
               Start 14-day Trial
               <span className="material-symbols-outlined text-[14px]">arrow_forward</span>
             </Link>
@@ -371,7 +371,7 @@ export default function LandingPage() {
           <LiveStats />
 
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            <Link href="/login" className="px-8 py-4 bg-primary text-white font-bold rounded-xl text-sm hover:opacity-90 transition-opacity shadow-lg shadow-primary/20">
+            <Link href="/login?signup=true" className="px-8 py-4 bg-primary text-white font-bold rounded-xl text-sm hover:opacity-90 transition-opacity shadow-lg shadow-primary/20">
               Start Free Trial — No Card Required
             </Link>
             <a href="mailto:hello@ikoranabuhanga.tech" className="px-8 py-4 bg-white/8 text-white/60 font-bold rounded-xl text-sm hover:bg-white/12 transition-colors border border-white/10">
@@ -412,7 +412,7 @@ export default function LandingPage() {
             <p className="font-bold text-xs uppercase tracking-widest text-on-surface/40 mb-5">Company</p>
             <ul className="space-y-3 text-sm text-secondary">
               <li><a href="mailto:hello@ikoranabuhanga.tech" className="hover:text-primary transition-colors">Contact Us</a></li>
-              <li><Link href="/login"          className="hover:text-primary transition-colors">Sign Up Free</Link></li>
+              <li><Link href="/login?signup=true"          className="hover:text-primary transition-colors">Sign Up Free</Link></li>
               <li><Link href="/terms"          className="hover:text-primary transition-colors">Terms of Service</Link></li>
               <li><Link href="/privacy"        className="hover:text-primary transition-colors">Privacy Policy</Link></li>
             </ul>
@@ -441,7 +441,8 @@ function LiveStats() {
       .catch(() => {});
   }, []);
 
-  if (!stats) return <div className="mb-8 h-8" />;
+  // Only show when numbers are large enough to be credible social proof
+  if (!stats || stats.restaurants < 10 || stats.orders < 1000) return <div className="mb-8 h-8" />;
 
   return (
     <div className="flex items-center justify-center gap-6 mb-8 text-white/60 text-sm">

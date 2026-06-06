@@ -36,15 +36,11 @@ const PRO_FEATURES = [
 
 const BUSINESS_FEATURES = [
   "Everything in Pro",
-  "Loyalty Loop — stamp card, auto-tracking, zero account required",
-  "Owner margin priority flags for recommendation engine",
-  "Custom post-meal timing & phase configuration",
-  "Multi-location Support",
-  "Dedicated Account Manager",
-  "Priority Support — 48 h SLA",
+  "Multi-location Support (up to 5 locations)",
   "Custom Domain Mapping",
-  "POS & CRM Integration",
   "Advanced White-labelling",
+  "Priority Support — 48 h SLA",
+  "Dedicated Account Support",
 ];
 
 const faqs = [
@@ -365,7 +361,7 @@ export default function PricingPage() {
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <Link
-              href="/login"
+              href="/login?signup=true"
               className="inline-block px-8 py-4 bg-primary text-white font-bold rounded-xl text-sm hover:opacity-90 transition-opacity shadow-lg shadow-primary/20"
             >
               Start Free — No Card Required
