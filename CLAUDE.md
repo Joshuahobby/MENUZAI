@@ -103,6 +103,12 @@ MENUZAI is an AI-powered SaaS platform for restaurant menu digitization. Stack: 
 | `/dashboard/reviews` | Yes | View customer reviews; AI-generated reply drafts via `/api/ai-reply` |
 | `/dashboard/settings` | Yes | Restaurant and account settings, plan upgrade/downgrade |
 | `/dashboard/templates` | Yes | Choose pre-designed menu templates (8 templates, live-rendered) |
+| `/admin/metrics` | Yes (platform admin) | MRR, restaurant/order counts, cron job status |
+| `/admin/restaurants` | Yes (platform admin) | Restaurant list with search, plan filter, plan override |
+| `/admin/restaurants/[id]` | Yes (platform admin) | Individual restaurant drilldown — menus, orders, transactions |
+| `/admin/transactions` | Yes (platform admin) | Full payment transaction ledger |
+| `/admin/broadcast` | Yes (platform admin) | Send segmented emails (all / trial / free / pro / business) via Resend |
+| `/admin/audit` | Yes (platform admin) | Immutable audit log of admin-initiated mutations |
 | `/admin/settings` | Yes (platform admin) | Super-admin AI provider config; guarded by `isPlatformAdmin()` |
 | `/menu/[slug]` | No | Public menu — only renders if `status = 'published'` |
 | `/menu/[slug]/order` | No | Cart + WhatsApp checkout for public menus |
@@ -126,10 +132,20 @@ MENUZAI is an AI-powered SaaS platform for restaurant menu digitization. Stack: 
 | `/api/ai/generate-items` | POST | Generates menu items from a natural-language prompt; bulk-inserts into the active category; uses configured AI provider |
 | `/api/ai/description` | POST | Auto-writes a single item description given the item name and tags; uses configured AI provider |
 | `/api/admin/ai-config` | GET/POST | Read/write `platform_settings`; restricted to `isPlatformAdmin()` emails |
+| `/api/admin/metrics` | GET | Platform-wide MRR, restaurant/order counts by plan; admin-only |
+| `/api/admin/restaurants` | GET | Paginated restaurant list with plan/search filters; admin-only |
+| `/api/admin/set-plan` | POST | Override a restaurant's plan and expiry; writes to `admin_audit_log`; admin-only |
+| `/api/admin/transactions` | GET | Full transaction ledger (all restaurants); admin-only |
+| `/api/admin/broadcast` | POST | Send email to a plan segment (`all`/`trial`/`free`/`pro`/`business`) via Resend; writes to `admin_audit_log`; admin-only |
+| `/api/admin/audit-log` | GET | Paginated `admin_audit_log` entries; admin-only |
+| `/api/admin/cron-status` | GET | Last run status for each cron job from `cron_execution_logs`; admin-only |
+| `/api/admin/health` | GET | Liveness check — returns `{ ok: true }`; admin-only |
+| `/api/admin/upgrade-db` | POST | Runs pending DB migrations server-side; admin-only |
 | `/api/notifications/order` | POST | Sends order receipt emails to restaurant owner and (if provided) customer via Resend; body: `{ restaurantId, items, total, currency, customerName?, customerEmail?, tableNumber? }` |
 | `/api/public/stats` | GET | Returns `{ restaurants, orders }` counts for landing page social proof; cached 1 hr (`s-maxage=3600`); falls back to seed values if admin client unavailable |
 | `/api/orders/confirm` | POST | Confirms order, decrements `stock_count` on each item, auto-sets `available=false` when stock hits 0; requires `SUPABASE_SERVICE_ROLE_KEY` |
 | `/api/payments/pawapay` | POST | Payment initiation; amount is looked up server-side from `PLAN_PRICES` (not trusted from client); falls back to simulation if `PAWAPAY_API_KEY` not set |
+| `/api/payments/food` | POST | Initiates a food order payment via PawaPay; restaurant must have `payments_enabled=true`; creates order in `pending_payment` status; body: `{ restaurantId, menuId, items, total, currency, phone, tableNumber?, customerName? }` |
 | `/api/payments/status` | GET | Poll transaction status by `?depositId=`; auth-scoped to the requesting user; returns `{ status, plan }` |
 | `/api/webhooks/pawapay` | POST | Payment webhook; verifies `X-Pawapay-Signature` RSA-SHA256; on `COMPLETED` upgrades plan and sets `plan_expires_at = now()+30d` |
 | `/api/plan/change` | POST | Voluntary downgrade only (upgrades require payment); clears `plan_expires_at` on downgrade |
@@ -144,15 +160,16 @@ MENUZAI is an AI-powered SaaS platform for restaurant menu digitization. Stack: 
 
 ### Platform Admin Access
 
-`isPlatformAdmin(email)` in `app/src/lib/utils.ts` checks against a comma-separated `NEXT_PUBLIC_ADMIN_EMAILS` env var (falls back to `admin@menuzai.com,e2e-test@menuzai.test`). Used to gate `/admin/settings` page and `/api/admin/ai-config`. Platform admins can switch the global AI provider between `openrouter` and `anthropic` and set the model string — stored in the `platform_settings` table.
+`isPlatformAdmin(email)` in `app/src/lib/utils.ts` checks against a comma-separated `NEXT_PUBLIC_ADMIN_EMAILS` env var (falls back to `admin@menuzai.com,e2e-test@menuzai.test`). All `/admin/*` pages and `/api/admin/*` routes check this. Platform admins can switch the global AI provider between `openrouter` and `anthropic`, override restaurant plans (logged to `admin_audit_log`), send broadcast emails, and view all transactions and cron job status.
 
-### Supabase: Three Clients
+### Supabase: Four Clients
 
 **Never mix these up:**
 
 - **Browser client** (`app/src/lib/supabase.ts`) — singleton, used in Client Components and `"use client"` route handlers. Import: `import { supabase } from "@/lib/supabase"`
 - **Server client** (`app/src/lib/supabase-server.ts`) — created per-request with SSR cookies, used in Server Components and API routes that need auth context. Import: `import { createSupabaseServerClient } from "@/lib/supabase-server"`
 - **Admin client** (`app/src/lib/supabase-admin.ts`) — uses `service_role` key, bypasses RLS. Only use in trusted server-side contexts where elevated privileges are required.
+- **Public client** (`app/src/lib/supabase-public.ts`) — cookie-free singleton, used in ISR-cached Server Components (e.g. `GET /api/public/stats`). Calling `cookies()` from the SSR client opts routes out of Next.js caching — use this client instead when the response should be ISR-cached.
 
 ### Database Schema
 
@@ -186,17 +203,24 @@ Migrations live in `app/supabase/migrations/` — run them in order in the Supab
 | `022_multi_location.sql` | Drops the unique constraint on `restaurants.user_id` to allow Business plan owners to have multiple restaurant rows (locations) |
 | `023_custom_domain.sql` | Adds `custom_domain varchar(255)` to `restaurants` with a unique partial index; Business plan only; used by the public menu route to serve on a custom hostname |
 | `024_remove_trial_tier.sql` | Normalizes all `plan = 'trial'` rows to `plan = 'free'`; trial state is now derived from `trial_ends_at` being in the future, not a separate plan tier |
+| `025_cron_logs.sql` | `cron_execution_logs` table — persists each cron job run (status, rows affected, errors); service_role only |
+| `025_performance_indexes.sql` | Composite indexes on `analytics_events`, `orders`, `menus`, `reviews` for the most frequent query patterns |
+| `026_admin_audit_log.sql` | `admin_audit_log` table — immutable record of admin mutations (plan overrides, AI config changes); service_role only |
+| `027_orders_pending_payment.sql` | Adds `pending_payment` status to `orders`; adds `paid boolean` and `payment_deposit_id text` columns |
+| `028_restaurants_payments_enabled.sql` | Adds `payments_enabled boolean default false` to `restaurants`; opt-in flag for online food payment via PawaPay |
 
 Key tables:
 
-- **`restaurants`** — one row per user (or multiple rows for Business plan multi-location owners — migration 022 dropped the unique constraint on `user_id`). Has `onboarded boolean` checked by dashboard layout. `plan_expires_at timestamptz` tracks subscription expiry — `null` for free; set 30 days forward on each successful payment; cleared on voluntary downgrade. `trial_ends_at timestamptz` marks end of the 14-day free trial (set on creation, `null` after trial or for pre-trial accounts). `custom_domain varchar(255)` maps a custom hostname to the restaurant's public menu (Business only).
+- **`restaurants`** — one row per user (or multiple rows for Business plan multi-location owners — migration 022 dropped the unique constraint on `user_id`). Has `onboarded boolean` checked by dashboard layout. `plan_expires_at timestamptz` tracks subscription expiry — `null` for free; set 30 days forward on each successful payment; cleared on voluntary downgrade. `trial_ends_at timestamptz` marks end of the 14-day free trial (set on creation, `null` after trial or for pre-trial accounts). `custom_domain varchar(255)` maps a custom hostname to the restaurant's public menu (Business only). `payments_enabled boolean` — owner opt-in for online food payment via PawaPay (default false).
 - **`menus`** — many per restaurant. `categories` and `items` are JSONB arrays. `status` is `'draft' | 'published'`. Has a legacy `restaurant_name` column (nullable, unused — do not rely on it).
 - **`analytics_events`** — fired client-side via `app/src/lib/analytics.ts` (fire-and-forget, no error handling by design).
-- **`orders`** — created via WhatsApp flow. `status`: `pending` → `preparing` → `confirmed` → `cancelled`. Use `POST /api/orders/confirm` to mark ready (sets `confirmed`, decrements stock). `preparing` and `cancelled` are set directly via Supabase client. Also stores `customer_email` (migration 013) for Resend receipt emails and `source` (migration 019): `'whatsapp'` or `'ai_waiter'`.
+- **`orders`** — created via WhatsApp flow or AI Waiter. `status`: `pending_payment` → `pending` → `preparing` → `confirmed` → `cancelled`. `pending_payment` is set when online food payment is initiated; transitions to `pending` on PawaPay `COMPLETED` webhook. Use `POST /api/orders/confirm` to mark ready (sets `confirmed`, decrements stock). `preparing` and `cancelled` are set directly via Supabase client. Also stores `customer_email` (migration 013) for Resend receipt emails, `source` (migration 019): `'whatsapp'` or `'ai_waiter'`, `paid boolean`, and `payment_deposit_id` (PawaPay deposit reference).
 - **`platform_settings`** — single row ('global') managing global AI provider and model orchestration.
 - **`restaurant_staff`** — RBAC join table: `(restaurant_id, user_id, role)`. Roles: `owner`, `manager`, `staff`. Unique per `(restaurant_id, user_id)`. Backfilled from `restaurants.user_id` on migration.
 - **`reviews`** — customer reviews: `(restaurant_id, rating 1–5, customer_name?, comment?, order_id?, sentiment, reply?, replied_at?)`. Open insert, staff-only read. `sentiment` is `"positive" | "negative" | "neutral"`. Staff can draft and save replies via `/dashboard/reviews`.
 - **`push_subscriptions`** — Web Push subscription objects per restaurant. Upserted via `/api/push/subscribe` (authenticated); sent via `/api/push/send` (admin client). Requires `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_CONTACT_EMAIL` env vars; silently skips if not configured.
+- **`cron_execution_logs`** — one row per cron job run: `job_name`, `started_at`, `completed_at`, `status` (`running`/`success`/`error`), `rows_affected`, `error_message`. Written via `app/src/lib/cron-logger.ts` (`startCronRun` / `completeCronRun`); service_role only. Surfaced in `/admin/metrics` cron status panel.
+- **`admin_audit_log`** — immutable record of admin-initiated mutations. Actions: `plan_override`, `ai_config_change`. Written server-side via admin client; never modified after insert. Surfaced in `/admin/audit`.
 
 ### Shared Types
 
@@ -339,7 +363,12 @@ The `restaurants` table stores the current plan tier; check `canCreateMenu()`, `
 
 ### Payments
 
-`/api/payments/pawapay` and `/api/webhooks/pawapay` are fully live-capable. Set `PAWAPAY_API_KEY` to activate real payments; without it the payment route returns a simulated success. The webhook route verifies `X-Pawapay-Signature` using RSA-SHA256 with `PAWAPAY_WEBHOOK_PUBLIC_KEY` and sends an upgrade confirmation email via Resend (`RESEND_API_KEY`) on `COMPLETED` status. Set `PAWAPAY_MODE=live` for production (defaults to sandbox).
+Two payment flows share the PawaPay integration:
+
+1. **Plan upgrade** — `/api/payments/pawapay` initiates, `/api/webhooks/pawapay` confirms. Amount looked up server-side from `PLAN_PRICES`. On `COMPLETED`: upgrades `restaurants.plan`, sets `plan_expires_at = now()+30d`, sends confirmation email via Resend.
+2. **Food order payment** — `/api/payments/food` initiates, same `/api/webhooks/pawapay` webhook handles completion (distinguished by `depositId` prefix). Requires `restaurants.payments_enabled = true`. On `COMPLETED`: marks order `paid = true`, transitions status from `pending_payment` → `pending`.
+
+Set `PAWAPAY_API_KEY` to activate real payments; without it the plan payment route returns a simulated success. The webhook verifies `X-Pawapay-Signature` (RSA-SHA256, `PAWAPAY_WEBHOOK_PUBLIC_KEY`). Set `PAWAPAY_MODE=live` for production (defaults to sandbox).
 
 ### Other
 
@@ -349,7 +378,7 @@ The `restaurants` table stores the current plan tier; check `canCreateMenu()`, `
 - **SEO** — `robots.ts` and `sitemap.ts` are configured. Root layout includes Open Graph and Twitter Card metadata.
 - **Error handling** — `global-error.tsx` at app root, `error.tsx` in dashboard and public menu routes.
 - **`app/scratch/`** — untracked utility scripts for one-off admin tasks (`check_rls.js`, `get_all_users.js`, `reset_user_password.js`); not part of the app.
-- **`demo-video/`** — standalone Remotion v4 project. 90-second 1920×1080 investor demo video. `cd demo-video && npm install && npm run start` (Studio) or `npm run build` (MP4). YouTube: https://youtu.be/G4vp5NQnk-I. Output at `demo-video/out/` is gitignored.
+- **`demo-video/`** — standalone Remotion v4 project. 90-second 1920×1080 investor demo video. `cd demo-video && npm install && npm run start` (Studio) or `npm run build` (MP4). YouTube: [youtu.be/G4vp5NQnk-I](https://youtu.be/G4vp5NQnk-I). Output at `demo-video/out/` is gitignored.
 
 ### Deployment
 
@@ -383,3 +412,22 @@ Vitest is configured in `app/vitest.config.ts` (jsdom environment, `@/` path ali
 | `whatsapp.test.ts` | 8 | `buildWhatsAppMessage`, `buildWhatsAppURL` |
 
 Note: `slug.test.ts` mocks the `supabase` module because `slug.ts` imports it at module level.
+
+## Skill routing
+
+When the user's request matches an available skill, invoke it via the Skill tool. When in doubt, invoke the skill.
+
+Key routing rules:
+
+- Product ideas/brainstorming → invoke /office-hours
+- Strategy/scope → invoke /plan-ceo-review
+- Architecture → invoke /plan-eng-review
+- Design system/plan review → invoke /design-consultation or /plan-design-review
+- Full review pipeline → invoke /autoplan
+- Bugs/errors → invoke /investigate
+- QA/testing site behavior → invoke /qa or /qa-only
+- Code review/diff check → invoke /review
+- Visual polish → invoke /design-review
+- Ship/deploy/PR → invoke /ship or /land-and-deploy
+- Save progress → invoke /context-save
+- Resume context → invoke /context-restore
