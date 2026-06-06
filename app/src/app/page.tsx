@@ -50,7 +50,7 @@ export default function LandingPage() {
           </div>
 
           <div className="relative">
-            <div className="bg-black rounded-3xl overflow-hidden shadow-2xl border border-black/10 aspect-video">
+            <div className="rounded-3xl overflow-hidden shadow-2xl border border-black/10 aspect-video bg-[url('https://img.youtube.com/vi/G4vp5NQnk-I/maxresdefault.jpg')] bg-cover bg-center">
               <iframe
                 src="https://www.youtube.com/embed/G4vp5NQnk-I?autoplay=1&mute=1&loop=1&playlist=G4vp5NQnk-I&controls=0&rel=0&modestbranding=1&playsinline=1&disablekb=1"
                 title="MENUZA AI — Product Demo"

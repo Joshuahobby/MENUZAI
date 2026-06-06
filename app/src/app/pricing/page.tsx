@@ -173,7 +173,7 @@ export default function PricingPage() {
               ))}
             </div>
             <Link
-              href={isLoggedIn ? "/dashboard" : "/login"}
+              href={isLoggedIn ? "/dashboard" : "/login?signup=true"}
               className="shrink-0 text-xs font-bold text-secondary hover:text-primary transition-colors flex items-center gap-1"
             >
               Start Free
@@ -234,7 +234,7 @@ export default function PricingPage() {
               </span>
             </div>
             <Link
-              href={isLoggedIn ? "/dashboard" : "/login"}
+              href={isLoggedIn ? "/dashboard" : "/login?signup=true"}
               onClick={(e) => openCheckout(`Pro (${isAnnual ? "Annual" : "Monthly"})`, proPrice, e)}
               className="block w-full py-3.5 text-center text-sm font-bold rounded-xl bg-primary text-white hover:opacity-90 transition-opacity shadow-lg shadow-primary/30"
             >
@@ -308,7 +308,6 @@ export default function PricingPage() {
                   ["Context-Aware Recommendations",      "—",        "✓",         "✓"],
                   ["Post-Meal Review Prompt",            "—",        "✓",         "✓"],
                   ["Post-Meal Dessert / Drink Upsell",   "—",        "✓",         "✓"],
-                  ["Loyalty Loop (stamp card)",          "—",        "—",         "✓"],
                   ["AI Review Reply",                    "—",        "✓",         "✓"],
                   ["Real-time Orders",                   "—",        "✓",         "✓"],
                   ["Analytics History",                  "7 days",   "90 days",   "90 days"],
@@ -316,6 +315,8 @@ export default function PricingPage() {
                   ["QR Poster Templates",                "Standard", "Premium",   "Premium"],
                   ["Gallery Uploads",                    "—",        "✓",         "✓"],
                   ["Multi-location",                     "—",        "—",         "✓"],
+                  ["Custom Domain",                      "—",        "—",         "✓"],
+                  ["White-labelling",                    "—",        "—",         "✓"],
                   ["Priority Support",                   "—",        "—",         "✓"],
                 ].map(([feature, free, pro, biz], i) => (
                   <tr key={i} className="border-b border-black/4 last:border-0">

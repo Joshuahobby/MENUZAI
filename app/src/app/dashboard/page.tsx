@@ -541,33 +541,31 @@ export default function DashboardPage() {
             {topDishes.length === 0 ? (
               <p className="text-secondary text-sm text-center py-8">No order data yet.</p>
             ) : (
-              topDishes.map((dish, i) => (
-                <div key={dish.name} className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-2xl bg-surface-container flex items-center justify-center shrink-0 text-secondary">
-                    <span className="material-symbols-outlined text-xl">restaurant</span>
-                  </div>
-                  <div className="flex-1">
-                    <div className="flex justify-between mb-1.5">
-                      <span className="font-bold text-sm">{dish.name}</span>
+              topDishes.map((dish, i) => {
+                const pct = Math.round((dish.count / (topDishes[0]?.count || 1)) * 100);
+                return (
+                  <div key={dish.name} className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-2xl bg-surface-container flex items-center justify-center shrink-0 text-secondary">
+                      <span className="material-symbols-outlined text-xl">restaurant</span>
                     </div>
-                    <div className="h-2 w-full bg-surface-container-low rounded-full overflow-hidden">
-                      <div 
-                        className="h-full bg-primary rounded-full transition-all" 
-                        ref={(el) => {
-                          if (el) {
-                            el.style.width = `${Math.max(10, 85 - i * 20)}%`;
-                            el.style.opacity = `${1 - i * 0.2}`;
-                          }
-                        }}
-                      />
+                    <div className="flex-1">
+                      <div className="flex justify-between mb-1.5">
+                        <span className="font-bold text-sm">{dish.name}</span>
+                      </div>
+                      <div className="h-2 w-full bg-surface-container-low rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-primary rounded-full transition-all"
+                          style={{ width: `${Math.max(pct, 6)}%`, opacity: 1 - i * 0.15 }}
+                        />
+                      </div>
+                    </div>
+                    <div className="text-right pl-4">
+                      <p className="font-bold text-sm">{dish.count}</p>
+                      <p className="text-[10px] text-secondary">Interactions</p>
                     </div>
                   </div>
-                  <div className="text-right pl-4">
-                    <p className="font-bold text-sm">{dish.count}</p>
-                    <p className="text-[10px] text-secondary">Interactions</p>
-                  </div>
-                </div>
-              ))
+                );
+              })
             )}
           </div>
         </div>

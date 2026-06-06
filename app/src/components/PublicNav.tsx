@@ -49,7 +49,7 @@ export function PublicNav({ activePath }: { activePath?: string }) {
         </div>
 
         {/* CTA */}
-        <div className="flex items-center">
+        <div className="flex items-center gap-3">
           {isLoggedIn ? (
             <Link
               href="/dashboard"
@@ -58,12 +58,20 @@ export function PublicNav({ activePath }: { activePath?: string }) {
               Dashboard
             </Link>
           ) : (
-            <Link
-              href="/login?signup=true"
-              className="px-5 py-2 bg-primary text-white text-sm font-bold rounded-lg hover:opacity-90 transition-opacity"
-            >
-              Get Started
-            </Link>
+            <>
+              <Link
+                href="/login"
+                className="hidden sm:block text-sm font-medium text-secondary hover:text-on-surface transition-colors"
+              >
+                Log in
+              </Link>
+              <Link
+                href="/login?signup=true"
+                className="px-5 py-2 bg-primary text-white text-sm font-bold rounded-lg hover:opacity-90 transition-opacity"
+              >
+                Get Started
+              </Link>
+            </>
           )}
         </div>
 
