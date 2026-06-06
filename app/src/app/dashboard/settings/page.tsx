@@ -101,11 +101,38 @@ export default function SettingsPage() {
   };
 
   const [signingOut, setSigningOut] = useState(false);
+  const [deletingAccount, setDeletingAccount] = useState(false);
 
   const signOut = async () => {
     setSigningOut(true);
     await supabase.auth.signOut();
     window.location.replace("/login");
+  };
+
+  const handleDeleteAccount = async () => {
+    const { prompt } = await import("@/components/Modals");
+    const input = await prompt({
+      title: "Delete account permanently?",
+      message: `This will permanently delete your restaurant, menu, orders, and all data. This cannot be undone.\n\nType DELETE to confirm:`,
+      placeholder: "DELETE",
+    });
+    if (input?.trim() !== "DELETE") {
+      if (input !== null) toast.error("Confirmation text did not match. Account was not deleted.");
+      return;
+    }
+    setDeletingAccount(true);
+    try {
+      const res = await fetch("/api/account/delete", { method: "DELETE" });
+      if (!res.ok) {
+        const { error } = await res.json();
+        throw new Error(error || "Deletion failed");
+      }
+      await supabase.auth.signOut();
+      window.location.replace("/?deleted=1");
+    } catch (e: unknown) {
+      toast.error((e as Error).message || "Could not delete account. Contact support@menuzaai.com.");
+      setDeletingAccount(false);
+    }
   };
 
   const [savingInfo, setSavingInfo] = useState(false);
@@ -754,6 +781,28 @@ export default function SettingsPage() {
               <span className="material-symbols-outlined text-[18px]">logout</span>
               {signingOut ? "Signing out…" : "Sign Out"}
             </button>
+          </div>
+
+          {/* Danger Zone */}
+          <div className="mt-8 pt-6 border-t border-error/10">
+            <p className="text-xs font-bold text-error/70 uppercase tracking-[0.2em] mb-4">Danger Zone</p>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-2xl border border-error/15 bg-error/3">
+              <div>
+                <p className="font-bold text-sm text-on-surface">Delete Account</p>
+                <p className="text-xs text-secondary mt-0.5">
+                  Permanently removes your restaurant, menus, orders, and all data. This action cannot be undone.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={handleDeleteAccount}
+                disabled={deletingAccount}
+                className="shrink-0 flex items-center gap-2 px-5 py-2.5 bg-error/10 text-error font-bold rounded-xl text-sm hover:bg-error hover:text-white transition-all disabled:opacity-50"
+              >
+                <span className="material-symbols-outlined text-[18px]">delete_forever</span>
+                {deletingAccount ? "Deleting…" : "Delete Account"}
+              </button>
+            </div>
           </div>
         </div>
 

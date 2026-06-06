@@ -374,7 +374,7 @@ export default function LandingPage() {
             <Link href="/login?signup=true" className="px-8 py-4 bg-primary text-white font-bold rounded-xl text-sm hover:opacity-90 transition-opacity shadow-lg shadow-primary/20">
               Start Free Trial — No Card Required
             </Link>
-            <a href="mailto:hello@ikoranabuhanga.tech" className="px-8 py-4 bg-white/8 text-white/60 font-bold rounded-xl text-sm hover:bg-white/12 transition-colors border border-white/10">
+            <a href="mailto:support@menuzaai.com" className="px-8 py-4 bg-white/8 text-white/60 font-bold rounded-xl text-sm hover:bg-white/12 transition-colors border border-white/10">
               Talk to Sales
             </a>
           </div>
@@ -411,7 +411,7 @@ export default function LandingPage() {
           <div>
             <p className="font-bold text-xs uppercase tracking-widest text-on-surface/40 mb-5">Company</p>
             <ul className="space-y-3 text-sm text-secondary">
-              <li><a href="mailto:hello@ikoranabuhanga.tech" className="hover:text-primary transition-colors">Contact Us</a></li>
+              <li><a href="mailto:support@menuzaai.com" className="hover:text-primary transition-colors">Contact Us</a></li>
               <li><Link href="/login?signup=true"          className="hover:text-primary transition-colors">Sign Up Free</Link></li>
               <li><Link href="/terms"          className="hover:text-primary transition-colors">Terms of Service</Link></li>
               <li><Link href="/privacy"        className="hover:text-primary transition-colors">Privacy Policy</Link></li>

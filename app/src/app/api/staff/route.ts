@@ -159,7 +159,7 @@ export async function POST(req: Request) {
         method: "POST",
         headers: { "Content-Type": "application/json", "Authorization": `Bearer ${resendKey}` },
         body: JSON.stringify({
-          from: `MENUZA AI <${process.env.RESEND_FROM_EMAIL ?? "orders@ikoranabuhanga.tech"}>`,
+          from: `MENUZA AI <${process.env.RESEND_FROM_EMAIL ?? "hello@menuzaai.com"}>`,
           to: [email],
           subject: `You've been added to ${restaurantDisplayName} on MENUZA AI`,
           html: `

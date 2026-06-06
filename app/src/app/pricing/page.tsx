@@ -269,7 +269,7 @@ export default function PricingPage() {
             </ul>
 
             <a
-              href="mailto:hello@ikoranabuhanga.tech?subject=MENUZA%20AI%20Business%20Plan"
+              href="mailto:support@menuzaai.com?subject=MENUZA%20AI%20Business%20Plan"
               className="block w-full py-3.5 text-center text-sm font-bold rounded-xl border border-black/10 text-secondary hover:bg-black/3 transition-colors"
             >
               Contact Sales
@@ -368,7 +368,7 @@ export default function PricingPage() {
               Start Free — No Card Required
             </Link>
             <a
-              href="mailto:hello@ikoranabuhanga.tech"
+              href="mailto:support@menuzaai.com"
               className="inline-block px-8 py-4 bg-white/8 text-white/70 font-bold rounded-xl text-sm hover:bg-white/12 transition-colors border border-white/10"
             >
               Talk to Sales

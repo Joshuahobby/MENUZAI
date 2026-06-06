@@ -4,7 +4,7 @@ import { startCronRun, completeCronRun, failCronRun } from "@/lib/cron-logger";
 
 export const dynamic = "force-dynamic";
 
-const RESEND_FROM = process.env.RESEND_FROM_EMAIL ?? "orders@ikoranabuhanga.tech";
+const RESEND_FROM = process.env.RESEND_FROM_EMAIL ?? "hello@menuzaai.com";
 
 async function sendEmail(to: string, subject: string, html: string, resendKey: string) {
   await fetch("https://api.resend.com/emails", {
