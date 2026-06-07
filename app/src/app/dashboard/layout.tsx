@@ -122,8 +122,12 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
       {/* Desktop Sidebar */}
       <aside className={`hidden lg:flex fixed left-0 top-0 h-full flex-col py-6 z-50 bg-surface border-r border-surface-container font-[var(--font-headline)] text-sm font-medium transition-all duration-300 ${collapsed ? "w-16" : "w-64"}`}>
         {/* Header */}
-        <div className={`mb-10 flex items-center ${collapsed ? "justify-center px-3" : "justify-between px-8"}`}>
-          {!collapsed && (
+        <div className={`mb-10 flex items-center ${collapsed ? "justify-center px-3 flex-col gap-3" : "justify-between px-8"}`}>
+          {collapsed ? (
+            <Link href="/" title="Back to site" className="w-7 h-7 bg-primary rounded-md flex items-center justify-center hover:opacity-80 transition-opacity shrink-0">
+              <span className="material-symbols-outlined text-white icon-fill text-base">restaurant_menu</span>
+            </Link>
+          ) : (
             <div>
               <Link href="/" className="text-xl font-extrabold text-primary-container block">MENUZA AI</Link>
               <p className="text-xs text-secondary opacity-70">Business Dashboard</p>
