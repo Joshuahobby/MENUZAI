@@ -82,6 +82,15 @@ export default function DashboardPage() {
 
   const isNewUser = kpis.views === 0 && kpis.orders === 0;
 
+  // Static lookup so Tailwind can detect all classes at build time
+  const TRIAL_BAR_WIDTH: Record<number, string> = {
+    0: "w-0", 1: "w-[7%]", 2: "w-[14%]", 3: "w-[21%]", 4: "w-[28%]",
+    5: "w-[36%]", 6: "w-[43%]", 7: "w-1/2", 8: "w-[57%]", 9: "w-[64%]",
+    10: "w-[71%]", 11: "w-[79%]", 12: "w-[86%]", 13: "w-[93%]", 14: "w-full",
+  };
+  const trialDay = trialDaysLeft !== null ? Math.min(14, Math.max(0, 14 - trialDaysLeft)) : 0;
+  const trialBarWidth = TRIAL_BAR_WIDTH[trialDay] ?? "w-0";
+
   function downloadReport() {
     if (!data) return;
     const plan = data.meta?.plan ?? "free";
@@ -341,6 +350,36 @@ export default function DashboardPage() {
           ))}
         </div>
       </div>
+
+      {/* Trial progress card */}
+      {trialDaysLeft !== null && (
+        <div className="mb-6 bg-gradient-to-tr from-on-surface to-[#1a1a2e] rounded-3xl p-5 text-white overflow-hidden relative">
+          <div className="absolute top-0 right-0 w-48 h-48 bg-primary/10 rounded-full -translate-y-1/2 translate-x-1/4 pointer-events-none" />
+          <div className="relative flex flex-col sm:flex-row sm:items-center gap-4">
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 mb-1">
+                <span className="material-symbols-outlined text-primary-container text-[18px] icon-fill">experiment</span>
+                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white/50">Pro Trial Active</span>
+              </div>
+              <p className="font-[var(--font-headline)] font-black text-lg leading-tight mb-2">
+                Day {14 - trialDaysLeft} of 14 — all Pro features unlocked
+              </p>
+              <div className="flex items-center gap-2 mb-1">
+                <div className="flex-1 h-1.5 bg-white/10 rounded-full overflow-hidden">
+                  <div className={`h-full bg-gradient-to-r from-primary to-primary-container rounded-full transition-all ${trialBarWidth}`} />
+                </div>
+                <span className="text-[11px] font-bold text-white/50 shrink-0">{trialDaysLeft}d left</span>
+              </div>
+            </div>
+            <Link
+              href="/dashboard/settings"
+              className="shrink-0 px-5 py-2.5 bg-primary text-white text-xs font-bold rounded-xl hover:opacity-90 transition-opacity shadow-lg shadow-primary/30 whitespace-nowrap"
+            >
+              Upgrade to Pro →
+            </Link>
+          </div>
+        </div>
+      )}
 
       {/* WhatsApp number warning — orders silently fail without it */}
       {isPublished && !hasPhone && (

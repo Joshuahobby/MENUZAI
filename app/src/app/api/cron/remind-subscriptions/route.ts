@@ -148,7 +148,7 @@ export async function POST(req: Request) {
     if (!email) continue;
     await sendEmail(email, `How's your MENUZA AI trial going, ${esc(r.name)}?`.trim(), `
       <div style="font-family:sans-serif;max-width:560px;margin:auto;color:#1c1c1e">
-        <div style="background:#7c3aed;padding:24px 32px;border-radius:16px 16px 0 0">
+        <div style="background:#FF6B00;padding:24px 32px;border-radius:16px 16px 0 0">
           <h1 style="color:white;margin:0;font-size:20px">You're halfway through your trial 🎉</h1>
         </div>
         <div style="background:#fff;padding:24px 32px;border:1px solid #e5e5ea;border-top:none;border-radius:0 0 16px 16px">
@@ -159,9 +159,37 @@ export async function POST(req: Request) {
             <li><strong>Check your orders dashboard</strong> — see real-time orders come in and track your best-selling items.</li>
             <li><strong>Read your reviews</strong> — the AI drafts replies for you. One click to respond professionally.</li>
           </ol>
-          <a href="${siteUrl}/dashboard" style="display:inline-block;margin-top:16px;padding:12px 28px;background:#7c3aed;color:white;font-weight:bold;border-radius:12px;text-decoration:none">Open My Dashboard</a>
-          <p style="font-size:13px;color:#555;margin-top:24px">Your trial ends in 7 days. To keep everything running, upgrade to Pro for 35,000 RWF/month via Mobile Money.</p>
-          <p style="font-size:12px;color:#888;margin-top:16px">Sent by MENUZA AI · Questions? Just reply to this email.</p>
+          <a href="${siteUrl}/dashboard" style="display:inline-block;margin-top:16px;padding:12px 28px;background:#FF6B00;color:white;font-weight:bold;border-radius:12px;text-decoration:none">Open My Dashboard</a>
+
+          <div style="margin-top:32px;border:2px solid #f5f5f7;border-radius:16px;overflow:hidden">
+            <div style="background:#f5f5f7;padding:12px 20px">
+              <p style="margin:0;font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:.1em;color:#888">Your trial ends in 7 days — here&apos;s what you keep with Pro</p>
+            </div>
+            <table style="width:100%;border-collapse:collapse">
+              <thead>
+                <tr>
+                  <th style="padding:12px 20px;text-align:left;font-size:11px;color:#888;font-weight:700;border-bottom:1px solid #f0f0f0">Feature</th>
+                  <th style="padding:12px 16px;text-align:center;font-size:11px;color:#888;font-weight:700;border-bottom:1px solid #f0f0f0;background:#fff8f5">Free Lite</th>
+                  <th style="padding:12px 16px;text-align:center;font-size:11px;color:#FF6B00;font-weight:900;border-bottom:1px solid #f0f0f0;background:#fff3ee">Pro ✓</th>
+                </tr>
+              </thead>
+              <tbody style="font-size:12px">
+                <tr style="border-bottom:1px solid #f8f8f8"><td style="padding:10px 20px">AI Digital Waiter (24/7)</td><td style="text-align:center;color:#ccc">✕</td><td style="text-align:center;color:#FF6B00;font-weight:bold;background:#fff3ee">✓</td></tr>
+                <tr style="border-bottom:1px solid #f8f8f8"><td style="padding:10px 20px">Unlimited menus</td><td style="text-align:center;color:#ccc">✕</td><td style="text-align:center;color:#FF6B00;font-weight:bold;background:#fff3ee">✓</td></tr>
+                <tr style="border-bottom:1px solid #f8f8f8"><td style="padding:10px 20px">Live analytics (90 days)</td><td style="text-align:center;color:#ccc">✕</td><td style="text-align:center;color:#FF6B00;font-weight:bold;background:#fff3ee">✓</td></tr>
+                <tr style="border-bottom:1px solid #f8f8f8"><td style="padding:10px 20px">Real-time orders dashboard</td><td style="text-align:center;color:#ccc">✕</td><td style="text-align:center;color:#FF6B00;font-weight:bold;background:#fff3ee">✓</td></tr>
+                <tr style="border-bottom:1px solid #f8f8f8"><td style="padding:10px 20px">Staff roles &amp; permissions</td><td style="text-align:center;color:#ccc">✕</td><td style="text-align:center;color:#FF6B00;font-weight:bold;background:#fff3ee">✓</td></tr>
+                <tr><td style="padding:10px 20px">&quot;Powered by MENUZA AI&quot; branding</td><td style="text-align:center;color:#555">Shows</td><td style="text-align:center;color:#FF6B00;font-weight:bold;background:#fff3ee">Hidden</td></tr>
+              </tbody>
+            </table>
+            <div style="background:#fff3ee;padding:16px 20px;text-align:center">
+              <p style="margin:0 0 12px;font-size:15px;font-weight:900;color:#1c1c1e">35,000 RWF / month</p>
+              <p style="margin:0 0 12px;font-size:11px;color:#888">Or 385,000 RWF / year — save 1 month free · Pay via Mobile Money</p>
+              <a href="${siteUrl}/dashboard/settings" style="display:inline-block;padding:12px 32px;background:#FF6B00;color:white;font-weight:bold;border-radius:12px;text-decoration:none;font-size:13px">Upgrade to Pro Now</a>
+            </div>
+          </div>
+
+          <p style="font-size:12px;color:#888;margin-top:24px">Sent by MENUZA AI · Questions? Just reply to this email.</p>
         </div>
       </div>`, resendKey);
     sent++;

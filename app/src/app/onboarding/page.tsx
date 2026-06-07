@@ -6,7 +6,7 @@ import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import { useMenu } from "@/context/MenuContext";
 
-type Step = 1 | 2 | 3;
+type Step = 1 | 2 | 3 | 4;
 
 export default function OnboardingPage() {
   const router = useRouter();
@@ -41,6 +41,7 @@ export default function OnboardingPage() {
   const [phone, setPhone] = useState("");
   const [whatsappEnabled, setWhatsappEnabled] = useState(true);
 
+  const [pendingDestination, setPendingDestination] = useState<"upload" | "editor">("upload");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -435,7 +436,7 @@ export default function OnboardingPage() {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <button
-                  onClick={() => finishOnboarding("upload")}
+                  onClick={() => { setPendingDestination("upload"); setStep(4); }}
                   disabled={saving}
                   className="group relative flex flex-col items-start p-6 bg-on-surface rounded-3xl text-left transition-all hover:opacity-90 active:scale-[0.98] disabled:opacity-60 cursor-pointer"
                 >
@@ -454,7 +455,7 @@ export default function OnboardingPage() {
                 </button>
 
                 <button
-                  onClick={() => finishOnboarding("editor")}
+                  onClick={() => { setPendingDestination("editor"); setStep(4); }}
                   disabled={saving}
                   className="group flex flex-col items-start p-6 bg-white rounded-3xl text-left transition-all hover:bg-[#faf8f6] border border-black/6 active:scale-[0.98] disabled:opacity-60 cursor-pointer"
                 >
@@ -476,6 +477,72 @@ export default function OnboardingPage() {
               >
                 ← Back to previous step
               </button>
+            </div>
+          )}
+
+          {/* ── Step 4: Trial confirmation ── */}
+          {step === 4 && (
+            <div className="space-y-6 animate-[fadeIn_0.3s_ease]">
+              <div className="text-center">
+                <div className="w-16 h-16 mx-auto bg-gradient-to-tr from-primary to-primary-container rounded-2xl flex items-center justify-center mb-5 shadow-lg shadow-primary/25">
+                  <span className="material-symbols-outlined text-white text-3xl icon-fill">rocket_launch</span>
+                </div>
+                <h1 className="text-2xl sm:text-3xl font-[var(--font-headline)] font-extrabold tracking-tight mb-2">
+                  Your 14-day Pro trial is live!
+                </h1>
+                <p className="text-secondary text-sm">No credit card needed — cancel anytime</p>
+              </div>
+
+              {/* Trial progress */}
+              <div className="bg-white rounded-2xl border border-black/6 p-5">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs font-black uppercase tracking-widest text-secondary/60">Trial Progress</span>
+                  <span className="text-xs font-bold text-primary">Day 1 of 14</span>
+                </div>
+                <div className="h-2 bg-surface-container-high rounded-full overflow-hidden">
+                  <div className="h-full bg-gradient-to-r from-primary to-primary-container rounded-full w-[7%]" />
+                </div>
+                <p className="text-[11px] text-secondary/60 mt-2">Full Pro access until day 14 — then choose your plan</p>
+              </div>
+
+              {/* What's included */}
+              <div className="bg-on-surface rounded-2xl p-5">
+                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/40 mb-4">What&apos;s included in your trial</p>
+                <div className="grid grid-cols-2 gap-2">
+                  {[
+                    { icon: "smart_toy",       label: "AI Digital Waiter"         },
+                    { icon: "analytics",        label: "Live Analytics"            },
+                    { icon: "restaurant_menu",  label: "Unlimited Menus"           },
+                    { icon: "receipt_long",     label: "Real-time Orders"          },
+                    { icon: "group",            label: "Staff Roles"               },
+                    { icon: "star",             label: "AI Review Replies"         },
+                    { icon: "qr_code_2",        label: "Branded QR Posters"        },
+                    { icon: "photo_library",    label: "Item Photo Gallery"        },
+                  ].map(({ icon, label }) => (
+                    <div key={label} className="flex items-center gap-2">
+                      <span className="material-symbols-outlined text-[15px] text-primary-container shrink-0">{icon}</span>
+                      <span className="text-[11px] text-white/75 leading-snug">{label}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <button
+                onClick={() => finishOnboarding(pendingDestination)}
+                disabled={saving}
+                className="w-full py-4 bg-gradient-to-tr from-primary to-primary-container rounded-2xl font-bold text-white hover:opacity-90 transition-opacity disabled:opacity-50 text-sm active:scale-[0.98] shadow-lg shadow-primary/25 flex items-center justify-center gap-2"
+              >
+                {saving ? "Setting up…" : (
+                  <>
+                    {pendingDestination === "upload" ? "Upload My Menu Now" : "Open Menu Editor"}
+                    <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
+                  </>
+                )}
+              </button>
+
+              <p className="text-center text-xs text-secondary/50">
+                After 14 days: upgrade to Pro for 35,000 RWF/month or stay on Free Lite
+              </p>
             </div>
           )}
 
