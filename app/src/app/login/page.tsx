@@ -229,9 +229,16 @@ export default function LoginPage() {
 
       {/* Right panel — auth form */}
       <div className="flex-1 flex items-center justify-center p-6">
-        <Suspense>
-          <LoginForm />
-        </Suspense>
+        <div className="flex flex-col w-full max-w-md gap-3">
+          {/* Mobile-only back link — desktop has the left panel for context */}
+          <Link href="/" className="lg:hidden flex items-center gap-1 text-xs font-semibold text-secondary hover:text-primary transition-colors">
+            <span className="material-symbols-outlined text-[14px]">arrow_back</span>
+            Back to site
+          </Link>
+          <Suspense>
+            <LoginForm />
+          </Suspense>
+        </div>
       </div>
     </div>
   );
