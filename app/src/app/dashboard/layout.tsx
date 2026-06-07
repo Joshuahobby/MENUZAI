@@ -90,6 +90,11 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (isLoading) return;
     if (!user) { router.push("/login"); return; }
+    // Send platform admins directly to the admin dashboard when they land on /dashboard.
+    if (isPlatformAdmin(user.email) && pathname === "/dashboard") {
+      router.replace("/admin/metrics");
+      return;
+    }
     // Only owners go through onboarding. Staff/managers access the dashboard directly.
     if (!onboarded && (userRole === "owner" || userRole === null) && pathname !== "/dashboard/onboarding") {
       router.replace("/onboarding");
