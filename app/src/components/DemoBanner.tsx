@@ -26,8 +26,13 @@ export function DemoBanner({ role, restaurantName }: DemoBannerProps) {
     <div className="w-full bg-on-surface text-white border-b border-white/10 z-[60] sticky top-0">
       <div className="max-w-7xl mx-auto px-4 h-10 flex items-center justify-between gap-3">
 
-        {/* Left: role chip + restaurant name */}
+        {/* Left: back-to-hub + role chip + restaurant name */}
         <div className="flex items-center gap-2 min-w-0">
+          <Link href="/demo" className="shrink-0 flex items-center gap-0.5 text-white/50 hover:text-white transition-colors">
+            <span className="material-symbols-outlined text-[13px]">arrow_back</span>
+            <span className="hidden sm:inline text-[10px] font-semibold">All Demos</span>
+          </Link>
+          <span className="text-white/20 text-xs shrink-0">·</span>
           <span className={`shrink-0 inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full ${cfg.color}`}>
             <span className="material-symbols-outlined text-[12px]">{cfg.icon}</span>
             <span className="hidden xs:inline">{cfg.label}</span>
