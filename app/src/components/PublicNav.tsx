@@ -12,6 +12,7 @@ const NAV_LINKS = [
 
 export function PublicNav({ activePath }: { activePath?: string }) {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => setIsLoggedIn(!!data.session));
@@ -19,7 +20,7 @@ export function PublicNav({ activePath }: { activePath?: string }) {
 
   return (
     <nav className="w-full sticky top-0 z-50 bg-[#faf8f6]/90 backdrop-blur-md border-b border-black/5">
-      <div className="flex justify-between items-center px-8 h-16 max-w-7xl mx-auto">
+      <div className="flex justify-between items-center px-6 md:px-8 h-16 max-w-7xl mx-auto">
 
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2.5 shrink-0">
@@ -31,13 +32,13 @@ export function PublicNav({ activePath }: { activePath?: string }) {
           </span>
         </Link>
 
-        {/* Centre links */}
+        {/* Centre links — desktop only */}
         <div className="hidden md:flex items-center gap-6">
           {NAV_LINKS.map(({ href, label }) => (
             <Link
               key={href}
               href={href}
-              className={`text-sm font-medium transition-colors ${
+              className={`text-sm font-medium py-2.5 transition-colors ${
                 activePath === href
                   ? "text-primary font-semibold"
                   : "text-secondary hover:text-on-surface"
@@ -48,12 +49,12 @@ export function PublicNav({ activePath }: { activePath?: string }) {
           ))}
         </div>
 
-        {/* CTA */}
+        {/* CTA + hamburger */}
         <div className="flex items-center gap-3">
           {isLoggedIn ? (
             <Link
               href="/dashboard"
-              className="px-5 py-2 bg-primary text-white text-sm font-bold rounded-lg hover:opacity-90 transition-opacity"
+              className="px-5 py-2.5 bg-primary text-white text-sm font-bold rounded-lg hover:opacity-90 transition-opacity"
             >
               Dashboard
             </Link>
@@ -61,21 +62,69 @@ export function PublicNav({ activePath }: { activePath?: string }) {
             <>
               <Link
                 href="/login"
-                className="hidden sm:block text-sm font-medium text-secondary hover:text-on-surface transition-colors"
+                className="hidden sm:block text-sm font-medium text-secondary hover:text-on-surface transition-colors py-2.5 px-2"
               >
                 Log in
               </Link>
               <Link
                 href="/login?signup=true"
-                className="px-5 py-2 bg-primary text-white text-sm font-bold rounded-lg hover:opacity-90 transition-opacity"
+                className="hidden sm:block px-5 py-2.5 bg-primary text-white text-sm font-bold rounded-lg hover:opacity-90 transition-opacity"
               >
                 Get Started
               </Link>
+              {/* Hamburger — mobile only */}
+              <button
+                type="button"
+                onClick={() => setMobileOpen(!mobileOpen)}
+                className="md:hidden flex items-center justify-center w-10 h-10 rounded-lg hover:bg-black/5 transition-colors"
+                aria-label={mobileOpen ? "Close menu" : "Open menu"}
+                aria-expanded={mobileOpen ? "true" : "false"}
+              >
+                <span className="material-symbols-outlined text-on-surface text-xl">
+                  {mobileOpen ? "close" : "menu"}
+                </span>
+              </button>
             </>
           )}
         </div>
 
       </div>
+
+      {/* Mobile dropdown */}
+      {mobileOpen && (
+        <div className="md:hidden bg-[#faf8f6] border-t border-black/5 px-6 py-4 space-y-1">
+          {NAV_LINKS.map(({ href, label }) => (
+            <Link
+              key={href}
+              href={href}
+              onClick={() => setMobileOpen(false)}
+              className={`block py-3 text-sm font-medium border-b border-black/5 last:border-0 transition-colors ${
+                activePath === href
+                  ? "text-primary font-semibold"
+                  : "text-secondary hover:text-on-surface"
+              }`}
+            >
+              {label}
+            </Link>
+          ))}
+          <div className="pt-3 flex flex-col gap-2">
+            <Link
+              href="/login"
+              onClick={() => setMobileOpen(false)}
+              className="w-full text-center py-3 text-sm font-medium text-secondary border border-black/10 rounded-lg hover:bg-black/3 transition-colors"
+            >
+              Log in
+            </Link>
+            <Link
+              href="/login?signup=true"
+              onClick={() => setMobileOpen(false)}
+              className="w-full text-center py-3 bg-primary text-white text-sm font-bold rounded-lg hover:opacity-90 transition-opacity"
+            >
+              Get Started Free
+            </Link>
+          </div>
+        </div>
+      )}
     </nav>
   );
 }
