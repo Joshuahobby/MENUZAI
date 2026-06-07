@@ -68,7 +68,7 @@ export function PublicNav({ activePath }: { activePath?: string }) {
               </Link>
               <Link
                 href="/login?signup=true"
-                className="hidden sm:block px-5 py-2.5 bg-primary text-white text-sm font-bold rounded-lg hover:opacity-90 transition-opacity"
+                className="px-4 py-2.5 bg-primary text-white text-sm font-bold rounded-lg hover:opacity-90 transition-opacity"
               >
                 Get Started
               </Link>
