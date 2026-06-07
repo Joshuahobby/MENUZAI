@@ -179,12 +179,60 @@ function LoginForm() {
   );
 }
 
+const PROOF_POINTS = [
+  { icon: "qr_code_2",      text: "QR menu live in under 5 minutes" },
+  { icon: "support_agent",  text: "AI waiter takes orders while you sleep" },
+  { icon: "analytics",      text: "See which dishes drive revenue" },
+  { icon: "translate",      text: "Works in English, French, Kinyarwanda" },
+];
+
 export default function LoginPage() {
   return (
-    <div className="min-h-screen bg-[#faf8f6] flex items-center justify-center p-6">
-      <Suspense>
-        <LoginForm />
-      </Suspense>
+    <div className="min-h-screen bg-[#faf8f6] flex">
+      {/* Left panel — product value (desktop only) */}
+      <div className="hidden lg:flex flex-col justify-between w-[480px] shrink-0 bg-on-surface p-12">
+        <Link href="/" className="flex items-center gap-2.5">
+          <div className="w-7 h-7 bg-primary rounded-md flex items-center justify-center">
+            <span className="material-symbols-outlined text-white icon-fill text-base">restaurant_menu</span>
+          </div>
+          <span className="font-[var(--font-headline)] font-black text-base tracking-tight text-white">
+            MENUZA <span className="text-primary">AI</span>
+          </span>
+        </Link>
+
+        <div>
+          <p className="text-xs font-bold tracking-[0.2em] uppercase text-primary/70 mb-6">
+            Used by restaurants across Africa
+          </p>
+          <h2 className="text-3xl font-[var(--font-headline)] font-black text-white leading-tight mb-10">
+            Your menu. Smarter.<br />From day one.
+          </h2>
+          <ul className="space-y-5">
+            {PROOF_POINTS.map(({ icon, text }) => (
+              <li key={icon} className="flex items-center gap-4">
+                <div className="w-9 h-9 bg-white/8 rounded-xl flex items-center justify-center shrink-0">
+                  <span className="material-symbols-outlined text-primary text-lg">{icon}</span>
+                </div>
+                <span className="text-white/70 text-sm font-medium">{text}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <blockquote className="border-l-2 border-primary/40 pl-5">
+          <p className="text-white/60 text-sm leading-relaxed italic">
+            &ldquo;We set up our digital menu in one evening. Orders through WhatsApp started the next morning.&rdquo;
+          </p>
+          <p className="text-white/40 text-xs mt-2 font-semibold">— Restaurant owner, Kigali</p>
+        </blockquote>
+      </div>
+
+      {/* Right panel — auth form */}
+      <div className="flex-1 flex items-center justify-center p-6">
+        <Suspense>
+          <LoginForm />
+        </Suspense>
+      </div>
     </div>
   );
 }
