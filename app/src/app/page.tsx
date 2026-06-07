@@ -153,12 +153,19 @@ export default function LandingPage() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-16">
             {FEATURES.map((f, i) => (
-              <div key={i} className="bg-white p-8 rounded-3xl border border-black/6">
-                <span className="material-symbols-outlined text-primary text-2xl mb-5 block">{f.icon}</span>
-                <h3 className="text-lg font-bold mb-2">{f.title}</h3>
-                <p className="text-secondary text-sm leading-relaxed">{f.desc}</p>
+              <div key={i} className="flex items-start gap-5 py-7 border-b border-black/6">
+                <div className="shrink-0 w-11 h-11 rounded-2xl bg-primary/8 flex items-center justify-center mt-0.5">
+                  <span className="material-symbols-outlined text-primary text-xl">{f.icon}</span>
+                </div>
+                <div>
+                  <p className="text-[10px] font-black tracking-[0.2em] uppercase text-secondary/30 mb-1">
+                    {String(i + 1).padStart(2, "0")}
+                  </p>
+                  <h3 className="text-lg font-bold mb-1.5">{f.title}</h3>
+                  <p className="text-secondary text-sm leading-relaxed">{f.desc}</p>
+                </div>
               </div>
             ))}
           </div>
