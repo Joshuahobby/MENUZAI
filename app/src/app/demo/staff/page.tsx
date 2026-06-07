@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState, useEffect } from "react";
 import { DemoBanner } from "@/components/DemoBanner";
 import { BackToTop } from "@/components/BackToTop";
+import { AuthCta } from "@/components/AuthCta";
 
 type Status = "pending" | "preparing" | "ready";
 
@@ -370,10 +371,9 @@ export default function StaffDemoPage() {
             Set up real-time orders for your restaurant
           </h2>
           <p className="text-white/40 text-sm mb-6">Your staff panel live in under 5 minutes.</p>
-          <Link href="/login?signup=true"
-            className="inline-block px-7 py-3 bg-primary text-white font-bold rounded-xl text-sm hover:opacity-90 transition-opacity shadow-lg shadow-primary/30">
+          <AuthCta className="inline-block px-7 py-3 bg-primary text-white font-bold rounded-xl text-sm hover:opacity-90 transition-opacity shadow-lg shadow-primary/30">
             Create Free Account
-          </Link>
+          </AuthCta>
         </div>
       </main>
       <BackToTop />

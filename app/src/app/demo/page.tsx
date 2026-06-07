@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { PublicNav } from "@/components/PublicNav";
 import { BackToTop } from "@/components/BackToTop";
+import { AuthCta } from "@/components/AuthCta";
 
 export const metadata = {
   title: "Live Demo — MENUZA AI",
@@ -138,9 +139,9 @@ export default function DemoHubPage() {
 
         <p className="text-center text-sm text-secondary mt-10">
           Ready to set up your own menu?{" "}
-          <Link href="/login?signup=true" className="text-primary font-semibold hover:underline">
+          <AuthCta className="text-primary font-semibold hover:underline">
             Start your free trial →
-          </Link>
+          </AuthCta>
         </p>
       </section>
 
@@ -186,10 +187,9 @@ export default function DemoHubPage() {
             Convinced? Get your restaurant online in minutes.
           </h2>
           <p className="text-secondary mb-8">14-day free trial — no credit card required.</p>
-          <Link href="/login?signup=true"
-            className="inline-block px-8 py-4 bg-primary text-white font-bold rounded-xl text-sm hover:opacity-90 transition-opacity shadow-lg shadow-primary/20">
+          <AuthCta className="inline-block px-8 py-4 bg-primary text-white font-bold rounded-xl text-sm hover:opacity-90 transition-opacity shadow-lg shadow-primary/20">
             Start Free Trial — No Card Required
-          </Link>
+          </AuthCta>
         </div>
       </section>
 

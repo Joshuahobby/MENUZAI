@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { AuthCta } from "@/components/AuthCta";
 
 interface DemoBannerProps {
   role: "customer" | "owner" | "staff";
@@ -53,10 +54,12 @@ export function DemoBanner({ role, restaurantName }: DemoBannerProps) {
 
           <span className="text-white/20 text-xs">|</span>
 
-          <Link href="/login?signup=true"
+          <AuthCta
+            loggedInHref="/dashboard"
+            loggedOutHref="/login?signup=true"
             className="text-[10px] font-black uppercase tracking-widest text-primary bg-primary/15 hover:bg-primary/25 transition-colors px-2.5 py-1.5 rounded-full whitespace-nowrap">
             Sign Up
-          </Link>
+          </AuthCta>
         </div>
 
       </div>

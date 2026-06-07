@@ -6,6 +6,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import { PublicNav } from "@/components/PublicNav";
 import { BackToTop } from "@/components/BackToTop";
+import { AuthCta } from "@/components/AuthCta";
 
 const MONTHLY = { pro: 35000, business: 89000 };
 
@@ -361,12 +362,9 @@ export default function PricingPage() {
             Join restaurants across Africa using MENUZA AI to serve more customers, more efficiently.
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            <Link
-              href="/login?signup=true"
-              className="inline-block px-8 py-4 bg-primary text-white font-bold rounded-xl text-sm hover:opacity-90 transition-opacity shadow-lg shadow-primary/20"
-            >
+            <AuthCta className="inline-block px-8 py-4 bg-primary text-white font-bold rounded-xl text-sm hover:opacity-90 transition-opacity shadow-lg shadow-primary/20">
               Start Free — No Card Required
-            </Link>
+            </AuthCta>
             <a
               href="mailto:support@menuzaai.com"
               className="inline-block px-8 py-4 bg-white/8 text-white/70 font-bold rounded-xl text-sm hover:bg-white/12 transition-colors border border-white/10"
