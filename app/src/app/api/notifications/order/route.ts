@@ -3,6 +3,8 @@ import { getSupabaseAdmin } from "@/lib/supabase-admin";
 
 export const dynamic = "force-dynamic";
 
+// This endpoint is called from the public menu page (no auth context available).
+// It validates the restaurantId against the DB via admin client before sending any email.
 function esc(value: unknown): string {
   return String(value ?? "")
     .replace(/&/g, "&amp;")
@@ -14,11 +16,6 @@ function esc(value: unknown): string {
 
 export async function POST(req: Request) {
   try {
-    const cronSecret = process.env.CRON_SECRET;
-    if (!cronSecret || req.headers.get("authorization") !== `Bearer ${cronSecret}`) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
     const { restaurantId, items, total, currency, customerName, customerEmail, tableNumber } = await req.json();
 
     if (!restaurantId || !items || total == null) {

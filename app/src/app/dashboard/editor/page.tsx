@@ -57,6 +57,7 @@ export default function MenuEditorPage() {
     activeMenuId,
     activeMenuName,
     isSyncing,
+    lastSynced,
     isLoading,
     user,
     restaurantName,
@@ -65,6 +66,18 @@ export default function MenuEditorPage() {
   } = useMenu();
 
   const hasPhone = !!(restaurantPhone && restaurantPhone.trim().length > 5);
+
+  // Flash "Saved ✓" for 2 s after each successful sync
+  const [justSaved, setJustSaved] = useState(false);
+  const prevSyncing = useRef(false);
+  useEffect(() => {
+    if (prevSyncing.current && !isSyncing && lastSynced) {
+      setJustSaved(true);
+      const t = setTimeout(() => setJustSaved(false), 2000);
+      return () => clearTimeout(t);
+    }
+    prevSyncing.current = isSyncing;
+  }, [isSyncing, lastSynced]);
 
   const [publishedSlug, setPublishedSlug] = useState<string | null>(null);
   const [isEditingName, setIsEditingName] = useState(false);
@@ -242,11 +255,17 @@ export default function MenuEditorPage() {
               </span>
             )}
           </div>
-          {isSyncing && (
-            <span data-testid="sync-indicator" className="text-[10px] text-secondary animate-pulse hidden sm:inline shrink-0">
-              Saving…
+          {isSyncing ? (
+            <span data-testid="sync-indicator" className="flex items-center gap-1 text-[10px] text-secondary animate-pulse shrink-0">
+              <span className="material-symbols-outlined text-[13px]">sync</span>
+              <span className="hidden sm:inline">Saving…</span>
             </span>
-          )}
+          ) : justSaved ? (
+            <span data-testid="sync-indicator" className="flex items-center gap-1 text-[10px] text-tertiary shrink-0">
+              <span className="material-symbols-outlined text-[13px] icon-fill">check_circle</span>
+              <span className="hidden sm:inline">Saved</span>
+            </span>
+          ) : null}
           {/* Viewport switcher — desktop only */}
           <div className="hidden lg:flex items-center gap-0.5 bg-black/5 p-0.5 rounded-full ml-2">
             {(["mobile", "tablet", "desktop"] as Viewport[]).map((v) => {

@@ -676,8 +676,8 @@ export default function OrdersPage() {
                       <div className="min-w-0">
                         <div className="flex items-center gap-2 flex-wrap mb-1">
                           {order.table_number && (
-                            <span className="inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-wide px-2.5 py-1 rounded-xl bg-primary/10 text-primary shrink-0">
-                              <span className="material-symbols-outlined text-[12px]">table_restaurant</span>
+                            <span className="inline-flex items-center gap-1.5 text-xs font-black uppercase tracking-wide px-3 py-1 rounded-xl bg-primary text-white shrink-0 shadow-sm shadow-primary/20">
+                              <span className="material-symbols-outlined text-[13px] icon-fill">table_restaurant</span>
                               Table {order.table_number}
                             </span>
                           )}
