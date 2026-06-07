@@ -100,9 +100,8 @@ export async function POST(req: Request) {
     return NextResponse.json({ success: true, provider, model, updated_at: savedAt });
   } catch (err: unknown) {
     console.error("Failed to update platform_settings:", err);
-    return NextResponse.json({ 
-      error: "Failed to update settings. Please ensure the platform_settings table exists.",
-      details: err instanceof Error ? err.message : String(err)
+    return NextResponse.json({
+      error: "Failed to update settings. Please ensure the platform_settings table exists."
     }, { status: 500 });
   }
 }

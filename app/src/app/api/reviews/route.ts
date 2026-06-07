@@ -46,9 +46,6 @@ export async function POST(req: Request) {
     return NextResponse.json({ success: true, data });
   } catch (err: unknown) {
     console.error("Reviews API error:", err);
-    return NextResponse.json({ 
-      error: "Internal server error",
-      details: err instanceof Error ? err.message : String(err)
-    }, { status: 500 });
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

@@ -1,32 +1,39 @@
 import { NextResponse } from "next/server";
-import { getSupabaseAdmin } from "@/lib/supabase-admin";
+import { createSupabaseServerClient } from "@/lib/supabase-server";
 
 export const dynamic = "force-dynamic";
 
+function esc(value: unknown): string {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#x27;");
+}
+
 export async function POST(req: Request) {
   try {
-    const { userId, restaurantName } = await req.json();
-
-    if (!userId) {
-      return NextResponse.json({ error: "Missing userId" }, { status: 400 });
+    // Require the caller to be authenticated — derive userId from session,
+    // never trust it from the request body.
+    const supabase = await createSupabaseServerClient();
+    const { data: { user: sessionUser }, error: authError } = await supabase.auth.getUser();
+    if (authError || !sessionUser) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
+
+    const { restaurantName } = await req.json();
 
     if (!process.env.RESEND_API_KEY) {
       return NextResponse.json({ sent: false, reason: "RESEND_API_KEY not configured" });
     }
 
-    const supabaseAdmin = getSupabaseAdmin();
-    if (!supabaseAdmin) {
-      return NextResponse.json({ sent: false, reason: "Admin client unavailable" });
-    }
-
-    const { data: { user } } = await supabaseAdmin.auth.admin.getUserById(userId);
-    const email = user?.email;
+    const email = sessionUser.email;
     if (!email) {
       return NextResponse.json({ sent: false, reason: "User email not found" });
     }
 
-    const name = restaurantName || "your restaurant";
+    const name = esc(restaurantName) || "your restaurant";
     const dashboardUrl = `${process.env.NEXT_PUBLIC_SITE_URL ?? "https://menuzaai.com"}/dashboard`;
     const uploadUrl  = `${process.env.NEXT_PUBLIC_SITE_URL ?? "https://menuzaai.com"}/upload`;
 

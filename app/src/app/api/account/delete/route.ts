@@ -23,14 +23,15 @@ export async function DELETE() {
     .eq("user_id", user.id);
 
   if (delError) {
-    return NextResponse.json({ error: delError.message }, { status: 500 });
+    return NextResponse.json({ error: "Failed to delete account data" }, { status: 500 });
   }
 
   // Delete the auth user — this also removes sessions and any storage objects
   // owned by the user identity.
   const { error: userDelError } = await admin.auth.admin.deleteUser(user.id);
   if (userDelError) {
-    return NextResponse.json({ error: userDelError.message }, { status: 500 });
+    console.error("Account delete user error:", userDelError.message);
+    return NextResponse.json({ error: "Failed to delete account" }, { status: 500 });
   }
 
   return NextResponse.json({ ok: true });

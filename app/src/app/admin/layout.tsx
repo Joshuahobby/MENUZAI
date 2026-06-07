@@ -1,24 +1,32 @@
 "use client";
 
-import { ReactNode, useEffect } from "react";
+import { ReactNode, useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useMenu } from "@/context/MenuContext";
-import { isPlatformAdmin } from "@/lib/utils";
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
   const { user, isLoading } = useMenu();
   const router = useRouter();
   const pathname = usePathname();
+  const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
 
   useEffect(() => {
-    if (isLoading) return;
-    if (!user?.email || !isPlatformAdmin(user.email)) {
-      router.replace("/dashboard");
-    }
+    if (isLoading || !user) return;
+    // Check admin status via API so the admin email list is never in the browser bundle.
+    fetch("/api/admin/health")
+      .then(r => {
+        if (!r.ok) { router.replace("/dashboard"); return; }
+        setIsAdmin(true);
+      })
+      .catch(() => router.replace("/dashboard"));
   }, [user, isLoading, router]);
 
-  if (isLoading) {
+  useEffect(() => {
+    if (!isLoading && !user) router.replace("/dashboard");
+  }, [user, isLoading, router]);
+
+  if (isLoading || isAdmin === null) {
     return (
       <div className="min-h-screen bg-surface flex items-center justify-center">
         <span className="material-symbols-outlined text-[48px] text-secondary animate-spin">
@@ -28,8 +36,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
     );
   }
 
-  // Guard already handled by the useEffect redirect; render nothing while it fires.
-  if (!user?.email || !isPlatformAdmin(user.email)) return null;
+  if (!isAdmin) return null;
 
   const tabs = [
     { href: "/admin/settings",     label: "Settings",     icon: "settings"   },

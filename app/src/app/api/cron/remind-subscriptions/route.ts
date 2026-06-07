@@ -6,6 +6,15 @@ export const dynamic = "force-dynamic";
 
 const RESEND_FROM = process.env.RESEND_FROM_EMAIL ?? "hello@menuzaai.com";
 
+function esc(value: unknown): string {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#x27;");
+}
+
 async function sendEmail(to: string, subject: string, html: string, resendKey: string) {
   await fetch("https://api.resend.com/emails", {
     method: "POST",
@@ -104,7 +113,7 @@ export async function POST(req: Request) {
           <h1 style="color:white;margin:0;font-size:20px">Your ${planLabel} plan expires in 3 days</h1>
         </div>
         <div style="background:#fff;padding:24px 32px;border:1px solid #e5e5ea;border-top:none;border-radius:0 0 16px 16px">
-          <p>Your <strong>${planLabel} plan</strong> for <strong>${r.name ?? "your restaurant"}</strong> expires in 3 days.</p>
+          <p>Your <strong>${planLabel} plan</strong> for <strong>${esc(r.name) || "your restaurant"}</strong> expires in 3 days.</p>
           <p>Renew now with a quick Mobile Money payment to keep your AI Waiter and all Pro features running.</p>
           <a href="${siteUrl}/dashboard/settings" style="display:inline-block;margin-top:16px;padding:12px 28px;background:#FF6B00;color:white;font-weight:bold;border-radius:12px;text-decoration:none">Renew My Plan</a>
           <p style="font-size:12px;color:#888;margin-top:24px">Sent by MENUZA AI · Reply with any questions.</p>
@@ -123,7 +132,7 @@ export async function POST(req: Request) {
           <h1 style="color:white;margin:0;font-size:20px">Your free trial ends in 2 days</h1>
         </div>
         <div style="background:#fff;padding:24px 32px;border:1px solid #e5e5ea;border-top:none;border-radius:0 0 16px 16px">
-          <p>Your 14-day trial for <strong>${r.name ?? "your restaurant"}</strong> ends in 2 days.</p>
+          <p>Your 14-day trial for <strong>${esc(r.name) || "your restaurant"}</strong> ends in 2 days.</p>
           <p>Upgrade now to keep your AI Digital Waiter, unlimited menus, staff management, and live analytics.</p>
           <a href="${siteUrl}/dashboard/settings" style="display:inline-block;margin-top:16px;padding:12px 28px;background:#7c3aed;color:white;font-weight:bold;border-radius:12px;text-decoration:none">Upgrade to Pro</a>
           <p style="font-size:13px;color:#555;margin-top:24px">After your trial, your account switches to the Free plan (1 menu, no AI features) unless you upgrade.</p>
@@ -137,14 +146,14 @@ export async function POST(req: Request) {
   for (const r of trialMid ?? []) {
     const email = await getEmail(r.user_id);
     if (!email) continue;
-    await sendEmail(email, `How's your MENUZA AI trial going, ${r.name ?? ""}?`.trim(), `
+    await sendEmail(email, `How's your MENUZA AI trial going, ${esc(r.name)}?`.trim(), `
       <div style="font-family:sans-serif;max-width:560px;margin:auto;color:#1c1c1e">
         <div style="background:#7c3aed;padding:24px 32px;border-radius:16px 16px 0 0">
           <h1 style="color:white;margin:0;font-size:20px">You're halfway through your trial 🎉</h1>
         </div>
         <div style="background:#fff;padding:24px 32px;border:1px solid #e5e5ea;border-top:none;border-radius:0 0 16px 16px">
           <p>Hi there,</p>
-          <p>You've had 7 days with MENUZA AI for <strong>${r.name ?? "your restaurant"}</strong>. Here are three things to make the most of your remaining 7 days:</p>
+          <p>You've had 7 days with MENUZA AI for <strong>${esc(r.name) || "your restaurant"}</strong>. Here are three things to make the most of your remaining 7 days:</p>
           <ol style="line-height:2;padding-left:20px">
             <li><strong>Share your QR code</strong> — put it on every table and let the AI Waiter greet your customers automatically.</li>
             <li><strong>Check your orders dashboard</strong> — see real-time orders come in and track your best-selling items.</li>
@@ -168,7 +177,7 @@ export async function POST(req: Request) {
           <h1 style="color:white;margin:0;font-size:20px">Your 14-day trial has started 🚀</h1>
         </div>
         <div style="background:#fff;padding:24px 32px;border:1px solid #e5e5ea;border-top:none;border-radius:0 0 16px 16px">
-          <p>Welcome to MENUZA AI! Here's how to get <strong>${r.name ?? "your restaurant"}</strong> live in 10 minutes:</p>
+          <p>Welcome to MENUZA AI! Here's how to get <strong>${esc(r.name) || "your restaurant"}</strong> live in 10 minutes:</p>
           <ol style="line-height:2.2;padding-left:20px">
             <li><strong>Upload your menu</strong> — take a photo and our AI will extract every item automatically.</li>
             <li><strong>Customise your style</strong> — pick colours, fonts, and a template that matches your brand.</li>

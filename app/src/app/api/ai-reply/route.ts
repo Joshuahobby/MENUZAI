@@ -85,6 +85,6 @@ Keep the reply professional, structured, brief (2-3 sentences), and do not use p
     return NextResponse.json({ success: true, reply: buildFallbackReply() });
   } catch (error: unknown) {
     console.error("AI reply error:", error);
-    return NextResponse.json({ error: error instanceof Error ? error.message : String(error) }, { status: 500 });
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

@@ -68,10 +68,10 @@ export default async function PublicMenuPage({ params }: PageProps) {
   if (!menu) notFound();
 
   const restaurant = Array.isArray(menu.restaurants) ? menu.restaurants[0] : menu.restaurants;
-  const branded = showBranding(
-    (restaurant as { plan?: string })?.plan ?? "free",
-    (restaurant as { trial_ends_at?: string | null })?.trial_ends_at ?? null,
-  );
+  const plan = (restaurant as { plan?: string })?.plan ?? "free";
+  const trialEndsAt = (restaurant as { trial_ends_at?: string | null })?.trial_ends_at ?? null;
+  const branded = showBranding(plan, trialEndsAt);
+  const aiWaiterEnabled = plan !== "free" || (trialEndsAt != null && new Date(trialEndsAt) > new Date());
 
   // Increment view count (fire and forget)
   supabase
@@ -87,7 +87,7 @@ export default async function PublicMenuPage({ params }: PageProps) {
       restaurantName={restaurant?.name ?? "Restaurant"}
       restaurantPhone={restaurant?.phone ?? ""}
       restaurantLogoUrl={(restaurant as { logo_url?: string })?.logo_url ?? ""}
-      restaurantPlan={(restaurant as { plan?: string })?.plan ?? "free"}
+      aiWaiterEnabled={aiWaiterEnabled}
       paymentsEnabled={(restaurant as { payments_enabled?: boolean })?.payments_enabled ?? false}
       branded={branded}
       slug={slug}

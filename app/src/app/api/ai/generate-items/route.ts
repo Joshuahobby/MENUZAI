@@ -1,11 +1,17 @@
 import { NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
-import { getSupabaseAdmin } from "@/lib/supabase-admin";
-import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
+import { createSupabaseServerClient } from "@/lib/supabase-server";
+import { checkRateLimit } from "@/lib/rate-limit";
 import { getPlatformAIConfig } from "@/lib/ai-config";
 
 export async function POST(request: Request) {
-  if (!await checkRateLimit(getClientIp(request), { id: "ai-generate-items", max: 10, windowMs: 60_000 })) {
+  const supabase = await createSupabaseServerClient();
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  if (authError || !user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  if (!await checkRateLimit(user.id, { id: "ai-generate-items", max: 10, windowMs: 60_000 })) {
     return NextResponse.json({ error: "Rate limit exceeded. Please wait a moment." }, { status: 429 });
   }
 
@@ -101,8 +107,7 @@ STRICT rules:
 
     return NextResponse.json({ items: menuItems });
   } catch (error: unknown) {
-    const msg = error instanceof Error ? error.message : "AI generation failed";
-    console.error("AI generate-items error:", msg);
-    return NextResponse.json({ error: msg }, { status: 500 });
+    console.error("AI generate-items error:", error);
+    return NextResponse.json({ error: "AI generation failed" }, { status: 500 });
   }
 }

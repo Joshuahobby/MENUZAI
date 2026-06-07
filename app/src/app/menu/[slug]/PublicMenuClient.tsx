@@ -20,7 +20,7 @@ interface PublicMenuClientProps {
   restaurantName: string;
   restaurantPhone: string;
   restaurantLogoUrl: string;
-  restaurantPlan?: string;
+  aiWaiterEnabled?: boolean;
   branded?: boolean;
   paymentsEnabled?: boolean;
   slug: string;
@@ -56,12 +56,10 @@ export default function PublicMenuClient(props: PublicMenuClientProps) {
     restaurantName,
     restaurantPhone,
     restaurantLogoUrl,
-    restaurantPlan = "free",
+    aiWaiterEnabled = false,
     paymentsEnabled = false,
     slug,
   } = props;
-
-  const aiWaiterEnabled = restaurantPlan !== "free";
 
   const [categories, setCategories] = useState<MenuCategory[]>(props.categories.filter(c => !c.hidden));
   const [items, setItems] = useState<MenuItem[]>(props.items);

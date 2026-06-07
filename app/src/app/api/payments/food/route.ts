@@ -5,12 +5,11 @@ export const dynamic = "force-dynamic";
 
 export async function POST(req: Request) {
   try {
-    const { restaurantId, menuId, items, total, currency, phone, tableNumber, customerName } = await req.json() as {
+    const { restaurantId, menuId, items, total, phone, tableNumber, customerName } = await req.json() as {
       restaurantId: string;
       menuId: string;
       items: unknown[];
       total: number;
-      currency: string;
       phone: string;
       tableNumber?: string | null;
       customerName?: string | null;
@@ -35,6 +34,53 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Online payments are not enabled for this restaurant" }, { status: 403 });
     }
 
+    // Server-side price, item, and currency validation — never trust client input
+    const { data: menu } = await admin
+      .from("menus")
+      .select("items, style, status")
+      .eq("id", menuId)
+      .eq("restaurant_id", restaurantId)
+      .single();
+
+    if (!menu) return NextResponse.json({ error: "Menu not found" }, { status: 404 });
+    if (menu.status !== "published") {
+      return NextResponse.json({ error: "Menu is not available for ordering" }, { status: 403 });
+    }
+
+    // Currency comes from the menu's own style config, never from the client
+    const menuCurrency: string = (menu.style as { currency?: string } | null)?.currency ?? "RWF";
+
+    type OrderedItem = { id: string; quantity: number };
+    const menuItemPrices: Record<string, number> = {};
+    for (const mi of (menu.items as { id: string; price: number }[] ?? [])) {
+      menuItemPrices[mi.id] = mi.price;
+    }
+
+    const orderedItems = items as OrderedItem[];
+
+    // Validate each ordered item: must exist in menu and have a positive integer quantity
+    for (const o of orderedItems) {
+      if (!(o.id in menuItemPrices)) {
+        return NextResponse.json({ error: `Item not found in menu: ${o.id}` }, { status: 400 });
+      }
+      const qty = Number(o.quantity);
+      if (!Number.isInteger(qty) || qty < 1) {
+        return NextResponse.json({ error: "Item quantities must be positive whole numbers" }, { status: 400 });
+      }
+    }
+
+    const calculatedTotal = orderedItems.reduce((sum, o) => {
+      return sum + menuItemPrices[o.id] * o.quantity;
+    }, 0);
+
+    if (calculatedTotal <= 0) {
+      return NextResponse.json({ error: "Could not calculate order total from menu prices" }, { status: 400 });
+    }
+    // Allow ±1 unit rounding tolerance for display vs stored price differences
+    if (Math.abs(calculatedTotal - total) > 1) {
+      return NextResponse.json({ error: "Order total does not match menu prices" }, { status: 400 });
+    }
+
     // Create order with pending_payment status
     const { data: order, error: orderError } = await admin
       .from("orders")
@@ -42,7 +88,7 @@ export async function POST(req: Request) {
         menu_id: menuId,
         restaurant_id: restaurantId,
         items,
-        total,
+        total: calculatedTotal,
         customer_name: customerName ?? null,
         table_number: tableNumber ?? null,
         whatsapp_sent: false,
@@ -58,7 +104,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Failed to create order" }, { status: 500 });
     }
 
-    const depositId = `food_${Date.now()}_${Math.random().toString(36).substring(7)}`;
+    const depositId = `food_${crypto.randomUUID()}`;
 
     // Update order with the deposit ID
     await admin.from("orders").update({ payment_deposit_id: depositId }).eq("id", order.id);
@@ -75,8 +121,8 @@ export async function POST(req: Request) {
       user_id: restaurant.user_id,
       restaurant_id: restaurantId,
       status: "pending",
-      amount: total,
-      currency: currency ?? "RWF",
+      amount: calculatedTotal,
+      currency: menuCurrency,
       plan_name: "food_order",
     });
 
@@ -95,8 +141,8 @@ export async function POST(req: Request) {
 
       const pawapayPayload = {
         depositId,
-        amount: total.toString(),
-        currency: currency ?? "RWF",
+        amount: calculatedTotal.toString(),
+        currency: menuCurrency,
         country: "RWA",
         correspondent,
         payer: { type: "MSISDN", address: { value: phone } },

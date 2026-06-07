@@ -1,7 +1,8 @@
 import { EXTRACTION_PROMPT, parseExtractionResponse, mergeExtractionResults, type ExtractionResult } from "@/lib/ai-extract";
 import Anthropic from "@anthropic-ai/sdk";
 import { getPlatformAIConfig } from "@/lib/ai-config";
-import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
+import { checkRateLimit } from "@/lib/rate-limit";
+import { createSupabaseServerClient } from "@/lib/supabase-server";
 
 // Ordered list of free OpenRouter models that support vision (image) inputs.
 // The first model is tried first; if OpenRouter returns a provider error we
@@ -94,7 +95,13 @@ async function extractWithAnthropic(file: File, apiKey: string, model: string): 
 }
 
 export async function POST(request: Request) {
-  if (!await checkRateLimit(getClientIp(request), { id: "extract-menu", max: 5, windowMs: 60_000 })) {
+  const supabase = await createSupabaseServerClient();
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  if (authError || !user) {
+    return Response.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  if (!await checkRateLimit(user.id, { id: "extract-menu", max: 5, windowMs: 60_000 })) {
     return Response.json(
       { error: "Too many requests. Please wait a minute before trying again." },
       { status: 429, headers: { "Retry-After": "60" } }
@@ -204,9 +211,8 @@ export async function POST(request: Request) {
         send({ type: "progress", step: "Done!", pct: 100 });
         send({ type: "result", data: merged });
       } catch (err: unknown) {
-        const msg = err instanceof Error ? err.message : "AI extraction failed";
-        console.error("Extract menu error:", msg);
-        send({ type: "error", error: msg });
+        console.error("Extract menu error:", err instanceof Error ? err.message : err);
+        send({ type: "error", error: "AI extraction failed. Please try again." });
       } finally {
         controller.close();
       }

@@ -2,6 +2,18 @@ import { NextResponse } from "next/server";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
 import { createSupabaseServerClient } from "@/lib/supabase-server";
 
+const VALID_ROLES = ["owner", "manager", "staff"] as const;
+type StaffRole = (typeof VALID_ROLES)[number];
+
+function esc(value: unknown): string {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#x27;");
+}
+
 
 // GET: List all staff for a restaurant
 export async function GET(req: Request) {
@@ -45,7 +57,7 @@ export async function GET(req: Request) {
       .order("created_at", { ascending: true });
 
     if (allStaffError) {
-      return NextResponse.json({ error: allStaffError.message }, { status: 500 });
+      return NextResponse.json({ error: "Failed to fetch staff" }, { status: 500 });
     }
 
     // Fetch each user's email in parallel rather than loading all workspace users
@@ -58,8 +70,8 @@ export async function GET(req: Request) {
 
     return NextResponse.json({ staff: staffWithEmails });
   } catch (err) {
-    const msg = err instanceof Error ? err.message : "Internal Server Error";
-    return NextResponse.json({ error: msg }, { status: 500 });
+    console.error("Staff API error:", err);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
 
@@ -77,6 +89,10 @@ export async function POST(req: Request) {
 
     if (!email || !role || !restaurantId) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+    }
+
+    if (!VALID_ROLES.includes(role as StaffRole)) {
+      return NextResponse.json({ error: "Invalid role" }, { status: 400 });
     }
 
     // Only owners can add staff
@@ -113,7 +129,7 @@ export async function POST(req: Request) {
     const { data: inviteData, error: inviteError } = await adminClient.auth.admin.inviteUserByEmail(email);
 
     if (inviteError) {
-      return NextResponse.json({ error: inviteError.message }, { status: 500 });
+      return NextResponse.json({ error: "Failed to invite user" }, { status: 500 });
     }
 
     const targetUserId = inviteData.user.id;
@@ -140,7 +156,7 @@ export async function POST(req: Request) {
       });
 
     if (insertError) {
-      return NextResponse.json({ error: insertError.message }, { status: 500 });
+      return NextResponse.json({ error: "Failed to add staff member" }, { status: 500 });
     }
 
     // Send branded welcome email to the new staff member
@@ -152,7 +168,9 @@ export async function POST(req: Request) {
       .eq("id", restaurantId)
       .single();
     const restaurantDisplayName = restaurantData?.name ?? "your restaurant";
+    const safeRestaurantName = esc(restaurantDisplayName);
     const roleLabel = (role as string).charAt(0).toUpperCase() + (role as string).slice(1);
+    const safeRoleLabel = esc(roleLabel);
 
     if (resendKey) {
       await fetch("https://api.resend.com/emails", {
@@ -165,12 +183,12 @@ export async function POST(req: Request) {
           html: `
             <div style="font-family:sans-serif;max-width:560px;margin:auto;color:#1c1c1e">
               <div style="background:#FF6B00;padding:24px 32px;border-radius:16px 16px 0 0">
-                <h1 style="color:white;margin:0;font-size:20px">Welcome to ${restaurantDisplayName}</h1>
+                <h1 style="color:white;margin:0;font-size:20px">Welcome to ${safeRestaurantName}</h1>
               </div>
               <div style="background:#fff;padding:24px 32px;border:1px solid #e5e5ea;border-top:none;border-radius:0 0 16px 16px">
                 <p style="font-size:16px">Hi there,</p>
-                <p>You've been added as a <strong>${roleLabel}</strong> at <strong>${restaurantDisplayName}</strong> on MENUZA AI.</p>
-                <p>MENUZA AI is the restaurant's digital menu and ordering platform. As ${roleLabel === "Staff" ? "a staff member" : `a ${roleLabel.toLowerCase()}`}, you can:</p>
+                <p>You've been added as a <strong>${safeRoleLabel}</strong> at <strong>${safeRestaurantName}</strong> on MENUZA AI.</p>
+                <p>MENUZA AI is the restaurant's digital menu and ordering platform. As ${roleLabel === "Staff" ? "a staff member" : `a ${esc(roleLabel.toLowerCase())}`}, you can:</p>
                 <ul style="line-height:2.2">
                   ${roleLabel === "Staff"
                     ? "<li>Monitor incoming orders in real-time</li><li>Manage table requests</li><li>Update order status</li>"
@@ -180,7 +198,7 @@ export async function POST(req: Request) {
                   Open Orders Dashboard
                 </a>
                 <p style="font-size:13px;color:#555;margin-top:24px">If you don't have an account yet, check your inbox for a separate sign-up link from MENUZA AI.</p>
-                <p style="font-size:12px;color:#888;margin-top:16px">Sent by MENUZA AI on behalf of ${restaurantDisplayName}</p>
+                <p style="font-size:12px;color:#888;margin-top:16px">Sent by MENUZA AI on behalf of ${safeRestaurantName}</p>
               </div>
             </div>`,
         }),
@@ -190,8 +208,8 @@ export async function POST(req: Request) {
     return NextResponse.json({ success: true, message: "Staff added successfully." });
 
   } catch (err) {
-    const msg = err instanceof Error ? err.message : "Internal Server Error";
-    return NextResponse.json({ error: msg }, { status: 500 });
+    console.error("Staff API error:", err);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
 
@@ -240,13 +258,13 @@ export async function DELETE(req: Request) {
       .eq("user_id", targetUserId);
 
     if (deleteError) {
-      return NextResponse.json({ error: deleteError.message }, { status: 500 });
+      return NextResponse.json({ error: "Failed to remove staff member" }, { status: 500 });
     }
 
     return NextResponse.json({ success: true });
 
   } catch (err) {
-    const msg = err instanceof Error ? err.message : "Internal Server Error";
-    return NextResponse.json({ error: msg }, { status: 500 });
+    console.error("Staff API error:", err);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

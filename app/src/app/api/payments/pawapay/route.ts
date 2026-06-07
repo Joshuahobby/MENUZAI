@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase-server";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
-import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
+import { checkRateLimit } from "@/lib/rate-limit";
 
 const PLAN_PRICES: Record<string, number> = {
   pro: 35_000,
@@ -13,9 +13,6 @@ const PLAN_PRICES: Record<string, number> = {
 };
 
 export async function POST(req: Request) {
-  if (!await checkRateLimit(getClientIp(req), { id: "payments-pawapay", max: 3, windowMs: 5 * 60_000 })) {
-    return NextResponse.json({ error: "Too many requests. Please wait a few minutes." }, { status: 429 });
-  }
   try {
     const { phoneNumber, plan } = await req.json();
 
@@ -33,6 +30,10 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    if (!await checkRateLimit(user.id, { id: "payments-pawapay", max: 3, windowMs: 5 * 60_000 })) {
+      return NextResponse.json({ error: "Too many requests. Please wait a few minutes." }, { status: 429 });
+    }
+
     // Get restaurant ID for this user
     const { data: restaurant } = await supabase
       .from("restaurants")
@@ -45,7 +46,7 @@ export async function POST(req: Request) {
     }
 
     // 2. Generate a unique deposit ID for this transaction
-    const depositId = `dep_${Date.now()}_${Math.random().toString(36).substring(7)}`;
+    const depositId = `dep_${crypto.randomUUID()}`;
 
     // Detect correspondent from Rwanda phone prefix
     const localNumber = phoneNumber.replace(/^250/, "");
@@ -137,9 +138,6 @@ export async function POST(req: Request) {
 
   } catch (error: unknown) {
     console.error("Payment initiation error:", error);
-    return NextResponse.json({ 
-      error: "Internal server error",
-      details: error instanceof Error ? error.message : String(error)
-    }, { status: 500 });
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

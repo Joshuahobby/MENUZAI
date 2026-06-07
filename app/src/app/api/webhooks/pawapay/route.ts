@@ -2,6 +2,15 @@ import { NextResponse } from "next/server";
 import { createVerify } from "crypto";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
 
+function esc(value: unknown): string {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#x27;");
+}
+
 export const dynamic = "force-dynamic";
 
 function verifySignature(rawBody: string, signatureHeader: string | null): boolean {
@@ -48,6 +57,12 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Transaction not found" }, { status: 404 });
     }
 
+    // Idempotency guard — PawaPay retries webhooks on delivery failure.
+    // If already processed, return 200 immediately without re-applying side effects.
+    if (tx.status === "completed" || tx.status === "failed") {
+      return NextResponse.json({ received: true }, { status: 200 });
+    }
+
     if (status === "COMPLETED") {
       await supabaseAdmin
         .from("transactions")
@@ -63,9 +78,20 @@ export async function POST(req: Request) {
         return NextResponse.json({ received: true }, { status: 200 });
       }
 
-      const planName = (tx.plan_name as string | null)?.toLowerCase() ?? "pro";
+      // Normalize the stored plan_name (e.g. "pro (annual)", "business (monthly)") to a
+      // canonical DB tier. Storing the raw string would silently break all plan-gate checks.
+      const rawPlanName = (tx.plan_name as string | null)?.toLowerCase() ?? "";
+      const PLAN_CANONICAL: Record<string, string> = {
+        pro: "pro",
+        "pro (monthly)": "pro",
+        "pro (annual)": "pro",
+        business: "business",
+        "business (monthly)": "business",
+        "business (annual)": "business",
+      };
+      const planName = PLAN_CANONICAL[rawPlanName] ?? "pro";
 
-      const isAnnualPlan = (tx.plan_name as string ?? "").toLowerCase().includes("annual");
+      const isAnnualPlan = rawPlanName.includes("annual");
       const expiresAt = new Date();
       expiresAt.setDate(expiresAt.getDate() + (isAnnualPlan ? 365 : 30));
 
@@ -86,7 +112,7 @@ export async function POST(req: Request) {
       const ownerEmail = user?.email;
       if (ownerEmail && process.env.RESEND_API_KEY) {
         const planLabel = planName.charAt(0).toUpperCase() + planName.slice(1);
-        const restaurantName = restaurant?.name ?? "your restaurant";
+        const restaurantName = esc(restaurant?.name) || "your restaurant";
         const html = `
           <div style="font-family:sans-serif;max-width:560px;margin:auto;color:#1c1c1e">
             <div style="background:#FF6B00;padding:24px 32px;border-radius:16px 16px 0 0">
@@ -126,9 +152,6 @@ export async function POST(req: Request) {
 
   } catch (error: unknown) {
     console.error("Webhook processing error:", error);
-    return NextResponse.json({
-      error: "Internal server error",
-      details: error instanceof Error ? error.message : String(error)
-    }, { status: 500 });
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

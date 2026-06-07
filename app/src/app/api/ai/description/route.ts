@@ -1,11 +1,17 @@
 import { NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
-import { getSupabaseAdmin } from "@/lib/supabase-admin";
-import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
+import { createSupabaseServerClient } from "@/lib/supabase-server";
+import { checkRateLimit } from "@/lib/rate-limit";
 import { getPlatformAIConfig } from "@/lib/ai-config";
 
 export async function POST(request: Request) {
-  if (!await checkRateLimit(getClientIp(request), { id: "ai-description", max: 20, windowMs: 60_000 })) {
+  const supabase = await createSupabaseServerClient();
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  if (authError || !user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  if (!await checkRateLimit(user.id, { id: "ai-description", max: 20, windowMs: 60_000 })) {
     return NextResponse.json({ error: "Rate limit exceeded" }, { status: 429 });
   }
 
@@ -75,7 +81,6 @@ Keep it strictly between 1 to 2 short sentences. No introductory text, no quotes
     return NextResponse.json({ description: description.trim() });
   } catch (error) {
     console.error("AI Generation error:", error);
-    const msg = error instanceof Error ? error.message : "Failed to generate description";
-    return NextResponse.json({ error: msg }, { status: 500 });
+    return NextResponse.json({ error: "Failed to generate description" }, { status: 500 });
   }
 }

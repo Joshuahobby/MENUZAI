@@ -69,6 +69,11 @@ export async function POST(req: Request) {
     return NextResponse.json({ message: "Order already confirmed" }, { status: 200 });
   }
 
+  // Block confirming orders that haven't been paid yet
+  if (order.status === "pending_payment") {
+    return NextResponse.json({ error: "Order payment not yet completed" }, { status: 422 });
+  }
+
   // 2. Mark order as confirmed
   const { error: updateOrderErr } = await admin
     .from("orders")
@@ -144,7 +149,10 @@ export async function POST(req: Request) {
     const fullOrder = order as Record<string, unknown>;
     fetch(`${siteUrl}/api/notifications/order`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        ...(cronSecret ? { Authorization: `Bearer ${cronSecret}` } : {}),
+      },
       body: JSON.stringify({
         restaurantId,
         items: notifItems,

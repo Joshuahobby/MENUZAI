@@ -1,8 +1,15 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
 import { getPlatformAIConfig } from "@/lib/ai-config";
+import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 
 export async function POST(request: Request) {
+  // Public endpoint — rate-limit by IP to prevent free AI abuse.
+  // 20 messages per minute is generous for a real customer, prohibitive for scraping.
+  if (!await checkRateLimit(getClientIp(request), { id: "ai-waiter", max: 20, windowMs: 60_000 })) {
+    return Response.json({ error: "Too many requests. Please wait a moment." }, { status: 429 });
+  }
+
   const { provider, model } = await getPlatformAIConfig();
 
   try {
@@ -87,7 +94,7 @@ __ORDER__:{"items":[{"name":"<exact item name>","qty":<number>}],"table":"<table
 
     if (provider === "anthropic") {
       const apiKey = process.env.ANTHROPIC_API_KEY;
-      if (!apiKey) return Response.json({ error: "ANTHROPIC_API_KEY not configured" }, { status: 500 });
+      if (!apiKey) return Response.json({ error: "AI provider not configured" }, { status: 500 });
 
       const anthropic = new Anthropic({ apiKey });
       const anthropicMessages = messages.filter(
@@ -130,7 +137,7 @@ __ORDER__:{"items":[{"name":"<exact item name>","qty":<number>}],"table":"<table
 
     // Default: OpenRouter with streaming
     const apiKey = process.env.OPENROUTER_API_KEY;
-    if (!apiKey) return Response.json({ error: "OPENROUTER_API_KEY not configured" }, { status: 500 });
+    if (!apiKey) return Response.json({ error: "AI provider not configured" }, { status: 500 });
 
     const upstreamRes = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
@@ -201,12 +208,6 @@ __ORDER__:{"items":[{"name":"<exact item name>","qty":<number>}],"table":"<table
     return new Response(stream, { headers: streamHeaders });
   } catch (error: unknown) {
     console.error("AI Route Error:", error);
-    return Response.json(
-      {
-        error: "Internal Server Error",
-        details: error instanceof Error ? error.message : String(error),
-      },
-      { status: 500 }
-    );
+    return Response.json({ error: "Internal server error" }, { status: 500 });
   }
 }
