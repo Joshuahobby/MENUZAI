@@ -9,7 +9,7 @@ import type { RestaurantRow } from "@/app/api/admin/restaurants/route";
 const PLAN_STYLES: Record<string, { label: string; className: string }> = {
   free:     { label: "Free",     className: "bg-surface-container text-secondary" },
   trial:    { label: "Trial",    className: "bg-violet-500/10 text-violet-600" },
-  pro:      { label: "Pro",      className: "bg-green-500/10 text-green-700" },
+  pro:      { label: "Pro",      className: "bg-emerald-500/10 text-emerald-700" },
   business: { label: "Business", className: "bg-amber-500/10 text-amber-700" },
 };
 
@@ -33,15 +33,15 @@ export default function AdminRestaurantsPage() {
   const load = useCallback(() => {
     setLoading(true);
     fetch("/api/admin/restaurants")
-      .then((r) => r.json())
-      .then((d) => setRows(d.restaurants ?? []))
+      .then(r => r.json())
+      .then(d => setRows(d.restaurants ?? []))
       .catch(() => toast.error("Failed to load restaurants"))
       .finally(() => setLoading(false));
   }, []);
 
   useEffect(() => { load(); }, [load]);
 
-  const filtered = rows.filter((r) => {
+  const filtered = rows.filter(r => {
     const q = search.toLowerCase();
     const matchSearch = !q || r.name.toLowerCase().includes(q) || (r.ownerEmail ?? "").toLowerCase().includes(q);
     const matchPlan = planFilter === "all" || r.resolvedPlan === planFilter;
@@ -64,15 +64,10 @@ export default function AdminRestaurantsPage() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed");
       toast.success(`Plan updated to ${override.plan}`);
-      setRows((prev) =>
-        prev.map((r) =>
+      setRows(prev =>
+        prev.map(r =>
           r.id === override.restaurant.id
-            ? {
-                ...r,
-                plan: override.plan,
-                resolvedPlan: override.plan,
-                planExpiresAt: data.restaurant?.plan_expires_at ?? null,
-              }
+            ? { ...r, plan: override.plan, resolvedPlan: override.plan, planExpiresAt: data.restaurant?.plan_expires_at ?? null }
             : r
         )
       );
@@ -94,27 +89,26 @@ export default function AdminRestaurantsPage() {
   };
 
   const expiryCell = (r: RestaurantRow) => {
-    if (r.resolvedPlan === "trial" && r.trialEndsAt) {
+    if (r.resolvedPlan === "trial" && r.trialEndsAt)
       return <span className="text-violet-500 text-xs">Trial · {formatRelativeTime(r.trialEndsAt)}</span>;
-    }
-    if (r.planExpiresAt && r.plan !== "free") {
+    if (r.planExpiresAt && r.plan !== "free")
       return <span className="text-amber-600 text-xs">Expires · {formatRelativeTime(r.planExpiresAt)}</span>;
-    }
     return <span className="text-secondary text-xs">—</span>;
   };
 
   return (
-    <div className="p-6 lg:p-10 pb-24 max-w-7xl mx-auto">
+    <div className="p-6 lg:p-8 max-w-7xl">
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-2xl font-[var(--font-headline)] font-extrabold tracking-tight mb-1">Restaurants</h1>
-          <p className="text-sm text-secondary">{rows.length} total</p>
+          <h1 className="text-xl font-bold text-on-surface tracking-tight">Restaurants</h1>
+          <p className="text-sm text-secondary mt-0.5">{rows.length} total</p>
         </div>
         <button
+          type="button"
           onClick={load}
           disabled={loading}
-          className="flex items-center gap-2 px-4 py-2 text-xs font-bold text-secondary bg-surface-container hover:bg-surface-container-high rounded-xl transition-all disabled:opacity-60"
+          className="flex items-center gap-2 px-4 py-2 text-xs font-bold text-secondary bg-white border border-black/6 hover:bg-surface-container rounded-xl shadow-sm transition-all disabled:opacity-60"
         >
           <span className={`material-symbols-outlined text-[16px] ${loading ? "animate-spin" : ""}`}>sync</span>
           Refresh
@@ -122,22 +116,26 @@ export default function AdminRestaurantsPage() {
       </div>
 
       {/* Filters */}
-      <div className="flex flex-wrap gap-3 mb-6">
-        <input
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search by name or email…"
-          className="flex-1 min-w-[200px] bg-surface-container-low rounded-xl px-4 py-2 text-sm text-on-surface border-none focus:ring-2 focus:ring-primary/20"
-        />
+      <div className="flex flex-wrap gap-3 mb-5">
+        <div className="flex-1 min-w-[200px] relative">
+          <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[16px] text-secondary">search</span>
+          <input
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            placeholder="Search by name or email…"
+            className="w-full pl-9 pr-4 py-2 bg-white border border-black/6 rounded-xl text-sm text-on-surface shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
+          />
+        </div>
         <div className="flex gap-2 flex-wrap">
-          {["all", "free", "trial", "pro", "business"].map((p) => (
+          {["all", "free", "trial", "pro", "business"].map(p => (
             <button
+              type="button"
               key={p}
               onClick={() => setPlanFilter(p)}
-              className={`px-3 py-1.5 rounded-xl text-xs font-bold capitalize transition-all ${
+              className={`px-3 py-2 rounded-xl text-xs font-bold capitalize transition-all ${
                 planFilter === p
                   ? "bg-primary/10 text-primary"
-                  : "bg-surface-container text-secondary hover:bg-surface-container-high"
+                  : "bg-white border border-black/6 text-secondary hover:bg-surface-container shadow-sm"
               }`}
             >
               {p === "all" ? "All Plans" : p}
@@ -148,37 +146,42 @@ export default function AdminRestaurantsPage() {
 
       {/* Table */}
       {loading && rows.length === 0 ? (
-        <div className="flex items-center justify-center py-24">
+        <div className="flex items-center justify-center py-32">
           <span className="material-symbols-outlined text-[48px] text-secondary animate-spin">progress_activity</span>
         </div>
       ) : (
-        <div className="bg-surface-container-lowest border border-surface-container rounded-3xl overflow-hidden">
+        <div className="bg-white border border-black/6 rounded-2xl shadow-sm overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-surface-container text-[10px] font-bold uppercase tracking-widest text-secondary">
-                  <th className="px-5 py-3 text-left">Restaurant</th>
-                  <th className="px-4 py-3 text-left">Owner</th>
-                  <th className="px-4 py-3 text-left">Plan</th>
-                  <th className="px-4 py-3 text-left">Trial / Expiry</th>
-                  <th className="px-4 py-3 text-center">Menus</th>
-                  <th className="px-4 py-3 text-center">Orders</th>
-                  <th className="px-4 py-3 text-left">Joined</th>
-                  <th className="px-4 py-3 text-right">Actions</th>
+                <tr className="border-b border-black/5 text-[10px] font-bold uppercase tracking-widest text-secondary bg-surface-container/40">
+                  <th className="px-5 py-3.5 text-left">Restaurant</th>
+                  <th className="px-4 py-3.5 text-left">Owner</th>
+                  <th className="px-4 py-3.5 text-left">Plan</th>
+                  <th className="px-4 py-3.5 text-left">Trial / Expiry</th>
+                  <th className="px-4 py-3.5 text-center">Menus</th>
+                  <th className="px-4 py-3.5 text-center">Orders</th>
+                  <th className="px-4 py-3.5 text-left">Joined</th>
+                  <th className="px-4 py-3.5 text-right">Action</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-surface-container/60">
+              <tbody className="divide-y divide-black/5">
                 {filtered.length === 0 ? (
                   <tr>
-                    <td colSpan={8} className="px-5 py-12 text-center text-secondary text-sm">
+                    <td colSpan={8} className="px-5 py-16 text-center text-secondary text-sm">
                       No restaurants found
                     </td>
                   </tr>
                 ) : (
-                  filtered.map((r) => (
-                    <tr key={r.id} className="hover:bg-surface-container/40 transition-colors">
+                  filtered.map(r => (
+                    <tr key={r.id} className="hover:bg-surface-container/30 transition-colors">
                       <td className="px-5 py-4">
-                        <Link href={`/admin/restaurants/${r.id}`} className="font-semibold text-on-surface hover:text-primary transition-colors truncate max-w-[180px] block">{r.name}</Link>
+                        <Link
+                          href={`/admin/restaurants/${r.id}`}
+                          className="font-semibold text-on-surface hover:text-primary transition-colors truncate max-w-[180px] block"
+                        >
+                          {r.name}
+                        </Link>
                         {r.slug && (
                           <span className="text-[10px] text-secondary font-mono">/menu/{r.slug}</span>
                         )}
@@ -195,16 +198,11 @@ export default function AdminRestaurantsPage() {
                       </td>
                       <td className="px-4 py-4 text-right">
                         <button
-                          onClick={() =>
-                            setOverride({
-                              restaurant: r,
-                              plan: r.plan as Plan,
-                              expiryDays: 30,
-                            })
-                          }
-                          className="px-3 py-1.5 text-[11px] font-bold bg-primary/10 text-primary hover:bg-primary/20 rounded-xl transition-all"
+                          type="button"
+                          onClick={() => setOverride({ restaurant: r, plan: r.plan as Plan, expiryDays: 30 })}
+                          className="px-3 py-1.5 text-[11px] font-bold bg-primary/8 text-primary hover:bg-primary/15 rounded-lg transition-all"
                         >
-                          Override Plan
+                          Override
                         </button>
                       </td>
                     </tr>
@@ -219,10 +217,8 @@ export default function AdminRestaurantsPage() {
       {/* Plan Override Modal */}
       {override && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
-          <div className="bg-surface w-full max-w-sm rounded-[2rem] p-8 shadow-2xl border border-surface-container">
-            <h2 className="font-[var(--font-headline)] font-extrabold text-lg mb-1 text-on-surface">
-              Override Plan
-            </h2>
+          <div className="bg-white w-full max-w-sm rounded-2xl p-7 shadow-2xl border border-black/6">
+            <h2 className="font-bold text-lg text-on-surface mb-1">Override Plan</h2>
             <p className="text-sm text-secondary mb-6">
               <span className="font-semibold text-on-surface">{override.restaurant.name}</span>
               {override.restaurant.ownerEmail && (
@@ -236,14 +232,15 @@ export default function AdminRestaurantsPage() {
                   New Plan
                 </label>
                 <div className="grid grid-cols-3 gap-2">
-                  {PLAN_OPTIONS.map((p) => (
+                  {PLAN_OPTIONS.map(p => (
                     <button
+                      type="button"
                       key={p}
-                      onClick={() => setOverride((o) => o ? { ...o, plan: p } : o)}
+                      onClick={() => setOverride(o => o ? { ...o, plan: p } : o)}
                       className={`py-2 rounded-xl text-xs font-bold capitalize border-2 transition-all ${
                         override.plan === p
                           ? "border-primary bg-primary/5 text-primary"
-                          : "border-surface-container text-secondary hover:border-primary/30"
+                          : "border-black/8 text-secondary hover:border-primary/30"
                       }`}
                     >
                       {p}
@@ -261,17 +258,18 @@ export default function AdminRestaurantsPage() {
                     type="number"
                     min={1}
                     value={override.expiryDays}
-                    onChange={(e) =>
-                      setOverride((o) => o ? { ...o, expiryDays: Math.max(1, Number(e.target.value)) } : o)
-                    }
-                    className="w-full bg-surface-container-low rounded-xl px-4 py-2.5 text-sm text-on-surface border-none focus:ring-2 focus:ring-primary/20"
+                    onChange={e => setOverride(o => o ? { ...o, expiryDays: Math.max(1, Number(e.target.value)) } : o)}
+                    aria-label="Expiry days"
+                    placeholder="30"
+                    className="w-full bg-surface-container-low rounded-xl px-4 py-2.5 text-sm border-none focus:ring-2 focus:ring-primary/20"
                   />
                 </div>
               )}
             </div>
 
-            <div className="flex gap-3 mt-8">
+            <div className="flex gap-3 mt-6">
               <button
+                type="button"
                 onClick={() => setOverride(null)}
                 disabled={saving}
                 className="flex-1 py-2.5 rounded-xl text-sm font-bold bg-surface-container text-secondary hover:bg-surface-container-high transition-all disabled:opacity-60"
@@ -279,9 +277,10 @@ export default function AdminRestaurantsPage() {
                 Cancel
               </button>
               <button
+                type="button"
                 onClick={handleOverrideSave}
                 disabled={saving}
-                className="flex-1 py-2.5 rounded-xl text-sm font-bold bg-gradient-to-br from-primary to-primary-container text-white shadow-lg shadow-primary/20 hover:opacity-90 transition-all disabled:opacity-60"
+                className="flex-1 py-2.5 rounded-xl text-sm font-bold bg-primary text-white hover:opacity-90 transition-all disabled:opacity-60"
               >
                 {saving ? "Saving…" : "Confirm"}
               </button>

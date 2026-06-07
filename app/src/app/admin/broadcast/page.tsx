@@ -6,11 +6,11 @@ import { confirm } from "@/components/Modals";
 import type { RestaurantRow } from "@/app/api/admin/restaurants/route";
 
 const SEGMENTS = [
-  { value: "all",      label: "All Users",      desc: "Every restaurant on the platform" },
-  { value: "trial",    label: "On Trial",        desc: "Free plan with active trial period" },
-  { value: "free",     label: "Free (no trial)", desc: "Free plan, trial ended or never started" },
-  { value: "pro",      label: "Pro",             desc: "Active Pro subscribers" },
-  { value: "business", label: "Business",        desc: "Active Business subscribers" },
+  { value: "all",      label: "All Users",       desc: "Every restaurant on the platform", icon: "groups" },
+  { value: "trial",    label: "On Trial",         desc: "Free plan, active trial period",   icon: "hourglass_top" },
+  { value: "free",     label: "Free (no trial)",  desc: "Trial ended or never started",     icon: "person" },
+  { value: "pro",      label: "Pro",              desc: "Active Pro subscribers",           icon: "workspace_premium" },
+  { value: "business", label: "Business",         desc: "Active Business subscribers",      icon: "business" },
 ] as const;
 
 type Segment = (typeof SEGMENTS)[number]["value"];
@@ -75,18 +75,21 @@ export default function AdminBroadcastPage() {
     }
   };
 
+  const recipientCount = loadingRestaurants ? null : estimateCount(segment);
+
   return (
-    <div className="p-6 lg:p-10 pb-24 max-w-3xl mx-auto">
+    <div className="p-6 lg:p-8 max-w-5xl">
+      {/* Header */}
       <div className="mb-8">
-        <h1 className="text-2xl font-[var(--font-headline)] font-extrabold tracking-tight mb-1">Broadcast Email</h1>
-        <p className="text-sm text-secondary">Send a message to a segment of your users via Resend.</p>
+        <h1 className="text-xl font-bold text-on-surface tracking-tight">Broadcast Email</h1>
+        <p className="text-sm text-secondary mt-0.5">Send a message to a segment of your users via Resend.</p>
       </div>
 
-      <div className="space-y-6">
-        {/* Segment picker */}
-        <div className="bg-surface-container-lowest border border-surface-container/50 rounded-3xl p-6">
-          <p className="text-[10px] font-bold uppercase tracking-widest text-secondary mb-4">Audience Segment</p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+      <div className="lg:grid lg:grid-cols-[280px_1fr] gap-6 space-y-6 lg:space-y-0">
+        {/* Left: Audience segment */}
+        <div>
+          <p className="text-[10px] font-bold uppercase tracking-widest text-secondary mb-3">Audience</p>
+          <div className="space-y-2">
             {SEGMENTS.map(s => {
               const count = loadingRestaurants ? null : estimateCount(s.value);
               const isActive = segment === s.value;
@@ -95,18 +98,23 @@ export default function AdminBroadcastPage() {
                   type="button"
                   key={s.value}
                   onClick={() => setSegment(s.value)}
-                  className={`flex items-start justify-between gap-3 p-4 rounded-2xl border-2 text-left transition-all ${
+                  className={`w-full flex items-center gap-3 p-3.5 rounded-xl border-2 text-left transition-all ${
                     isActive
                       ? "border-primary bg-primary/5"
-                      : "border-surface-container hover:border-primary/30"
+                      : "border-black/8 bg-white hover:border-primary/30 shadow-sm"
                   }`}
                 >
-                  <div>
-                    <p className={`text-sm font-bold ${isActive ? "text-primary" : "text-on-surface"}`}>{s.label}</p>
-                    <p className="text-[11px] text-secondary mt-0.5">{s.desc}</p>
+                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${isActive ? "bg-primary/10" : "bg-surface-container"}`}>
+                    <span className={`material-symbols-outlined text-[16px] ${isActive ? "text-primary icon-fill" : "text-secondary"}`}>
+                      {s.icon}
+                    </span>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className={`text-sm font-semibold ${isActive ? "text-primary" : "text-on-surface"}`}>{s.label}</p>
+                    <p className="text-[11px] text-secondary">{s.desc}</p>
                   </div>
                   {count !== null && (
-                    <span className={`text-lg font-extrabold font-mono shrink-0 ${isActive ? "text-primary" : "text-secondary"}`}>
+                    <span className={`text-base font-extrabold font-mono shrink-0 ${isActive ? "text-primary" : "text-secondary"}`}>
                       {count}
                     </span>
                   )}
@@ -116,52 +124,60 @@ export default function AdminBroadcastPage() {
           </div>
         </div>
 
-        {/* Compose */}
-        <div className="bg-surface-container-lowest border border-surface-container/50 rounded-3xl p-6 space-y-4">
-          <p className="text-[10px] font-bold uppercase tracking-widest text-secondary mb-2">Compose</p>
-          <div>
-            <label className="text-xs font-bold text-secondary mb-1.5 block">Subject</label>
-            <input
-              type="text"
-              value={subject}
-              onChange={e => setSubject(e.target.value)}
-              placeholder="e.g. Important update from MENUZA AI"
-              className="w-full bg-surface-container-low rounded-xl px-4 py-3 text-sm text-on-surface border-none focus:ring-2 focus:ring-primary/20"
-            />
-          </div>
-          <div>
-            <label className="text-xs font-bold text-secondary mb-1.5 block">
-              HTML Body <span className="font-normal normal-case text-secondary">(raw HTML sent via Resend)</span>
-            </label>
-            <textarea
-              value={html}
-              onChange={e => setHtml(e.target.value)}
-              rows={12}
-              placeholder={'<div style="font-family:sans-serif">\n  <h1>Hello!</h1>\n  <p>Your message here.</p>\n</div>'}
-              className="w-full bg-surface-container-low rounded-xl px-4 py-3 text-sm text-on-surface border-none focus:ring-2 focus:ring-primary/20 font-mono resize-y"
-            />
-          </div>
-        </div>
+        {/* Right: Composer */}
+        <div className="space-y-4">
+          <p className="text-[10px] font-bold uppercase tracking-widest text-secondary mb-3">Compose</p>
 
-        {/* Send */}
-        <button
-          type="button"
-          onClick={handleSend}
-          disabled={sending || !subject.trim() || !html.trim()}
-          className="w-full py-3.5 rounded-2xl text-sm font-bold bg-gradient-to-br from-primary to-primary-container text-white shadow-lg shadow-primary/20 hover:opacity-90 transition-all disabled:opacity-50"
-        >
-          {sending ? (
-            <span className="flex items-center justify-center gap-2">
-              <span className="material-symbols-outlined text-[16px] animate-spin">progress_activity</span>
-              Sending…
-            </span>
-          ) : (
-            <span className="flex items-center justify-center gap-2">
-              <span className="material-symbols-outlined text-[16px]">send</span>
-              Send to ~{loadingRestaurants ? "…" : estimateCount(segment)} recipient{estimateCount(segment) !== 1 ? "s" : ""}
-            </span>
-          )}
-        </button>
+          <div className="bg-white border border-black/6 rounded-2xl p-5 shadow-sm space-y-4">
+            <div>
+              <label htmlFor="broadcast-subject" className="text-xs font-bold text-secondary mb-1.5 block">
+                Subject
+              </label>
+              <input
+                id="broadcast-subject"
+                type="text"
+                value={subject}
+                onChange={e => setSubject(e.target.value)}
+                placeholder="e.g. Important update from MENUZA AI"
+                className="w-full bg-surface-container-low rounded-xl px-4 py-3 text-sm text-on-surface border-none focus:outline-none focus:ring-2 focus:ring-primary/20"
+              />
+            </div>
+
+            <div>
+              <label htmlFor="broadcast-html" className="text-xs font-bold text-secondary mb-1.5 block">
+                HTML Body
+                <span className="ml-1 font-normal normal-case text-secondary/70">(raw HTML via Resend)</span>
+              </label>
+              <textarea
+                id="broadcast-html"
+                value={html}
+                onChange={e => setHtml(e.target.value)}
+                rows={14}
+                placeholder={'<div style="font-family:sans-serif">\n  <h1>Hello!</h1>\n  <p>Your message here.</p>\n</div>'}
+                className="w-full bg-surface-container-low rounded-xl px-4 py-3 text-sm text-on-surface border-none focus:outline-none focus:ring-2 focus:ring-primary/20 font-mono resize-y"
+              />
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={handleSend}
+            disabled={sending || !subject.trim() || !html.trim()}
+            className="w-full py-3.5 rounded-xl text-sm font-bold bg-primary text-white hover:opacity-90 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+          >
+            {sending ? (
+              <>
+                <span className="material-symbols-outlined text-[16px] animate-spin">progress_activity</span>
+                Sending…
+              </>
+            ) : (
+              <>
+                <span className="material-symbols-outlined text-[16px]">send</span>
+                Send to ~{recipientCount ?? "…"} recipient{recipientCount !== 1 ? "s" : ""}
+              </>
+            )}
+          </button>
+        </div>
       </div>
     </div>
   );

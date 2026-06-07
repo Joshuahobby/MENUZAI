@@ -6,9 +6,9 @@ import { formatRelativeTime } from "@/lib/utils";
 import type { TransactionRow } from "@/app/api/admin/transactions/route";
 
 const STATUS_STYLES: Record<string, { label: string; className: string }> = {
-  completed: { label: "Completed", className: "bg-green-500/10 text-green-700" },
-  pending:   { label: "Pending",   className: "bg-amber-500/10 text-amber-700" },
-  failed:    { label: "Failed",    className: "bg-red-500/10 text-red-600"     },
+  completed: { label: "Completed", className: "bg-emerald-500/10 text-emerald-700" },
+  pending:   { label: "Pending",   className: "bg-amber-500/10 text-amber-700"     },
+  failed:    { label: "Failed",    className: "bg-red-500/10 text-red-600"         },
   expired:   { label: "Expired",   className: "bg-surface-container text-secondary" },
 };
 
@@ -31,43 +31,69 @@ export default function AdminTransactionsPage() {
   useEffect(() => { load(); }, [load]);
 
   const filtered = filter === "all" ? rows : rows.filter(r => r.status === filter);
-  const completedRevenue = rows.filter(r => r.status === "completed").reduce((s, r) => s + r.amount, 0);
+  const completedRevenue = rows
+    .filter(r => r.status === "completed")
+    .reduce((s, r) => s + r.amount, 0);
 
   const statusBadge = (status: string) => {
     const s = STATUS_STYLES[status] ?? STATUS_STYLES.expired;
-    return <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold ${s.className}`}>{s.label}</span>;
+    return (
+      <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold ${s.className}`}>
+        {s.label}
+      </span>
+    );
   };
 
   return (
-    <div className="p-6 lg:p-10 pb-24 max-w-7xl mx-auto">
-      <div className="flex items-start justify-between mb-8">
+    <div className="p-6 lg:p-8 max-w-7xl">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-2xl font-[var(--font-headline)] font-extrabold tracking-tight mb-1">Transactions</h1>
-          <p className="text-sm text-secondary">
-            {rows.length} total &nbsp;·&nbsp;
-            <span className="text-green-700 font-bold">{completedRevenue.toLocaleString()} RWF</span> completed revenue
-          </p>
+          <h1 className="text-xl font-bold text-on-surface tracking-tight">Transactions</h1>
+          <p className="text-sm text-secondary mt-0.5">{rows.length} total</p>
         </div>
         <button
+          type="button"
           onClick={load}
           disabled={loading}
-          className="flex items-center gap-2 px-4 py-2 text-xs font-bold text-secondary bg-surface-container hover:bg-surface-container-high rounded-xl transition-all disabled:opacity-60"
+          className="flex items-center gap-2 px-4 py-2 text-xs font-bold text-secondary bg-white border border-black/6 hover:bg-surface-container rounded-xl shadow-sm transition-all disabled:opacity-60"
         >
           <span className={`material-symbols-outlined text-[16px] ${loading ? "animate-spin" : ""}`}>sync</span>
           Refresh
         </button>
       </div>
 
-      {/* Status filter chips */}
-      <div className="flex flex-wrap gap-2 mb-6">
+      {/* Revenue summary */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <div className="col-span-2 bg-gradient-to-br from-emerald-500/8 to-emerald-500/3 border border-emerald-500/15 rounded-2xl p-5 shadow-sm">
+          <p className="text-[10px] font-bold text-emerald-700/70 uppercase tracking-widest mb-1.5">Completed Revenue</p>
+          <p className="text-3xl font-extrabold font-[var(--font-headline)] text-emerald-700">
+            {completedRevenue.toLocaleString()} RWF
+          </p>
+        </div>
+        <div className="bg-white border border-black/6 rounded-2xl p-5 shadow-sm">
+          <p className="text-[10px] font-bold text-secondary uppercase tracking-widest mb-1.5">Total</p>
+          <p className="text-3xl font-extrabold font-[var(--font-headline)] text-on-surface">{rows.length}</p>
+        </div>
+        <div className="bg-white border border-black/6 rounded-2xl p-5 shadow-sm">
+          <p className="text-[10px] font-bold text-secondary uppercase tracking-widest mb-1.5">Completed</p>
+          <p className="text-3xl font-extrabold font-[var(--font-headline)] text-emerald-700">
+            {rows.filter(r => r.status === "completed").length}
+          </p>
+        </div>
+      </div>
+
+      {/* Status filters */}
+      <div className="flex flex-wrap gap-2 mb-5">
         {STATUS_FILTERS.map(f => (
           <button
+            type="button"
             key={f}
             onClick={() => setFilter(f)}
-            className={`px-3 py-1.5 rounded-xl text-xs font-bold capitalize transition-all ${
+            className={`px-3 py-2 rounded-xl text-xs font-bold capitalize transition-all ${
               filter === f
                 ? "bg-primary/10 text-primary"
-                : "bg-surface-container text-secondary hover:bg-surface-container-high"
+                : "bg-white border border-black/6 text-secondary hover:bg-surface-container shadow-sm"
             }`}
           >
             {f === "all" ? "All" : f}
@@ -76,34 +102,34 @@ export default function AdminTransactionsPage() {
       </div>
 
       {loading && rows.length === 0 ? (
-        <div className="flex items-center justify-center py-24">
+        <div className="flex items-center justify-center py-32">
           <span className="material-symbols-outlined text-[48px] text-secondary animate-spin">progress_activity</span>
         </div>
       ) : (
-        <div className="bg-surface-container-lowest border border-surface-container rounded-3xl overflow-hidden">
+        <div className="bg-white border border-black/6 rounded-2xl shadow-sm overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-surface-container text-[10px] font-bold uppercase tracking-widest text-secondary">
-                  <th className="px-5 py-3 text-left">Date</th>
-                  <th className="px-4 py-3 text-left">Restaurant</th>
-                  <th className="px-4 py-3 text-left">Owner</th>
-                  <th className="px-4 py-3 text-left">Plan</th>
-                  <th className="px-4 py-3 text-right">Amount</th>
-                  <th className="px-4 py-3 text-left">Status</th>
-                  <th className="px-4 py-3 text-left">Deposit ID</th>
+                <tr className="border-b border-black/5 text-[10px] font-bold uppercase tracking-widest text-secondary bg-surface-container/40">
+                  <th className="px-5 py-3.5 text-left">Date</th>
+                  <th className="px-4 py-3.5 text-left">Restaurant</th>
+                  <th className="px-4 py-3.5 text-left">Owner</th>
+                  <th className="px-4 py-3.5 text-left">Plan</th>
+                  <th className="px-4 py-3.5 text-right">Amount</th>
+                  <th className="px-4 py-3.5 text-left">Status</th>
+                  <th className="px-4 py-3.5 text-left">Deposit ID</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-surface-container/60">
+              <tbody className="divide-y divide-black/5">
                 {filtered.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="px-5 py-12 text-center text-secondary text-sm">
+                    <td colSpan={7} className="px-5 py-16 text-center text-secondary text-sm">
                       No transactions found
                     </td>
                   </tr>
                 ) : (
                   filtered.map(tx => (
-                    <tr key={tx.id} className="hover:bg-surface-container/40 transition-colors">
+                    <tr key={tx.id} className="hover:bg-surface-container/30 transition-colors">
                       <td className="px-5 py-4 text-secondary text-xs whitespace-nowrap">
                         {formatRelativeTime(tx.createdAt)}
                       </td>
