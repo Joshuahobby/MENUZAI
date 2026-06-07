@@ -9,6 +9,52 @@ import { BackToTop } from "@/components/BackToTop";
 
 const fmt = (n: number) => new Intl.NumberFormat("en-US").format(n);
 
+const VIDEO_ID = "G4vp5NQnk-I";
+const POSTER_URL = `https://img.youtube.com/vi/${VIDEO_ID}/maxresdefault.jpg`;
+
+function HeroVideo() {
+  const [playing, setPlaying] = useState(false);
+  return (
+    <div className="relative">
+      <div className="rounded-3xl overflow-hidden shadow-2xl border border-black/10 aspect-video bg-black">
+        {playing ? (
+          <iframe
+            src={`https://www.youtube.com/embed/${VIDEO_ID}?autoplay=1&rel=0&modestbranding=1&playsinline=1`}
+            title="MENUZA AI — Product Demo"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+            className="w-full h-full"
+          />
+        ) : (
+          <button
+            type="button"
+            onClick={() => setPlaying(true)}
+            className="relative w-full h-full group block"
+            aria-label="Play product demo video"
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={POSTER_URL}
+              alt="MENUZA AI product demo thumbnail"
+              className="w-full h-full object-cover"
+              loading="lazy"
+            />
+            <div className="absolute inset-0 bg-black/30 group-hover:bg-black/40 transition-colors flex items-center justify-center">
+              <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                <span className="material-symbols-outlined text-primary text-3xl icon-fill ml-1">play_arrow</span>
+              </div>
+            </div>
+          </button>
+        )}
+      </div>
+      <div className="mt-4 flex items-center gap-2 text-xs text-secondary font-medium justify-center">
+        <span className="material-symbols-outlined text-[14px] text-primary">play_circle</span>
+        90 seconds · QR scan → AI order → staff dashboard
+      </div>
+    </div>
+  );
+}
+
 const FEATURES = [
   { icon: "support_agent",        title: "AI Digital Waiter",       desc: "Greets guests on arrival, takes orders in chat, and follows up after the meal — a full-service waiter that costs nothing per shift." },
   { icon: "receipt_long",         title: "Real-time Ordering",       desc: "Orders appear on your staff panel the moment they are placed. No printers, no delays." },
@@ -49,23 +95,7 @@ export default function LandingPage() {
             </div>
           </div>
 
-          <div className="relative">
-            <div className="rounded-3xl overflow-hidden shadow-2xl border border-black/10 aspect-video bg-[url('https://img.youtube.com/vi/G4vp5NQnk-I/maxresdefault.jpg')] bg-cover bg-center">
-              <iframe
-                src="https://www.youtube.com/embed/G4vp5NQnk-I?autoplay=1&mute=1&loop=1&playlist=G4vp5NQnk-I&controls=0&rel=0&modestbranding=1&playsinline=1&disablekb=1"
-                title="MENUZA AI — Product Demo"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-                className="w-full h-full"
-                style={{ display: "block", pointerEvents: "none" }}
-              />
-            </div>
-            {/* Caption */}
-            <div className="mt-4 flex items-center gap-2 text-xs text-secondary font-medium justify-center">
-              <span className="material-symbols-outlined text-[14px] text-primary">play_circle</span>
-              90 seconds · QR scan → AI order → staff dashboard
-            </div>
-          </div>
+          <HeroVideo />
         </div>
       </section>
 
