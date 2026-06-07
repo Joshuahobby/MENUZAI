@@ -127,7 +127,7 @@ export default function LandingPage() {
             {FEATURES.map((f, i) => (
               <div key={i} className="bg-white p-8 rounded-3xl border border-black/6">
                 <span className="material-symbols-outlined text-primary text-2xl mb-5 block">{f.icon}</span>
-                <h3 className="text-base font-bold mb-2">{f.title}</h3>
+                <h3 className="text-lg font-bold mb-2">{f.title}</h3>
                 <p className="text-secondary text-sm leading-relaxed">{f.desc}</p>
               </div>
             ))}
