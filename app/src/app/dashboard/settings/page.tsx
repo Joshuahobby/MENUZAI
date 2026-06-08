@@ -7,7 +7,7 @@ import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { CheckoutModal } from "@/components/CheckoutModal";
 import { confirm } from "@/components/Modals";
-import { pricingPlans } from "@/data/mockData";
+import { useLivePricing } from "@/hooks/useLivePricing";
 import { formatPrice } from "@/lib/utils";
 import { StaffManager } from "./StaffManager";
 
@@ -28,6 +28,7 @@ const CURRENCIES = [
 ];
 
 export default function SettingsPage() {
+  const pricingPlans = useLivePricing();
   const {
     restaurantId,
     plan: restaurantPlan,

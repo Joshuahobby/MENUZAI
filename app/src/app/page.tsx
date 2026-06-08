@@ -4,7 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { pricingPlans } from "@/data/mockData";
+import { useLivePricing } from "@/hooks/useLivePricing";
 import { PublicNav } from "@/components/PublicNav";
 import { BackToTop } from "@/components/BackToTop";
 import { supabase } from "@/lib/supabase";
@@ -67,6 +67,7 @@ const FEATURES = [
 ];
 
 export default function LandingPage() {
+  const pricingPlans = useLivePricing();
   const [isAnnual, setIsAnnual] = useState(true);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const router = useRouter();

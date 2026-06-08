@@ -341,16 +341,14 @@ export default function AdminSubscriptionsPage() {
         </div>
       </div>
 
-      {/* Note about landing page */}
-      <div className="flex items-start gap-3 bg-amber-50 border border-amber-200/60 rounded-2xl p-4">
-        <span className="material-symbols-outlined text-amber-500 text-[18px] shrink-0 mt-0.5 icon-fill">info</span>
+      {/* Info note */}
+      <div className="flex items-start gap-3 bg-emerald-50 border border-emerald-200/60 rounded-2xl p-4">
+        <span className="material-symbols-outlined text-emerald-500 text-[18px] shrink-0 mt-0.5 icon-fill">check_circle</span>
         <div>
-          <p className="text-xs font-bold text-amber-800 mb-0.5">Landing page prices are separate</p>
-          <p className="text-xs text-amber-700 leading-relaxed">
-            Payment processing now uses prices from the database. However, the public pricing display on{" "}
-            <code className="font-mono bg-amber-100 px-1 rounded">/pricing</code> still reads from{" "}
-            <code className="font-mono bg-amber-100 px-1 rounded">src/data/mockData.ts</code>.
-            Update <code className="font-mono bg-amber-100 px-1 rounded">pricingPlans</code> there and redeploy to keep the landing page in sync.
+          <p className="text-xs font-bold text-emerald-800 mb-0.5">Prices are fully database-driven</p>
+          <p className="text-xs text-emerald-700 leading-relaxed">
+            Changes apply immediately across the entire platform — payment processing, the public pricing page,
+            and the dashboard upgrade flow all read prices live from the database. No redeployment needed.
           </p>
         </div>
       </div>
