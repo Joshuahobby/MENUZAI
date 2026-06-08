@@ -139,16 +139,24 @@ function resolvePlan(r: RecentRestaurant): string {
   return "free";
 }
 
+const REFRESH_COOLDOWN_MS = 30_000;
+
 export default function AdminMetricsPage() {
   const [metrics, setMetrics] = useState<Metrics | null>(null);
   const [cronStatuses, setCronStatuses] = useState<CronStatus[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [lastFetched, setLastFetched] = useState<Date | null>(null);
+  const [cooldown, setCooldown] = useState(false);
 
-  const loadMetrics = useCallback(() => {
+  const loadMetrics = useCallback((manual = false) => {
+    if (manual && cooldown) return;
     setLoading(true);
     setError(null);
+    if (manual) {
+      setCooldown(true);
+      setTimeout(() => setCooldown(false), REFRESH_COOLDOWN_MS);
+    }
     Promise.all([
       fetch("/api/admin/metrics").then(r => r.json()),
       fetch("/api/admin/cron-status").then(r => r.json()),
@@ -160,9 +168,9 @@ export default function AdminMetricsPage() {
       })
       .catch(() => setError("Failed to load metrics."))
       .finally(() => setLoading(false));
-  }, []);
+  }, [cooldown]);
 
-  useEffect(() => { loadMetrics(); }, [loadMetrics]);
+  useEffect(() => { loadMetrics(); }, []);
 
   return (
     <div className="p-6 lg:p-8 max-w-6xl">
@@ -176,12 +184,13 @@ export default function AdminMetricsPage() {
         </div>
         <button
           type="button"
-          onClick={loadMetrics}
-          disabled={loading}
-          className="flex items-center gap-2 px-4 py-2 text-xs font-bold text-secondary bg-white border border-black/6 hover:bg-surface-container rounded-xl shadow-sm transition-all disabled:opacity-60"
+          onClick={() => loadMetrics(true)}
+          disabled={loading || cooldown}
+          title={cooldown ? "Wait 30s between refreshes" : undefined}
+          className="flex items-center gap-2 px-4 py-2 text-xs font-bold text-secondary bg-white border border-black/6 hover:bg-surface-container rounded-xl shadow-sm transition-all disabled:opacity-60 disabled:cursor-not-allowed"
         >
           <span className={`material-symbols-outlined text-[16px] ${loading ? "animate-spin" : ""}`}>sync</span>
-          Refresh
+          {cooldown ? "Cooling down…" : "Refresh"}
         </button>
       </div>
 

@@ -27,6 +27,8 @@ interface DeleteState {
   confirmed: boolean;
 }
 
+const REFRESH_COOLDOWN_MS = 30_000;
+
 export default function AdminRestaurantsPage() {
   const [rows, setRows] = useState<RestaurantRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -36,17 +38,23 @@ export default function AdminRestaurantsPage() {
   const [deleteState, setDeleteState] = useState<DeleteState | null>(null);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [cooldown, setCooldown] = useState(false);
 
-  const load = useCallback(() => {
+  const load = useCallback((manual = false) => {
+    if (manual && cooldown) return;
     setLoading(true);
+    if (manual) {
+      setCooldown(true);
+      setTimeout(() => setCooldown(false), REFRESH_COOLDOWN_MS);
+    }
     fetch("/api/admin/restaurants")
       .then(r => r.json())
       .then(d => setRows(d.restaurants ?? []))
       .catch(() => toast.error("Failed to load restaurants"))
       .finally(() => setLoading(false));
-  }, []);
+  }, [cooldown]);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => { load(); }, []);
 
   const filtered = rows.filter(r => {
     const q = search.toLowerCase();
@@ -130,12 +138,13 @@ export default function AdminRestaurantsPage() {
         </div>
         <button
           type="button"
-          onClick={load}
-          disabled={loading}
-          className="flex items-center gap-2 px-4 py-2 text-xs font-bold text-secondary bg-white border border-black/6 hover:bg-surface-container rounded-xl shadow-sm transition-all disabled:opacity-60"
+          onClick={() => load(true)}
+          disabled={loading || cooldown}
+          title={cooldown ? "Wait 30s between refreshes" : undefined}
+          className="flex items-center gap-2 px-4 py-2 text-xs font-bold text-secondary bg-white border border-black/6 hover:bg-surface-container rounded-xl shadow-sm transition-all disabled:opacity-60 disabled:cursor-not-allowed"
         >
           <span className={`material-symbols-outlined text-[16px] ${loading ? "animate-spin" : ""}`}>sync</span>
-          Refresh
+          {cooldown ? "Cooling down…" : "Refresh"}
         </button>
       </div>
 
@@ -202,6 +211,7 @@ export default function AdminRestaurantsPage() {
                       <td className="px-5 py-4">
                         <Link
                           href={`/admin/restaurants/${r.id}`}
+                          prefetch={false}
                           className="font-semibold text-on-surface hover:text-primary transition-colors truncate max-w-[180px] block"
                         >
                           {r.name}

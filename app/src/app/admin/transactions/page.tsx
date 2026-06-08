@@ -14,22 +14,30 @@ const STATUS_STYLES: Record<string, { label: string; className: string }> = {
 
 const STATUS_FILTERS = ["all", "pending", "completed", "failed", "expired"] as const;
 
+const REFRESH_COOLDOWN_MS = 30_000;
+
 export default function AdminTransactionsPage() {
   const [rows, setRows] = useState<TransactionRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<string>("all");
   const [cancellingId, setCancellingId] = useState<string | null>(null);
+  const [cooldown, setCooldown] = useState(false);
 
-  const load = useCallback(() => {
+  const load = useCallback((manual = false) => {
+    if (manual && cooldown) return;
     setLoading(true);
+    if (manual) {
+      setCooldown(true);
+      setTimeout(() => setCooldown(false), REFRESH_COOLDOWN_MS);
+    }
     fetch("/api/admin/transactions")
       .then(r => r.json())
       .then(d => setRows(d.transactions ?? []))
       .catch(() => toast.error("Failed to load transactions"))
       .finally(() => setLoading(false));
-  }, []);
+  }, [cooldown]);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => { load(); }, []);
 
   const filtered = filter === "all" ? rows : rows.filter(r => r.status === filter);
   const completedRevenue = rows
@@ -74,12 +82,13 @@ export default function AdminTransactionsPage() {
         </div>
         <button
           type="button"
-          onClick={load}
-          disabled={loading}
-          className="flex items-center gap-2 px-4 py-2 text-xs font-bold text-secondary bg-white border border-black/6 hover:bg-surface-container rounded-xl shadow-sm transition-all disabled:opacity-60"
+          onClick={() => load(true)}
+          disabled={loading || cooldown}
+          title={cooldown ? "Wait 30s between refreshes" : undefined}
+          className="flex items-center gap-2 px-4 py-2 text-xs font-bold text-secondary bg-white border border-black/6 hover:bg-surface-container rounded-xl shadow-sm transition-all disabled:opacity-60 disabled:cursor-not-allowed"
         >
           <span className={`material-symbols-outlined text-[16px] ${loading ? "animate-spin" : ""}`}>sync</span>
-          Refresh
+          {cooldown ? "Cooling down…" : "Refresh"}
         </button>
       </div>
 
