@@ -1,20 +1,33 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import Link from "next/link";
 import { formatRelativeTime } from "@/lib/utils";
+import { getPlanMeta } from "@/lib/plans";
+
+interface RecentRestaurant {
+  id: string;
+  name: string;
+  plan: string;
+  trial_ends_at: string | null;
+  created_at: string;
+}
 
 interface Metrics {
   totalRestaurants: number;
-  freeCount: number;
+  freeLiteCount: number;
   trialCount: number;
   proCount: number;
   businessCount: number;
   mrrRwf: number;
+  proPrice: number;
+  businessPrice: number;
   totalOrders: number;
   ordersToday: number;
   aiWaiterOrders: number;
   totalMenus: number;
   publishedMenus: number;
+  recentRestaurants: RecentRestaurant[];
 }
 
 interface CronStatus {
@@ -31,21 +44,28 @@ const CRON_DOT: Record<string, string> = {
   success: "bg-emerald-500",
   error:   "bg-red-500",
   running: "bg-amber-400 animate-pulse",
-  never:   "bg-slate-300",
+  never:   "bg-amber-400",
+};
+
+const CRON_BG: Record<string, string> = {
+  success: "",
+  error:   "bg-red-50",
+  running: "bg-amber-50",
+  never:   "bg-amber-50/50",
 };
 
 const CRON_TEXT: Record<string, string> = {
   success: "text-emerald-600",
   error:   "text-red-500",
   running: "text-amber-600",
-  never:   "text-secondary",
+  never:   "text-amber-600",
 };
 
 const CRON_LABEL: Record<string, string> = {
   success: "OK",
   error:   "Error",
   running: "Running",
-  never:   "Never",
+  never:   "Not yet run",
 };
 
 const JOB_LABELS: Record<string, string> = {
@@ -54,14 +74,18 @@ const JOB_LABELS: Record<string, string> = {
   "remind-subscriptions": "Remind Subscriptions",
 };
 
+function fmt(n: number) {
+  return new Intl.NumberFormat("en-RW").format(n);
+}
+
 function KpiCard({
-  label, value, sub, icon, accent,
+  label, value, sub, icon, accent, href,
 }: {
   label: string; value: string | number; sub?: string;
-  icon: string; accent: string;
+  icon: string; accent: string; href?: string;
 }) {
-  return (
-    <div className="bg-white border border-black/6 rounded-2xl p-5 shadow-sm">
+  const inner = (
+    <div className={`bg-white border border-black/6 rounded-2xl p-5 shadow-sm h-full ${href ? "hover:border-primary/20 hover:shadow-md transition-all" : ""}`}>
       <div className="flex items-start justify-between mb-3">
         <p className="text-[10px] font-bold text-secondary uppercase tracking-widest">{label}</p>
         <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${accent}`}>
@@ -72,6 +96,47 @@ function KpiCard({
       {sub && <p className="text-xs text-secondary mt-1">{sub}</p>}
     </div>
   );
+  return href ? <Link href={href} className="block h-full">{inner}</Link> : inner;
+}
+
+function PlanBar({ metrics }: { metrics: Metrics }) {
+  const total = metrics.totalRestaurants || 1;
+  const segments = [
+    { key: "trial",    count: metrics.trialCount,    dot: "bg-violet-400", textColor: "text-violet-700", bg: "bg-violet-50",  label: "Trial"     },
+    { key: "pro",      count: metrics.proCount,      dot: "bg-primary",    textColor: "text-primary",    bg: "bg-primary/5",  label: "Pro"        },
+    { key: "business", count: metrics.businessCount, dot: "bg-tertiary",   textColor: "text-tertiary",   bg: "bg-tertiary/5", label: "Business"   },
+    { key: "free",     count: metrics.freeLiteCount, dot: "bg-slate-300",  textColor: "text-secondary",  bg: "bg-slate-50",   label: "Free Lite"  },
+  ];
+
+  return (
+    <div className="bg-white border border-black/6 rounded-2xl shadow-sm overflow-hidden">
+      <div className="px-5 py-4 border-b border-black/6">
+        <p className="text-[10px] font-bold text-secondary uppercase tracking-widest">Plan Distribution</p>
+      </div>
+      <div className="grid grid-cols-2 sm:grid-cols-4">
+        {segments.map((s, i) => {
+          const pct = Math.round((s.count / total) * 100);
+          return (
+            <div
+              key={s.key}
+              className={`${s.bg} p-5 ${i < 3 ? "border-r border-black/6" : ""} ${i >= 2 ? "border-t sm:border-t-0 border-black/6" : ""}`}
+            >
+              <div className={`w-2.5 h-2.5 rounded-full ${s.dot} mb-3`} />
+              <p className={`text-2xl font-extrabold font-[var(--font-headline)] ${s.textColor}`}>{s.count}</p>
+              <p className="text-xs font-bold text-secondary mt-0.5">{s.label}</p>
+              <p className="text-[11px] text-secondary/50 mt-0.5">{pct}% of total</p>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function resolvePlan(r: RecentRestaurant): string {
+  if (r.plan !== "free") return r.plan;
+  if (r.trial_ends_at && new Date(r.trial_ends_at) > new Date()) return "trial";
+  return "free";
 }
 
 export default function AdminMetricsPage() {
@@ -121,9 +186,7 @@ export default function AdminMetricsPage() {
       </div>
 
       {error && (
-        <div className="mb-6 p-4 bg-red-50 border border-red-100 text-red-600 text-sm rounded-xl">
-          {error}
-        </div>
+        <div className="mb-6 p-4 bg-red-50 border border-red-100 text-red-600 text-sm rounded-xl">{error}</div>
       )}
 
       {loading && !metrics ? (
@@ -132,6 +195,7 @@ export default function AdminMetricsPage() {
         </div>
       ) : metrics ? (
         <div className="space-y-6">
+
           {/* MRR hero */}
           <div className="bg-gradient-to-br from-primary/8 to-primary-container/5 border border-primary/15 rounded-2xl p-6 shadow-sm">
             <div className="flex items-start justify-between">
@@ -140,10 +204,10 @@ export default function AdminMetricsPage() {
                   Estimated Monthly Revenue
                 </p>
                 <p className="text-4xl font-extrabold font-[var(--font-headline)] text-primary">
-                  {metrics.mrrRwf.toLocaleString()} RWF
+                  {fmt(metrics.mrrRwf)} RWF
                 </p>
                 <p className="text-xs text-secondary mt-1.5">
-                  Pro × 35,000 + Business × 89,000 RWF/mo
+                  {metrics.proCount} Pro ({fmt(metrics.proPrice)} RWF) + {metrics.businessCount} Business ({fmt(metrics.businessPrice)} RWF) active subscribers
                 </p>
               </div>
               <div className="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center shrink-0">
@@ -152,20 +216,23 @@ export default function AdminMetricsPage() {
             </div>
           </div>
 
+          {/* Plan distribution */}
+          <PlanBar metrics={metrics} />
+
           {/* Primary KPIs */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            <KpiCard label="Total Restaurants" value={metrics.totalRestaurants} sub="all plans" icon="storefront" accent="bg-blue-500/10 text-blue-600" />
-            <KpiCard label="Pro Subscribers"   value={metrics.proCount}         sub="paid plan"  icon="workspace_premium" accent="bg-emerald-500/10 text-emerald-600" />
-            <KpiCard label="Business"          value={metrics.businessCount}    sub="paid plan"  icon="business" accent="bg-amber-500/10 text-amber-600" />
-            <KpiCard label="On Trial"          value={metrics.trialCount}       sub="14-day trial" icon="hourglass_top" accent="bg-violet-500/10 text-violet-600" />
+            <KpiCard label="Total Restaurants" value={metrics.totalRestaurants} sub="all plans"    icon="storefront"       accent="bg-blue-500/10 text-blue-600"     href="/admin/restaurants" />
+            <KpiCard label="Pro Subscribers"   value={metrics.proCount}         sub="paid plan"    icon="workspace_premium" accent="bg-emerald-500/10 text-emerald-600" href="/admin/subscriptions" />
+            <KpiCard label="Business"          value={metrics.businessCount}    sub="paid plan"    icon="domain"            accent="bg-amber-500/10 text-amber-600"    href="/admin/subscriptions" />
+            <KpiCard label="On Trial"          value={metrics.trialCount}       sub="14-day trial" icon="hourglass_top"     accent="bg-violet-500/10 text-violet-600" />
           </div>
 
           {/* Secondary KPIs */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            <KpiCard label="Free Tier"       value={metrics.freeCount}                   sub="no active plan"   icon="person" accent="bg-surface-container text-secondary" />
-            <KpiCard label="Total Orders"    value={metrics.totalOrders.toLocaleString()} sub="all time"        icon="receipt_long" accent="bg-primary/10 text-primary" />
-            <KpiCard label="Orders Today"    value={metrics.ordersToday}                 sub="since midnight UTC" icon="today" accent="bg-primary/10 text-primary" />
-            <KpiCard label="AI Waiter"       value={metrics.aiWaiterOrders}              sub="in-chat orders"   icon="smart_toy" accent="bg-violet-500/10 text-violet-600" />
+            <KpiCard label="Free Lite"    value={metrics.freeLiteCount}                    sub="trial expired"      icon="lock_open"    accent="bg-slate-100 text-slate-500" />
+            <KpiCard label="Total Orders" value={fmt(metrics.totalOrders)}                 sub="all time"           icon="receipt_long" accent="bg-primary/10 text-primary"  href="/admin/transactions" />
+            <KpiCard label="Orders Today" value={metrics.ordersToday}                      sub="since midnight UTC" icon="today"        accent="bg-primary/10 text-primary" />
+            <KpiCard label="AI Waiter"    value={metrics.aiWaiterOrders}                   sub="in-chat orders"     icon="smart_toy"    accent="bg-violet-500/10 text-violet-600" />
           </div>
 
           {/* Menus row */}
@@ -174,49 +241,89 @@ export default function AdminMetricsPage() {
             <KpiCard label="Published Menus" value={metrics.publishedMenus} sub="live on public URLs"     icon="public"    accent="bg-emerald-500/10 text-emerald-600" />
           </div>
 
-          {/* Cron health */}
-          <div className="bg-white border border-black/6 rounded-2xl shadow-sm overflow-hidden">
-            <div className="px-5 py-4 border-b border-black/6">
-              <p className="text-xs font-bold text-secondary uppercase tracking-widest">Cron Job Health</p>
-            </div>
-            {cronStatuses.length === 0 ? (
-              <p className="px-5 py-6 text-sm text-secondary">
-                No cron data yet — run migration 025 first.
-              </p>
-            ) : (
-              <div className="divide-y divide-black/5">
-                {cronStatuses.map(c => (
-                  <div key={c.jobName} className="flex items-center gap-4 px-5 py-4">
-                    <span className={`w-2 h-2 rounded-full shrink-0 ${CRON_DOT[c.status]}`} />
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold text-on-surface">
-                        {JOB_LABELS[c.jobName] ?? c.jobName}
-                      </p>
-                      <p className="text-[11px] text-secondary">{c.schedule}</p>
-                    </div>
-                    <div className="text-right shrink-0">
-                      <p className={`text-xs font-bold ${CRON_TEXT[c.status]}`}>
-                        {CRON_LABEL[c.status]}
-                      </p>
-                      {c.lastRun && (
-                        <p className="text-[11px] text-secondary">{formatRelativeTime(c.lastRun)}</p>
-                      )}
-                      {c.status === "success" && c.rowsAffected > 0 && (
-                        <p className="text-[11px] text-secondary">{c.rowsAffected} rows</p>
-                      )}
-                    </div>
-                    {c.errorMessage && (
-                      <p
-                        className="text-[11px] text-red-500 truncate max-w-[200px]"
-                        title={c.errorMessage}
-                      >
-                        {c.errorMessage}
-                      </p>
-                    )}
-                  </div>
-                ))}
+          {/* Two-column bottom section */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+            {/* Recent sign-ups */}
+            <div className="bg-white border border-black/6 rounded-2xl shadow-sm overflow-hidden">
+              <div className="px-5 py-4 border-b border-black/6 flex items-center justify-between">
+                <p className="text-xs font-bold text-secondary uppercase tracking-widest">Recent Sign-ups</p>
+                <Link href="/admin/restaurants" className="text-[11px] font-bold text-primary hover:opacity-80">
+                  View all →
+                </Link>
               </div>
-            )}
+              {metrics.recentRestaurants.length === 0 ? (
+                <p className="px-5 py-6 text-sm text-secondary">No restaurants yet.</p>
+              ) : (
+                <div className="divide-y divide-black/5">
+                  {metrics.recentRestaurants.map(r => {
+                    const effectivePlan = resolvePlan(r);
+                    const meta = getPlanMeta(effectivePlan);
+                    return (
+                      <Link
+                        key={r.id}
+                        href={`/admin/restaurants/${r.id}`}
+                        className="flex items-center gap-3 px-5 py-3.5 hover:bg-surface-container transition-colors"
+                      >
+                        <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                          <span className="material-symbols-outlined text-primary text-[15px] icon-fill">storefront</span>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-semibold text-on-surface truncate">{r.name || "Unnamed"}</p>
+                          <p className="text-[11px] text-secondary">{formatRelativeTime(r.created_at)}</p>
+                        </div>
+                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 ${meta.badgeClass}`}>
+                          {meta.label}
+                        </span>
+                      </Link>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            {/* Cron health */}
+            <div className="bg-white border border-black/6 rounded-2xl shadow-sm overflow-hidden">
+              <div className="px-5 py-4 border-b border-black/6">
+                <p className="text-xs font-bold text-secondary uppercase tracking-widest">Cron Job Health</p>
+              </div>
+              {cronStatuses.length === 0 ? (
+                <p className="px-5 py-6 text-sm text-secondary">No cron data yet — run migration 025 first.</p>
+              ) : (
+                <div className="divide-y divide-black/5">
+                  {cronStatuses.map(c => (
+                    <div key={c.jobName} className={`flex items-center gap-4 px-5 py-4 ${CRON_BG[c.status]}`}>
+                      <span className={`w-2.5 h-2.5 rounded-full shrink-0 ${CRON_DOT[c.status]}`} />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold text-on-surface">
+                          {JOB_LABELS[c.jobName] ?? c.jobName}
+                        </p>
+                        <p className="text-[11px] text-secondary">{c.schedule}</p>
+                        {c.errorMessage && (
+                          <p className="text-[11px] text-red-500 truncate mt-0.5" title={c.errorMessage}>
+                            {c.errorMessage}
+                          </p>
+                        )}
+                      </div>
+                      <div className="text-right shrink-0">
+                        <p className={`text-xs font-bold ${CRON_TEXT[c.status]}`}>
+                          {CRON_LABEL[c.status]}
+                        </p>
+                        {c.lastRun ? (
+                          <p className="text-[11px] text-secondary">{formatRelativeTime(c.lastRun)}</p>
+                        ) : (
+                          <p className="text-[11px] text-amber-500">Awaiting first run</p>
+                        )}
+                        {c.status === "success" && c.rowsAffected > 0 && (
+                          <p className="text-[11px] text-secondary">{c.rowsAffected} rows</p>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
           </div>
         </div>
       ) : null}
