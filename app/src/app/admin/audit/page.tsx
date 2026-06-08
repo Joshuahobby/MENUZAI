@@ -17,8 +17,9 @@ interface AuditEntry {
 }
 
 const ACTION_STYLES: Record<string, { label: string; iconClass: string; icon: string; badge: string }> = {
-  plan_override:    { label: "Plan Override",    icon: "swap_horiz", iconClass: "bg-amber-500/10 text-amber-600",  badge: "bg-amber-500/10 text-amber-700" },
-  ai_config_change: { label: "AI Config Change", icon: "smart_toy",  iconClass: "bg-blue-500/10 text-blue-600",    badge: "bg-blue-500/10 text-blue-700"   },
+  plan_override:     { label: "Plan Override",    icon: "swap_horiz", iconClass: "bg-amber-500/10 text-amber-600",   badge: "bg-amber-500/10 text-amber-700"  },
+  ai_config_change:  { label: "AI Config Change", icon: "smart_toy",  iconClass: "bg-blue-500/10 text-blue-600",     badge: "bg-blue-500/10 text-blue-700"    },
+  plan_price_change: { label: "Price Change",     icon: "sell",       iconClass: "bg-emerald-500/10 text-emerald-600", badge: "bg-emerald-500/10 text-emerald-700" },
 };
 
 function summarise(entry: AuditEntry): string {
@@ -34,13 +35,21 @@ function summarise(entry: AuditEntry): string {
     const newM = (entry.new_value?.model as string) ?? "";
     return `${oldP} → ${newP} · ${newM}`;
   }
+  if (entry.action === "plan_price_change") {
+    const oldPro = (entry.old_value?.pro as number) ?? "?";
+    const newPro = (entry.new_value?.pro as number) ?? "?";
+    const oldBiz = (entry.old_value?.business as number) ?? "?";
+    const newBiz = (entry.new_value?.business as number) ?? "?";
+    return `Pro ${oldPro} → ${newPro} · Business ${oldBiz} → ${newBiz} RWF`;
+  }
   return "—";
 }
 
 const FILTER_OPTIONS = [
-  { value: "all",              label: "All Actions" },
-  { value: "plan_override",    label: "Plan Overrides" },
-  { value: "ai_config_change", label: "Config Changes" },
+  { value: "all",               label: "All Actions"   },
+  { value: "plan_override",     label: "Plan Overrides" },
+  { value: "ai_config_change",  label: "Config Changes" },
+  { value: "plan_price_change", label: "Price Changes"  },
 ];
 
 export default function AdminAuditPage() {

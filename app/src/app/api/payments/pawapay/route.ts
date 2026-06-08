@@ -3,20 +3,41 @@ import { createSupabaseServerClient } from "@/lib/supabase-server";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
 import { checkRateLimit } from "@/lib/rate-limit";
 
-const PLAN_PRICES: Record<string, number> = {
-  pro: 35_000,
-  business: 89_000,
-  "pro (monthly)": 35_000,
-  "business (monthly)": 89_000,
-  "pro (annual)": 35_000 * 11,
-  "business (annual)": 89_000 * 11,
-};
+const FALLBACK_PRICES = { pro: 35_000, business: 89_000 };
+
+async function resolvePlanPrices(): Promise<Record<string, number>> {
+  try {
+    const admin = getSupabaseAdmin();
+    if (!admin) return buildPriceMap(FALLBACK_PRICES);
+    const { data } = await admin
+      .from("platform_settings")
+      .select("plan_prices")
+      .eq("id", "global")
+      .single();
+    const p = (data?.plan_prices as typeof FALLBACK_PRICES | null) ?? FALLBACK_PRICES;
+    return buildPriceMap({ pro: p.pro ?? FALLBACK_PRICES.pro, business: p.business ?? FALLBACK_PRICES.business });
+  } catch {
+    return buildPriceMap(FALLBACK_PRICES);
+  }
+}
+
+function buildPriceMap(p: { pro: number; business: number }): Record<string, number> {
+  return {
+    pro: p.pro,
+    business: p.business,
+    "pro (monthly)": p.pro,
+    "business (monthly)": p.business,
+    "pro (annual)": p.pro * 11,
+    "business (annual)": p.business * 11,
+  };
+}
 
 export async function POST(req: Request) {
   try {
     const { phoneNumber, plan } = await req.json();
 
     const planKey = plan?.toLowerCase() ?? "";
+    const PLAN_PRICES = await resolvePlanPrices();
     const amount = PLAN_PRICES[planKey];
     if (!amount) {
       return NextResponse.json({ error: "Invalid plan" }, { status: 400 });
