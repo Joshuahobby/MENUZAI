@@ -22,13 +22,20 @@ interface OverrideState {
   expiryDays: number;
 }
 
+interface DeleteState {
+  restaurant: RestaurantRow;
+  confirmed: boolean;
+}
+
 export default function AdminRestaurantsPage() {
   const [rows, setRows] = useState<RestaurantRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [planFilter, setPlanFilter] = useState("all");
   const [override, setOverride] = useState<OverrideState | null>(null);
+  const [deleteState, setDeleteState] = useState<DeleteState | null>(null);
   const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   const load = useCallback(() => {
     setLoading(true);
@@ -76,6 +83,23 @@ export default function AdminRestaurantsPage() {
       toast.error((err as Error).message);
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!deleteState?.confirmed) return;
+    setDeleting(true);
+    try {
+      const res = await fetch(`/api/admin/restaurants/${deleteState.restaurant.id}`, { method: "DELETE" });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to delete");
+      toast.success(`${deleteState.restaurant.name} deleted`);
+      setRows(prev => prev.filter(r => r.id !== deleteState.restaurant.id));
+      setDeleteState(null);
+    } catch (err: unknown) {
+      toast.error((err as Error).message);
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -197,19 +221,72 @@ export default function AdminRestaurantsPage() {
                         {formatRelativeTime(r.createdAt)}
                       </td>
                       <td className="px-4 py-4 text-right">
-                        <button
-                          type="button"
-                          onClick={() => setOverride({ restaurant: r, plan: r.plan as Plan, expiryDays: 30 })}
-                          className="px-3 py-1.5 text-[11px] font-bold bg-primary/8 text-primary hover:bg-primary/15 rounded-lg transition-all"
-                        >
-                          Override
-                        </button>
+                        <div className="flex items-center justify-end gap-2">
+                          <button
+                            type="button"
+                            onClick={() => setOverride({ restaurant: r, plan: r.plan as Plan, expiryDays: 30 })}
+                            className="px-3 py-1.5 text-[11px] font-bold bg-primary/8 text-primary hover:bg-primary/15 rounded-lg transition-all"
+                          >
+                            Override
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setDeleteState({ restaurant: r, confirmed: false })}
+                            className="px-3 py-1.5 text-[11px] font-bold bg-red-50 text-red-500 hover:bg-red-100 rounded-lg transition-all"
+                          >
+                            Delete
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))
                 )}
               </tbody>
             </table>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {deleteState && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
+          <div className="bg-white w-full max-w-sm rounded-2xl p-7 shadow-2xl border border-black/6">
+            <div className="w-12 h-12 bg-red-100 rounded-2xl flex items-center justify-center mb-4">
+              <span className="material-symbols-outlined text-red-500 text-[24px]">warning</span>
+            </div>
+            <h2 className="font-bold text-lg text-on-surface mb-1">Delete Restaurant</h2>
+            <p className="text-sm text-secondary mb-4">
+              This permanently deletes{" "}
+              <span className="font-semibold text-on-surface">{deleteState.restaurant.name}</span>,
+              all its menus, orders, and the owner&apos;s account. This action cannot be undone.
+            </p>
+            <label className="flex items-center gap-3 p-3 bg-red-50 rounded-xl cursor-pointer mb-5">
+              <input
+                type="checkbox"
+                checked={deleteState.confirmed}
+                onChange={e => setDeleteState(s => s ? { ...s, confirmed: e.target.checked } : s)}
+                className="w-4 h-4 accent-red-500"
+              />
+              <span className="text-xs font-bold text-red-700">I understand this is permanent and irreversible</span>
+            </label>
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={() => setDeleteState(null)}
+                disabled={deleting}
+                className="flex-1 py-2.5 rounded-xl text-sm font-bold bg-surface-container text-secondary hover:bg-surface-container-high transition-all disabled:opacity-60"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleDelete}
+                disabled={!deleteState.confirmed || deleting}
+                className="flex-1 py-2.5 rounded-xl text-sm font-bold bg-red-500 text-white hover:bg-red-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {deleting ? "Deleting…" : "Delete Forever"}
+              </button>
+            </div>
           </div>
         </div>
       )}

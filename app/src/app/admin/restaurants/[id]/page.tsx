@@ -2,7 +2,8 @@
 
 import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
+import { toast } from "sonner";
 import { formatRelativeTime, formatPrice } from "@/lib/utils";
 
 const PLAN_STYLES: Record<string, { label: string; className: string }> = {
@@ -27,13 +28,15 @@ const TX_STATUS_STYLES: Record<string, string> = {
   expired:   "bg-surface-container text-secondary",
 };
 
+const PLAN_OPTIONS = ["free", "pro", "business"] as const;
+type Plan = (typeof PLAN_OPTIONS)[number];
 type Tab = "overview" | "menus" | "orders" | "transactions";
 
 interface RestaurantDetail {
   id: string; name: string; slug: string | null; plan: string; resolvedPlan: string;
   trial_ends_at: string | null; plan_expires_at: string | null;
   created_at: string; onboarded: boolean; custom_domain: string | null;
-  category: string | null; ownerEmail: string | null;
+  category: string | null; ownerEmail: string | null; payments_enabled: boolean;
 }
 interface MenuEntry { id: string; name: string; slug: string | null; status: string; createdAt: string; updatedAt: string; itemCount: number; }
 interface OrderEntry { id: string; items: { name: string; quantity: number }[]; total: number; status: string; source: string; customer_name: string | null; table_number: string | null; created_at: string; }
@@ -58,6 +61,7 @@ function KpiCard({ label, value }: { label: string; value: string | number }) {
 
 export default function RestaurantDetailPage() {
   const { id } = useParams<{ id: string }>();
+  const router = useRouter();
   const [restaurant, setRestaurant] = useState<RestaurantDetail | null>(null);
   const [menus, setMenus] = useState<MenuEntry[]>([]);
   const [orders, setOrders] = useState<OrderEntry[]>([]);
@@ -65,6 +69,15 @@ export default function RestaurantDetailPage() {
   const [analytics, setAnalytics] = useState<Analytics>({ views: 0, orders: 0, revenue: 0, conversionRate: 0 });
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState<Tab>("overview");
+  const [deleteConfirmed, setDeleteConfirmed] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [togglingPayments, setTogglingPayments] = useState(false);
+  const [showOverrideModal, setShowOverrideModal] = useState(false);
+  const [overridePlan, setOverridePlan] = useState<Plan>("free");
+  const [overrideExpiry, setOverrideExpiry] = useState(30);
+  const [savingOverride, setSavingOverride] = useState(false);
+  const [cancellingTx, setCancellingTx] = useState<string | null>(null);
 
   const load = useCallback(() => {
     if (!id) return;
@@ -83,6 +96,85 @@ export default function RestaurantDetailPage() {
   }, [id]);
 
   useEffect(() => { load(); }, [load]);
+
+  const handleDelete = async () => {
+    if (!deleteConfirmed || !restaurant) return;
+    setDeleting(true);
+    try {
+      const res = await fetch(`/api/admin/restaurants/${id}`, { method: "DELETE" });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to delete");
+      toast.success(`${restaurant.name} deleted`);
+      router.push("/admin/restaurants");
+    } catch (err: unknown) {
+      toast.error((err as Error).message);
+      setDeleting(false);
+    }
+  };
+
+  const handleTogglePayments = async () => {
+    if (!restaurant) return;
+    setTogglingPayments(true);
+    try {
+      const res = await fetch(`/api/admin/restaurants/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ field: "payments_enabled", value: !restaurant.payments_enabled }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed");
+      setRestaurant(r => r ? { ...r, payments_enabled: !r.payments_enabled } : r);
+      toast.success(`Payments ${!restaurant.payments_enabled ? "enabled" : "disabled"}`);
+    } catch (err: unknown) {
+      toast.error((err as Error).message);
+    } finally {
+      setTogglingPayments(false);
+    }
+  };
+
+  const handleOverrideSave = async () => {
+    if (!restaurant) return;
+    setSavingOverride(true);
+    try {
+      const res = await fetch("/api/admin/set-plan", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          restaurantId: id,
+          plan: overridePlan,
+          expiryDays: overridePlan === "free" ? undefined : overrideExpiry,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed");
+      toast.success(`Plan updated to ${overridePlan}`);
+      setRestaurant(r => r ? { ...r, plan: overridePlan, resolvedPlan: overridePlan, plan_expires_at: data.restaurant?.plan_expires_at ?? null } : r);
+      setShowOverrideModal(false);
+    } catch (err: unknown) {
+      toast.error((err as Error).message);
+    } finally {
+      setSavingOverride(false);
+    }
+  };
+
+  const handleCancelTx = async (txId: string) => {
+    setCancellingTx(txId);
+    try {
+      const res = await fetch("/api/admin/transactions", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: txId }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed");
+      setTransactions(prev => prev.map(tx => tx.id === txId ? { ...tx, status: "failed" } : tx));
+      toast.success("Transaction cancelled");
+    } catch (err: unknown) {
+      toast.error((err as Error).message);
+    } finally {
+      setCancellingTx(null);
+    }
+  };
 
   if (loading) {
     return (
@@ -138,19 +230,51 @@ export default function RestaurantDetailPage() {
               <p className="text-[11px] text-secondary font-mono mt-0.5">/menu/{restaurant.slug}</p>
             )}
           </div>
-          <div className="text-xs text-secondary text-right shrink-0">
-            <p>Joined {formatRelativeTime(restaurant.created_at)}</p>
-            {restaurant.plan_expires_at && restaurant.plan !== "free" && (
-              <p className="text-amber-600 mt-0.5 font-medium">
-                Expires {formatRelativeTime(restaurant.plan_expires_at)}
-              </p>
-            )}
-            {restaurant.trial_ends_at && restaurant.resolvedPlan === "trial" && (
-              <p className="text-violet-600 mt-0.5 font-medium">
-                Trial ends {formatRelativeTime(restaurant.trial_ends_at)}
-              </p>
-            )}
+          <div className="flex items-center gap-2 shrink-0 flex-wrap">
+            {/* Payments toggle */}
+            <button
+              type="button"
+              onClick={handleTogglePayments}
+              disabled={togglingPayments}
+              className={`flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-bold rounded-lg transition-all disabled:opacity-60 ${
+                restaurant.payments_enabled
+                  ? "bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
+                  : "bg-surface-container text-secondary hover:bg-surface-container-high"
+              }`}
+            >
+              <span className="material-symbols-outlined text-[14px] icon-fill">
+                {restaurant.payments_enabled ? "payments" : "money_off"}
+              </span>
+              {togglingPayments ? "…" : restaurant.payments_enabled ? "Payments On" : "Payments Off"}
+            </button>
+            {/* Plan override */}
+            <button
+              type="button"
+              onClick={() => { setOverridePlan(restaurant.plan as Plan); setOverrideExpiry(30); setShowOverrideModal(true); }}
+              className="flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-bold bg-primary/8 text-primary hover:bg-primary/15 rounded-lg transition-all"
+            >
+              <span className="material-symbols-outlined text-[14px]">manage_accounts</span>
+              Override Plan
+            </button>
+            {/* Delete */}
+            <button
+              type="button"
+              onClick={() => { setDeleteConfirmed(false); setShowDeleteModal(true); }}
+              className="flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-bold bg-red-50 text-red-500 hover:bg-red-100 rounded-lg transition-all"
+            >
+              <span className="material-symbols-outlined text-[14px]">delete</span>
+              Delete
+            </button>
           </div>
+        </div>
+        <div className="text-xs text-secondary mt-3 flex gap-4 flex-wrap">
+          <span>Joined {formatRelativeTime(restaurant.created_at)}</span>
+          {restaurant.plan_expires_at && restaurant.plan !== "free" && (
+            <span className="text-amber-600 font-medium">Expires {formatRelativeTime(restaurant.plan_expires_at)}</span>
+          )}
+          {restaurant.trial_ends_at && restaurant.resolvedPlan === "trial" && (
+            <span className="text-violet-600 font-medium">Trial ends {formatRelativeTime(restaurant.trial_ends_at)}</span>
+          )}
         </div>
       </div>
 
@@ -313,11 +437,12 @@ export default function RestaurantDetailPage() {
                   <th className="px-4 py-3.5 text-right">Amount</th>
                   <th className="px-4 py-3.5 text-left">Status</th>
                   <th className="px-4 py-3.5 text-left">Deposit ID</th>
+                  <th className="px-4 py-3.5 text-right">Action</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-black/5">
                 {transactions.length === 0 ? (
-                  <tr><td colSpan={5} className="px-5 py-16 text-center text-secondary text-sm">No transactions yet.</td></tr>
+                  <tr><td colSpan={6} className="px-5 py-16 text-center text-secondary text-sm">No transactions yet.</td></tr>
                 ) : transactions.map(tx => (
                   <tr key={tx.id} className="hover:bg-surface-container/30 transition-colors">
                     <td className="px-5 py-4 text-secondary text-xs whitespace-nowrap">{formatRelativeTime(tx.createdAt)}</td>
@@ -328,11 +453,134 @@ export default function RestaurantDetailPage() {
                         {tx.status}
                       </span>
                     </td>
-                    <td className="px-4 py-4 text-[10px] font-mono text-secondary truncate max-w-[180px]" title={tx.depositId}>{tx.depositId}</td>
+                    <td className="px-4 py-4 text-[10px] font-mono text-secondary truncate max-w-[140px]" title={tx.depositId}>{tx.depositId}</td>
+                    <td className="px-4 py-4 text-right">
+                      {tx.status === "pending" && (
+                        <button
+                          type="button"
+                          onClick={() => handleCancelTx(tx.id)}
+                          disabled={cancellingTx === tx.id}
+                          className="px-2.5 py-1 text-[11px] font-bold bg-red-50 text-red-500 hover:bg-red-100 rounded-lg transition-all disabled:opacity-60"
+                        >
+                          {cancellingTx === tx.id ? "…" : "Cancel"}
+                        </button>
+                      )}
+                    </td>
                   </tr>
                 ))}
               </tbody>
             </table>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
+          <div className="bg-white w-full max-w-sm rounded-2xl p-7 shadow-2xl border border-black/6">
+            <div className="w-12 h-12 bg-red-100 rounded-2xl flex items-center justify-center mb-4">
+              <span className="material-symbols-outlined text-red-500 text-[24px]">warning</span>
+            </div>
+            <h2 className="font-bold text-lg text-on-surface mb-1">Delete Restaurant</h2>
+            <p className="text-sm text-secondary mb-4">
+              This permanently deletes{" "}
+              <span className="font-semibold text-on-surface">{restaurant.name}</span>,
+              all its menus, orders, and the owner&apos;s account. This action cannot be undone.
+            </p>
+            <label className="flex items-center gap-3 p-3 bg-red-50 rounded-xl cursor-pointer mb-5">
+              <input
+                type="checkbox"
+                checked={deleteConfirmed}
+                onChange={e => setDeleteConfirmed(e.target.checked)}
+                className="w-4 h-4 accent-red-500"
+              />
+              <span className="text-xs font-bold text-red-700">I understand this is permanent and irreversible</span>
+            </label>
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={() => setShowDeleteModal(false)}
+                disabled={deleting}
+                className="flex-1 py-2.5 rounded-xl text-sm font-bold bg-surface-container text-secondary hover:bg-surface-container-high transition-all disabled:opacity-60"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleDelete}
+                disabled={!deleteConfirmed || deleting}
+                className="flex-1 py-2.5 rounded-xl text-sm font-bold bg-red-500 text-white hover:bg-red-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {deleting ? "Deleting…" : "Delete Forever"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Plan Override Modal */}
+      {showOverrideModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
+          <div className="bg-white w-full max-w-sm rounded-2xl p-7 shadow-2xl border border-black/6">
+            <h2 className="font-bold text-lg text-on-surface mb-1">Override Plan</h2>
+            <p className="text-sm text-secondary mb-6">
+              <span className="font-semibold text-on-surface">{restaurant.name}</span>
+              {restaurant.ownerEmail && (
+                <span className="text-xs block mt-0.5">{restaurant.ownerEmail}</span>
+              )}
+            </p>
+            <div className="space-y-4">
+              <div>
+                <label className="text-[10px] font-bold uppercase tracking-widest text-secondary mb-2 block">New Plan</label>
+                <div className="grid grid-cols-3 gap-2">
+                  {PLAN_OPTIONS.map(p => (
+                    <button
+                      type="button"
+                      key={p}
+                      onClick={() => setOverridePlan(p)}
+                      className={`py-2 rounded-xl text-xs font-bold capitalize border-2 transition-all ${
+                        overridePlan === p
+                          ? "border-primary bg-primary/5 text-primary"
+                          : "border-black/8 text-secondary hover:border-primary/30"
+                      }`}
+                    >
+                      {p}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              {overridePlan !== "free" && (
+                <div>
+                  <label className="text-[10px] font-bold uppercase tracking-widest text-secondary mb-2 block">Expires in (days)</label>
+                  <input
+                    type="number"
+                    min={1}
+                    value={overrideExpiry}
+                    onChange={e => setOverrideExpiry(Math.max(1, Number(e.target.value)))}
+                    aria-label="Expiry days"
+                    className="w-full bg-surface-container-low rounded-xl px-4 py-2.5 text-sm border-none focus:ring-2 focus:ring-primary/20"
+                  />
+                </div>
+              )}
+            </div>
+            <div className="flex gap-3 mt-6">
+              <button
+                type="button"
+                onClick={() => setShowOverrideModal(false)}
+                disabled={savingOverride}
+                className="flex-1 py-2.5 rounded-xl text-sm font-bold bg-surface-container text-secondary hover:bg-surface-container-high transition-all disabled:opacity-60"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleOverrideSave}
+                disabled={savingOverride}
+                className="flex-1 py-2.5 rounded-xl text-sm font-bold bg-primary text-white hover:opacity-90 transition-all disabled:opacity-60"
+              >
+                {savingOverride ? "Saving…" : "Confirm"}
+              </button>
+            </div>
           </div>
         </div>
       )}

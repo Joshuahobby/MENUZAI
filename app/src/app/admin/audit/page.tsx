@@ -17,9 +17,10 @@ interface AuditEntry {
 }
 
 const ACTION_STYLES: Record<string, { label: string; iconClass: string; icon: string; badge: string }> = {
-  plan_override:     { label: "Plan Override",    icon: "swap_horiz", iconClass: "bg-amber-500/10 text-amber-600",   badge: "bg-amber-500/10 text-amber-700"  },
-  ai_config_change:  { label: "AI Config Change", icon: "smart_toy",  iconClass: "bg-blue-500/10 text-blue-600",     badge: "bg-blue-500/10 text-blue-700"    },
-  plan_price_change: { label: "Price Change",     icon: "sell",       iconClass: "bg-emerald-500/10 text-emerald-600", badge: "bg-emerald-500/10 text-emerald-700" },
+  plan_override:       { label: "Plan Override",       icon: "swap_horiz", iconClass: "bg-amber-500/10 text-amber-600",   badge: "bg-amber-500/10 text-amber-700"   },
+  ai_config_change:    { label: "AI Config Change",    icon: "smart_toy",  iconClass: "bg-blue-500/10 text-blue-600",     badge: "bg-blue-500/10 text-blue-700"     },
+  plan_price_change:   { label: "Price Change",        icon: "sell",       iconClass: "bg-emerald-500/10 text-emerald-600", badge: "bg-emerald-500/10 text-emerald-700" },
+  restaurant_deleted:  { label: "Restaurant Deleted",  icon: "delete",     iconClass: "bg-red-500/10 text-red-600",       badge: "bg-red-500/10 text-red-700"       },
 };
 
 function summarise(entry: AuditEntry): string {
@@ -42,14 +43,19 @@ function summarise(entry: AuditEntry): string {
     const newBiz = (entry.new_value?.business as number) ?? "?";
     return `Pro ${oldPro} → ${newPro} · Business ${oldBiz} → ${newBiz} RWF`;
   }
+  if (entry.action === "restaurant_deleted") {
+    const name = (entry.old_value?.name as string) ?? entry.target_name ?? "?";
+    return `Permanently deleted "${name}"`;
+  }
   return "—";
 }
 
 const FILTER_OPTIONS = [
-  { value: "all",               label: "All Actions"   },
-  { value: "plan_override",     label: "Plan Overrides" },
-  { value: "ai_config_change",  label: "Config Changes" },
-  { value: "plan_price_change", label: "Price Changes"  },
+  { value: "all",                label: "All Actions"       },
+  { value: "plan_override",      label: "Plan Overrides"    },
+  { value: "ai_config_change",   label: "Config Changes"    },
+  { value: "plan_price_change",  label: "Price Changes"     },
+  { value: "restaurant_deleted", label: "Deletions"         },
 ];
 
 export default function AdminAuditPage() {

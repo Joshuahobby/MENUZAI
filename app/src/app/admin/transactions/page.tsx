@@ -18,6 +18,7 @@ export default function AdminTransactionsPage() {
   const [rows, setRows] = useState<TransactionRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<string>("all");
+  const [cancellingId, setCancellingId] = useState<string | null>(null);
 
   const load = useCallback(() => {
     setLoading(true);
@@ -34,6 +35,25 @@ export default function AdminTransactionsPage() {
   const completedRevenue = rows
     .filter(r => r.status === "completed")
     .reduce((s, r) => s + r.amount, 0);
+
+  const handleCancel = async (txId: string) => {
+    setCancellingId(txId);
+    try {
+      const res = await fetch("/api/admin/transactions", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: txId }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to cancel");
+      setRows(prev => prev.map(r => r.id === txId ? { ...r, status: "failed" } : r));
+      toast.success("Transaction cancelled");
+    } catch (err: unknown) {
+      toast.error((err as Error).message);
+    } finally {
+      setCancellingId(null);
+    }
+  };
 
   const statusBadge = (status: string) => {
     const s = STATUS_STYLES[status] ?? STATUS_STYLES.expired;
@@ -118,12 +138,13 @@ export default function AdminTransactionsPage() {
                   <th className="px-4 py-3.5 text-right">Amount</th>
                   <th className="px-4 py-3.5 text-left">Status</th>
                   <th className="px-4 py-3.5 text-left">Deposit ID</th>
+                  <th className="px-4 py-3.5 text-right">Action</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-black/5">
                 {filtered.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="px-5 py-16 text-center text-secondary text-sm">
+                    <td colSpan={8} className="px-5 py-16 text-center text-secondary text-sm">
                       No transactions found
                     </td>
                   </tr>
@@ -146,6 +167,18 @@ export default function AdminTransactionsPage() {
                       <td className="px-4 py-4">{statusBadge(tx.status)}</td>
                       <td className="px-4 py-4 text-[10px] font-mono text-secondary truncate max-w-[140px]" title={tx.depositId}>
                         {tx.depositId}
+                      </td>
+                      <td className="px-4 py-4 text-right">
+                        {tx.status === "pending" && (
+                          <button
+                            type="button"
+                            onClick={() => handleCancel(tx.id)}
+                            disabled={cancellingId === tx.id}
+                            className="px-2.5 py-1 text-[11px] font-bold bg-red-50 text-red-500 hover:bg-red-100 rounded-lg transition-all disabled:opacity-60"
+                          >
+                            {cancellingId === tx.id ? "…" : "Cancel"}
+                          </button>
+                        )}
                       </td>
                     </tr>
                   ))
