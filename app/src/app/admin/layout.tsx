@@ -6,12 +6,13 @@ import { usePathname, useRouter } from "next/navigation";
 import { useMenu } from "@/context/MenuContext";
 
 const NAV = [
-  { href: "/admin/metrics",      label: "Metrics",      icon: "bar_chart"   },
-  { href: "/admin/restaurants",  label: "Restaurants",  icon: "storefront"  },
-  { href: "/admin/transactions", label: "Transactions", icon: "payments"    },
-  { href: "/admin/broadcast",    label: "Broadcast",    icon: "campaign"    },
-  { href: "/admin/audit",        label: "Audit Log",    icon: "history"     },
-  { href: "/admin/settings",     label: "AI Settings",  icon: "smart_toy"   },
+  { href: "/admin/metrics",       label: "Metrics",       icon: "bar_chart"         },
+  { href: "/admin/restaurants",   label: "Restaurants",   icon: "storefront"        },
+  { href: "/admin/transactions",  label: "Transactions",  icon: "payments"          },
+  { href: "/admin/subscriptions", label: "Subscriptions", icon: "sell"              },
+  { href: "/admin/broadcast",     label: "Broadcast",     icon: "campaign"          },
+  { href: "/admin/audit",         label: "Audit Log",     icon: "history"           },
+  { href: "/admin/settings",      label: "AI Settings",   icon: "smart_toy"         },
 ];
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
