@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { toast } from "sonner";
 import { formatRelativeTime } from "@/lib/utils";
 import type { TransactionRow } from "@/app/api/admin/transactions/route";
@@ -22,22 +22,24 @@ export default function AdminTransactionsPage() {
   const [filter, setFilter] = useState<string>("all");
   const [cancellingId, setCancellingId] = useState<string | null>(null);
   const [cooldown, setCooldown] = useState(false);
+  const cooldownRef = useRef(false);
 
   const load = useCallback((manual = false) => {
-    if (manual && cooldown) return;
+    if (manual && cooldownRef.current) return;
     setLoading(true);
     if (manual) {
+      cooldownRef.current = true;
       setCooldown(true);
-      setTimeout(() => setCooldown(false), REFRESH_COOLDOWN_MS);
+      setTimeout(() => { cooldownRef.current = false; setCooldown(false); }, REFRESH_COOLDOWN_MS);
     }
     fetch("/api/admin/transactions")
       .then(r => r.json())
       .then(d => setRows(d.transactions ?? []))
       .catch(() => toast.error("Failed to load transactions"))
       .finally(() => setLoading(false));
-  }, [cooldown]);
+  }, []);
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => { load(); }, [load]);
 
   const filtered = filter === "all" ? rows : rows.filter(r => r.status === filter);
   const completedRevenue = rows

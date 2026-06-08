@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
 import { formatRelativeTime } from "@/lib/utils";
@@ -39,22 +39,24 @@ export default function AdminRestaurantsPage() {
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [cooldown, setCooldown] = useState(false);
+  const cooldownRef = useRef(false);
 
   const load = useCallback((manual = false) => {
-    if (manual && cooldown) return;
+    if (manual && cooldownRef.current) return;
     setLoading(true);
     if (manual) {
+      cooldownRef.current = true;
       setCooldown(true);
-      setTimeout(() => setCooldown(false), REFRESH_COOLDOWN_MS);
+      setTimeout(() => { cooldownRef.current = false; setCooldown(false); }, REFRESH_COOLDOWN_MS);
     }
     fetch("/api/admin/restaurants")
       .then(r => r.json())
       .then(d => setRows(d.restaurants ?? []))
       .catch(() => toast.error("Failed to load restaurants"))
       .finally(() => setLoading(false));
-  }, [cooldown]);
+  }, []);
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => { load(); }, [load]);
 
   const filtered = rows.filter(r => {
     const q = search.toLowerCase();

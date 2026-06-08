@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import Link from "next/link";
 import { formatRelativeTime } from "@/lib/utils";
 import { getPlanMeta } from "@/lib/plans";
@@ -148,14 +148,16 @@ export default function AdminMetricsPage() {
   const [error, setError] = useState<string | null>(null);
   const [lastFetched, setLastFetched] = useState<Date | null>(null);
   const [cooldown, setCooldown] = useState(false);
+  const cooldownRef = useRef(false);
 
   const loadMetrics = useCallback((manual = false) => {
-    if (manual && cooldown) return;
+    if (manual && cooldownRef.current) return;
     setLoading(true);
     setError(null);
     if (manual) {
+      cooldownRef.current = true;
       setCooldown(true);
-      setTimeout(() => setCooldown(false), REFRESH_COOLDOWN_MS);
+      setTimeout(() => { cooldownRef.current = false; setCooldown(false); }, REFRESH_COOLDOWN_MS);
     }
     Promise.all([
       fetch("/api/admin/metrics").then(r => r.json()),
@@ -168,9 +170,9 @@ export default function AdminMetricsPage() {
       })
       .catch(() => setError("Failed to load metrics."))
       .finally(() => setLoading(false));
-  }, [cooldown]);
+  }, []);
 
-  useEffect(() => { loadMetrics(); }, []);
+  useEffect(() => { loadMetrics(); }, [loadMetrics]);
 
   return (
     <div className="p-6 lg:p-8 max-w-6xl">
