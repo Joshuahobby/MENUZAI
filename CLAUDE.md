@@ -109,6 +109,7 @@ MENUZAI is an AI-powered SaaS platform for restaurant menu digitization. Stack: 
 | `/admin/transactions` | Yes (platform admin) | Full payment transaction ledger |
 | `/admin/broadcast` | Yes (platform admin) | Send segmented emails (all / trial / free / pro / business) via Resend |
 | `/admin/audit` | Yes (platform admin) | Immutable audit log of admin-initiated mutations |
+| `/admin/subscriptions` | Yes (platform admin) | Live subscriber counts, estimated MRR by plan, and an in-page pricing editor (reads/writes `platform_settings.plan_prices`); changes take effect immediately with no redeploy |
 | `/admin/settings` | Yes (platform admin) | Super-admin AI provider config; guarded by `isPlatformAdmin()` |
 | `/menu/[slug]` | No | Public menu — only renders if `status = 'published'` |
 | `/menu/[slug]/order` | No | Cart + WhatsApp checkout for public menus |
@@ -131,6 +132,7 @@ MENUZAI is an AI-powered SaaS platform for restaurant menu digitization. Stack: 
 | `/api/ai-reply` | POST | Generates AI reply draft for a customer review; **Pro-only** (auth + plan checked server-side); uses OpenRouter with fallback template |
 | `/api/ai/generate-items` | POST | Generates menu items from a natural-language prompt; bulk-inserts into the active category; uses configured AI provider |
 | `/api/ai/description` | POST | Auto-writes a single item description given the item name and tags; uses configured AI provider |
+| `/api/admin/subscriptions` | GET/POST | GET: live plan distribution + MRR + current prices from `platform_settings.plan_prices`. POST: update Pro/Business prices (1,000–10,000,000 RWF); writes `plan_price_change` to `admin_audit_log`; admin-only |
 | `/api/admin/ai-config` | GET/POST | Read/write `platform_settings`; restricted to `isPlatformAdmin()` emails |
 | `/api/admin/metrics` | GET | Platform-wide MRR, restaurant/order counts by plan; admin-only |
 | `/api/admin/restaurants` | GET | Paginated restaurant list with plan/search filters; admin-only |
@@ -144,7 +146,7 @@ MENUZAI is an AI-powered SaaS platform for restaurant menu digitization. Stack: 
 | `/api/notifications/order` | POST | Sends order receipt emails to restaurant owner and (if provided) customer via Resend; body: `{ restaurantId, items, total, currency, customerName?, customerEmail?, tableNumber? }` |
 | `/api/public/stats` | GET | Returns `{ restaurants, orders }` counts for landing page social proof; cached 1 hr (`s-maxage=3600`); falls back to seed values if admin client unavailable |
 | `/api/orders/confirm` | POST | Confirms order, decrements `stock_count` on each item, auto-sets `available=false` when stock hits 0; requires `SUPABASE_SERVICE_ROLE_KEY` |
-| `/api/payments/pawapay` | POST | Payment initiation; amount is looked up server-side from `PLAN_PRICES` (not trusted from client); falls back to simulation if `PAWAPAY_API_KEY` not set |
+| `/api/payments/pawapay` | POST | Payment initiation; amount is looked up server-side from `platform_settings.plan_prices` (not trusted from client), falling back to hardcoded defaults; falls back to simulation if `PAWAPAY_API_KEY` not set |
 | `/api/payments/food` | POST | Initiates a food order payment via PawaPay; restaurant must have `payments_enabled=true`; creates order in `pending_payment` status; body: `{ restaurantId, menuId, items, total, currency, phone, tableNumber?, customerName? }` |
 | `/api/payments/status` | GET | Poll transaction status by `?depositId=`; auth-scoped to the requesting user; returns `{ status, plan }` |
 | `/api/webhooks/pawapay` | POST | Payment webhook; verifies `X-Pawapay-Signature` RSA-SHA256; on `COMPLETED` upgrades plan and sets `plan_expires_at = now()+30d` |
@@ -160,7 +162,7 @@ MENUZAI is an AI-powered SaaS platform for restaurant menu digitization. Stack: 
 
 ### Platform Admin Access
 
-`isPlatformAdmin(email)` in `app/src/lib/utils.ts` checks against a comma-separated `NEXT_PUBLIC_ADMIN_EMAILS` env var (falls back to `admin@menuzai.com,e2e-test@menuzai.test`). All `/admin/*` pages and `/api/admin/*` routes check this. Platform admins can switch the global AI provider between `openrouter` and `anthropic`, override restaurant plans (logged to `admin_audit_log`), send broadcast emails, and view all transactions and cron job status.
+`isPlatformAdmin(email)` in `app/src/lib/utils.ts` checks against a comma-separated `NEXT_PUBLIC_ADMIN_EMAILS` env var (falls back to `admin@menuzai.com,e2e-test@menuzai.test`). All `/admin/*` pages and `/api/admin/*` routes check this. Platform admins can switch the global AI provider between `openrouter` and `anthropic`, override restaurant plans (logged to `admin_audit_log`), update plan prices (logged as `plan_price_change`), send broadcast emails, and view all transactions and cron job status.
 
 ### Supabase: Four Clients
 
@@ -215,7 +217,7 @@ Key tables:
 - **`menus`** — many per restaurant. `categories` and `items` are JSONB arrays. `status` is `'draft' | 'published'`. Has a legacy `restaurant_name` column (nullable, unused — do not rely on it).
 - **`analytics_events`** — fired client-side via `app/src/lib/analytics.ts` (fire-and-forget, no error handling by design).
 - **`orders`** — created via WhatsApp flow or AI Waiter. `status`: `pending_payment` → `pending` → `preparing` → `confirmed` → `cancelled`. `pending_payment` is set when online food payment is initiated; transitions to `pending` on PawaPay `COMPLETED` webhook. Use `POST /api/orders/confirm` to mark ready (sets `confirmed`, decrements stock). `preparing` and `cancelled` are set directly via Supabase client. Also stores `customer_email` (migration 013) for Resend receipt emails, `source` (migration 019): `'whatsapp'` or `'ai_waiter'`, `paid boolean`, and `payment_deposit_id` (PawaPay deposit reference).
-- **`platform_settings`** — single row ('global') managing global AI provider and model orchestration.
+- **`platform_settings`** — single row ('global') managing global AI provider and model orchestration. Also stores `plan_prices: { pro, business }` (JSONB) — the canonical prices used by payment initiation, the public pricing page, and `/admin/subscriptions`. Defaults to 35,000/89,000 RWF if the column is absent (pre-migration fallback in `DEFAULT_PRICES` in `api/admin/subscriptions/route.ts`).
 - **`restaurant_staff`** — RBAC join table: `(restaurant_id, user_id, role)`. Roles: `owner`, `manager`, `staff`. Unique per `(restaurant_id, user_id)`. Backfilled from `restaurants.user_id` on migration.
 - **`reviews`** — customer reviews: `(restaurant_id, rating 1–5, customer_name?, comment?, order_id?, sentiment, reply?, replied_at?)`. Open insert, staff-only read. `sentiment` is `"positive" | "negative" | "neutral"`. Staff can draft and save replies via `/dashboard/reviews`.
 - **`push_subscriptions`** — Web Push subscription objects per restaurant. Upserted via `/api/push/subscribe` (authenticated); sent via `/api/push/send` (admin client). Requires `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_CONTACT_EMAIL` env vars; silently skips if not configured.
