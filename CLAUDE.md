@@ -210,6 +210,13 @@ Migrations live in `app/supabase/migrations/` — run them in order in the Supab
 | `026_admin_audit_log.sql` | `admin_audit_log` table — immutable record of admin mutations (plan overrides, AI config changes); service_role only |
 | `027_orders_pending_payment.sql` | Adds `pending_payment` status to `orders`; adds `paid boolean` and `payment_deposit_id text` columns |
 | `028_restaurants_payments_enabled.sql` | Adds `payments_enabled boolean default false` to `restaurants`; opt-in flag for online food payment via PawaPay |
+| `029_analytics_rls_restaurant_check.sql` | Tightens analytics_events INSERT RLS — adds `restaurant_id = menus.restaurant_id` cross-check to prevent fake event injection |
+| `030_fix_restaurant_assets_rls.sql` | Fixes restaurant-assets Storage bucket RLS — adds ownership check so users can only manage their own files (was checking bucket_id only) |
+| `031_fix_orders_insert_rls.sql` | Fixes orders INSERT RLS — adds `restaurant_id` cross-check against `menu_id`'s actual restaurant (was checkable with arbitrary restaurant_id) |
+| `032_enforce_plan_menu_limits.sql` | DB-level trigger enforcing plan menu limits (free: max 1 total, max 1 published); previously client-side only via MenuContext |
+| `033_enforce_location_limits.sql` | DB-level trigger enforcing restaurant location limits (free/pro: max 1, business: max 5); previously client-side only |
+| `034_reviews_update_policy.sql` | Adds UPDATE RLS policy to `reviews` — was missing, silently blocking staff reply saves in the dashboard |
+| `035_plan_prices.sql` | Adds `plan_prices jsonb` column to `platform_settings`; default `{"pro":35000,"business":89000}` RWF; enables admin price changes without redeploy |
 
 Key tables:
 
