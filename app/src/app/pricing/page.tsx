@@ -7,8 +7,7 @@ import { supabase } from "@/lib/supabase";
 import { PublicNav } from "@/components/PublicNav";
 import { BackToTop } from "@/components/BackToTop";
 import { AuthCta } from "@/components/AuthCta";
-
-const MONTHLY = { pro: 35000, business: 89000 };
+import { useLivePricing } from "@/hooks/useLivePricing";
 
 const fmt = (n: number) => new Intl.NumberFormat("en-US").format(n);
 
@@ -82,21 +81,25 @@ function FeatureRow({ text, muted }: { text: string; muted?: boolean }) {
 
 export default function PricingPage() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [isAnnual, setIsAnnual] = useState(true);
+  const [isAnnual, setIsAnnual] = useState(false);
+  const [checkoutOpen, setCheckoutOpen] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState({ name: "", price: 0 });
+  const pricingPlans = useLivePricing();
+
+  const proMonthly  = pricingPlans.find(p => p.name === "Pro")?.amountRwf ?? 35000;
+  const bizMonthly  = pricingPlans.find(p => p.name === "Business")?.amountRwf ?? 89000;
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     if (params.get("billing") === "annual") setIsAnnual(true);
   }, []);
-  const [checkoutOpen, setCheckoutOpen] = useState(false);
-  const [selectedPlan, setSelectedPlan] = useState({ name: "", price: 0 });
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => setIsLoggedIn(!!data.session));
   }, []);
 
-  const proPrice  = isAnnual ? MONTHLY.pro * 11       : MONTHLY.pro;
-  const bizPrice  = isAnnual ? MONTHLY.business * 11  : MONTHLY.business;
+  const proPrice  = isAnnual ? proMonthly * 11  : proMonthly;
+  const bizPrice  = isAnnual ? bizMonthly * 11  : bizMonthly;
   const period    = isAnnual ? "per year" : "per month";
 
   const openCheckout = (name: string, price: number, e: React.MouseEvent) => {
@@ -206,7 +209,7 @@ export default function PricingPage() {
               <p className="text-xs text-white/40 mt-1.5">{period}</p>
               {isAnnual && (
                 <p className="text-xs text-primary mt-1 font-semibold">
-                  Save {fmt(MONTHLY.pro)} RWF vs monthly
+                  Save {fmt(proMonthly)} RWF vs monthly
                 </p>
               )}
             </div>
@@ -258,7 +261,7 @@ export default function PricingPage() {
               <p className="text-xs text-secondary/60 mt-1.5">{period}</p>
               {isAnnual && (
                 <p className="text-xs text-primary mt-1 font-semibold">
-                  Save {fmt(MONTHLY.business)} RWF vs monthly
+                  Save {fmt(bizMonthly)} RWF vs monthly
                 </p>
               )}
             </div>

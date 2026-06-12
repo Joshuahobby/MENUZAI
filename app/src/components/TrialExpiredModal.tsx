@@ -2,9 +2,7 @@
 
 import { useState } from "react";
 import { CheckoutModal } from "@/components/CheckoutModal";
-
-const MONTHLY_PRO = 35_000;
-const ANNUAL_PRO = MONTHLY_PRO * 11;
+import { useLivePricing } from "@/hooks/useLivePricing";
 
 const PRO_FEATURES = [
   "AI Digital Waiter — answers questions, takes orders 24/7",
@@ -23,8 +21,12 @@ interface TrialExpiredModalProps {
 }
 
 export default function TrialExpiredModal({ restaurantId, onDismiss }: TrialExpiredModalProps) {
-  const [isAnnual, setIsAnnual] = useState(true);
+  const [isAnnual, setIsAnnual] = useState(false);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
+  const pricingPlans = useLivePricing();
+
+  const MONTHLY_PRO = pricingPlans.find(p => p.name === "Pro")?.amountRwf ?? 35_000;
+  const ANNUAL_PRO = MONTHLY_PRO * 11;
 
   const price = isAnnual ? ANNUAL_PRO : MONTHLY_PRO;
   const planName = `Pro (${isAnnual ? "Annual" : "Monthly"})`;

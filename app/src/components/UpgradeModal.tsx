@@ -3,6 +3,7 @@
 import { useState, useCallback, createContext, useContext, useRef } from "react";
 import { CheckoutModal } from "@/components/CheckoutModal";
 import { useMenu } from "@/context/MenuContext";
+import { useLivePricing } from "@/hooks/useLivePricing";
 
 interface UpgradeModalOptions {
   feature?: string;
@@ -34,6 +35,8 @@ export function UpgradeProvider({ children }: { children: React.ReactNode }) {
   const [opts, setOpts] = useState<UpgradeModalOptions>({});
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const { setPlan } = useMenu();
+  const plans = useLivePricing();
+  const proPrice = plans.find(p => p.name === "Pro")?.amountRwf ?? 35000;
 
   const showUpgrade = useCallback((options?: UpgradeModalOptions) => {
     setOpts(options ?? {});
@@ -80,7 +83,7 @@ export function UpgradeProvider({ children }: { children: React.ReactNode }) {
               {/* Pricing */}
               <div className="bg-surface-container rounded-2xl p-4 mb-5 flex items-center justify-between">
                 <div>
-                  <p className="font-black text-xl">35,000 RWF</p>
+                  <p className="font-black text-xl">{proPrice.toLocaleString()} RWF</p>
                   <p className="text-xs text-secondary">per month · cancel anytime</p>
                 </div>
                 <span className="text-xs font-bold bg-primary/10 text-primary px-3 py-1.5 rounded-full">MTN MoMo / Airtel</span>
@@ -111,7 +114,7 @@ export function UpgradeProvider({ children }: { children: React.ReactNode }) {
         isOpen={checkoutOpen}
         onClose={() => setCheckoutOpen(false)}
         planName="Pro"
-        priceAmount={35000}
+        priceAmount={proPrice}
         onSuccess={(newPlan) => {
           setPlan(newPlan);
           setCheckoutOpen(false);
