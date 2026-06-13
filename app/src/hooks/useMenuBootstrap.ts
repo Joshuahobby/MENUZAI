@@ -5,6 +5,7 @@ import { supabase } from "@/lib/supabase";
 import { defaultStyle } from "@/store/menuStore";
 import type { User } from "@supabase/supabase-js";
 import { useMenuStore } from "@/store/menuStore";
+import { isPlatformAdmin } from "@/lib/utils";
 
 /**
  * useMenuBootstrap
@@ -194,6 +195,11 @@ export function useMenuBootstrap() {
                 userRole,
               });
             }
+          } else if (isPlatformAdmin(user.email)) {
+            // Platform admin with no restaurant — treat as onboarded so the dashboard
+            // layout redirects them to /admin/metrics instead of /onboarding.
+            if (!cancelled) hydrate({ onboarded: true, userRole: "owner", plan: "free" });
+            return; // no restaurant → no menu to load; finally block still runs
           } else {
             // New owner — no restaurant, no staff role anywhere. Create their restaurant.
             // Plain INSERT (not upsert) — onConflict:"user_id" was removed in migration 022

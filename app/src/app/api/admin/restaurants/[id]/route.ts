@@ -138,11 +138,18 @@ export async function DELETE(_req: Request, { params }: PageProps) {
     const { error: deleteError } = await admin.from("restaurants").delete().eq("id", id);
     if (deleteError) return NextResponse.json({ error: deleteError.message }, { status: 500 });
 
-    // Delete auth user (non-fatal if it fails — restaurant data is already gone)
+    // Delete auth user (non-fatal if it fails — restaurant data is already gone).
+    // Never delete the auth account of a platform admin.
     if (restaurant.user_id) {
-      await admin.auth.admin.deleteUser(restaurant.user_id).catch(e =>
-        console.error("Failed to delete auth user after restaurant deletion:", e)
-      );
+      const { data: { user: targetUser } } = await admin.auth.admin.getUserById(restaurant.user_id)
+        .catch(() => ({ data: { user: null } }));
+      if (isPlatformAdmin(targetUser?.email)) {
+        console.warn("admin: skipped auth-user deletion for platform admin", targetUser?.email);
+      } else {
+        await admin.auth.admin.deleteUser(restaurant.user_id).catch(e =>
+          console.error("Failed to delete auth user after restaurant deletion:", e)
+        );
+      }
     }
 
     // Audit log (fire-and-forget — non-fatal)
