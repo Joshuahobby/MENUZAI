@@ -50,9 +50,13 @@ export default function AdminRestaurantsPage() {
       setTimeout(() => { cooldownRef.current = false; setCooldown(false); }, REFRESH_COOLDOWN_MS);
     }
     fetch("/api/admin/restaurants")
-      .then(r => r.json())
+      .then(async r => {
+        const d = await r.json();
+        if (!r.ok) throw new Error(d.error || `Server error ${r.status}`);
+        return d;
+      })
       .then(d => setRows(d.restaurants ?? []))
-      .catch(() => toast.error("Failed to load restaurants"))
+      .catch((err: unknown) => toast.error((err as Error).message || "Failed to load restaurants"))
       .finally(() => setLoading(false));
   }, []);
 

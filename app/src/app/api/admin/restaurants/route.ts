@@ -40,6 +40,11 @@ export async function GET() {
       admin.auth.admin.listUsers({ perPage: 1000 }),
     ]);
 
+    if (restaurantsResult.error) console.error("admin/restaurants: restaurants query error", restaurantsResult.error);
+    if (menusResult.error) console.error("admin/restaurants: menus query error", menusResult.error);
+    if (ordersResult.error) console.error("admin/restaurants: orders query error", ordersResult.error);
+    if (usersResult.error) console.error("admin/restaurants: listUsers error", usersResult.error);
+
     const restaurants = restaurantsResult.data ?? [];
     const menus = menusResult.data ?? [];
     const orders = ordersResult.data ?? [];
