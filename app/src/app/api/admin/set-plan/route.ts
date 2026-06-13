@@ -10,7 +10,12 @@ export async function POST(req: Request) {
   try {
     const supabase = await createSupabaseServerClient();
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user || !isPlatformAdmin(user.email)) {
+    if (!user) {
+      console.warn("admin/set-plan: unauthenticated request");
+      return NextResponse.json({ error: "Session expired — please refresh and try again" }, { status: 403 });
+    }
+    if (!isPlatformAdmin(user.email)) {
+      console.warn("admin/set-plan: non-admin attempt by", user.email);
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
