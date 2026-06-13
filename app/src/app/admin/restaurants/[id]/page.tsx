@@ -33,7 +33,7 @@ type Plan = (typeof PLAN_OPTIONS)[number];
 type Tab = "overview" | "menus" | "orders" | "transactions";
 
 interface RestaurantDetail {
-  id: string; name: string; slug: string | null; plan: string; resolvedPlan: string;
+  id: string; name: string; publishedSlug: string | null; plan: string; resolvedPlan: string;
   trial_ends_at: string | null; plan_expires_at: string | null;
   created_at: string; onboarded: boolean; custom_domain: string | null;
   category: string | null; ownerEmail: string | null; payments_enabled: boolean;
@@ -226,8 +226,8 @@ export default function RestaurantDetailPage() {
             {restaurant.ownerEmail && (
               <p className="text-sm text-secondary mt-1">{restaurant.ownerEmail}</p>
             )}
-            {restaurant.slug && (
-              <p className="text-[11px] text-secondary font-mono mt-0.5">/menu/{restaurant.slug}</p>
+            {restaurant.publishedSlug && (
+              <p className="text-[11px] text-secondary font-mono mt-0.5">/menu/{restaurant.publishedSlug}</p>
             )}
           </div>
           <div className="flex items-center gap-2 shrink-0 flex-wrap">

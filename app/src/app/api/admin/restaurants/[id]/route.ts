@@ -27,7 +27,7 @@ export async function GET(_req: Request, { params }: PageProps) {
       { data: orders },
       { data: transactions },
     ] = await Promise.all([
-      admin.from("restaurants").select("id, name, slug, plan, trial_ends_at, plan_expires_at, created_at, onboarded, custom_domain, category, user_id, payments_enabled").eq("id", id).single(),
+      admin.from("restaurants").select("id, name, plan, trial_ends_at, plan_expires_at, created_at, onboarded, custom_domain, category, user_id, payments_enabled").eq("id", id).single(),
       admin.from("menus").select("id, name, slug, status, created_at, updated_at, categories").eq("restaurant_id", id).order("updated_at", { ascending: false }),
       admin.from("orders").select("id, items, total, status, source, customer_name, table_number, created_at").eq("restaurant_id", id).order("created_at", { ascending: false }).limit(20),
       admin.from("transactions").select("id, deposit_id, amount, currency, plan_name, status, created_at").eq("restaurant_id", id).order("created_at", { ascending: false }),
@@ -43,6 +43,7 @@ export async function GET(_req: Request, { params }: PageProps) {
       const itemCount = categories.reduce((sum, c) => sum + (c.items?.length ?? 0), 0);
       return { id: m.id, name: m.name, slug: m.slug, status: m.status, createdAt: m.created_at, updatedAt: m.updated_at, itemCount };
     });
+    const publishedSlug = (menus ?? []).find(m => m.status === "published" && m.slug)?.slug ?? null;
 
     const since = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
     const { data: events } = await admin.from("analytics_events").select("event_type, amount").eq("restaurant_id", id).gte("created_at", since);
@@ -58,7 +59,7 @@ export async function GET(_req: Request, { params }: PageProps) {
         : restaurant.plan;
 
     return NextResponse.json({
-      restaurant: { ...restaurant, ownerEmail, resolvedPlan },
+      restaurant: { ...restaurant, ownerEmail, resolvedPlan, publishedSlug },
       menus: enrichedMenus,
       recentOrders: orders ?? [],
       transactions: (transactions ?? []).map(tx => ({
