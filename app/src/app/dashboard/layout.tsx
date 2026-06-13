@@ -90,12 +90,6 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (isLoading) return;
     if (!user) { router.push("/login"); return; }
-    // Platform admins: redirect to admin dashboard from /dashboard, and never
-    // send them through onboarding (even if they deleted their own restaurant).
-    if (isPlatformAdmin(user.email) && (pathname === "/dashboard" || !onboarded)) {
-      router.replace("/admin/metrics");
-      return;
-    }
     // Only owners go through onboarding. Staff/managers access the dashboard directly.
     if (!onboarded && (userRole === "owner" || userRole === null) && pathname !== "/dashboard/onboarding") {
       router.replace("/onboarding");
@@ -158,6 +152,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
             <select
               value={restaurantId ?? ""}
               onChange={(e) => switchRestaurantLocation(e.target.value)}
+              aria-label="Switch restaurant location"
               className="w-full text-xs font-semibold bg-surface-container border border-outline-variant/30 rounded-xl px-3 py-2 text-on-surface focus:outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer"
             >
               {ownedRestaurants.map((r) => (

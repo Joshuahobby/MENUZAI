@@ -3,40 +3,53 @@
 import { ReactNode, useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useMenu } from "@/context/MenuContext";
+import { supabase } from "@/lib/supabase";
+import { isPlatformAdmin } from "@/lib/utils";
+import type { User } from "@supabase/supabase-js";
 
 const NAV = [
-  { href: "/admin/metrics",       label: "Metrics",       icon: "bar_chart"         },
-  { href: "/admin/restaurants",   label: "Restaurants",   icon: "storefront"        },
-  { href: "/admin/transactions",  label: "Transactions",  icon: "payments"          },
-  { href: "/admin/subscriptions", label: "Subscriptions", icon: "sell"              },
-  { href: "/admin/broadcast",     label: "Broadcast",     icon: "campaign"          },
-  { href: "/admin/audit",         label: "Audit Log",     icon: "history"           },
-  { href: "/admin/settings",      label: "AI Settings",   icon: "smart_toy"         },
+  { href: "/admin/metrics",       label: "Metrics",       icon: "bar_chart"        },
+  { href: "/admin/restaurants",   label: "Restaurants",   icon: "storefront"       },
+  { href: "/admin/transactions",  label: "Transactions",  icon: "payments"         },
+  { href: "/admin/subscriptions", label: "Subscriptions", icon: "sell"             },
+  { href: "/admin/broadcast",     label: "Broadcast",     icon: "campaign"         },
+  { href: "/admin/audit",         label: "Audit Log",     icon: "history"          },
+  { href: "/admin/settings",      label: "AI Settings",   icon: "smart_toy"        },
 ];
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
-  const { user, isLoading } = useMenu();
   const router = useRouter();
   const pathname = usePathname();
-  const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
+  const [user, setUser] = useState<User | null>(null);
+  const [checked, setChecked] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
 
   useEffect(() => {
-    if (isLoading || !user) return;
-    fetch("/api/admin/health")
-      .then(r => {
-        if (!r.ok) { router.replace("/dashboard"); return; }
-        setIsAdmin(true);
-      })
-      .catch(() => router.replace("/dashboard"));
-  }, [user, isLoading, router]);
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      setUser(user);
+      setChecked(true);
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      const u = session?.user ?? null;
+      setUser(u);
+      if (!u) router.replace("/login");
+    });
+    return () => subscription.unsubscribe();
+  }, [router]);
 
   useEffect(() => {
-    if (!isLoading && !user) router.replace("/dashboard");
-  }, [user, isLoading, router]);
+    if (!checked) return;
+    if (!user) { router.replace("/login"); return; }
+    if (!isPlatformAdmin(user.email)) router.replace("/dashboard");
+  }, [checked, user, router]);
 
-  if (isLoading || isAdmin === null) {
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    router.replace("/login");
+  };
+
+  if (!checked || !user || !isPlatformAdmin(user.email)) {
     return (
       <div className="min-h-screen bg-slate-900 flex items-center justify-center">
         <span className="material-symbols-outlined text-[48px] text-white/30 animate-spin">progress_activity</span>
@@ -44,11 +57,8 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
     );
   }
 
-  if (!isAdmin) return null;
-
   const sidebarContent = (
     <div className="flex flex-col h-full">
-      {/* Brand */}
       <div className="px-5 py-5 border-b border-white/8">
         <div className="flex items-center gap-2.5">
           <div className="w-7 h-7 bg-primary rounded-md flex items-center justify-center shrink-0">
@@ -63,7 +73,6 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
         </div>
       </div>
 
-      {/* Navigation */}
       <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
         {NAV.map(item => {
           const active = pathname === item.href || pathname.startsWith(item.href + "/");
@@ -87,31 +96,36 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
         })}
       </nav>
 
-      {/* Footer */}
       <div className="px-3 py-4 border-t border-white/8 space-y-1">
-        {user?.email && (
-          <p className="px-3 pb-1 text-[10px] text-slate-500 truncate">{user.email}</p>
+        {user.email && (
+          <p className="px-3 pb-2 text-[10px] text-slate-500 truncate">{user.email}</p>
         )}
         <Link
           href="/dashboard"
           onClick={() => setMobileOpen(false)}
           className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-400 hover:text-white hover:bg-white/6 transition-all"
         >
-          <span className="material-symbols-outlined text-[18px] shrink-0">arrow_back</span>
-          Back to Dashboard
+          <span className="material-symbols-outlined text-[18px] shrink-0">storefront</span>
+          Restaurant Dashboard
         </Link>
+        <button
+          type="button"
+          onClick={handleSignOut}
+          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-400 hover:text-white hover:bg-white/6 transition-all text-left"
+        >
+          <span className="material-symbols-outlined text-[18px] shrink-0">logout</span>
+          Sign Out
+        </button>
       </div>
     </div>
   );
 
   return (
     <div className="min-h-screen bg-surface">
-      {/* Desktop sidebar */}
       <aside className="hidden lg:block fixed inset-y-0 left-0 w-60 bg-slate-900 z-40">
         {sidebarContent}
       </aside>
 
-      {/* Mobile top bar */}
       <header className="lg:hidden sticky top-0 z-40 bg-slate-900 flex items-center justify-between px-4 py-3">
         <div className="flex items-center gap-2.5">
           <div className="w-6 h-6 bg-primary rounded flex items-center justify-center">
@@ -129,7 +143,6 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
         </button>
       </header>
 
-      {/* Mobile sidebar overlay */}
       {mobileOpen && (
         <div className="lg:hidden fixed inset-0 z-50 flex">
           <div className="w-64 bg-slate-900 h-full shadow-2xl">{sidebarContent}</div>
@@ -137,7 +150,6 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
         </div>
       )}
 
-      {/* Main content */}
       <main className="lg:ml-60 min-h-screen">
         {children}
       </main>
