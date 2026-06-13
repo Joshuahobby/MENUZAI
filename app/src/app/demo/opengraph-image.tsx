@@ -34,10 +34,11 @@ export default function Image() {
         </div>
 
         <div style={{
-          color: "#ffffff", fontSize: 68, fontWeight: 900,
+          display: "flex", flexDirection: "column", alignItems: "center",
+          fontSize: 68, fontWeight: 900,
           lineHeight: 1.0, letterSpacing: "-2px", textAlign: "center", marginBottom: 20,
         }}>
-          See MENUZA AI<br />
+          <span style={{ color: "#ffffff" }}>See MENUZA AI</span>
           <span style={{ color: "#FF6B00" }}>in action</span>
         </div>
 

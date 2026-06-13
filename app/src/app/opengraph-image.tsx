@@ -52,12 +52,12 @@ export default function Image() {
 
         {/* Headline */}
         <div style={{
-          color: "#ffffff", fontSize: 64, fontWeight: 900,
+          display: "flex", flexDirection: "column", alignItems: "center",
+          fontSize: 64, fontWeight: 900,
           lineHeight: 1.05, letterSpacing: "-2px", textAlign: "center",
           maxWidth: 900, marginBottom: 20,
         }}>
-          Turn Your Menu Into a
-          <br />
+          <span style={{ color: "#ffffff" }}>Turn Your Menu Into a</span>
           <span style={{ color: "#FF6B00" }}>Revenue Engine</span>
         </div>
 
