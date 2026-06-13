@@ -34,8 +34,8 @@ export async function GET() {
     const now = new Date().toISOString();
 
     const [restaurantsResult, menusResult, ordersResult, usersResult] = await Promise.all([
-      admin.from("restaurants").select("id, name, slug, plan, trial_ends_at, plan_expires_at, created_at, user_id, onboarded"),
-      admin.from("menus").select("restaurant_id"),
+      admin.from("restaurants").select("id, name, plan, trial_ends_at, plan_expires_at, created_at, user_id, onboarded"),
+      admin.from("menus").select("restaurant_id, slug, status"),
       admin.from("orders").select("restaurant_id"),
       admin.auth.admin.listUsers({ perPage: 1000 }),
     ]);
@@ -54,7 +54,14 @@ export async function GET() {
     const emailMap = new Map(users.map((u) => [u.id, u.email ?? null]));
     const menuCounts = new Map<string, number>();
     const orderCounts = new Map<string, number>();
-    for (const m of menus) menuCounts.set(m.restaurant_id, (menuCounts.get(m.restaurant_id) ?? 0) + 1);
+    // Published menu slug per restaurant (for the /menu/[slug] display link)
+    const publishedSlugMap = new Map<string, string>();
+    for (const m of menus) {
+      menuCounts.set(m.restaurant_id, (menuCounts.get(m.restaurant_id) ?? 0) + 1);
+      if (m.status === "published" && m.slug && !publishedSlugMap.has(m.restaurant_id)) {
+        publishedSlugMap.set(m.restaurant_id, m.slug);
+      }
+    }
     for (const o of orders) orderCounts.set(o.restaurant_id, (orderCounts.get(o.restaurant_id) ?? 0) + 1);
 
     const rows: RestaurantRow[] = restaurants.map((r) => {
@@ -62,7 +69,7 @@ export async function GET() {
       return {
         id: r.id,
         name: r.name ?? "Unnamed",
-        slug: r.slug ?? null,
+        slug: publishedSlugMap.get(r.id) ?? null,
         plan: r.plan ?? "free",
         resolvedPlan: isTrial ? "trial" : (r.plan ?? "free"),
         ownerEmail: emailMap.get(r.user_id) ?? null,
