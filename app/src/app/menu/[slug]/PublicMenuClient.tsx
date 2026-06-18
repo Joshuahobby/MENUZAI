@@ -95,10 +95,7 @@ export default function PublicMenuClient(props: PublicMenuClientProps) {
     if (typeof window === "undefined") return "";
     try { return JSON.parse(localStorage.getItem("menuza_table_number") || '""'); } catch { return ""; }
   });
-  const [lastOrderId, setLastOrderId] = useState<string | null>(() => {
-    if (typeof window === "undefined") return null;
-    try { return JSON.parse(localStorage.getItem("menuza_last_order") || "null"); } catch { return null; }
-  });
+  const [lastOrderId, setLastOrderId] = useState<string | null>(null);
   const [isCancelling, setIsCancelling] = useState(false);
 
   useEffect(() => {
@@ -109,9 +106,19 @@ export default function PublicMenuClient(props: PublicMenuClientProps) {
     try { localStorage.setItem("menuza_table_number", JSON.stringify(orderTableNumber)); } catch {}
   }, [orderTableNumber]);
 
-  useEffect(() => {
-    try { localStorage.setItem("menuza_last_order", JSON.stringify(lastOrderId)); } catch {}
-  }, [lastOrderId]);
+  const pushOrderToHistory = (id: string | null) => {
+    if (!id) return;
+    try {
+      const raw = localStorage.getItem("menuza_order_history");
+      const history: { id: string; restaurantId: string }[] = raw ? JSON.parse(raw) : [];
+      const exists = history.some((e) => e.id === id);
+      if (!exists) {
+        history.unshift({ id, restaurantId });
+        if (history.length > 20) history.length = 20;
+        localStorage.setItem("menuza_order_history", JSON.stringify(history));
+      }
+    } catch {}
+  };
 
   const resolvedTableNumber = tableFromUrl || orderTableNumber;
 
@@ -271,25 +278,30 @@ export default function PublicMenuClient(props: PublicMenuClientProps) {
     const { items: orderItems, tableNumber: chatTable, total } = pendingChatOrder;
     const resolvedTable = chatTable || resolvedTableNumber || null;
 
-    const { data: order, error } = await supabase.from("orders").insert({
-      menu_id: menuId,
-      restaurant_id: restaurantId,
-      items: orderItems,
-      total,
-      customer_name: customerName.trim() || null,
-      table_number: resolvedTable,
-      whatsapp_sent: true,
-      status: "pending",
-      source: "ai_waiter",
-    }).select("id").single();
+    let orderId: string | null = null;
+    try {
+      const { data: order, error } = await supabase.from("orders").insert({
+        menu_id: menuId,
+        restaurant_id: restaurantId,
+        items: orderItems,
+        total,
+        customer_name: customerName.trim() || null,
+        table_number: resolvedTable,
+        whatsapp_sent: true,
+        status: "pending",
+        source: "ai_waiter",
+      }).select("id").single();
 
-    if (error || !order) {
+      if (error || !order) throw error || new Error("No order returned");
+      orderId = order.id;
+    } catch {
       toast.error("Failed to place order. Please try again.");
       setIsPlacingChatOrder(false);
       return;
     }
 
-    setLastOrderId(order.id);
+    setLastOrderId(orderId);
+    pushOrderToHistory(orderId);
 
     // Also open WhatsApp so the restaurant gets notified
     const msg = buildWhatsAppMessage(orderItems, customerName.trim() || undefined, resolvedTable || undefined, menuStyle.currency ?? "RWF");
@@ -532,22 +544,29 @@ export default function PublicMenuClient(props: PublicMenuClientProps) {
 
     const snapshot = { cart: [...cart], total: totalPrice };
 
-    const { data: order, error } = await supabase.from("orders").insert({
-      menu_id: menuId,
-      restaurant_id: restaurantId,
-      items: cart,
-      total: totalPrice,
-      customer_name: customerName.trim() || null,
-      table_number: resolvedTableNumber || null,
-      whatsapp_sent: true,
-      status: "pending",
-    }).select("id").single();
+    let orderId: string | null = null;
+    try {
+      const { data: order, error } = await supabase.from("orders").insert({
+        menu_id: menuId,
+        restaurant_id: restaurantId,
+        items: cart,
+        total: totalPrice,
+        customer_name: customerName.trim() || null,
+        table_number: resolvedTableNumber || null,
+        whatsapp_sent: true,
+        status: "pending",
+      }).select("id").single();
 
-    if (error || !order) {
+      if (error || !order) throw error || new Error("No order returned");
+      orderId = order.id;
+    } catch {
       toast.error("Failed to place order. Please try again.");
       setIsPlacingOrder(false);
       return;
     }
+
+    setLastOrderId(orderId);
+    pushOrderToHistory(orderId);
 
     const msg = buildWhatsAppMessage(cart, customerName.trim() || undefined, resolvedTableNumber || undefined, menuStyle.currency ?? "RWF", orderNote || undefined);
     const waUrl = buildWhatsAppURL(restaurantPhone, msg);
@@ -566,7 +585,6 @@ export default function PublicMenuClient(props: PublicMenuClientProps) {
       }),
     }).catch((e) => console.error("Order notification failed:", e));
 
-    setLastOrderId(order.id);
     setOrderedSnapshot(snapshot);
     setCart([]);
     setOrderNote("");
@@ -621,11 +639,13 @@ export default function PublicMenuClient(props: PublicMenuClientProps) {
     if (!lastOrderId || isCancelling) return;
     setIsCancelling(true);
     try {
-      const { error } = await supabase
-        .from("orders")
-        .update({ status: "cancelled" })
-        .eq("id", lastOrderId);
-      if (error) throw error;
+      const res = await fetch("/api/orders/cancel", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ orderId: lastOrderId }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
       toast.success("Your order has been cancelled.");
       setLastOrderId(null);
       setOrderedSnapshot(null);
@@ -901,7 +921,10 @@ export default function PublicMenuClient(props: PublicMenuClientProps) {
           customerName={customerName.trim() || null}
           onSuccess={(orderId) => {
             setShowPaymentModal(false);
-            if (orderId) setLastOrderId(orderId);
+            if (orderId) {
+              setLastOrderId(orderId);
+              pushOrderToHistory(orderId);
+            }
             setOrderedSnapshot({ cart: [...cart], total: totalPrice });
             setCart([]);
             setOrderPlaced(true);
@@ -1285,6 +1308,13 @@ export default function PublicMenuClient(props: PublicMenuClientProps) {
                 >
                   Back to Menu
                 </button>
+
+                <a
+                  href={`/menu/${slug}/history`}
+                  className="block text-center text-xs text-secondary hover:text-on-surface underline underline-offset-2 transition-colors"
+                >
+                  View Order History
+                </a>
               </div>
             ) : (
               /* ── Cart View ── */
@@ -1453,10 +1483,15 @@ export default function PublicMenuClient(props: PublicMenuClientProps) {
                       <button
                         type="button"
                         onClick={placeOrder}
-                        disabled={isPlacingOrder}
+                        disabled={isPlacingOrder || isOffline}
                         className="w-full h-14 bg-whatsapp hover:bg-whatsapp-dark text-white rounded-2xl flex items-center justify-center gap-3 shadow-[0_8px_24px_rgba(37,211,102,0.35)] active:scale-[0.98] transition-all disabled:opacity-60 disabled:cursor-not-allowed font-[var(--font-headline)] font-extrabold tracking-tight uppercase text-sm"
                       >
-                        {isPlacingOrder ? (
+                        {isOffline ? (
+                          <>
+                            <span className="material-symbols-outlined text-[18px]">wifi_off</span>
+                            No Internet Connection
+                          </>
+                        ) : isPlacingOrder ? (
                           <>
                             <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
                             Placing Order…
@@ -1478,7 +1513,7 @@ export default function PublicMenuClient(props: PublicMenuClientProps) {
                             }
                             setShowPaymentModal(true);
                           }}
-                          disabled={isPlacingOrder}
+                          disabled={isPlacingOrder || isOffline}
                           className="w-full h-12 bg-primary hover:bg-primary/90 text-white rounded-2xl flex items-center justify-center gap-2 active:scale-[0.98] transition-all disabled:opacity-60 font-bold text-sm"
                         >
                           <span className="material-symbols-outlined text-[18px]">payments</span>
