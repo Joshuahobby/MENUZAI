@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, createContext, useContext, useRef } from "react";
+import { useState, useCallback, createContext, useContext } from "react";
 import { CheckoutModal } from "@/components/CheckoutModal";
 import { useMenu } from "@/context/MenuContext";
 import { useLivePricing } from "@/hooks/useLivePricing";

@@ -59,7 +59,6 @@ export default function MenuEditorPage() {
     isSyncing,
     lastSynced,
     isLoading,
-    user,
     restaurantName,
     userRole,
     restaurantPhone,
@@ -72,6 +71,7 @@ export default function MenuEditorPage() {
   const prevSyncing = useRef(false);
   useEffect(() => {
     if (prevSyncing.current && !isSyncing && lastSynced) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- sync completion indicator
       setJustSaved(true);
       const t = setTimeout(() => setJustSaved(false), 2000);
       return () => clearTimeout(t);

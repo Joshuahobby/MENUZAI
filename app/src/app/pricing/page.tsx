@@ -81,18 +81,19 @@ function FeatureRow({ text, muted }: { text: string; muted?: boolean }) {
 
 export default function PricingPage() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [isAnnual, setIsAnnual] = useState(false);
+  const [isAnnual, setIsAnnual] = useState(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      return params.get("billing") === "annual";
+    }
+    return false;
+  });
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState({ name: "", price: 0 });
   const pricingPlans = useLivePricing();
 
-  const proMonthly  = pricingPlans.find(p => p.name === "Pro")?.amountRwf ?? 35000;
-  const bizMonthly  = pricingPlans.find(p => p.name === "Business")?.amountRwf ?? 89000;
-
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    if (params.get("billing") === "annual") setIsAnnual(true);
-  }, []);
+  const proMonthly = pricingPlans.find(p => p.name === "Pro")?.amountRwf ?? 35000;
+  const bizMonthly = pricingPlans.find(p => p.name === "Business")?.amountRwf ?? 89000;
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => setIsLoggedIn(!!data.session));

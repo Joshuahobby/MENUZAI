@@ -226,7 +226,7 @@ export function MenuProvider({ children }: { children: React.ReactNode }) {
       setMenuSlug(slug);
     }
     return slug;
-  }, [activeMenuId, user, menuSlug, restaurantName, plan]);
+  }, [activeMenuId, user, menuSlug, restaurantName, plan, setIsSyncing, setMenuSlug, setMenuStatus]);
 
   const unpublishMenu = useCallback(async (): Promise<void> => {
     if (!activeMenuId || !user) return;
@@ -237,7 +237,7 @@ export function MenuProvider({ children }: { children: React.ReactNode }) {
       .eq("id", activeMenuId);
     if (!error) setMenuStatus("draft");
     setIsSyncing(false);
-  }, [activeMenuId, user]);
+  }, [activeMenuId, user, setIsSyncing, setMenuStatus]);
 
   const addCategory = (name: string) => {
     const id = crypto.randomUUID();
@@ -323,7 +323,7 @@ export function MenuProvider({ children }: { children: React.ReactNode }) {
 
     isInitialLoad.current = false;
     setIsLoading(false);
-  }, [user, activeMenuId, flushPendingSave]);
+  }, [user, activeMenuId, flushPendingSave, setActiveMenuId, setActiveMenuName, setCategories, setIsLoading, setLastSynced, setMenuItems, setMenuSlug, setMenuStatus, setMenuStyle]);
 
   const createMenu = useCallback(async (name: string): Promise<string | null> => {
     if (!user || !restaurantId) return null;
@@ -366,7 +366,7 @@ export function MenuProvider({ children }: { children: React.ReactNode }) {
     isInitialLoad.current = false;
 
     return newMenu.id;
-  }, [user, restaurantId, plan]);
+  }, [user, restaurantId, plan, setActiveMenuId, setActiveMenuName, setCategories, setLastSynced, setMenuItems, setMenuSlug, setMenuStatus, setMenuStyle]);
 
   const deleteMenu = useCallback(async (menuId: string): Promise<boolean> => {
     if (!user) return false;
@@ -425,7 +425,7 @@ export function MenuProvider({ children }: { children: React.ReactNode }) {
     }
 
     return true;
-  }, [user, activeMenuId, restaurantId]);
+  }, [user, activeMenuId, restaurantId, setActiveMenuId, setActiveMenuName, setCategories, setMenuItems, setMenuSlug, setMenuStatus, setMenuStyle]);
 
   const renameMenu = useCallback(async (menuId: string, name: string): Promise<boolean> => {
     if (!user) return false;
@@ -437,7 +437,7 @@ export function MenuProvider({ children }: { children: React.ReactNode }) {
     if (error) return false;
     if (menuId === activeMenuId) setActiveMenuName(name);
     return true;
-  }, [user, activeMenuId]);
+  }, [user, activeMenuId, setActiveMenuName]);
 
   const duplicateMenu = useCallback(async (menuId: string): Promise<string | null> => {
     if (!user || !restaurantId) return null;

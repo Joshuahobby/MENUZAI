@@ -8,7 +8,7 @@ import { supabase } from "@/lib/supabase";
 import { trackMenuView, trackItemView, trackOrderClick, trackQRScan } from "@/lib/analytics";
 import type { MenuItem, MenuCategory, MenuStyle, CartItem } from "@/types/menu";
 import { defaultStyle } from "@/store/menuStore";
-import { formatPrice, getOptimizedImageUrl, getTagMeta } from "@/lib/utils";
+import { formatPrice, getOptimizedImageUrl } from "@/lib/utils";
 import { buildWhatsAppMessage, buildWhatsAppURL } from "@/lib/whatsapp";
 import { toast } from "sonner";
 import ItemDetailsModal from "@/components/menu/ItemDetailsModal";
@@ -267,10 +267,6 @@ export default function PublicMenuClient(props: PublicMenuClientProps) {
       if (item.quantity <= 1) return prev.filter(i => i.id !== id);
       return prev.map(i => i.id === id ? { ...i, quantity: i.quantity - 1 } : i);
     });
-  };
-
-  const removeFromCart = (id: string) => {
-    setCart(prev => prev.filter(i => i.id !== id));
   };
 
   const placeOrder = async () => {

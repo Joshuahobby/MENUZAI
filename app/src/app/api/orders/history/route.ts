@@ -44,7 +44,7 @@ export async function POST(req: Request) {
 
   const restaurantIds = [...new Set(orders?.map((o) => o.restaurant_id).filter(Boolean) as string[])];
 
-  let restaurants: Record<string, { name: string; logo_url: string | null; slug: string | null }> = {};
+  const restaurants: Record<string, { name: string; logo_url: string | null; slug: string | null }> = {};
   if (restaurantIds.length > 0) {
     const { data: restaurantRows } = await admin
       .from("restaurants")

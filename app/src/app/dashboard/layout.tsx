@@ -37,19 +37,22 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!restaurantId) return;
     const made = !!localStorage.getItem(`trial-choice-made-${restaurantId}`);
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- localStorage sync on mount
     setTrialChoiceMade(made);
   }, [restaurantId]);
 
+  const [now] = useState(() => Date.now());
+
   const daysUntilExpiry = (() => {
     if (!planExpiresAt || plan === "free" || plan === "trial") return null;
-    const diff = new Date(planExpiresAt).getTime() - Date.now();
+    const diff = new Date(planExpiresAt).getTime() - now;
     const days = Math.ceil(diff / (1000 * 60 * 60 * 24));
     return days <= 3 ? days : null;
   })();
 
   const trialDaysLeft = (() => {
     if (plan !== "trial" || !trialEndsAt) return null;
-    const diff = new Date(trialEndsAt).getTime() - Date.now();
+    const diff = new Date(trialEndsAt).getTime() - now;
     return Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)));
   })();
 
@@ -70,7 +73,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const saved = localStorage.getItem("sidebar-collapsed");
-    // eslint-disable-next-line
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- sync localStorage on mount
     if (saved === "true") setCollapsed(true);
   }, []);
 
@@ -97,6 +100,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   }, [router, isLoading, onboarded, pathname, user, userRole]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- reset on nav
     setMoreOpen(false);
   }, [pathname]);
 

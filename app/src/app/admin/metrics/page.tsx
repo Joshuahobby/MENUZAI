@@ -172,6 +172,7 @@ export default function AdminMetricsPage() {
       .finally(() => setLoading(false));
   }, []);
 
+  // eslint-disable-next-line react-hooks/set-state-in-effect -- async fetch, not cascading
   useEffect(() => { loadMetrics(); }, [loadMetrics]);
 
   return (

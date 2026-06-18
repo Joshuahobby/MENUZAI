@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import Link from "next/link";
 import NextImage from "next/image";
 import { useRouter } from "next/navigation";
 import { formatPrice } from "@/lib/utils";

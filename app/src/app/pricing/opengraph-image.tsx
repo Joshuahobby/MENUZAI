@@ -33,7 +33,7 @@ export default function Image() {
         </div>
 
         <div style={{ color: "rgba(255,255,255,0.50)", fontSize: 22, marginBottom: 48 }}>
-          Start free. Upgrade when you're ready.
+          Start free. Upgrade when you&apos;re ready.
         </div>
 
         {/* 3 plan cards */}

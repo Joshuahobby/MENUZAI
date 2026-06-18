@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
-import { startCronRun, completeCronRun, failCronRun } from "@/lib/cron-logger";
+import { startCronRun, completeCronRun } from "@/lib/cron-logger";
 
 export const dynamic = "force-dynamic";
 

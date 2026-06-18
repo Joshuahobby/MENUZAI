@@ -8,12 +8,6 @@ export const metadata = {
   description: "AI Digital Waiter that greets guests, takes orders in chat, and collects reviews automatically. Plus menu extraction, live analytics, WhatsApp ordering, and more — built for African restaurants.",
 };
 
-const NAV_LINKS = [
-  { href: "/features", label: "Features" },
-  { href: "/pricing",  label: "Pricing"  },
-  { href: "/menu/demo", label: "Live Demo" },
-];
-
 const HERO_STATS = [
   { value: "< 45s",    label: "From QR scan to order placed" },
   { value: "3 sec",    label: "Digital Waiter greets every guest" },

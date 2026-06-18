@@ -21,6 +21,7 @@ export default function DashboardPage() {
   const [data, setData] = useState<AnalyticsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [days, setDays] = useState(7);
+  const [now] = useState(() => Date.now());
 
   useEffect(() => {
     if (restaurantId === null) {
@@ -33,6 +34,7 @@ export default function DashboardPage() {
       return;
     }
 
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- async fetch loading state
     setLoading(true);
     fetch(`/api/analytics/summary?restaurantId=${restaurantId}&days=${days}`)
       .then((res) => res.json())
@@ -75,12 +77,10 @@ export default function DashboardPage() {
   const trialDaysLeft = (() => {
     if (!trialEndsAt || (plan !== "trial" && plan !== "free")) return null;
     if (plan !== "trial") return null;
-    const diff = new Date(trialEndsAt).getTime() - Date.now();
+    const diff = new Date(trialEndsAt).getTime() - now;
     const days = Math.ceil(diff / (1000 * 60 * 60 * 24));
     return days > 0 ? days : 0;
   })();
-
-  const isNewUser = kpis.views === 0 && kpis.orders === 0;
 
   // Static lookup so Tailwind can detect all classes at build time
   const TRIAL_BAR_WIDTH: Record<number, string> = {

@@ -72,6 +72,7 @@ export default function AdminAuditPage() {
       .finally(() => setLoading(false));
   }, []);
 
+  // eslint-disable-next-line react-hooks/set-state-in-effect -- async fetch, not cascading
   useEffect(() => { load(); }, [load]);
 
   const filtered = entries.filter(e => filter === "all" || e.action === filter);
