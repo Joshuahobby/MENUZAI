@@ -176,6 +176,9 @@ export default function PublicMenuClient(props: PublicMenuClientProps) {
   const [assistantInput, setAssistantInput] = useState("");
   const [isAssistantLoading, setIsAssistantLoading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const chatRetryCount = useRef(0);
+  const chatRetryMessages = useRef<typeof assistantMessages>([]);
+  const chatRetryInput = useRef("");
 
   // In-chat ordering state
   const [pendingChatOrder, setPendingChatOrder] = useState<ChatOrder | null>(null);
@@ -347,76 +350,101 @@ export default function PublicMenuClient(props: PublicMenuClientProps) {
     ]);
   };
 
-  const handleAssistantSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!assistantInput.trim() || isAssistantLoading) return;
+  const handleAssistantSubmit = async (e: React.FormEvent, retryUserMsg?: string) => {
+    e?.preventDefault();
+    const input = retryUserMsg ?? assistantInput.trim();
+    if (!input || isAssistantLoading) return;
 
-    setPendingChatOrder(null); // clear any stale pending order
-    const userMsg = assistantInput.trim();
-    setAssistantInput("");
-    setAssistantMessages(prev => [...prev, { role: "user", content: userMsg }]);
+    setPendingChatOrder(null);
+    const userMsg = input;
+    if (!retryUserMsg) {
+      setAssistantInput("");
+      setAssistantMessages(prev => [...prev, { role: "user", content: userMsg }]);
+    }
     setIsAssistantLoading(true);
-    setAssistantMessages(prev => [...prev, { role: "assistant", content: "" }]);
+    if (!retryUserMsg) {
+      setAssistantMessages(prev => [...prev, { role: "assistant", content: "" }]);
+    }
 
-    try {
-      const res = await fetch("/api/ai-waiter", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          messages: [...assistantMessages, { role: "user", content: userMsg }].slice(-6),
-          menuItems: items.map(i => ({ name: i.name, description: i.description, price: i.price, tags: i.tags })),
-          restaurantName,
-          restaurantId,
-          tableNumber: resolvedTableNumber || "",
-          aiWaiterSettings: {
-            tone: menuStyle.aiWaiterTone,
-            upsell: menuStyle.aiWaiterUpsell,
-            instructions: menuStyle.aiWaiterInstructions,
-          },
-        }),
-      });
+    const maxRetries = 3;
+    const attempt = async (retriesLeft: number): Promise<void> => {
+      try {
+        const msgs = retryUserMsg
+          ? [...chatRetryMessages.current, { role: "user", content: userMsg }]
+          : [...assistantMessages, { role: "user", content: userMsg }];
+        const res = await fetch("/api/ai-waiter", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            messages: msgs.slice(-6),
+            menuItems: items.map(i => ({ name: i.name, description: i.description, price: i.price, tags: i.tags })),
+            restaurantName,
+            restaurantId,
+            tableNumber: resolvedTableNumber || "",
+            aiWaiterSettings: {
+              tone: menuStyle.aiWaiterTone,
+              upsell: menuStyle.aiWaiterUpsell,
+              instructions: menuStyle.aiWaiterInstructions,
+            },
+          }),
+        });
 
-      if (!res.ok || !res.body) throw new Error("Stream unavailable");
+        if (!res.ok || !res.body) throw new Error("Stream unavailable");
 
-      const reader = res.body.getReader();
-      const decoder = new TextDecoder();
+        const reader = res.body.getReader();
+        const decoder = new TextDecoder();
 
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        const chunk = decoder.decode(value, { stream: true });
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          const chunk = decoder.decode(value, { stream: true });
+          setAssistantMessages(prev => {
+            const next = [...prev];
+            next[next.length - 1] = {
+              role: "assistant",
+              content: next[next.length - 1].content + chunk,
+            };
+            return next;
+          });
+        }
+
+        chatRetryCount.current = 0;
+        chatRetryMessages.current = [];
+        chatRetryInput.current = "";
+
+        // After streaming, detect and strip __ORDER__: marker
         setAssistantMessages(prev => {
           const next = [...prev];
-          next[next.length - 1] = {
-            role: "assistant",
-            content: next[next.length - 1].content + chunk,
-          };
+          const last = next[next.length - 1];
+          if (last.role === "assistant" && last.content.includes("__ORDER__:")) {
+            const { cleanText, order } = parseChatOrder(last.content);
+            next[next.length - 1] = { role: "assistant", content: cleanText };
+            if (order) setPendingChatOrder(order);
+          }
           return next;
         });
-      }
-
-      // After streaming, detect and strip __ORDER__: marker
-      setAssistantMessages(prev => {
-        const next = [...prev];
-        const last = next[next.length - 1];
-        if (last.role === "assistant" && last.content.includes("__ORDER__:")) {
-          const { cleanText, order } = parseChatOrder(last.content);
-          next[next.length - 1] = { role: "assistant", content: cleanText };
-          if (order) setPendingChatOrder(order);
+      } catch {
+        if (retriesLeft > 0) {
+          const delay = Math.pow(2, maxRetries - retriesLeft) * 500;
+          await new Promise(r => setTimeout(r, delay));
+          return attempt(retriesLeft - 1);
         }
-        return next;
-      });
-    } catch {
-      setAssistantMessages(prev => {
-        const next = [...prev];
-        next[next.length - 1] = {
-          role: "assistant",
-          content: "I'm having a little trouble connecting. Can I help you with something else?",
-        };
-        return next;
-      });
-    } finally {
-      setIsAssistantLoading(false);
+        chatRetryMessages.current = assistantMessages;
+        chatRetryInput.current = userMsg;
+      }
+    };
+
+    await attempt(maxRetries);
+    setIsAssistantLoading(false);
+  };
+
+  const handleRetryChat = () => {
+    if (chatRetryInput.current && chatRetryMessages.current.length > 0) {
+      const msgs = [...chatRetryMessages.current];
+      setAssistantMessages(msgs);
+      setAssistantMessages(prev => [...prev, { role: "assistant", content: "" }]);
+      chatRetryCount.current = 0;
+      handleAssistantSubmit(undefined as unknown as React.FormEvent, chatRetryInput.current);
     }
   };
 
@@ -1046,6 +1074,19 @@ export default function PublicMenuClient(props: PublicMenuClientProps) {
                       Change
                     </button>
                   </div>
+                </div>
+              )}
+
+              {chatRetryInput.current && !isAssistantLoading && (
+                <div className="flex justify-start">
+                  <button
+                    type="button"
+                    onClick={handleRetryChat}
+                    className="bg-error/10 text-error text-xs font-bold px-4 py-2 rounded-full hover:bg-error/20 transition-all flex items-center gap-1.5"
+                  >
+                    <span className="material-symbols-outlined text-[14px]">refresh</span>
+                    Tap to retry
+                  </button>
                 </div>
               )}
 

@@ -21,7 +21,7 @@ export async function POST(req: Request) {
 
   const runId = await startCronRun("expire-orders");
   try {
-    const cutoff = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+    const cutoff = new Date(Date.now() - 15 * 60 * 1000).toISOString();
 
     const { data, error } = await admin
       .from("orders")

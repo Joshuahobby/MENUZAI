@@ -94,16 +94,24 @@ export default function OrdersPage() {
   const [orderSearch, setOrderSearch] = useState("");
   const [isLive, setIsLive] = useState(false);
   const [now, setNow] = useState(0);
-  const [soundEnabled, setSoundEnabled] = useState(true);
+  const [soundEnabled, setSoundEnabled] = useState(() => {
+    if (typeof window === "undefined") return true;
+    try { return JSON.parse(localStorage.getItem("menuza_sound_enabled") ?? "true"); } catch { return true; }
+  });
   const [printingOrder, setPrintingOrder] = useState<OrderRow | null>(null);
   const [notifPermission, setNotifPermission] = useState<NotificationPermission | null>(null);
   const [newOrderFlash, setNewOrderFlash] = useState(false);
   const [showPermissionPrompt, setShowPermissionPrompt] = useState(false);
   const initialLoadDone = useRef(false);
   const soundEnabledRef = useRef(soundEnabled);
+  const audioCtxRef = useRef<AudioContext | null>(null);
 
   useEffect(() => {
     soundEnabledRef.current = soundEnabled;
+  }, [soundEnabled]);
+
+  useEffect(() => {
+    try { localStorage.setItem("menuza_sound_enabled", JSON.stringify(soundEnabled)); } catch {}
   }, [soundEnabled]);
 
   useEffect(() => {
@@ -194,11 +202,31 @@ export default function OrdersPage() {
 
     fetchOrders();
 
+    // Shared AudioContext for chimes — resume once on first user gesture
+    const ensureAudioCtx = () => {
+      if (!audioCtxRef.current) {
+        const AC = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+        audioCtxRef.current = new AC();
+      }
+      if (audioCtxRef.current.state === "suspended") {
+        audioCtxRef.current.resume().catch(() => {});
+      }
+      return audioCtxRef.current;
+    };
+
+    // Wake audio on first user interaction
+    const wakeAudio = () => {
+      ensureAudioCtx();
+      document.removeEventListener("pointerdown", wakeAudio);
+      document.removeEventListener("keydown", wakeAudio);
+    };
+    document.addEventListener("pointerdown", wakeAudio);
+    document.addEventListener("keydown", wakeAudio);
+
     // Web Audio API chimes — no CDN dependency
     const playOrderChime = () => {
       try {
-        const AC = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
-        const ctx = new AC();
+        const ctx = ensureAudioCtx();
         [1047, 1319, 1568].forEach((freq, i) => {
           const osc = ctx.createOscillator();
           const gain = ctx.createGain();
@@ -213,8 +241,7 @@ export default function OrdersPage() {
     };
     const playRequestChime = () => {
       try {
-        const AC = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
-        const ctx = new AC();
+        const ctx = ensureAudioCtx();
         [0, 0.22].forEach(delay => {
           const osc = ctx.createOscillator();
           const gain = ctx.createGain();
@@ -248,6 +275,14 @@ export default function OrdersPage() {
               }
               setNewOrderFlash(true);
               setTimeout(() => setNewOrderFlash(false), 2000);
+
+              // Flash document title when tab is hidden
+              if (document.visibilityState === "hidden") {
+                const prev = document.title;
+                document.title = `🛎️ New Order${newOrder.table_number ? ` (Table ${newOrder.table_number})` : ""}`;
+                setTimeout(() => { document.title = prev; }, 4000);
+              }
+
               toast("New order received!", {
                 description: newOrder.customer_name
                   ? `From ${newOrder.customer_name}${newOrder.table_number ? ` · Table ${newOrder.table_number}` : ""}`
@@ -297,6 +332,12 @@ export default function OrdersPage() {
           playRequestChime();
         }
 
+        if (document.visibilityState === "hidden") {
+          const prev = document.title;
+          document.title = `🛎️ Table ${newReq.tableNumber} needs assistance`;
+          setTimeout(() => { document.title = prev; }, 4000);
+        }
+
         toast(`Assistance Request: Table ${newReq.tableNumber}`, {
           description: newReq.type === "bill" 
             ? "Requested the bill 💵" 
@@ -322,6 +363,8 @@ export default function OrdersPage() {
 
     return () => {
       document.removeEventListener("visibilitychange", handleVisibilityChange);
+      document.removeEventListener("pointerdown", wakeAudio);
+      document.removeEventListener("keydown", wakeAudio);
       supabase.removeChannel(orderChannel);
       supabase.removeChannel(requestChannel);
       setIsLive(false);
@@ -524,7 +567,7 @@ export default function OrdersPage() {
           <p className="text-2xl font-extrabold">{todayOrders.length}</p>
           <p className="text-[10px] text-secondary mt-0.5">orders processed today</p>
         </div>
-        <div className={`rounded-3xl p-5 border transition-all duration-300 ${newOrderFlash ? "bg-amber-50 border-amber-400 scale-[1.02] shadow-lg shadow-amber-200/50 dark:bg-amber-950/30 dark:border-amber-500" : "bg-surface-container-lowest border-surface-container/50"}`}>
+        <div className={`rounded-3xl p-5 border transition-all duration-300 ${newOrderFlash ? "bg-amber-50 border-amber-400 animate-flash-pulse shadow-lg shadow-amber-200/50 dark:bg-amber-950/30 dark:border-amber-500" : "bg-surface-container-lowest border-surface-container/50"}`}>
           <div className="flex items-center gap-2 mb-2">
             <span className={`material-symbols-outlined text-amber-500 icon-fill text-lg ${newOrderFlash ? "animate-bounce" : ""}`}>pending</span>
             <p className="text-[10px] font-bold text-secondary uppercase tracking-[0.2em]">Pending Action</p>

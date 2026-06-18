@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import type { CartItem } from "@/types/menu";
+import { toast } from "sonner";
 
 interface Props {
   restaurantId: string;
@@ -98,6 +99,20 @@ export default function FoodPaymentModal({ restaurantId, menuId, items, total, c
     setErrorMsg("");
   };
 
+  const handleCancelOrder = async () => {
+    const id = orderIdRef.current;
+    if (!id) { onClose(); return; }
+    try {
+      await fetch("/api/orders/cancel", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ orderId: id }),
+      });
+    } catch {}
+    toast.success("Your order has been cancelled.");
+    onClose();
+  };
+
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
       <div className="bg-surface w-full max-w-sm rounded-[2rem] p-8 shadow-2xl border border-surface-container">
@@ -130,18 +145,37 @@ export default function FoodPaymentModal({ restaurantId, menuId, items, total, c
                 value={phone}
                 onChange={e => setPhone(e.target.value)}
                 placeholder="+250 788 000 000"
-                className="w-full bg-surface-container-low rounded-xl px-4 py-3 text-sm text-on-surface border-none focus:ring-2 focus:ring-primary/20"
+                className="w-full bg-surface-container-low rounded-xl px-4 py-3 text-sm text-on-surface border-none focus:ring-2 focus:ring-primary/20 disabled:opacity-40"
                 autoFocus
+                disabled={state !== "idle"}
                 onKeyDown={e => { if (e.key === "Enter") handleInitiate(); }}
               />
               {errorMsg && <p className="text-xs text-error mt-2">{errorMsg}</p>}
             </div>
-            <button
-              onClick={handleInitiate}
-              className="w-full py-3.5 rounded-2xl text-sm font-bold bg-gradient-to-br from-primary to-primary-container text-white shadow-lg shadow-primary/20 hover:opacity-90 transition-all"
-            >
-              Pay Now
-            </button>
+            {state === "idle" ? (
+              <button
+                onClick={handleInitiate}
+                className="w-full py-3.5 rounded-2xl text-sm font-bold bg-gradient-to-br from-primary to-primary-container text-white shadow-lg shadow-primary/20 hover:opacity-90 transition-all"
+              >
+                Pay Now
+              </button>
+            ) : (
+              <div className="flex flex-col gap-2">
+                <button
+                  onClick={handleRetry}
+                  className="w-full py-3.5 rounded-2xl text-sm font-bold bg-gradient-to-br from-primary to-primary-container text-white shadow-lg shadow-primary/20 hover:opacity-90 transition-all"
+                >
+                  Try Again
+                </button>
+                <button
+                  type="button"
+                  onClick={handleCancelOrder}
+                  className="w-full py-3 rounded-2xl text-sm font-bold border border-error/30 text-error bg-transparent hover:bg-error/5 transition-all"
+                >
+                  Cancel Order
+                </button>
+              </div>
+            )}
           </>
         )}
 
