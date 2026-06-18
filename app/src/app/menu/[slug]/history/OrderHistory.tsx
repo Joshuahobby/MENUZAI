@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { formatPrice } from "@/lib/utils";
 
 interface Order {
@@ -24,23 +24,31 @@ export default function OrderHistory({ restaurantId }: Props) {
   const [cancellingId, setCancellingId] = useState<string | null>(null);
   const [error, setError] = useState("");
 
-  useEffect(() => {
+  const loadOrders = useCallback(async () => {
+    setLoading(true);
+    setError("");
     const stored = localStorage.getItem("menuza_order_history");
     if (!stored) { setLoading(false); return; }
     try {
       const parsed = JSON.parse(stored) as { id: string; restaurantId: string }[];
       const ids = parsed.filter((e) => e.restaurantId === restaurantId).map((e) => e.id);
       if (ids.length === 0) { setLoading(false); return; }
-      fetch("/api/orders/history", {
+      const res = await fetch("/api/orders/history", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ids }),
-      })
-        .then((r) => r.json())
-        .then((data) => { setOrders(data.orders ?? []); setLoading(false); })
-        .catch(() => { setError("Failed to load order history."); setLoading(false); });
-    } catch { setLoading(false); }
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      setOrders(data.orders ?? []);
+    } catch {
+      setError("Failed to load order history.");
+    } finally {
+      setLoading(false);
+    }
   }, [restaurantId]);
+
+  useEffect(() => { loadOrders(); }, [loadOrders]);
 
   const handleCancel = async (orderId: string) => {
     setCancellingId(orderId);
@@ -87,9 +95,18 @@ export default function OrderHistory({ restaurantId }: Props) {
         </div>
 
         {error && (
-          <div className="bg-error/10 text-error text-sm rounded-2xl p-4 mb-4 flex items-center gap-2">
-            <span className="material-symbols-outlined text-[18px]">error</span>
-            {error}
+          <div className="bg-error/10 text-error text-sm rounded-2xl p-4 mb-4">
+            <div className="flex items-center gap-2 mb-2">
+              <span className="material-symbols-outlined text-[18px]">error</span>
+              {error}
+            </div>
+            <button
+              type="button"
+              onClick={loadOrders}
+              className="text-xs font-bold underline underline-offset-2 hover:text-on-surface transition-colors"
+            >
+              Tap to retry
+            </button>
           </div>
         )}
 

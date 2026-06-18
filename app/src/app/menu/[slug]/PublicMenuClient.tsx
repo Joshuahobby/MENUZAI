@@ -155,7 +155,10 @@ export default function PublicMenuClient(props: PublicMenuClientProps) {
   }, [categories, searchQuery]);
 
   useEffect(() => {
-    const handleOnline = () => setIsOffline(false);
+    const handleOnline = () => {
+      setIsOffline(false);
+      toast.success("Back online!", { description: "You can now place orders again.", duration: 3000 });
+    };
     const handleOffline = () => setIsOffline(true);
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
@@ -882,6 +885,24 @@ export default function PublicMenuClient(props: PublicMenuClientProps) {
             );
           })
         )}
+
+        {/* Empty menu state — no items in any category */}
+        {!searchQuery.trim() && items.length === 0 && categories.length > 0 && (
+          <div className="text-center py-20 px-6">
+            <span className="material-symbols-outlined text-6xl text-surface-container-highest block mb-4">restaurant_menu</span>
+            <h3 className="font-[var(--font-headline)] font-extrabold text-xl text-on-surface mb-2">No menu items yet</h3>
+            <p className="text-secondary text-sm max-w-xs mx-auto">The restaurant hasn&apos;t added any items to this menu yet. Check back soon!</p>
+          </div>
+        )}
+
+        {!searchQuery.trim() && categories.length === 0 && (
+          <div className="text-center py-20 px-6">
+            <span className="material-symbols-outlined text-6xl text-surface-container-highest block mb-4">menu_book</span>
+            <h3 className="font-[var(--font-headline)] font-extrabold text-xl text-on-surface mb-2">Menu not available</h3>
+            <p className="text-secondary text-sm max-w-xs mx-auto">This menu is still being set up. Please check again later.</p>
+          </div>
+        )}
+
       {/* Free Lite branding footer */}
       {props.branded && (
         <div className="py-6 text-center border-t border-outline-variant/10 mt-8">
