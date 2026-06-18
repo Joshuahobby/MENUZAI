@@ -412,7 +412,7 @@ export default function OwnerDemoPage() {
                   <div className="space-y-2 mb-5">
                     {EXTRACTED_ITEMS.map((item, i) => (
                       <div key={i}
-                        onClick={() => setCheckedItems(prev => { const s = new Set(prev); s.has(i) ? s.delete(i) : s.add(i); return s; })}
+                        onClick={() => setCheckedItems(prev => { const s = new Set(prev); if (s.has(i)) { s.delete(i); } else { s.add(i); } return s; })}
                         className={`flex items-start gap-3 p-3.5 rounded-xl border cursor-pointer transition-all ${checkedItems.has(i) ? "bg-primary/5 border-primary/20" : "bg-[#faf8f6] border-black/5 opacity-50"}`}
                       >
                         <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center shrink-0 mt-0.5 transition-colors ${checkedItems.has(i) ? "bg-primary border-primary" : "border-black/20"}`}>
