@@ -521,7 +521,6 @@ export default function MenuEditorPage() {
       <MobileBottomBar
         mobileSheet={mobileSheet}
         setMobileSheet={setMobileSheet}
-        setExpandedItemId={setExpandedItemId}
         setPublishedSlug={setPublishedSlug}
         activeCategoryId={activeCategoryId}
       />

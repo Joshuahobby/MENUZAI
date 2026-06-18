@@ -6,7 +6,6 @@ import { toast } from "sonner";
 interface MobileBottomBarProps {
   mobileSheet: "build" | "design" | null;
   setMobileSheet: (v: "build" | "design" | null) => void;
-  setExpandedItemId: (id: string | null) => void;
   setPublishedSlug: (slug: string | null) => void;
   activeCategoryId: string | undefined;
 }
@@ -14,7 +13,6 @@ interface MobileBottomBarProps {
 export function MobileBottomBar({
   mobileSheet,
   setMobileSheet,
-  setExpandedItemId,
   setPublishedSlug,
   activeCategoryId,
 }: MobileBottomBarProps) {

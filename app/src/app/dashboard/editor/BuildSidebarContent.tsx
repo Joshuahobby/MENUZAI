@@ -82,7 +82,7 @@ export function BuildSidebarContent({
     } finally {
       setIsGenerating(false);
     }
-  }, [aiPrompt, activeCategoryId, menuStyle.currency, updateItem]);
+  }, [aiPrompt, activeCategoryId, menuStyle.currency, setMenuItems]);
 
   if (selectedItemId) {
     const selectedItem = menuItems.find((i) => i.id === selectedItemId);

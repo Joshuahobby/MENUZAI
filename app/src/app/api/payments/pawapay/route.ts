@@ -42,7 +42,6 @@ export async function POST(req: Request) {
     if (!amount) {
       return NextResponse.json({ error: "Invalid plan" }, { status: 400 });
     }
-    const isAnnual = planKey.includes("annual");
 
     // 1. Get authenticated user
     const supabase = await createSupabaseServerClient();

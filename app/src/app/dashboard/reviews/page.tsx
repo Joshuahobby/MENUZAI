@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/lib/supabase";
 import { useMenu } from "@/context/MenuContext";
 import { formatRelativeTime } from "@/lib/utils";
@@ -21,7 +21,7 @@ interface ReviewRow {
 
 const STARS = [1, 2, 3, 4, 5];
 
-function StarRow({ rating, filled }: { rating: number; filled: boolean }) {
+function StarRow({ filled }: { rating: number; filled: boolean }) {
   return (
     <span
       className={`material-symbols-outlined text-[18px] ${filled ? "icon-fill text-amber-400" : "text-surface-container-high"}`}
@@ -45,7 +45,7 @@ export default function ReviewsPage() {
   const [replyDrafts, setReplyDrafts] = useState<Record<string, string>>({});
   const [savingReplyId, setSavingReplyId] = useState<string | null>(null);
 
-  const fetchReviews = async () => {
+  const fetchReviews = useCallback(async () => {
     if (!restaurantId) return;
     const { data, error } = await supabase
       .from("reviews")
@@ -63,7 +63,7 @@ export default function ReviewsPage() {
       setReviews(processed as ReviewRow[]);
     }
     setLoading(false);
-  };
+  }, [restaurantId]);
 
   useEffect(() => {
     if (!restaurantId) {
@@ -71,7 +71,7 @@ export default function ReviewsPage() {
       return;
     }
     fetchReviews();
-  }, [restaurantId]);
+  }, [restaurantId, fetchReviews]);
 
   const handleGenerateAiReply = async (review: ReviewRow) => {
     setGeneratingForId(review.id);
