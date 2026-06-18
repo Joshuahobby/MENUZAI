@@ -166,3 +166,19 @@ h1, h2, h3, h4, h5, h6 {
 .animate-flash-pulse {
   animation: flash-pulse 0.6s ease-in-out 3;
 }
+
+@keyframes bounce-slow {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+.animate-bounce-slow {
+  animation: bounce-slow 2.5s ease-in-out infinite;
+}
+
+@keyframes service-pulse {
+  0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }
+  50% { transform: scale(1.05); box-shadow: 0 0 0 12px rgba(16, 185, 129, 0); }
+}
+.animate-service-pulse {
+  animation: service-pulse 0.6s ease-in-out 3;
+}

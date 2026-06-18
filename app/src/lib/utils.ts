@@ -66,6 +66,21 @@ export function getOptimizedImageUrl(url: string | null | undefined, width = 600
   return url;
 }
 
+interface TagMeta {
+  icon: string;
+  color: string;
+}
+
+export function getTagMeta(tag: string): TagMeta {
+  const t = tag.toLowerCase().trim();
+  if (t === "vegan") return { icon: "eco", color: "text-emerald-600 bg-emerald-50 dark:bg-emerald-950/20 dark:text-emerald-400 border border-emerald-500/10" };
+  if (t === "vegetarian") return { icon: "spa", color: "text-green-600 bg-green-50 dark:bg-green-950/20 dark:text-green-400 border border-green-500/10" };
+  if (t === "gluten-free" || t === "gluten free" || t === "gf") return { icon: "grass", color: "text-amber-600 bg-amber-50 dark:bg-amber-950/20 dark:text-amber-400 border border-amber-500/10" };
+  if (t === "spicy" || t === "hot") return { icon: "whatshot", color: "text-rose-600 bg-rose-50 dark:bg-rose-950/20 dark:text-rose-400 border border-rose-500/10" };
+  if (t === "halal") return { icon: "verified", color: "text-indigo-600 bg-indigo-50 dark:bg-indigo-950/20 dark:text-indigo-400 border border-indigo-500/10" };
+  return { icon: "sell", color: "text-secondary bg-surface-container-high border border-outline-variant/10" };
+}
+
 /**
  * Checks if a user's email belongs to a Platform Admin.
  * Prefers the private ADMIN_EMAILS env var (server-only, not in browser bundle).

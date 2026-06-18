@@ -283,6 +283,20 @@ export default function OrdersPage() {
                 setTimeout(() => { document.title = prev; }, 4000);
               }
 
+              // Fire-and-forget push notification to all subscribers
+              fetch("/api/push/send", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  restaurantId,
+                  title: "🛎️ New Order",
+                  body: newOrder.customer_name
+                    ? `${newOrder.customer_name}${newOrder.table_number ? ` (Table ${newOrder.table_number})` : ""}`
+                    : "A customer just placed an order",
+                  url: "/dashboard/orders",
+                }),
+              }).catch((e) => console.error("Push send failed:", e));
+
               toast("New order received!", {
                 description: newOrder.customer_name
                   ? `From ${newOrder.customer_name}${newOrder.table_number ? ` · Table ${newOrder.table_number}` : ""}`
