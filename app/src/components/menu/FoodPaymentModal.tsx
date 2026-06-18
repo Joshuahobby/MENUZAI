@@ -11,7 +11,7 @@ interface Props {
   currency: string;
   tableNumber?: string | null;
   customerName?: string | null;
-  onSuccess: () => void;
+  onSuccess: (orderId?: string) => void;
   onClose: () => void;
 }
 
@@ -23,6 +23,7 @@ export default function FoodPaymentModal({ restaurantId, menuId, items, total, c
   const [errorMsg, setErrorMsg] = useState("");
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const orderIdRef = useRef<string | null>(null);
 
   const stopPolling = () => {
     if (pollRef.current) { clearInterval(pollRef.current); pollRef.current = null; }
@@ -47,9 +48,11 @@ export default function FoodPaymentModal({ restaurantId, menuId, items, total, c
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Payment initiation failed");
 
+      orderIdRef.current = data.orderId || null;
+
       if (data.simulated) {
         setState("success");
-        onSuccess();
+        onSuccess(data.orderId);
         return;
       }
 
@@ -63,7 +66,7 @@ export default function FoodPaymentModal({ restaurantId, menuId, items, total, c
           if (statusData.status === "completed") {
             stopPolling();
             setState("success");
-            onSuccess();
+            onSuccess(orderIdRef.current ?? undefined);
           } else if (statusData.status === "failed") {
             stopPolling();
             setState("failed");

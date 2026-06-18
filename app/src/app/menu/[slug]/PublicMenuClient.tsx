@@ -87,8 +87,31 @@ export default function PublicMenuClient(props: PublicMenuClientProps) {
   const [orderedSnapshot, setOrderedSnapshot] = useState<{ cart: CartItem[]; total: number } | null>(null);
   const [lastWhatsAppUrl, setLastWhatsAppUrl] = useState<string | null>(null);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
-  const [customerName, setCustomerName] = useState("");
-  const [orderTableNumber, setOrderTableNumber] = useState("");
+  const [customerName, setCustomerName] = useState(() => {
+    if (typeof window === "undefined") return "";
+    try { return JSON.parse(localStorage.getItem("menuza_customer_name") || '""'); } catch { return ""; }
+  });
+  const [orderTableNumber, setOrderTableNumber] = useState(() => {
+    if (typeof window === "undefined") return "";
+    try { return JSON.parse(localStorage.getItem("menuza_table_number") || '""'); } catch { return ""; }
+  });
+  const [lastOrderId, setLastOrderId] = useState<string | null>(() => {
+    if (typeof window === "undefined") return null;
+    try { return JSON.parse(localStorage.getItem("menuza_last_order") || "null"); } catch { return null; }
+  });
+  const [isCancelling, setIsCancelling] = useState(false);
+
+  useEffect(() => {
+    try { localStorage.setItem("menuza_customer_name", JSON.stringify(customerName)); } catch {}
+  }, [customerName]);
+
+  useEffect(() => {
+    try { localStorage.setItem("menuza_table_number", JSON.stringify(orderTableNumber)); } catch {}
+  }, [orderTableNumber]);
+
+  useEffect(() => {
+    try { localStorage.setItem("menuza_last_order", JSON.stringify(lastOrderId)); } catch {}
+  }, [lastOrderId]);
 
   const resolvedTableNumber = tableFromUrl || orderTableNumber;
 
@@ -248,7 +271,7 @@ export default function PublicMenuClient(props: PublicMenuClientProps) {
     const { items: orderItems, tableNumber: chatTable, total } = pendingChatOrder;
     const resolvedTable = chatTable || resolvedTableNumber || null;
 
-    const { error } = await supabase.from("orders").insert({
+    const { data: order, error } = await supabase.from("orders").insert({
       menu_id: menuId,
       restaurant_id: restaurantId,
       items: orderItems,
@@ -258,13 +281,15 @@ export default function PublicMenuClient(props: PublicMenuClientProps) {
       whatsapp_sent: true,
       status: "pending",
       source: "ai_waiter",
-    });
+    }).select("id").single();
 
-    if (error) {
+    if (error || !order) {
       toast.error("Failed to place order. Please try again.");
       setIsPlacingChatOrder(false);
       return;
     }
+
+    setLastOrderId(order.id);
 
     // Also open WhatsApp so the restaurant gets notified
     const msg = buildWhatsAppMessage(orderItems, customerName.trim() || undefined, resolvedTable || undefined, menuStyle.currency ?? "RWF");
@@ -280,7 +305,7 @@ export default function PublicMenuClient(props: PublicMenuClientProps) {
         customerName: customerName.trim() || undefined,
         tableNumber: resolvedTable,
       }),
-    }).catch(() => {});
+    }).catch((e) => console.error("Order notification failed:", e));
 
     setPendingChatOrder(null);
     setIsPlacingChatOrder(false);
@@ -507,7 +532,7 @@ export default function PublicMenuClient(props: PublicMenuClientProps) {
 
     const snapshot = { cart: [...cart], total: totalPrice };
 
-    const { error } = await supabase.from("orders").insert({
+    const { data: order, error } = await supabase.from("orders").insert({
       menu_id: menuId,
       restaurant_id: restaurantId,
       items: cart,
@@ -516,9 +541,9 @@ export default function PublicMenuClient(props: PublicMenuClientProps) {
       table_number: resolvedTableNumber || null,
       whatsapp_sent: true,
       status: "pending",
-    });
+    }).select("id").single();
 
-    if (error) {
+    if (error || !order) {
       toast.error("Failed to place order. Please try again.");
       setIsPlacingOrder(false);
       return;
@@ -539,8 +564,9 @@ export default function PublicMenuClient(props: PublicMenuClientProps) {
         tableNumber: resolvedTableNumber || undefined,
         note: orderNote || undefined,
       }),
-    }).catch(() => {});
+    }).catch((e) => console.error("Order notification failed:", e));
 
+    setLastOrderId(order.id);
     setOrderedSnapshot(snapshot);
     setCart([]);
     setOrderNote("");
@@ -589,6 +615,26 @@ export default function PublicMenuClient(props: PublicMenuClientProps) {
     }
     setShowNoteField(false);
     setIsCartOpen(false);
+  };
+
+  const handleCancelOrder = async () => {
+    if (!lastOrderId || isCancelling) return;
+    setIsCancelling(true);
+    try {
+      const { error } = await supabase
+        .from("orders")
+        .update({ status: "cancelled" })
+        .eq("id", lastOrderId);
+      if (error) throw error;
+      toast.success("Your order has been cancelled.");
+      setLastOrderId(null);
+      setOrderedSnapshot(null);
+      setOrderPlaced(false);
+    } catch {
+      toast.error("Failed to cancel order. Please ask your server.");
+    } finally {
+      setIsCancelling(false);
+    }
   };
 
   // Upsell items for the cart sheet (items not in cart, from different categories)
@@ -853,8 +899,9 @@ export default function PublicMenuClient(props: PublicMenuClientProps) {
           currency={menuStyle.currency ?? "RWF"}
           tableNumber={resolvedTableNumber || null}
           customerName={customerName.trim() || null}
-          onSuccess={() => {
+          onSuccess={(orderId) => {
             setShowPaymentModal(false);
+            if (orderId) setLastOrderId(orderId);
             setOrderedSnapshot({ cart: [...cart], total: totalPrice });
             setCart([]);
             setOrderPlaced(true);
@@ -1219,6 +1266,17 @@ export default function PublicMenuClient(props: PublicMenuClientProps) {
                     </div>
                   )}
                 </div>
+
+                {lastOrderId && (
+                  <button
+                    type="button"
+                    onClick={handleCancelOrder}
+                    disabled={isCancelling}
+                    className="w-full py-3 rounded-2xl text-sm font-bold border border-error/30 text-error bg-transparent hover:bg-error/5 transition-all disabled:opacity-40"
+                  >
+                    {isCancelling ? "Cancelling..." : "Cancel Order"}
+                  </button>
+                )}
 
                 <button
                   type="button"
