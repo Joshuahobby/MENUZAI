@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 
@@ -22,6 +22,10 @@ export default function ServicePager({
   const [serviceMessage, setServiceMessage] = useState("");
   const [isSending, setIsSending] = useState(false);
   const [sent, setSent] = useState(false);
+  const [cooldown, setCooldown] = useState(false);
+  const lastSentAt = useRef(0);
+
+  const COOLDOWN_MS = 5000;
 
   useEffect(() => {
     if (!sent) return;
@@ -29,11 +33,22 @@ export default function ServicePager({
     return () => clearTimeout(t);
   }, [sent]);
 
+  useEffect(() => {
+    if (!cooldown) return;
+    const t = setTimeout(() => setCooldown(false), COOLDOWN_MS);
+    return () => clearTimeout(t);
+  }, [cooldown]);
+
   const handleSend = async (e: React.FormEvent) => {
     e.preventDefault();
     const table = resolvedTableNumber;
     if (!table) {
       toast.error("Please enter your table number first.");
+      return;
+    }
+    const now = Date.now();
+    if (now - lastSentAt.current < COOLDOWN_MS) {
+      toast.error("Please wait a moment before sending another request.");
       return;
     }
     setIsSending(true);
@@ -55,6 +70,8 @@ export default function ServicePager({
           });
           supabase.removeChannel(channel);
           toast.success("Assistance request sent to staff! 🛎️");
+          lastSentAt.current = Date.now();
+          setCooldown(true);
           setSent(true);
           setIsOpen(false);
           setServiceMessage("");

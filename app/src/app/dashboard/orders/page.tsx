@@ -85,6 +85,7 @@ export default function OrdersPage() {
   const { restaurantId, menuStyle, restaurantName, plan } = useMenu();
   const router = useRouter();
   const currency = menuStyle.currency ?? "RWF";
+  const notifiedOrderIds = useRef(new Set<string>());
 
   const [orders, setOrders] = useState<OrderRow[]>([]);
   const [tableRequests, setTableRequests] = useState<TableRequest[]>([]);
@@ -284,18 +285,21 @@ export default function OrdersPage() {
               }
 
               // Fire-and-forget push notification to all subscribers
-              fetch("/api/push/send", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                  restaurantId,
-                  title: "🛎️ New Order",
-                  body: newOrder.customer_name
-                    ? `${newOrder.customer_name}${newOrder.table_number ? ` (Table ${newOrder.table_number})` : ""}`
-                    : "A customer just placed an order",
-                  url: "/dashboard/orders",
-                }),
-              }).catch((e) => console.error("Push send failed:", e));
+              if (!notifiedOrderIds.current.has(newOrder.id)) {
+                notifiedOrderIds.current.add(newOrder.id);
+                fetch("/api/push/send", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({
+                    restaurantId,
+                    title: "🛎️ New Order",
+                    body: newOrder.customer_name
+                      ? `${newOrder.customer_name}${newOrder.table_number ? ` (Table ${newOrder.table_number})` : ""}`
+                      : "A customer just placed an order",
+                    url: "/dashboard/orders",
+                  }),
+                }).catch((e) => console.error("Push send failed:", e));
+              }
 
               toast("New order received!", {
                 description: newOrder.customer_name

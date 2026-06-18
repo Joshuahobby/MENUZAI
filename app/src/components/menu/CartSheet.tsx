@@ -1,15 +1,14 @@
 "use client";
 
 import NextImage from "next/image";
-import Link from "next/link";
 import { formatPrice } from "@/lib/utils";
 import { toast } from "sonner";
+import OrderConfirmation from "./OrderConfirmation";
 import type { MenuItem, MenuStyle, CartItem } from "@/types/menu";
 
 interface CartSheetProps {
   isOpen: boolean;
   cart: CartItem[];
-  totalItems: number;
   totalPrice: number;
   orderPlaced: boolean;
   orderedSnapshot: { cart: CartItem[]; total: number } | null;
@@ -41,7 +40,6 @@ interface CartSheetProps {
   onShowNoteFieldChange: (val: boolean) => void;
   onShowPaymentModal: (show: boolean) => void;
   onTrackOrderClick: () => void;
-  // Review state
   rating: number;
   hoverRating: number;
   reviewComment: string;
@@ -56,7 +54,6 @@ interface CartSheetProps {
 export default function CartSheet({
   isOpen,
   cart,
-  totalItems,
   totalPrice,
   orderPlaced,
   orderedSnapshot,
@@ -107,141 +104,34 @@ export default function CartSheet({
         onClick={onClose}
       />
       <div className="fixed bottom-0 left-0 right-0 z-[70] bg-surface rounded-t-[2.5rem] shadow-2xl max-h-[90vh] flex flex-col animate-in slide-in-from-bottom duration-300">
-        {/* Drag handle */}
         <div className="pt-3 pb-1 flex justify-center shrink-0">
           <div className="w-10 h-1 bg-black/10 rounded-full" />
         </div>
 
         {orderPlaced && orderedSnapshot ? (
-          /* ── Confirmation View ── */
-          <div className="flex-1 overflow-y-auto px-6 py-4 flex flex-col items-center space-y-6 pb-10">
-            <div className="w-20 h-20 bg-tertiary/10 rounded-full flex items-center justify-center">
-              <span className="material-symbols-outlined text-tertiary text-4xl icon-fill">check_circle</span>
-            </div>
-            <div className="text-center">
-              <h2 className="font-[var(--font-headline)] font-extrabold text-2xl tracking-tight">Order Sent!</h2>
-              <p className="text-secondary text-sm mt-1">WhatsApp is opening to confirm with the restaurant.</p>
-              {resolvedTableNumber && (
-                <div className="inline-flex items-center gap-1.5 mt-2 bg-surface-container px-3 py-1.5 rounded-full">
-                  <span className="material-symbols-outlined text-[14px] text-secondary">table_restaurant</span>
-                  <span className="text-xs font-bold text-secondary">Table {resolvedTableNumber}</span>
-                </div>
-              )}
-              {customerName.trim() && (
-                <div className="inline-flex items-center gap-1.5 mt-1 bg-surface-container px-3 py-1.5 rounded-full">
-                  <span className="material-symbols-outlined text-[14px] text-secondary">person</span>
-                  <span className="text-xs font-bold text-secondary">{customerName.trim()}</span>
-                </div>
-              )}
-              {lastWhatsAppUrl && (
-                <a
-                  href={lastWhatsAppUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="mt-3 inline-flex items-center gap-2 text-xs font-bold text-whatsapp hover:underline"
-                >
-                  <span className="material-symbols-outlined text-[14px]">open_in_new</span>
-                  WhatsApp didn&apos;t open? Tap here
-                </a>
-              )}
-            </div>
-
-            {/* Order summary */}
-            <div className="w-full bg-surface-container-lowest rounded-2xl p-5 border border-surface-container/50 space-y-2.5">
-              {orderedSnapshot.cart.map((item) => (
-                <div key={item.id} className="flex justify-between text-sm">
-                  <span className="font-medium text-on-surface">
-                    {item.name}
-                    <span className="text-secondary ml-1.5">×{item.quantity}</span>
-                  </span>
-                  <span className="font-bold text-primary">{formatPrice(item.price * item.quantity, currency)}</span>
-                </div>
-              ))}
-              <div className="pt-3 border-t border-surface-container flex justify-between font-bold text-base">
-                <span>Total</span>
-                <span className="text-primary">{formatPrice(orderedSnapshot.total, currency)}</span>
-              </div>
-            </div>
-
-            {/* Review widget */}
-            <div className="w-full bg-surface-container-lowest rounded-2xl p-5 border border-surface-container/50 space-y-4">
-              <h3 className="font-[var(--font-headline)] font-black text-center text-sm">Rate your experience</h3>
-              {reviewSubmitted ? (
-                <div className="text-center py-2 space-y-1">
-                  <span className="material-symbols-outlined text-emerald-500 text-4xl block">celebration</span>
-                  <p className="text-sm font-bold text-emerald-600">Thanks for the feedback! ❤️</p>
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  <div className="flex justify-center gap-2">
-                    {[1, 2, 3, 4, 5].map((star) => {
-                      const isActive = (hoverRating || rating) >= star;
-                      return (
-                        <button
-                          key={star}
-                          type="button"
-                          onClick={() => onRatingChange(star)}
-                          onMouseEnter={() => onHoverRatingChange(star)}
-                          onMouseLeave={() => onHoverRatingChange(0)}
-                          className={`transition-all duration-150 hover:scale-125 active:scale-110 border-none bg-transparent cursor-pointer ${isActive ? "text-amber-500" : "text-surface-container-highest"}`}
-                        >
-                          <span className="material-symbols-outlined text-[32px] icon-fill select-none">star</span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                  {rating > 0 && (
-                    <div className="space-y-2.5">
-                      <textarea
-                        value={reviewComment}
-                        onChange={(e) => onReviewCommentChange(e.target.value)}
-                        placeholder="What did you love? (optional)"
-                        className="w-full bg-surface-container-low border-none rounded-2xl py-3 px-4 text-xs focus:ring-2 focus:ring-primary/20 resize-none h-16 outline-none"
-                      />
-                      <button
-                        type="button"
-                        onClick={onSubmitReview}
-                        disabled={isSubmittingReview}
-                        className="w-full py-3 bg-primary text-white font-[var(--font-headline)] font-bold rounded-2xl text-xs active:scale-95 transition-all disabled:opacity-50 cursor-pointer hover:opacity-90"
-                      >
-                        {isSubmittingReview ? "Submitting..." : "Submit Review"}
-                      </button>
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-
-            {lastOrderId && (
-              <button
-                type="button"
-                onClick={onCancelOrder}
-                disabled={isCancelling}
-                className="w-full py-3 rounded-2xl text-sm font-bold border border-error/30 text-error bg-transparent hover:bg-error/5 transition-all disabled:opacity-40"
-              >
-                {isCancelling ? "Cancelling..." : "Cancel Order"}
-              </button>
-            )}
-
-            <button
-              type="button"
-              onClick={onClose}
-              className="w-full py-4 bg-surface-container-lowest border border-surface-container rounded-2xl font-bold text-sm hover:bg-surface-container-low transition-all"
-            >
-              Back to Menu
-            </button>
-
-            <Link
-              href={`/menu/${slug}/history`}
-              className="block text-center text-xs text-secondary hover:text-on-surface underline underline-offset-2 transition-colors"
-            >
-              View Order History
-            </Link>
-          </div>
+          <OrderConfirmation
+            orderedSnapshot={orderedSnapshot}
+            resolvedTableNumber={resolvedTableNumber}
+            customerName={customerName}
+            lastWhatsAppUrl={lastWhatsAppUrl}
+            currency={currency}
+            slug={slug}
+            lastOrderId={lastOrderId}
+            isCancelling={isCancelling}
+            onCancelOrder={onCancelOrder}
+            onClose={onClose}
+            rating={rating}
+            hoverRating={hoverRating}
+            reviewComment={reviewComment}
+            reviewSubmitted={reviewSubmitted}
+            isSubmittingReview={isSubmittingReview}
+            onRatingChange={onRatingChange}
+            onHoverRatingChange={onHoverRatingChange}
+            onReviewCommentChange={onReviewCommentChange}
+            onSubmitReview={onSubmitReview}
+          />
         ) : (
-          /* ── Cart View ── */
           <>
-            {/* Header */}
             <div className="px-6 py-4 flex items-center justify-between shrink-0 border-b border-outline-variant/10">
               <div>
                 <h2 className="font-[var(--font-headline)] font-extrabold text-xl tracking-tight">Your Order</h2>
@@ -266,7 +156,6 @@ export default function CartSheet({
               </button>
             </div>
 
-            {/* Scrollable items */}
             <div className="flex-1 overflow-y-auto px-6 py-4 space-y-3">
               {cart.length === 0 ? (
                 <div className="text-center py-12">
@@ -312,7 +201,6 @@ export default function CartSheet({
                     </div>
                   ))}
 
-                  {/* Upsell strip */}
                   {upsellItems.length > 0 && (
                     <div className="pt-2 pb-1">
                       <p className="text-[10px] font-black text-secondary uppercase tracking-[0.18em] mb-2">Pairs well with</p>
@@ -333,7 +221,6 @@ export default function CartSheet({
                     </div>
                   )}
 
-                  {/* Customer details */}
                   <div className="pt-2 space-y-3 border-t border-outline-variant/10">
                     <div>
                       <label className="text-[10px] font-black text-secondary uppercase tracking-[0.18em] mb-1.5 block">Your Name (Optional)</label>
@@ -359,7 +246,6 @@ export default function CartSheet({
                     )}
                   </div>
 
-                  {/* Note field */}
                   {showNoteField ? (
                     <div className="pt-1">
                       <textarea
@@ -385,7 +271,6 @@ export default function CartSheet({
               )}
             </div>
 
-            {/* Sticky footer */}
             {cart.length > 0 && (
               <div className="px-6 py-5 bg-surface border-t border-outline-variant/10 shrink-0">
                 <div className="flex justify-between items-center mb-4">

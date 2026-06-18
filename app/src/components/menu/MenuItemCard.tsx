@@ -29,13 +29,19 @@ export default function MenuItemCard({
       className={`bg-surface-container-lowest overflow-hidden flex flex-col shadow-sm border border-outline-variant/10 rounded-[var(--border-radius)] relative cursor-pointer hover:shadow-md hover:-translate-y-1 transition-all duration-300 ${item.available === false ? "opacity-60" : ""}`}
     >
       <div className={`relative ${menuStyle.layoutDensity === "compact" ? "h-36" : "h-52"}`}>
-        <NextImage
-          alt={item.name}
-          className="object-cover"
-          src={getOptimizedImageUrl(item.image || "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=600&h=400&fit=crop", 600)}
-          fill
-          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 400px"
-        />
+        {item.image ? (
+          <NextImage
+            alt={item.name}
+            className="object-cover"
+            src={getOptimizedImageUrl(item.image, 600)}
+            fill
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 400px"
+          />
+        ) : (
+          <div className="w-full h-full bg-surface-container flex items-center justify-center">
+            <span className="material-symbols-outlined text-5xl text-secondary/30">restaurant</span>
+          </div>
+        )}
         <div className="absolute top-4 right-4 bg-white/95 backdrop-blur-md px-4 py-2 z-10 shadow-sm rounded-[calc(var(--border-radius)/2)]">
           <span className="font-[var(--font-headline)] font-extrabold text-lg text-[var(--primary-color)]">{formatPrice(item.price, menuStyle.currency ?? "RWF")}</span>
         </div>

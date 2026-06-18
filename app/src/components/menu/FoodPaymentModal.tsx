@@ -103,12 +103,18 @@ export default function FoodPaymentModal({ restaurantId, menuId, items, total, c
     const id = orderIdRef.current;
     if (!id) { onClose(); return; }
     try {
-      await fetch("/api/orders/cancel", {
+      const res = await fetch("/api/orders/cancel", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ orderId: id }),
       });
-    } catch {}
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        console.error("Cancel order failed:", data.error || res.statusText);
+      }
+    } catch (err) {
+      console.error("Cancel order network error:", err);
+    }
     toast.success("Your order has been cancelled.");
     onClose();
   };

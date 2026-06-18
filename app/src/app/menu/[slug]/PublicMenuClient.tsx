@@ -751,7 +751,6 @@ export default function PublicMenuClient(props: PublicMenuClientProps) {
       <CartSheet
         isOpen={isCartOpen}
         cart={cart}
-        totalItems={totalItems}
         totalPrice={totalPrice}
         orderPlaced={orderPlaced}
         orderedSnapshot={orderedSnapshot}
