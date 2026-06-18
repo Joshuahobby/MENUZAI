@@ -227,7 +227,8 @@ export default function QRCodesPage() {
           )}
           <button
             onClick={downloadPoster}
-            disabled={isExporting}
+            disabled={isExporting || !tableNumber}
+            title={!tableNumber ? "Enter a table number first" : "Download as PNG"}
             className="px-6 py-2.5 bg-white text-[#1A1009] border border-[#F0EBE8] rounded-full font-black text-[11px] uppercase tracking-widest shadow-sm hover:bg-surface-container/20 transition-all flex items-center gap-2 disabled:opacity-50"
           >
             <span className="material-symbols-outlined text-[16px]">image</span>
@@ -235,7 +236,8 @@ export default function QRCodesPage() {
           </button>
           <button
             onClick={downloadPDF}
-            disabled={isExporting}
+            disabled={isExporting || !tableNumber}
+            title={!tableNumber ? "Enter a table number first" : "Download as PDF"}
             className="px-6 py-2.5 bg-[#1A1009] text-white rounded-full font-black text-[11px] uppercase tracking-widest shadow-lg shadow-black/10 hover:scale-105 active:scale-95 transition-all flex items-center gap-2 disabled:opacity-50"
           >
             {isExporting ? (
@@ -372,15 +374,23 @@ export default function QRCodesPage() {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label htmlFor="table-number" className="text-[9px] font-black text-secondary uppercase tracking-widest mb-2 block">Table #</label>
+                    <label htmlFor="table-number" className="text-[9px] font-black text-secondary uppercase tracking-widest mb-2 block">
+                      Table # <span className="text-error">*</span>
+                    </label>
                     <input
                       id="table-number"
-                      className="w-full bg-surface-container/50 border-none rounded-2xl py-3 px-4 text-xs font-bold focus:ring-2 focus:ring-primary/20 transition-all"
-                      placeholder="e.g. 05"
+                      className={`w-full bg-surface-container/50 border-none rounded-2xl py-3 px-4 text-xs font-bold focus:ring-2 focus:ring-primary/20 transition-all ${!tableNumber ? 'ring-2 ring-error/20' : ''}`}
+                      placeholder="e.g. 05 (required)"
                       value={tableNumber}
                       onChange={(e) => setTableNumber(e.target.value)}
                       title="Table Number"
                     />
+                    {!tableNumber && (
+                      <p className="text-[9px] text-error font-semibold mt-1.5 flex items-center gap-1">
+                        <span className="material-symbols-outlined text-[10px]">error</span>
+                        Required &mdash; the QR code won&apos;t include a table without it
+                      </p>
+                    )}
                   </div>
                   <div>
                     <label className="text-[9px] font-black text-secondary uppercase tracking-widest mb-2 block text-right">Print Size</label>

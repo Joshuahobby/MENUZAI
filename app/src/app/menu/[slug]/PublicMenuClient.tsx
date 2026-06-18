@@ -87,6 +87,10 @@ export default function PublicMenuClient(props: PublicMenuClientProps) {
   const [orderedSnapshot, setOrderedSnapshot] = useState<{ cart: CartItem[]; total: number } | null>(null);
   const [lastWhatsAppUrl, setLastWhatsAppUrl] = useState<string | null>(null);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [customerName, setCustomerName] = useState("");
+  const [orderTableNumber, setOrderTableNumber] = useState("");
+
+  const resolvedTableNumber = tableFromUrl || orderTableNumber;
 
   // Review state (inline after order)
   const [rating, setRating] = useState(0);
@@ -144,6 +148,13 @@ export default function PublicMenuClient(props: PublicMenuClientProps) {
   const [pendingChatOrder, setPendingChatOrder] = useState<ChatOrder | null>(null);
   const [isPlacingChatOrder, setIsPlacingChatOrder] = useState(false);
 
+  // Sync table number from AI Waiter back to the UI state so it flows to cart, service pager, payment
+  useEffect(() => {
+    if (pendingChatOrder?.tableNumber) {
+      setOrderTableNumber(pendingChatOrder.tableNumber);
+    }
+  }, [pendingChatOrder?.tableNumber]);
+
   // Table Service Pager State
   const [isServiceOpen, setIsServiceOpen] = useState(false);
   const [serviceType, setServiceType] = useState<"call_waiter" | "bill" | "water" | "custom">("call_waiter");
@@ -152,6 +163,11 @@ export default function PublicMenuClient(props: PublicMenuClientProps) {
 
   const handleSendServiceRequest = async (e: React.FormEvent) => {
     e.preventDefault();
+    const table = resolvedTableNumber;
+    if (!table) {
+      toast.error("Please enter your table number first.");
+      return;
+    }
     setIsSendingService(true);
     try {
       const channel = supabase.channel(`table_requests:${restaurantId}`);
@@ -162,7 +178,7 @@ export default function PublicMenuClient(props: PublicMenuClientProps) {
             event: 'new_request',
             payload: {
               id: crypto.randomUUID(),
-              tableNumber: tableFromUrl || "",
+              tableNumber: table,
               type: serviceType,
               message: serviceMessage.trim(),
               created_at: new Date().toISOString(),
@@ -230,14 +246,14 @@ export default function PublicMenuClient(props: PublicMenuClientProps) {
     setIsPlacingChatOrder(true);
 
     const { items: orderItems, tableNumber: chatTable, total } = pendingChatOrder;
-    const resolvedTable = chatTable || tableFromUrl || null;
+    const resolvedTable = chatTable || resolvedTableNumber || null;
 
     const { error } = await supabase.from("orders").insert({
       menu_id: menuId,
       restaurant_id: restaurantId,
       items: orderItems,
       total,
-      customer_name: null,
+      customer_name: customerName.trim() || null,
       table_number: resolvedTable,
       whatsapp_sent: true,
       status: "pending",
@@ -251,7 +267,7 @@ export default function PublicMenuClient(props: PublicMenuClientProps) {
     }
 
     // Also open WhatsApp so the restaurant gets notified
-    const msg = buildWhatsAppMessage(orderItems, undefined, resolvedTable || undefined, menuStyle.currency ?? "RWF");
+    const msg = buildWhatsAppMessage(orderItems, customerName.trim() || undefined, resolvedTable || undefined, menuStyle.currency ?? "RWF");
     const waUrl = buildWhatsAppURL(restaurantPhone, msg);
     window.open(waUrl, "_blank", "noopener,noreferrer");
 
@@ -261,6 +277,7 @@ export default function PublicMenuClient(props: PublicMenuClientProps) {
       body: JSON.stringify({
         restaurantId, items: orderItems, total,
         currency: menuStyle.currency,
+        customerName: customerName.trim() || undefined,
         tableNumber: resolvedTable,
       }),
     }).catch(() => {});
@@ -310,7 +327,7 @@ export default function PublicMenuClient(props: PublicMenuClientProps) {
           menuItems: items.map(i => ({ name: i.name, description: i.description, price: i.price, tags: i.tags })),
           restaurantName,
           restaurantId,
-          tableNumber: tableFromUrl || "",
+          tableNumber: resolvedTableNumber || "",
           aiWaiterSettings: {
             tone: menuStyle.aiWaiterTone,
             upsell: menuStyle.aiWaiterUpsell,
@@ -482,6 +499,10 @@ export default function PublicMenuClient(props: PublicMenuClientProps) {
 
   const placeOrder = async () => {
     if (cart.length === 0 || isPlacingOrder) return;
+    if (!resolvedTableNumber) {
+      toast.error("Please enter your table number before placing the order.");
+      return;
+    }
     setIsPlacingOrder(true);
 
     const snapshot = { cart: [...cart], total: totalPrice };
@@ -491,8 +512,8 @@ export default function PublicMenuClient(props: PublicMenuClientProps) {
       restaurant_id: restaurantId,
       items: cart,
       total: totalPrice,
-      customer_name: null,
-      table_number: tableFromUrl || null,
+      customer_name: customerName.trim() || null,
+      table_number: resolvedTableNumber || null,
       whatsapp_sent: true,
       status: "pending",
     });
@@ -503,7 +524,7 @@ export default function PublicMenuClient(props: PublicMenuClientProps) {
       return;
     }
 
-    const msg = buildWhatsAppMessage(cart, undefined, tableFromUrl || undefined, menuStyle.currency ?? "RWF", orderNote || undefined);
+    const msg = buildWhatsAppMessage(cart, customerName.trim() || undefined, resolvedTableNumber || undefined, menuStyle.currency ?? "RWF", orderNote || undefined);
     const waUrl = buildWhatsAppURL(restaurantPhone, msg);
     setLastWhatsAppUrl(waUrl);
     window.open(waUrl, "_blank", "noopener,noreferrer");
@@ -514,7 +535,8 @@ export default function PublicMenuClient(props: PublicMenuClientProps) {
       body: JSON.stringify({
         restaurantId, items: cart, total: totalPrice,
         currency: menuStyle.currency,
-        tableNumber: tableFromUrl || undefined,
+        customerName: customerName.trim() || undefined,
+        tableNumber: resolvedTableNumber || undefined,
         note: orderNote || undefined,
       }),
     }).catch(() => {});
@@ -565,6 +587,7 @@ export default function PublicMenuClient(props: PublicMenuClientProps) {
       setOrderedSnapshot(null);
       setLastWhatsAppUrl(null);
     }
+    setShowNoteField(false);
     setIsCartOpen(false);
   };
 
@@ -828,8 +851,8 @@ export default function PublicMenuClient(props: PublicMenuClientProps) {
           items={cart}
           total={totalPrice}
           currency={menuStyle.currency ?? "RWF"}
-          tableNumber={tableFromUrl || null}
-          customerName={null}
+          tableNumber={resolvedTableNumber || null}
+          customerName={customerName.trim() || null}
           onSuccess={() => {
             setShowPaymentModal(false);
             setOrderedSnapshot({ cart: [...cart], total: totalPrice });
@@ -901,10 +924,10 @@ export default function PublicMenuClient(props: PublicMenuClientProps) {
                       </div>
                     ))}
                   </div>
-                  {(pendingChatOrder.tableNumber || tableFromUrl) && (
+                  {(pendingChatOrder.tableNumber || resolvedTableNumber) && (
                     <div className="flex items-center gap-1 text-xs text-secondary">
                       <span className="material-symbols-outlined text-[13px]">table_restaurant</span>
-                      Table {pendingChatOrder.tableNumber || tableFromUrl}
+                      Table {pendingChatOrder.tableNumber || resolvedTableNumber}
                     </div>
                   )}
                   <div className="flex justify-between items-center pt-1 border-t border-outline-variant/10">
@@ -967,15 +990,13 @@ export default function PublicMenuClient(props: PublicMenuClientProps) {
       )}
 
       {/* Service Pager FAB */}
-      {tableFromUrl && (
-        <button
-          onClick={() => setIsServiceOpen(true)}
-          className="fixed bottom-40 right-6 w-14 h-14 bg-gradient-to-tr from-amber-500 to-amber-600 text-white rounded-full shadow-2xl flex items-center justify-center z-50 hover:scale-110 active:scale-95 transition-all animate-bounce-slow cursor-pointer"
-          title="Call Waiter / Request Service"
-        >
-          <span className="material-symbols-outlined text-2xl icon-fill font-bold">concierge</span>
-        </button>
-      )}
+      <button
+        onClick={() => setIsServiceOpen(true)}
+        className="fixed bottom-40 right-6 w-14 h-14 bg-gradient-to-tr from-amber-500 to-amber-600 text-white rounded-full shadow-2xl flex items-center justify-center z-50 hover:scale-110 active:scale-95 transition-all animate-bounce-slow cursor-pointer"
+        title="Call Waiter / Request Service"
+      >
+        <span className="material-symbols-outlined text-2xl icon-fill font-bold">concierge</span>
+      </button>
 
       {/* Service Pager Modal */}
       {isServiceOpen && (
@@ -988,7 +1009,7 @@ export default function PublicMenuClient(props: PublicMenuClientProps) {
                 </div>
                 <div>
                   <h4 className="font-[var(--font-headline)] font-bold text-sm">Table Assistance</h4>
-                  <p className="text-[10px] opacity-80 uppercase tracking-widest font-black">Table {tableFromUrl || "Bar"}</p>
+                  <p className="text-[10px] opacity-80 uppercase tracking-widest font-black">Table {resolvedTableNumber || "—"}</p>
                 </div>
               </div>
               <button
@@ -1025,6 +1046,19 @@ export default function PublicMenuClient(props: PublicMenuClientProps) {
                   })}
                 </div>
               </div>
+              {!resolvedTableNumber && (
+                <div>
+                  <label className="text-[10px] font-black text-secondary uppercase tracking-[0.2em] mb-2 block" htmlFor="service-table">Your Table Number</label>
+                  <input
+                    id="service-table"
+                    type="text"
+                    value={orderTableNumber}
+                    onChange={(e) => setOrderTableNumber(e.target.value)}
+                    placeholder="e.g. 5"
+                    className="w-full bg-surface-container-low border-none rounded-xl py-3 px-4 text-sm font-semibold focus:ring-2 focus:ring-amber-500/20"
+                  />
+                </div>
+              )}
               <div>
                 <label className="text-[10px] font-black text-secondary uppercase tracking-[0.2em] mb-2 block" htmlFor="service-message">Additional details (Optional)</label>
                 <textarea
@@ -1095,10 +1129,16 @@ export default function PublicMenuClient(props: PublicMenuClientProps) {
                 <div className="text-center">
                   <h2 className="font-[var(--font-headline)] font-extrabold text-2xl tracking-tight">Order Sent!</h2>
                   <p className="text-secondary text-sm mt-1">WhatsApp is opening to confirm with the restaurant.</p>
-                  {tableFromUrl && (
+                  {resolvedTableNumber && (
                     <div className="inline-flex items-center gap-1.5 mt-2 bg-surface-container px-3 py-1.5 rounded-full">
                       <span className="material-symbols-outlined text-[14px] text-secondary">table_restaurant</span>
-                      <span className="text-xs font-bold text-secondary">Table {tableFromUrl}</span>
+                      <span className="text-xs font-bold text-secondary">Table {resolvedTableNumber}</span>
+                    </div>
+                  )}
+                  {customerName.trim() && (
+                    <div className="inline-flex items-center gap-1.5 mt-1 bg-surface-container px-3 py-1.5 rounded-full">
+                      <span className="material-symbols-outlined text-[14px] text-secondary">person</span>
+                      <span className="text-xs font-bold text-secondary">{customerName.trim()}</span>
                     </div>
                   )}
                   {lastWhatsAppUrl && (
@@ -1195,10 +1235,16 @@ export default function PublicMenuClient(props: PublicMenuClientProps) {
                 <div className="px-6 py-4 flex items-center justify-between shrink-0 border-b border-outline-variant/10">
                   <div>
                     <h2 className="font-[var(--font-headline)] font-extrabold text-xl tracking-tight">Your Order</h2>
-                    {tableFromUrl && (
+                    {resolvedTableNumber && (
                       <p className="text-xs text-secondary font-bold flex items-center gap-1 mt-0.5">
                         <span className="material-symbols-outlined text-[13px]">table_restaurant</span>
-                        Table {tableFromUrl}
+                        Table {resolvedTableNumber}
+                      </p>
+                    )}
+                    {customerName.trim() && (
+                      <p className="text-[10px] text-secondary flex items-center gap-1 mt-0.5">
+                        <span className="material-symbols-outlined text-[11px]">person</span>
+                        {customerName.trim()}
                       </p>
                     )}
                   </div>
@@ -1284,6 +1330,32 @@ export default function PublicMenuClient(props: PublicMenuClientProps) {
                         </div>
                       )}
 
+                      {/* Customer details */}
+                      <div className="pt-2 space-y-3 border-t border-outline-variant/10">
+                        <div>
+                          <label className="text-[10px] font-black text-secondary uppercase tracking-[0.18em] mb-1.5 block">Your Name (Optional)</label>
+                          <input
+                            type="text"
+                            value={customerName}
+                            onChange={(e) => setCustomerName(e.target.value)}
+                            placeholder="e.g. Alice"
+                            className="w-full bg-surface-container-low rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
+                          />
+                        </div>
+                        {!tableFromUrl && (
+                          <div>
+                            <label className="text-[10px] font-black text-secondary uppercase tracking-[0.18em] mb-1.5 block">Table Number (Required)</label>
+                            <input
+                              type="text"
+                              value={orderTableNumber}
+                              onChange={(e) => setOrderTableNumber(e.target.value)}
+                              placeholder="e.g. 5"
+                              className="w-full bg-surface-container-low rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
+                            />
+                          </div>
+                        )}
+                      </div>
+
                       {/* Note field */}
                       {showNoteField ? (
                         <div className="pt-1">
@@ -1341,7 +1413,13 @@ export default function PublicMenuClient(props: PublicMenuClientProps) {
                       {paymentsEnabled && (
                         <button
                           type="button"
-                          onClick={() => setShowPaymentModal(true)}
+                          onClick={() => {
+                            if (!resolvedTableNumber) {
+                              toast.error("Please enter your table number first.");
+                              return;
+                            }
+                            setShowPaymentModal(true);
+                          }}
                           disabled={isPlacingOrder}
                           className="w-full h-12 bg-primary hover:bg-primary/90 text-white rounded-2xl flex items-center justify-center gap-2 active:scale-[0.98] transition-all disabled:opacity-60 font-bold text-sm"
                         >
