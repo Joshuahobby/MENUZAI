@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { formatPrice, formatRelativeTime, formatEventType } from "./utils";
+import { formatPrice, formatRelativeTime, formatTimeOnly, formatEventType } from "./utils";
 
 describe("formatPrice", () => {
   it("formats whole-unit currencies without decimals", () => {
@@ -50,6 +50,18 @@ describe("formatRelativeTime", () => {
   it("returns days ago for >= 24 hours", () => {
     const ago = new Date(Date.now() - 48 * 3600_000).toISOString();
     expect(formatRelativeTime(ago)).toBe("2d ago");
+  });
+});
+
+describe("formatTimeOnly", () => {
+  it("formats ISO string to HH:MM", () => {
+    const result = formatTimeOnly("2026-06-18T14:30:00Z");
+    expect(result).toMatch(/^\d{2}:\d{2}$/);
+  });
+
+  it("handles midnight", () => {
+    const result = formatTimeOnly("2026-06-18T00:05:00Z");
+    expect(result).toMatch(/^\d{2}:\d{2}$/);
   });
 });
 
