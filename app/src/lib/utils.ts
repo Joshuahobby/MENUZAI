@@ -20,7 +20,7 @@ export function formatRelativeTime(iso: string) {
 }
 
 export function formatTimeOnly(iso: string) {
-  return new Date(iso).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  return new Date(iso).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
 }
 
 export function formatEventType(type: string) {

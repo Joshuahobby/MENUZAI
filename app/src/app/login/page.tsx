@@ -36,7 +36,12 @@ function LoginForm() {
       if (error) { setError(error.message); }
       else if (data.session) {
         const { data: restaurant } = await supabase
-          .from("restaurants").select("onboarded").eq("user_id", data.session.user.id).maybeSingle();
+          .from("restaurants")
+          .select("onboarded")
+          .eq("user_id", data.session.user.id)
+          .order("created_at", { ascending: true })
+          .limit(1)
+          .maybeSingle();
         router.push(restaurant?.onboarded ? "/dashboard" : "/onboarding");
       }
     }

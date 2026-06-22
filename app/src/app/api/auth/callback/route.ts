@@ -17,6 +17,8 @@ export async function GET(request: Request) {
         .from('restaurants')
         .select('onboarded')
         .eq('user_id', data.session.user.id)
+        .order('created_at', { ascending: true })
+        .limit(1)
         .maybeSingle();
 
       const destination = restaurant?.onboarded ? '/dashboard' : next;
