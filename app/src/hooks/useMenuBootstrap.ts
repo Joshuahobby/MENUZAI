@@ -115,7 +115,7 @@ export function useMenuBootstrap() {
           return;
         }
 
-        let restoId: string;
+        let restoId: string | undefined;
 
         const { data: existingRestaurant, error: selectError, status: selectStatus } = await supabase
           .from("restaurants")
@@ -248,6 +248,7 @@ export function useMenuBootstrap() {
         }
 
         // Load most recent menu that belongs to the restaurant
+        if (!restoId) return; // safety guard — should never happen but prevents a bad Supabase query
         const { data: menu } = await supabase
           .from("menus")
           .select("*")
