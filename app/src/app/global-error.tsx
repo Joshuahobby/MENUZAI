@@ -15,7 +15,10 @@ export default function GlobalError({ error, reset }: { error: Error & { digest?
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <title>Something went wrong — MENUZA AI</title>
-        {/* Load the app stylesheet so design tokens are available */}
+        {/* Load the app stylesheet so design tokens are available.
+            global-error renders outside the root layout, so manual stylesheet
+            loading is the only option here — the Next.js font system is not available. */}
+        {/* eslint-disable-next-line @next/next/no-css-tags */}
         <link rel="stylesheet" href="/_next/static/css/app/layout.css" />
         {/* Inline fallback styles in case the CSS chunk isn't available */}
         <style>{`
@@ -32,6 +35,7 @@ export default function GlobalError({ error, reset }: { error: Error & { digest?
           a{background:#ede8e4;color:#1c1b1a}
           button:hover,a:hover{opacity:.85}
         `}</style>
+        {/* eslint-disable-next-line @next/next/no-page-custom-font */}
         <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined&display=swap" />
       </head>
       <body>

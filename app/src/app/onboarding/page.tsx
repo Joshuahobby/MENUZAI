@@ -6,7 +6,7 @@ import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import { useMenu } from "@/context/MenuContext";
 
-type Step = 1 | 2 | 3 | 4;
+type Step = 1 | 2 | 3;
 
 export default function OnboardingPage() {
   const router = useRouter();
@@ -19,7 +19,6 @@ export default function OnboardingPage() {
     user,
   } = useMenu();
 
-  const userId = user?.id ?? null;
 
   useEffect(() => {
     if (menuLoading) return;
@@ -41,27 +40,27 @@ export default function OnboardingPage() {
   const [phone, setPhone] = useState("");
   const [whatsappEnabled, setWhatsappEnabled] = useState(true);
 
-  const [pendingDestination, setPendingDestination] = useState<"upload" | "editor">("upload");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Redirect if already onboarded
+  // Redirect if already onboarded — use restaurantId from context (more
+  // precise than user_id for multi-location owners)
   useEffect(() => {
-    if (menuLoading || !userId) return;
+    if (menuLoading || !restaurantId) return;
     supabase
       .from("restaurants")
       .select("onboarded")
-      .eq("user_id", userId)
-      .order("created_at", { ascending: true })
-      .limit(1)
+      .eq("id", restaurantId)
       .maybeSingle()
       .then(({ data }) => {
         if (data?.onboarded) router.replace("/dashboard");
       });
-  }, [menuLoading, userId, router]);
+  }, [menuLoading, restaurantId, router]);
 
   const saveStep1 = async () => {
     if (!name.trim()) { setError("Please enter your restaurant name."); return; }
+    if (!termsAccepted) { setError("You must accept the Terms of Service to continue."); return; }
+    if (!restaurantId) { setError("Restaurant not ready — please wait a moment and try again."); return; }
     setError(null);
     setSaving(true);
 
@@ -73,9 +72,14 @@ export default function OnboardingPage() {
       terms_accepted_at: new Date().toISOString(),
     };
 
-    const dbError = restaurantId
-      ? (await supabase.from("restaurants").update(payload).eq("id", restaurantId)).error
-      : (await supabase.from("restaurants").upsert({ user_id: userId, ...payload }, { onConflict: "user_id" })).error;
+    // Always update the specific restaurant row for this session.
+    // We never upsert here — useMenuBootstrap already created the row on login.
+    // (migration 022 dropped the unique constraint on user_id, so onConflict:"user_id"
+    //  would silently INSERT a duplicate row instead of updating.)
+    const { error: dbError } = await supabase
+      .from("restaurants")
+      .update(payload)
+      .eq("id", restaurantId);
 
     if (dbError) { setError("Failed to save. Please try again."); setSaving(false); return; }
 
@@ -93,7 +97,9 @@ export default function OnboardingPage() {
       setSaving(false);
       return;
     }
-    const { error: err } = await supabase.from("restaurants").update({ phone: phoneValue }).eq("user_id", userId!);
+    // Filter by restaurantId (not userId) so multi-location owners only update
+    // the current restaurant, not all their locations.
+    const { error: err } = await supabase.from("restaurants").update({ phone: phoneValue }).eq("id", restaurantId!);
     if (err) { setError("Failed to save. Please try again."); setSaving(false); return; }
     setRestaurantPhone(phoneValue ?? "");
     setSaving(false);
@@ -102,7 +108,8 @@ export default function OnboardingPage() {
 
   const finishOnboarding = async (destination: "upload" | "editor") => {
     setSaving(true);
-    await supabase.from("restaurants").update({ onboarded: true }).eq("user_id", userId!);
+    // Filter by restaurantId — same reason as saveStep2 (multi-location owners).
+    await supabase.from("restaurants").update({ onboarded: true }).eq("id", restaurantId!);
 
     if (restaurantId) {
       const { data: menu } = await supabase
@@ -123,7 +130,7 @@ export default function OnboardingPage() {
     fetch("/api/notifications/welcome", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ userId, restaurantName: name.trim() }),
+      body: JSON.stringify({ userId: user?.id, restaurantName: name.trim() }),
     }).catch(() => {});
 
     setSaving(false);
@@ -423,22 +430,36 @@ export default function OnboardingPage() {
             </div>
           )}
 
-          {/* ── Step 3: Menu Choice ── */}
+
+          {/* ── Step 3: Menu Choice + Trial Info (merged from old step 4) ── */}
           {step === 3 && (
-            <div className="space-y-7 animate-[fadeIn_0.3s_ease]">
+            <div className="space-y-6 animate-[fadeIn_0.3s_ease]">
               <div className="text-center">
-                <div className="w-14 h-14 mx-auto bg-tertiary/10 rounded-2xl flex items-center justify-center mb-5">
-                  <span className="material-symbols-outlined text-tertiary text-3xl">celebration</span>
+                <div className="w-14 h-14 mx-auto bg-gradient-to-tr from-primary to-primary-container rounded-2xl flex items-center justify-center mb-5 shadow-lg shadow-primary/25">
+                  <span className="material-symbols-outlined text-white text-3xl icon-fill">rocket_launch</span>
                 </div>
-                <h1 className="text-2xl sm:text-3xl font-[var(--font-headline)] font-extrabold tracking-tight mb-2">
+                <h1 className="text-2xl sm:text-3xl font-[var(--font-headline)] font-extrabold tracking-tight mb-1">
                   {name ? `${name} is almost live!` : "Almost there!"}
                 </h1>
-                <p className="text-secondary">How do you want to create your first menu?</p>
+                <p className="text-secondary text-sm">Your 14-day Pro trial is active — no card needed. How do you want to start?</p>
               </div>
 
+              {/* Trial progress bar */}
+              <div className="bg-white rounded-2xl border border-black/6 p-4">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs font-black uppercase tracking-widest text-secondary/60">Trial Progress</span>
+                  <span className="text-xs font-bold text-primary">Day 1 of 14</span>
+                </div>
+                <div className="h-1.5 bg-surface-container-high rounded-full overflow-hidden">
+                  <div className="h-full bg-gradient-to-r from-primary to-primary-container rounded-full w-[7%]" />
+                </div>
+                <p className="text-[11px] text-secondary/60 mt-2">Full Pro access — then choose your plan</p>
+              </div>
+
+              {/* Menu choice cards — clicking immediately finishes onboarding */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <button
-                  onClick={() => { setPendingDestination("upload"); setStep(4); }}
+                  onClick={() => finishOnboarding("upload")}
                   disabled={saving}
                   className="group relative flex flex-col items-start p-6 bg-on-surface rounded-3xl text-left transition-all hover:opacity-90 active:scale-[0.98] disabled:opacity-60 cursor-pointer"
                 >
@@ -451,13 +472,13 @@ export default function OnboardingPage() {
                   <h3 className="text-lg font-[var(--font-headline)] font-bold text-white mb-1">Upload a Photo</h3>
                   <p className="text-white/70 text-sm leading-snug">Take a photo of your existing menu — AI extracts all items in seconds.</p>
                   <div className="mt-5 flex items-center gap-1.5 text-white/80 font-bold text-xs">
-                    Recommended
+                    {saving ? "Setting up…" : "Recommended"}
                     <span className="material-symbols-outlined text-base group-hover:translate-x-1 transition-transform">arrow_forward</span>
                   </div>
                 </button>
 
                 <button
-                  onClick={() => { setPendingDestination("editor"); setStep(4); }}
+                  onClick={() => finishOnboarding("editor")}
                   disabled={saving}
                   className="group flex flex-col items-start p-6 bg-white rounded-3xl text-left transition-all hover:bg-[#faf8f6] border border-black/6 active:scale-[0.98] disabled:opacity-60 cursor-pointer"
                 >
@@ -467,44 +488,10 @@ export default function OnboardingPage() {
                   <h3 className="text-lg font-[var(--font-headline)] font-bold text-on-surface mb-1">Start from Scratch</h3>
                   <p className="text-secondary text-sm leading-snug">Build your menu manually with full control over layout and style.</p>
                   <div className="mt-5 flex items-center gap-1.5 text-primary font-bold text-xs">
-                    Open Editor
+                    {saving ? "Setting up…" : "Open Editor"}
                     <span className="material-symbols-outlined text-base group-hover:translate-x-1 transition-transform">arrow_forward</span>
                   </div>
                 </button>
-              </div>
-
-              <button
-                onClick={() => { setError(null); setStep(2); }}
-                className="w-full py-3 text-sm font-medium text-secondary hover:text-primary transition-colors text-center"
-              >
-                ← Back to previous step
-              </button>
-            </div>
-          )}
-
-          {/* ── Step 4: Trial confirmation ── */}
-          {step === 4 && (
-            <div className="space-y-6 animate-[fadeIn_0.3s_ease]">
-              <div className="text-center">
-                <div className="w-16 h-16 mx-auto bg-gradient-to-tr from-primary to-primary-container rounded-2xl flex items-center justify-center mb-5 shadow-lg shadow-primary/25">
-                  <span className="material-symbols-outlined text-white text-3xl icon-fill">rocket_launch</span>
-                </div>
-                <h1 className="text-2xl sm:text-3xl font-[var(--font-headline)] font-extrabold tracking-tight mb-2">
-                  Your 14-day Pro trial is live!
-                </h1>
-                <p className="text-secondary text-sm">No credit card needed — cancel anytime</p>
-              </div>
-
-              {/* Trial progress */}
-              <div className="bg-white rounded-2xl border border-black/6 p-5">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-xs font-black uppercase tracking-widest text-secondary/60">Trial Progress</span>
-                  <span className="text-xs font-bold text-primary">Day 1 of 14</span>
-                </div>
-                <div className="h-2 bg-surface-container-high rounded-full overflow-hidden">
-                  <div className="h-full bg-gradient-to-r from-primary to-primary-container rounded-full w-[7%]" />
-                </div>
-                <p className="text-[11px] text-secondary/60 mt-2">Full Pro access until day 14 — then choose your plan</p>
               </div>
 
               {/* What's included */}
@@ -512,14 +499,14 @@ export default function OnboardingPage() {
                 <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/40 mb-4">What&apos;s included in your trial</p>
                 <div className="grid grid-cols-2 gap-2">
                   {[
-                    { icon: "smart_toy",       label: "AI Digital Waiter"         },
-                    { icon: "analytics",        label: "Live Analytics"            },
-                    { icon: "restaurant_menu",  label: "Unlimited Menus"           },
-                    { icon: "receipt_long",     label: "Real-time Orders"          },
-                    { icon: "group",            label: "Staff Roles"               },
-                    { icon: "star",             label: "AI Review Replies"         },
-                    { icon: "qr_code_2",        label: "Branded QR Posters"        },
-                    { icon: "photo_library",    label: "Item Photo Gallery"        },
+                    { icon: "smart_toy",       label: "AI Digital Waiter"  },
+                    { icon: "analytics",        label: "Live Analytics"     },
+                    { icon: "restaurant_menu",  label: "Unlimited Menus"    },
+                    { icon: "receipt_long",     label: "Real-time Orders"   },
+                    { icon: "group",            label: "Staff Roles"        },
+                    { icon: "star",             label: "AI Review Replies"  },
+                    { icon: "qr_code_2",        label: "Branded QR Posters" },
+                    { icon: "photo_library",    label: "Item Photo Gallery" },
                   ].map(({ icon, label }) => (
                     <div key={label} className="flex items-center gap-2">
                       <span className="material-symbols-outlined text-[15px] text-primary-container shrink-0">{icon}</span>
@@ -530,16 +517,10 @@ export default function OnboardingPage() {
               </div>
 
               <button
-                onClick={() => finishOnboarding(pendingDestination)}
-                disabled={saving}
-                className="w-full py-4 bg-gradient-to-tr from-primary to-primary-container rounded-2xl font-bold text-white hover:opacity-90 transition-opacity disabled:opacity-50 text-sm active:scale-[0.98] shadow-lg shadow-primary/25 flex items-center justify-center gap-2"
+                onClick={() => { setError(null); setStep(2); }}
+                className="w-full py-3 text-sm font-medium text-secondary hover:text-primary transition-colors text-center"
               >
-                {saving ? "Setting up…" : (
-                  <>
-                    {pendingDestination === "upload" ? "Upload My Menu Now" : "Open Menu Editor"}
-                    <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
-                  </>
-                )}
+                ← Back to previous step
               </button>
 
               <p className="text-center text-xs text-secondary/50">

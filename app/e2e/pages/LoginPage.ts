@@ -36,6 +36,7 @@ export class LoginPage {
     try {
       await continueBtn.waitFor({ state: "visible", timeout: 2000 });
       await continueBtn.click();
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (_e) {}
     await this.emailInput.fill(email);
     await this.passwordInput.fill(password);
@@ -53,6 +54,7 @@ export class LoginPage {
     try {
       await continueBtn.waitFor({ state: "visible", timeout: 2000 });
       await continueBtn.click();
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (_e) {}
     await this.emailInput.fill(email);
     await this.passwordInput.fill(password);

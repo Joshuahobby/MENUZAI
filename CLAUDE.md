@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 This project uses **Next.js 16.2.1**, which contains breaking changes from earlier versions — APIs, conventions, and file structure may differ from training data. Read the relevant guide in `app/node_modules/next/dist/docs/` before writing any code that touches Next.js internals or routing.
 
-**Middleware is replaced by `proxy.ts`** — `app/src/proxy.ts` exports a `proxy()` function (not `middleware()`) that refreshes Supabase sessions on every request. This is the Next.js 16 convention; `middleware.ts` is deprecated.
+**Middleware**: `app/src/middleware.ts` (at the correct Next.js root location) delegates to `proxy()` from `app/src/proxy.ts`. `proxy()` does two things: (1) refreshes the Supabase auth session cookie on every request, and (2) rewrites the root path to `/menu/[slug]` for restaurant custom domains (Business plan). Do **not** create another `middleware.ts` file inside `src/app/` — the App Router ignores it there.
 
 ## Commands
 
@@ -44,7 +44,7 @@ The dashboard layout sets `data-auth-ready="true"` on its root `<div>` once auth
 
 **E2E infrastructure**: `global-setup.ts` creates/resets a confirmed test user via Supabase Admin API and saves browser session (cookies + localStorage) to `e2e/.auth/user.json`. Most test specs reuse this saved session. Tests are numbered `01–14` and run in sequence. Page Object classes live in `e2e/pages/` (`LoginPage`, `DashboardPage`, `EditorPage`, `OnboardingPage`). The login page now requires clicking **"Continue with Email"** before the email input appears — all PO helpers handle this.
 
-**Lint**: `npm run lint` has pre-existing failures in root utility scripts (`apply_all_migrations.js`, `inspect.js`, etc.) and `scratch/` — CommonJS `require()` forbidden by the ESLint config. These don't block build or TypeScript. App source is lint-clean except a handful of `no-explicit-any` in API routes and `react-hooks` warnings.
+**Lint**: `npm run lint` is currently **clean (0 warnings, 0 errors)** across all app source. Root utility scripts (`apply_all_migrations.js`, `inspect.js`, etc.) and `scratch/` are excluded from the ESLint config.
 
 ## Environment Variables
 

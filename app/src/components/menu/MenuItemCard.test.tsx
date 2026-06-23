@@ -4,9 +4,10 @@ import MenuItemCard from "./MenuItemCard";
 import type { MenuItem, MenuStyle } from "@/types/menu";
 
 vi.mock("next/image", () => ({
-  default: ({ src, alt, width, height, fill: _fill, sizes, className, style }: {
+  default: ({ src, alt, width, height, sizes, className, style }: {
     src: string; alt: string; width?: number; height?: number; fill?: boolean;
     sizes?: string; className?: string; style?: React.CSSProperties;
+  // eslint-disable-next-line @next/next/no-img-element
   }) => <img src={src} alt={alt} width={width} height={height}
     sizes={sizes} className={className} style={style} />,
 }));
