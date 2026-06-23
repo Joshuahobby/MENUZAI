@@ -55,7 +55,7 @@ NEXT_PUBLIC_SUPABASE_URL=
 NEXT_PUBLIC_SUPABASE_ANON_KEY=
 SUPABASE_SERVICE_ROLE_KEY=       # Required for admin tasks, emails, E2E tests
 OPENROUTER_API_KEY=              # from openrouter.ai
-OPENROUTER_MODEL=meta-llama/llama-3.2-11b-vision-instruct:free  # swap without redeploying; falls back through VISION_FALLBACK_MODELS chain if unset
+# Model is configured per-environment in Admin → AI Settings (platform_settings.ai_model); falls back through VISION_FALLBACK_MODELS chain on provider error
 NEXT_PUBLIC_SITE_URL=http://localhost:3000   # set to production domain on Vercel
 # Upstash Redis — for persistent rate limiting across Vercel instances
 # UPSTASH_REDIS_REST_URL=        # from Upstash console → REST API
@@ -125,7 +125,7 @@ MENUZAI is an AI-powered SaaS platform for restaurant menu digitization. Stack: 
 
 | Route | Method | Notes |
 | --- | --- | --- |
-| `/api/extract-menu` | POST | Image → OpenRouter LLM → parsed menu JSON; if `OPENROUTER_MODEL` not set, tries vision models in order: llama-3.2-11b → gemini-2.0-flash-exp → qwen2-vl-7b; rate-limited 5 req/IP/min via Upstash Redis (fails open if Redis unavailable) |
+| `/api/extract-menu` | POST | Image → OpenRouter LLM → parsed menu JSON; if the configured model (from `platform_settings.ai_model` or the hardcoded default) is one of the OpenRouter vision models, it tries the fallback chain: llama-3.2-11b → gemini-2.0-flash-exp → qwen2-vl-7b; rate-limited 5 req/IP/min via Upstash Redis (fails open if Redis unavailable) |
 | `/api/auth/callback` | GET | Supabase OAuth redirect handler |
 | `/api/analytics/summary` | GET | Aggregated analytics from `analytics_events` table |
 | `/api/ai-waiter` | POST | AI-powered conversational waiter in public menu; routes to configured AI provider |
@@ -297,7 +297,7 @@ The platform uses a dynamic AI provider stack configurable by the platform admin
 
 - **Admin Dashboard**: `/admin/settings` allows the super-admin to set the global AI provider (`openrouter` or `anthropic`) and model string. Settings are stored in the `platform_settings` table. Access is gated by `isPlatformAdmin()`.
 - **Anthropic Integration**: Uses `@anthropic-ai/sdk` with `claude-3-5-sonnet-20241022` for high-accuracy text extraction and conversational waiter capabilities. Requires `ANTHROPIC_API_KEY`.
-- **OpenRouter Integration**: Serves as the free tier default, using `meta-llama/llama-3.2-11b-vision-instruct:free` (or whatever `OPENROUTER_MODEL` is set to).
+- **OpenRouter Integration**: Serves as the free tier default, using `meta-llama/llama-3.2-11b-vision-instruct:free` (or whatever model is configured in Admin → AI Settings).
 
 ### AI Menu Extraction
 

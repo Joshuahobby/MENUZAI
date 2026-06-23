@@ -46,26 +46,42 @@ function getLimiter(opts: RateLimitOptions): Ratelimit | null {
   return _limiters.get(cacheKey)!;
 }
 
+export interface RateLimitResult {
+  allowed: boolean;
+  remaining: number;
+  limit: number;
+  reset: number;
+}
+
 /**
- * Returns true if the request is within the rate limit, false if exceeded.
- * Falls back to allowing (true) if Redis is unavailable — never hard-fails.
+ * Checks rate limit and returns whether the request is allowed,
+ * plus remaining quota info. Falls back to allowing (true) if Redis
+ * is unavailable — never hard-fails.
  */
 export async function checkRateLimit(
   key: string,
   opts: RateLimitOptions
-): Promise<boolean> {
+): Promise<RateLimitResult> {
   const limiter = getLimiter(opts);
   if (!limiter) {
     console.warn(`rate-limit: Redis unavailable, rejecting requests for "${opts.id}"`);
-    return false;
+    return { allowed: false, remaining: 0, limit: opts.max, reset: Date.now() + opts.windowMs };
   }
   try {
-    const { success } = await limiter.limit(key);
-    return success;
-    } catch (err) {
-      console.error(`rate-limit: Redis error for "${opts.id}":`, err);
-      return false; // fail‑closed on Redis errors
-    }
+    const { success, remaining, limit, reset } = await limiter.limit(key);
+    return { allowed: success, remaining, limit, reset };
+  } catch (err) {
+    console.error(`rate-limit: Redis error for "${opts.id}":`, err);
+    return { allowed: false, remaining: 0, limit: opts.max, reset: Date.now() + opts.windowMs };
+  }
+}
+
+export async function checkRateLimitBool(
+  key: string,
+  opts: RateLimitOptions
+): Promise<boolean> {
+  const { allowed } = await checkRateLimit(key, opts);
+  return allowed;
 }
 
 export function getClientIp(req: Request): string {

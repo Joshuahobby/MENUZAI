@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase-server";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
-import { checkRateLimit } from "@/lib/rate-limit";
+import { checkRateLimitBool } from "@/lib/rate-limit";
 
 const FALLBACK_PRICES = { pro: 35_000, business: 89_000 };
 
@@ -50,7 +50,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    if (!await checkRateLimit(user.id, { id: "payments-pawapay", max: 3, windowMs: 5 * 60_000 })) {
+    if (!await checkRateLimitBool(user.id, { id: "payments-pawapay", max: 3, windowMs: 5 * 60_000 })) {
       return NextResponse.json({ error: "Too many requests. Please wait a few minutes." }, { status: 429 });
     }
 

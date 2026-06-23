@@ -5,7 +5,7 @@ import { isPlatformAdmin } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
-const RESEND_FROM = process.env.RESEND_FROM_EMAIL ?? "welcome@menuzaai.com";
+const RESEND_FROM = process.env.RESEND_FROM_EMAIL ?? "hello@menuzai.com";
 
 type Segment = "all" | "trial" | "free" | "pro" | "business";
 

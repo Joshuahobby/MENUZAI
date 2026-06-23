@@ -19,6 +19,7 @@ export interface MenuCategory {
   name: string;
   hidden?: boolean;
   image?: string;
+  itemCount?: number;
 }
 
 export interface MenuStyle {

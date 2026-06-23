@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
 import { createSupabaseServerClient } from "@/lib/supabase-server";
-import { checkRateLimit } from "@/lib/rate-limit";
+import { checkRateLimitBool } from "@/lib/rate-limit";
 import { getPlatformAIConfig } from "@/lib/ai-config";
 
 export async function POST(request: Request) {
@@ -11,7 +11,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  if (!await checkRateLimit(user.id, { id: "ai-description", max: 20, windowMs: 60_000 })) {
+  if (!await checkRateLimitBool(user.id, { id: "ai-description", max: 20, windowMs: 60_000 })) {
     return NextResponse.json({ error: "Rate limit exceeded" }, { status: 429 });
   }
 
@@ -44,6 +44,9 @@ Keep it strictly between 1 to 2 short sentences. No introductory text, no quotes
         messages: [{ role: "user", content: userPrompt }],
       });
 
+      if ((msg as { stop_reason?: string }).stop_reason === "content_filter") {
+        throw new Error("Model flagged content as unsafe");
+      }
       // @ts-expect-error extracting text block
       description = msg.content[0]?.text || "";
     } else {
@@ -74,13 +77,22 @@ Keep it strictly between 1 to 2 short sentences. No introductory text, no quotes
         throw new Error(err.error?.message ?? `OpenRouter error ${response.status}`);
       }
 
-      const data = await response.json();
-      description = data.choices[0]?.message?.content || "";
+      const data = await response.json() as { choices: { message: { content: string }; finish_reason: string }[] };
+      const choice = data.choices?.[0];
+      if (choice?.finish_reason === "content_filter" || choice?.finish_reason === "safety") {
+        throw new Error(`Model flagged content as unsafe (finish_reason: ${choice.finish_reason})`);
+      }
+      description = choice?.message?.content || "";
+    }
+
+    if (!description.trim()) {
+      throw new Error("AI returned empty description");
     }
 
     return NextResponse.json({ description: description.trim() });
   } catch (error) {
-    console.error("AI Generation error:", error);
-    return NextResponse.json({ error: "Failed to generate description" }, { status: 500 });
+    const msg = error instanceof Error ? error.message : "Failed to generate description";
+    console.error("AI Generation error:", msg);
+    return NextResponse.json({ error: msg }, { status: 500 });
   }
 }

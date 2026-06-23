@@ -4,7 +4,7 @@ import { startCronRun, completeCronRun } from "@/lib/cron-logger";
 
 export const dynamic = "force-dynamic";
 
-const RESEND_FROM = process.env.RESEND_FROM_EMAIL ?? "hello@menuzaai.com";
+const RESEND_FROM = process.env.RESEND_FROM_EMAIL ?? "hello@menuzai.com";
 
 function esc(value: unknown): string {
   return String(value ?? "")

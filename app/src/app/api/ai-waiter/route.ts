@@ -1,12 +1,12 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
 import { getPlatformAIConfig } from "@/lib/ai-config";
-import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
+import { checkRateLimitBool, getClientIp } from "@/lib/rate-limit";
 
 export async function POST(request: Request) {
   // Public endpoint — rate-limit by IP to prevent free AI abuse.
   // 20 messages per minute is generous for a real customer, prohibitive for scraping.
-  if (!await checkRateLimit(getClientIp(request), { id: "ai-waiter", max: 20, windowMs: 60_000 })) {
+  if (!await checkRateLimitBool(getClientIp(request), { id: "ai-waiter", max: 20, windowMs: 60_000 })) {
     return Response.json({ error: "Too many requests. Please wait a moment." }, { status: 429 });
   }
 
@@ -113,13 +113,27 @@ __ORDER__:{"items":[{"name":"<exact item name>","qty":<number>}],"table":"<table
               messages: anthropicMessages,
             });
 
+            let hadContent = false;
             for await (const chunk of anthropicStream) {
               if (
                 chunk.type === "content_block_delta" &&
                 chunk.delta.type === "text_delta"
               ) {
+                hadContent = true;
                 controller.enqueue(encoder.encode(chunk.delta.text));
               }
+              // Check for moderation stop at the stream level
+              if (chunk.type === "message_delta" && (chunk.delta as { stop_reason?: string }).stop_reason === "content_filter") {
+                controller.enqueue(
+                  encoder.encode("I'm sorry, I can't respond to that request.")
+                );
+                hadContent = true;
+              }
+            }
+            if (!hadContent) {
+              controller.enqueue(
+                encoder.encode("I'm sorry, I couldn't generate a response. Please try rephrasing your question.")
+              );
             }
           } catch (err) {
             console.error("Anthropic stream error:", err);
@@ -169,6 +183,8 @@ __ORDER__:{"items":[{"name":"<exact item name>","qty":<number>}],"table":"<table
         const reader = upstreamRes.body!.getReader();
         const decoder = new TextDecoder();
         let buffer = "";
+        let finishReason = "stop";
+        let hadContent = false;
 
         try {
           while (true) {
@@ -185,14 +201,30 @@ __ORDER__:{"items":[{"name":"<exact item name>","qty":<number>}],"table":"<table
               if (payload === "[DONE]") continue;
               try {
                 const parsed = JSON.parse(payload) as {
-                  choices?: { delta?: { content?: string } }[];
+                  choices?: { delta?: { content?: string }; finish_reason?: string }[];
                 };
-                const text = parsed.choices?.[0]?.delta?.content ?? "";
-                if (text) controller.enqueue(encoder.encode(text));
+                const choice = parsed.choices?.[0];
+                if (choice?.finish_reason) finishReason = choice.finish_reason;
+                const text = choice?.delta?.content ?? "";
+                if (text) {
+                  hadContent = true;
+                  controller.enqueue(encoder.encode(text));
+                }
               } catch {
                 // Malformed SSE line — skip
               }
             }
+          }
+
+          // Detect safety/moderation blocks after stream ends
+          if (!hadContent && (finishReason === "content_filter" || finishReason === "safety")) {
+            controller.enqueue(
+              encoder.encode("I'm sorry, I can't respond to that request.")
+            );
+          } else if (!hadContent) {
+            controller.enqueue(
+              encoder.encode("I'm sorry, I couldn't generate a response. Please try rephrasing your question.")
+            );
           }
         } catch (err) {
           console.error("OpenRouter stream error:", err);
@@ -207,7 +239,8 @@ __ORDER__:{"items":[{"name":"<exact item name>","qty":<number>}],"table":"<table
 
     return new Response(stream, { headers: streamHeaders });
   } catch (error: unknown) {
-    console.error("AI Route Error:", error);
-    return Response.json({ error: "Internal server error" }, { status: 500 });
+    const msg = error instanceof Error ? error.message : "AI waiter failed";
+    console.error("AI Route Error:", msg);
+    return Response.json({ error: msg }, { status: 500 });
   }
 }

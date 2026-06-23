@@ -21,6 +21,8 @@ function resolvePlan(plan: string | null, trialEndsAt: string | null): string {
   return "free";
 }
 
+const BOOTSTRAP_TIMEOUT = 15_000; // 15 seconds — if Supabase queries hang, unblock the UI
+
 export function useMenuBootstrap() {
   const [user, setUser] = useState<User | null>(null);
   const [authChecked, setAuthChecked] = useState(false);
@@ -137,11 +139,12 @@ export function useMenuBootstrap() {
           userRole = "owner";
 
           // Load all restaurants this owner has (for multi-location switcher)
-          const { data: allOwned } = await supabase
+          const { data: allOwned, error: allOwnedErr } = await supabase
             .from("restaurants")
             .select("id, name")
             .eq("user_id", user.id)
             .order("created_at", { ascending: true });
+          if (allOwnedErr) console.warn("Failed to load owned restaurants list:", allOwnedErr.message);
           if (!cancelled) setOwnedRestaurants(allOwned ?? [{ id: restoId, name: existingRestaurant.name }]);
 
           if (!cancelled) {
@@ -249,13 +252,14 @@ export function useMenuBootstrap() {
 
         // Load most recent menu that belongs to the restaurant
         if (!restoId) return; // safety guard — should never happen but prevents a bad Supabase query
-        const { data: menu } = await supabase
+        const { data: menu, error: menuLoadErr } = await supabase
           .from("menus")
           .select("*")
           .eq("restaurant_id", restoId)
           .order("updated_at", { ascending: false })
           .limit(1)
           .maybeSingle();
+        if (menuLoadErr) console.warn("Failed to load menu:", menuLoadErr.message);
 
         if (menu && !cancelled) {
           hydrate({
@@ -324,8 +328,20 @@ export function useMenuBootstrap() {
     };
 
     bootstrap();
+
+    // Timeout guard — if bootstrap takes longer than BOOTSTRAP_TIMEOUT,
+    // release the loading state so the UI isn't stuck on a spinner forever.
+    const timeoutId = setTimeout(() => {
+      if (!cancelled) {
+        console.warn("Bootstrap timed out — releasing loading state");
+        setIsLoading(false);
+        isBootstrappingRef.current = false;
+      }
+    }, BOOTSTRAP_TIMEOUT);
+
     return () => {
       cancelled = true;
+      clearTimeout(timeoutId);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id, authChecked]);

@@ -64,6 +64,30 @@ describe("parseExtractionResponse", () => {
     expect(result.items[0].tags).toEqual([]);
     expect(result.items[0].image).toBe("");
   });
+
+  it("throws on non-JSON response (OpenRouter safety message)", () => {
+    expect(() => parseExtractionResponse('User Safety: safe')).toThrow('AI returned non-JSON response');
+  });
+
+  it("throws on empty response", () => {
+    expect(() => parseExtractionResponse('')).toThrow('AI returned non-JSON response');
+  });
+
+  it("throws on whitespace-only response", () => {
+    expect(() => parseExtractionResponse('   \n  \t  ')).toThrow('AI returned non-JSON response');
+  });
+
+  it("throws on non-JSON after stripping markdown fences", () => {
+    expect(() => parseExtractionResponse("```\nUser Safety: safe\n```")).toThrow('AI returned non-JSON response');
+  });
+
+  it("truncates long non-JSON snippets in error message", () => {
+    const long = "A".repeat(200);
+    let caught = "";
+    try { parseExtractionResponse(long); } catch (e: unknown) { caught = (e as Error).message; }
+    expect(caught).toContain("...");
+    expect(caught.length).toBeLessThan(200);
+  });
 });
 
 describe("mergeExtractionResults", () => {
@@ -81,7 +105,7 @@ describe("mergeExtractionResults", () => {
     expect(result.items).toEqual([]);
   });
 
-  it("returns single result unchanged", () => {
+  it("returns single result with correct data", () => {
     const single = makeResult({
       restaurantName: "Solo",
       categories: [{ id: "a", name: "Apps" }],
@@ -91,6 +115,7 @@ describe("mergeExtractionResults", () => {
     const result = mergeExtractionResults([single]);
     expect(result.restaurantName).toBe("Solo");
     expect(result.items).toHaveLength(1);
+    expect(result.items[0].name).toBe("Fries");
   });
 
   it("deduplicates categories by normalized name", () => {
@@ -144,8 +169,52 @@ describe("mergeExtractionResults", () => {
     });
 
     const result = mergeExtractionResults([r1]);
-    // Single result is returned as-is, so IDs are preserved
-    // But for multi-result merges, IDs are re-indexed
-    expect(result.items[0].id).toBeDefined();
+    expect(result.items).toHaveLength(2);
+    expect(result.items[0].id).toBe("item-1");
+    expect(result.items[1].id).toBe("item-2");
+  });
+
+  it("re-indexes item IDs across merged results", () => {
+    const r1 = makeResult({
+      categories: [{ id: "c1", name: "Cat1" }],
+      items: [
+        { id: "x", name: "Item A", description: "", price: 1, category: "c1", image: "", tags: [] },
+      ],
+    });
+    const r2 = makeResult({
+      categories: [{ id: "c2", name: "Cat2" }],
+      items: [
+        { id: "y", name: "Item B", description: "", price: 2, category: "c2", image: "", tags: [] },
+      ],
+    });
+
+    const result = mergeExtractionResults([r1, r2]);
+    expect(result.items).toHaveLength(2);
+    expect(result.items[0].id).toBe("item-1");
+    expect(result.items[1].id).toBe("item-2");
+  });
+
+  it("filters out empty categories with no items", () => {
+    const r = makeResult({
+      categories: [
+        { id: "full", name: "Full", itemCount: 1 },
+        { id: "empty", name: "Empty", itemCount: 0 },
+      ],
+      items: [
+        { id: "i1", name: "Soda", description: "", price: 100, category: "full", image: "", tags: [] },
+      ],
+    });
+
+    const result = mergeExtractionResults([r]);
+    expect(result.categories).toHaveLength(1);
+    expect(result.categories[0].id).toBe("full");
+  });
+
+  it("preserves suggestedTheme from first result", () => {
+    const r1 = makeResult({ suggestedTheme: "Luxury Gold", categories: [], items: [] });
+    const r2 = makeResult({ suggestedTheme: "Modern Minimal", categories: [], items: [] });
+
+    const result = mergeExtractionResults([r1, r2]);
+    expect(result.suggestedTheme).toBe("Luxury Gold");
   });
 });

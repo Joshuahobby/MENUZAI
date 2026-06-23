@@ -126,12 +126,13 @@ export default function OnboardingPage() {
 
     setOnboarded(true);
 
-    // Fire-and-forget welcome email
+    // Fire-and-forget welcome email — log if Resend is misconfigured
     fetch("/api/notifications/welcome", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ userId: user?.id, restaurantName: name.trim() }),
-    }).catch(() => {});
+    }).then(r => r.json().then(b => { if (!b.sent) console.warn("Welcome email not sent:", b.reason); }))
+      .catch(() => {});
 
     setSaving(false);
     router.push(destination === "upload" ? "/upload" : "/dashboard/editor");

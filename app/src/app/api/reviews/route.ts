@@ -1,12 +1,12 @@
 import { NextResponse } from "next/server";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
-import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
+import { checkRateLimitBool, getClientIp } from "@/lib/rate-limit";
 
 export const dynamic = "force-dynamic";
 
 export async function POST(req: Request) {
   try {
-    if (!await checkRateLimit(getClientIp(req), { id: "reviews", max: 5, windowMs: 5 * 60_000 })) {
+    if (!await checkRateLimitBool(getClientIp(req), { id: "reviews", max: 5, windowMs: 5 * 60_000 })) {
       return NextResponse.json({ error: "Too many requests. Please try again later." }, { status: 429 });
     }
 

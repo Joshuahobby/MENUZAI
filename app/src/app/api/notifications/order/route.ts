@@ -113,7 +113,7 @@ export async function POST(req: Request) {
           "Authorization": `Bearer ${process.env.RESEND_API_KEY}`,
         },
         body: JSON.stringify({
-          from: `MENUZA AI <${process.env.RESEND_FROM_EMAIL ?? "hello@menuzaai.com"}>`,
+          from: `MENUZA AI <${process.env.RESEND_FROM_EMAIL ?? "hello@menuzai.com"}>`,
           to: [to],
           subject,
           html,

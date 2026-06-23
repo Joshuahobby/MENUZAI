@@ -61,8 +61,16 @@ async function extractWithOpenRouter(file: File, apiKey: string, model: string):
     throw new Error((err as { error?: { message?: string } }).error?.message ?? `OpenRouter error ${response.status}`);
   }
 
-  const data = await response.json() as { choices: { message: { content: string } }[] };
-  return parseExtractionResponse(data.choices[0]?.message?.content ?? "");
+  const data = await response.json() as { choices: { message: { content: string }; finish_reason: string }[] };
+  const choice = data.choices?.[0];
+  if (!choice) throw new Error("OpenRouter returned no choices");
+
+  // Detect OpenRouter/content-filter safety blocks
+  if (choice.finish_reason === "content_filter" || choice.finish_reason === "safety") {
+    throw new Error(`Model flagged content as unsafe (finish_reason: ${choice.finish_reason})`);
+  }
+
+  return parseExtractionResponse(choice.message?.content ?? "");
 }
 
 async function extractWithAnthropic(file: File, apiKey: string, model: string): Promise<ExtractionResult> {
@@ -101,10 +109,12 @@ export async function POST(request: Request) {
     return Response.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  if (!await checkRateLimit(user.id, { id: "extract-menu", max: 5, windowMs: 60_000 })) {
+  const rateLimit = await checkRateLimit(user.id, { id: "extract-menu", max: 5, windowMs: 60_000 });
+  if (!rateLimit.allowed) {
+    const retryAfter = Math.ceil((rateLimit.reset - Date.now()) / 1000);
     return Response.json(
-      { error: "Too many requests. Please wait a minute before trying again." },
-      { status: 429, headers: { "Retry-After": "60" } }
+      { error: `Too many requests. ${rateLimit.remaining} of ${rateLimit.limit} attempts remaining. Try again in ${retryAfter}s.`, remaining: rateLimit.remaining, limit: rateLimit.limit, reset: rateLimit.reset },
+      { status: 429, headers: { "Retry-After": String(retryAfter) } }
     );
   }
 
@@ -148,6 +158,9 @@ export async function POST(request: Request) {
     "Content-Type": "text/event-stream; charset=utf-8",
     "Cache-Control": "no-cache, no-transform",
     "X-Accel-Buffering": "no", // Disable nginx buffering
+    "X-RateLimit-Limit": String(rateLimit.limit),
+    "X-RateLimit-Remaining": String(rateLimit.remaining),
+    "X-RateLimit-Reset": String(rateLimit.reset),
   };
 
   const stream = new ReadableStream({
@@ -197,7 +210,7 @@ export async function POST(request: Request) {
                 break; // success — stop trying
               } catch (err) {
                 lastError = err instanceof Error ? err : new Error(String(err));
-                console.warn(`Model ${candidate} failed: ${lastError.message}. Trying next fallback…`);
+                console.warn(`[extract-menu] Model ${candidate} failed: ${lastError.message}. Fallback chain remaining: ${fallbackChain.filter(m => m !== candidate).join(", ")}`);
               }
             }
             if (!extracted) throw lastError ?? new Error("All OpenRouter vision models failed");
@@ -211,8 +224,9 @@ export async function POST(request: Request) {
         send({ type: "progress", step: "Done!", pct: 100 });
         send({ type: "result", data: merged });
       } catch (err: unknown) {
-        console.error("Extract menu error:", err instanceof Error ? err.message : err);
-        send({ type: "error", error: "AI extraction failed. Please try again." });
+        const msg = err instanceof Error ? err.message : "AI extraction failed";
+        console.error("Extract menu error:", msg);
+        send({ type: "error", error: msg });
       } finally {
         controller.close();
       }

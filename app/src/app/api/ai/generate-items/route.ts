@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
 import { createSupabaseServerClient } from "@/lib/supabase-server";
-import { checkRateLimit } from "@/lib/rate-limit";
+import { checkRateLimitBool } from "@/lib/rate-limit";
 import { getPlatformAIConfig } from "@/lib/ai-config";
 
 export async function POST(request: Request) {
@@ -11,7 +11,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  if (!await checkRateLimit(user.id, { id: "ai-generate-items", max: 10, windowMs: 60_000 })) {
+  if (!await checkRateLimitBool(user.id, { id: "ai-generate-items", max: 10, windowMs: 60_000 })) {
     return NextResponse.json({ error: "Rate limit exceeded. Please wait a moment." }, { status: 429 });
   }
 
@@ -52,6 +52,9 @@ STRICT rules:
         messages: [{ role: "user", content: fullPrompt }],
       });
 
+      if ((msg as { stop_reason?: string }).stop_reason === "content_filter") {
+        throw new Error("Model flagged content as unsafe");
+      }
       // @ts-expect-error text block extraction
       rawText = msg.content[0]?.text || "";
     } else {
@@ -81,12 +84,21 @@ STRICT rules:
         throw new Error((err as { error?: { message?: string } }).error?.message ?? `OpenRouter error ${response.status}`);
       }
 
-      const data = await response.json() as { choices: { message: { content: string } }[] };
-      rawText = data.choices[0]?.message?.content || "";
+      const data = await response.json() as { choices: { message: { content: string }; finish_reason: string }[] };
+      const choice = data.choices?.[0];
+      if (!choice) throw new Error("OpenRouter returned no choices");
+      if (choice.finish_reason === "content_filter" || choice.finish_reason === "safety") {
+        throw new Error(`Model flagged content as unsafe (finish_reason: ${choice.finish_reason})`);
+      }
+      rawText = choice.message?.content || "";
     }
 
     // Strip any accidental markdown code fences
     const cleaned = rawText.replace(/```json|```/g, "").trim();
+    if (!cleaned.startsWith("{") && !cleaned.startsWith("[")) {
+      const snippet = cleaned.length > 120 ? cleaned.slice(0, 120) + "..." : cleaned;
+      throw new Error(`AI returned non-JSON response: "${snippet}"`);
+    }
     const items = JSON.parse(cleaned);
 
     if (!Array.isArray(items)) {
@@ -107,7 +119,8 @@ STRICT rules:
 
     return NextResponse.json({ items: menuItems });
   } catch (error: unknown) {
-    console.error("AI generate-items error:", error);
-    return NextResponse.json({ error: "AI generation failed" }, { status: 500 });
+    const msg = error instanceof Error ? error.message : "AI generation failed";
+    console.error("AI generate-items error:", msg);
+    return NextResponse.json({ error: msg }, { status: 500 });
   }
 }

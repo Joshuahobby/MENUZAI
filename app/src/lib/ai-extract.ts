@@ -48,7 +48,6 @@ Heuristics for tags and badges:
 
 export function mergeExtractionResults(results: ExtractionResult[]): ExtractionResult {
   if (results.length === 0) return { restaurantName: "My Restaurant", categories: [], items: [] };
-  if (results.length === 1) return results[0];
 
   const restaurantName = results.find(r => r.restaurantName !== "My Restaurant")?.restaurantName ?? "My Restaurant";
   const suggestedTheme = results[0].suggestedTheme;
@@ -98,7 +97,13 @@ export function parseExtractionResponse(text: string): ExtractionResult {
   // Strip markdown code fences if present
   let cleaned = text.trim();
   if (cleaned.startsWith("```")) {
-    cleaned = cleaned.replace(/^```(?:json)?\n?/, "").replace(/\n?```$/, "");
+    cleaned = cleaned.replace(/^```(?:json)?\n?/, "").replace(/\n?```$/, "").trim();
+  }
+
+  // Detect non-JSON responses (e.g., OpenRouter safety moderation messages)
+  if (!cleaned.startsWith("{") && !cleaned.startsWith("[")) {
+    const snippet = cleaned.length > 120 ? cleaned.slice(0, 120) + "..." : cleaned;
+    throw new Error(`AI returned non-JSON response: "${snippet}"`);
   }
 
   const data = JSON.parse(cleaned);

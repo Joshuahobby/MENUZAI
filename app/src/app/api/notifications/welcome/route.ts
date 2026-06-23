@@ -117,7 +117,7 @@ export async function POST(req: Request) {
         "Authorization": `Bearer ${process.env.RESEND_API_KEY}`,
       },
       body: JSON.stringify({
-        from: `MENUZA AI <${process.env.RESEND_FROM_EMAIL ?? "welcome@menuzaai.com"}>`,
+        from: `MENUZA AI <${process.env.RESEND_FROM_EMAIL ?? "hello@menuzai.com"}>`,
         to: [email],
         subject: `Welcome to MENUZA AI — ${name} is ready to go live!`,
         html,
@@ -127,6 +127,9 @@ export async function POST(req: Request) {
     if (!res.ok) {
       const body = await res.text();
       console.error("Welcome email failed:", body);
+      if (body.includes("domain is not verified")) {
+        console.error("ACTION REQUIRED: Verify the domain in RESEND_FROM_EMAIL on https://resend.com/domains");
+      }
       return NextResponse.json({ sent: false, reason: "Resend API error" });
     }
 
