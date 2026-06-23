@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 This project uses **Next.js 16.2.1**, which contains breaking changes from earlier versions — APIs, conventions, and file structure may differ from training data. Read the relevant guide in `app/node_modules/next/dist/docs/` before writing any code that touches Next.js internals or routing.
 
-**Middleware**: `app/src/middleware.ts` (at the correct Next.js root location) delegates to `proxy()` from `app/src/proxy.ts`. `proxy()` does two things: (1) refreshes the Supabase auth session cookie on every request, and (2) rewrites the root path to `/menu/[slug]` for restaurant custom domains (Business plan). Do **not** create another `middleware.ts` file inside `src/app/` — the App Router ignores it there.
+**Middleware**: Next.js 16 replaces `middleware.ts` with `proxy.ts`. `app/src/proxy.ts` exports a `proxy()` function that Next.js 16 automatically picks up as the edge middleware. It does two things: (1) refreshes the Supabase auth session cookie on every request, and (2) rewrites the root path to `/menu/[slug]` for restaurant custom domains (Business plan). Do **NOT** create a `middleware.ts` file — having both `proxy.ts` and `middleware.ts` causes a fatal build error in Next.js 16.
 
 ## Commands
 
