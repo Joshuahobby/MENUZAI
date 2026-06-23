@@ -182,16 +182,20 @@ export function EditorItemForm({
         onClick={() => imgInputRef.current?.click()}
         title={item.image ? "Click to change photo" : "Click to add photo"}
       >
-        <NextImage
-          src={
-            item.image ||
-            "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=600&h=400&fit=crop"
-          }
-          alt={item.name}
-          fill
-          sizes="(max-width: 420px) 100vw, 420px"
-          className="object-cover transition-transform duration-500 group-hover/img:scale-105"
-        />
+        {item.image ? (
+          <NextImage
+            src={item.image}
+            alt={item.name}
+            fill
+            sizes="(max-width: 420px) 100vw, 420px"
+            className="object-cover transition-transform duration-500 group-hover/img:scale-105"
+          />
+        ) : (
+          <div className="w-full h-full flex flex-col items-center justify-center bg-surface-container-low transition-transform duration-500 group-hover/img:scale-105">
+            <span className="material-symbols-outlined text-5xl text-secondary/20">restaurant</span>
+            <span className="text-xs font-medium text-secondary/30 mt-1">No photo</span>
+          </div>
+        )}
 
         <div
           className={`absolute inset-0 flex flex-col items-center justify-center gap-1.5 transition-opacity ${

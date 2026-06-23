@@ -64,25 +64,32 @@ export function ImageUpload({ currentUrl, onUpload, userId, folder = "items" }: 
     <div className="relative group">
       {/* Image preview */}
       <div className="relative h-40 w-full rounded-2xl overflow-hidden bg-surface-container-low">
-        <NextImage
-          src={currentUrl || "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=600&h=400&fit=crop"}
-          alt="Item image"
-          fill
-          sizes="(max-width: 420px) 100vw, 420px"
-          className="object-cover"
-        />
-        {/* Overlay on hover */}
-        <div className={`absolute inset-0 flex items-center justify-center transition-all ${uploading ? "bg-black/50" : "bg-black/0 group-hover:bg-black/40"}`}>
+        {currentUrl ? (
+          <NextImage
+            src={currentUrl}
+            alt="Uploaded image"
+            fill
+            sizes="(max-width: 420px) 100vw, 420px"
+            className="object-cover"
+          />
+        ) : (
+          <div className="w-full h-full flex flex-col items-center justify-center">
+            <span className="material-symbols-outlined text-4xl text-secondary/20">add_photo_alternate</span>
+            <span className="text-xs font-medium text-secondary/30 mt-1">No image</span>
+          </div>
+        )}
+        {/* Overlay on hover/empty */}
+        <div className={`absolute inset-0 flex items-center justify-center transition-all ${uploading ? "bg-black/50" : currentUrl ? "bg-black/0 group-hover:bg-black/40" : "bg-black/0 group-hover:bg-black/10"}`}>
           {uploading ? (
             <div className="w-8 h-8 border-3 border-white border-t-transparent rounded-full animate-spin" />
           ) : (
             <button
               onClick={() => inputRef.current?.click()}
-              className="opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center gap-2 text-white"
-              title="Change image"
+              className={`transition-opacity flex flex-col items-center gap-2 ${currentUrl ? "opacity-0 group-hover:opacity-100 text-white" : "opacity-100 text-secondary/50 group-hover:text-secondary"}`}
+              title={currentUrl ? "Change image" : "Upload image"}
             >
               <span className="material-symbols-outlined text-3xl drop-shadow">add_photo_alternate</span>
-              <span className="text-xs font-bold drop-shadow">Change Photo</span>
+              <span className="text-xs font-bold drop-shadow">{currentUrl ? "Change Photo" : "Upload Image"}</span>
             </button>
           )}
         </div>

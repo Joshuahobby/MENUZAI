@@ -48,13 +48,20 @@ export default function ItemDetailsModal({ item, isOpen, onClose, onAddToCart, c
 
         {/* Hero Image */}
         <div className="relative w-full h-64 sm:h-72 shrink-0 bg-surface-container-low">
-          <NextImage
-            src={getOptimizedImageUrl(item.image || "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=800&h=600&fit=crop", 800)}
-            alt={item.name}
-            fill
-            className="object-cover"
-            priority
-          />
+          {item.image ? (
+            <NextImage
+              src={getOptimizedImageUrl(item.image, 800)}
+              alt={item.name}
+              fill
+              className="object-cover"
+              priority
+            />
+          ) : (
+            <div className="w-full h-full flex flex-col items-center justify-center">
+              <span className="material-symbols-outlined text-6xl text-secondary/20">restaurant</span>
+              <span className="text-sm font-medium text-secondary/30 mt-2">{item.name}</span>
+            </div>
+          )}
           {item.available === false && (
             <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
               <span className="bg-error text-white font-black px-6 py-2 rounded-full uppercase tracking-widest shadow-xl">Sold Out</span>

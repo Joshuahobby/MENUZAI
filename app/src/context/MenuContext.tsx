@@ -264,7 +264,7 @@ export function MenuProvider({ children }: { children: React.ReactNode }) {
       description: "Description of your delicious new dish.",
       price: 0,
       category: categoryId,
-      image: "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=600&h=400&fit=crop",
+      image: "",
       tags: [],
     };
     setMenuItems((prev) => [...prev, newItem]);
