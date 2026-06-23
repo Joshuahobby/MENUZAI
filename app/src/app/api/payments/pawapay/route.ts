@@ -147,13 +147,8 @@ export async function POST(req: Request) {
         message: "Payment initiated. Please check your phone for the MoMo prompt." 
       });
     } else {
-      // Fallback for simulation if JWT is missing (should not happen in prod)
-      return NextResponse.json({ 
-        success: true, 
-        depositId, 
-        simulated: true,
-        message: "Payment simulated (PAWAPAY_API_KEY missing). Transaction recorded as pending." 
-      });
+      // API key missing – configuration error
+      return NextResponse.json({ error: "PAWAPAY_API_KEY is not configured. Transaction could not be initiated." }, { status: 500 });
     }
 
   } catch (error: unknown) {

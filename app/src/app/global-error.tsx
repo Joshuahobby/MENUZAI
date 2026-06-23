@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import Link from "next/link";
 
 export default function GlobalError({ error, reset }: { error: Error & { digest?: string }; reset: () => void }) {
   useEffect(() => {
@@ -43,7 +44,7 @@ export default function GlobalError({ error, reset }: { error: Error & { digest?
           </p>
           <div className="btns">
             <button onClick={reset}>Try Again</button>
-            <a href="/">Go Home</a>
+            <Link href="/" className="inline-block px-4 py-2 rounded-md bg-slate-200 hover:bg-slate-300">Go Home</Link>
           </div>
         </div>
       </body>

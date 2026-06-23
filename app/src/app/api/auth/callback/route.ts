@@ -4,7 +4,10 @@ import { createSupabaseServerClient } from '@/lib/supabase-server';
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get('code');
-  const next = searchParams.get('next') ?? '/onboarding';
+  // Validate the optional "next" param against a whitelist of internal routes.
+  const rawNext = searchParams.get('next');
+  const allowedNext = new Set(['/dashboard', '/onboarding']);
+  const next = rawNext && allowedNext.has(rawNext) ? rawNext : '/onboarding';
 
   if (code) {
     const supabase = await createSupabaseServerClient();

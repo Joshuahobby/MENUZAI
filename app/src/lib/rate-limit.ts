@@ -56,16 +56,16 @@ export async function checkRateLimit(
 ): Promise<boolean> {
   const limiter = getLimiter(opts);
   if (!limiter) {
-    console.warn(`rate-limit: Redis unavailable, skipping check for "${opts.id}"`);
-    return true;
+    console.warn(`rate-limit: Redis unavailable, rejecting requests for "${opts.id}"`);
+    return false;
   }
   try {
     const { success } = await limiter.limit(key);
     return success;
-  } catch (err) {
-    console.error(`rate-limit: Redis error for "${opts.id}":`, err);
-    return true; // fail open on Redis errors
-  }
+    } catch (err) {
+      console.error(`rate-limit: Redis error for "${opts.id}":`, err);
+      return false; // fail‑closed on Redis errors
+    }
 }
 
 export function getClientIp(req: Request): string {
