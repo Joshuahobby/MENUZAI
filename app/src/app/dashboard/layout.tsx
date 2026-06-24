@@ -87,14 +87,16 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 
   // Derived: true once the auth check has resolved without triggering a redirect
   const authReady = !isLoading && !!user && !(
-    !onboarded && (userRole === "owner" || userRole === null) && pathname !== "/dashboard/onboarding"
+    !onboarded && userRole === "owner" && pathname !== "/dashboard/onboarding"
   );
 
   useEffect(() => {
     if (isLoading) return;
     if (!user) { router.push("/login"); return; }
     // Only owners go through onboarding. Staff/managers access the dashboard directly.
-    if (!onboarded && (userRole === "owner" || userRole === null) && pathname !== "/dashboard/onboarding") {
+    // userRole === null means bootstrap is still resolving — never redirect on null role,
+    // as it causes false onboarding redirects when bootstrap errors or times out.
+    if (!onboarded && userRole === "owner" && pathname !== "/dashboard/onboarding") {
       router.replace("/onboarding");
     }
   }, [router, isLoading, onboarded, pathname, user, userRole]);

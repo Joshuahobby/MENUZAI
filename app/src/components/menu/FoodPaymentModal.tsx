@@ -147,7 +147,6 @@ export default function FoodPaymentModal({ restaurantId, menuId, items, total, c
                 placeholder="+250 788 000 000"
                 className="w-full bg-surface-container-low rounded-xl px-4 py-3 text-sm text-on-surface border-none focus:ring-2 focus:ring-primary/20 disabled:opacity-40"
                 autoFocus
-                disabled={state !== "idle"}
                 onKeyDown={e => { if (e.key === "Enter") handleInitiate(); }}
               />
               {errorMsg && <p className="text-xs text-error mt-2">{errorMsg}</p>}

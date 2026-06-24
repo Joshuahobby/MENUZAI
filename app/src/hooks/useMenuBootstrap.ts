@@ -108,22 +108,10 @@ export function useMenuBootstrap() {
       setIsLoading(true);
 
       try {
-        // Run session + restaurant query in parallel — they don't depend on each other
-        const [sessionResult, restaurantResult] = await Promise.all([
-          supabase.auth.getSession(),
-          supabase
-            .from("restaurants")
-            .select("id, name, phone, plan, plan_expires_at, trial_ends_at, logo_url, onboarded, user_id")
-            .eq("user_id", user.id)
-            .order("created_at", { ascending: true })
-            .limit(1)
-            .maybeSingle(),
-        ]);
-
         const {
           data: { session },
           error: sessionError,
-        } = sessionResult;
+        } = await supabase.auth.getSession();
         if (!session || sessionError) {
           handleUnauthorized();
           return;
@@ -131,7 +119,13 @@ export function useMenuBootstrap() {
 
         let restoId: string | undefined;
 
-        const { data: existingRestaurant, error: selectError, status: selectStatus } = restaurantResult;
+        const { data: existingRestaurant, error: selectError, status: selectStatus } = await supabase
+          .from("restaurants")
+          .select("id, name, phone, plan, plan_expires_at, trial_ends_at, logo_url, onboarded, user_id")
+          .eq("user_id", user.id)
+          .order("created_at", { ascending: true })
+          .limit(1)
+          .maybeSingle();
 
         if (isAuthFailure(selectStatus, selectError)) {
           handleUnauthorized();

@@ -4,6 +4,15 @@ import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 
+interface TableRequestPayload {
+  id: string;
+  tableNumber: string;
+  type: "call_waiter" | "bill" | "water" | "custom";
+  message: string;
+  created_at: string;
+  status: "pending";
+}
+
 interface ServicePagerProps {
   restaurantId: string;
   resolvedTableNumber: string;
@@ -23,6 +32,12 @@ export default function ServicePager({
   const [cooldown, setCooldown] = useState(false);
   const [localTableInput, setLocalTableInput] = useState("");
   const lastSentAt = useRef(0);
+
+  // Seed localTableInput from resolvedTableNumber whenever the modal opens
+  useEffect(() => {
+    if (isOpen) setLocalTableInput(resolvedTableNumber);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen]);
 
   const COOLDOWN_MS = 5000;
 
@@ -51,12 +66,16 @@ export default function ServicePager({
       return;
     }
     setIsSending(true);
-    onOrderTableNumberChange(table);
 
     const channel = supabase.channel(`table_requests:${restaurantId}`);
+    let finished = false;
     const finish = (success: boolean) => {
+      if (finished) return;
+      finished = true;
+      clearTimeout(sendTimeout);
       supabase.removeChannel(channel);
       if (success) {
+        onOrderTableNumberChange(table);
         toast.success("Assistance request sent to staff! 🛎️");
         lastSentAt.current = Date.now();
         setCooldown(true);
@@ -69,21 +88,23 @@ export default function ServicePager({
       setIsSending(false);
     };
 
+    // Safety net: if the WebSocket never connects, unblock the UI after 30s
+    const sendTimeout = setTimeout(() => finish(false), 30_000);
+
+    const payload: TableRequestPayload = {
+      id: crypto.randomUUID(),
+      tableNumber: table,
+      type: serviceType,
+      message: serviceMessage.trim(),
+      created_at: new Date().toISOString(),
+      status: "pending",
+    };
+
     channel.subscribe((status) => {
       if (status === "SUBSCRIBED") {
-        channel.send({
-          type: "broadcast",
-          event: "new_request",
-          payload: {
-            id: crypto.randomUUID(),
-            tableNumber: table,
-            type: serviceType,
-            message: serviceMessage.trim(),
-            created_at: new Date().toISOString(),
-            status: "pending",
-          },
-        }).then(() => finish(true)).catch(() => finish(false));
-      } else if (status === "CHANNEL_ERROR" || status === "CLOSED" || status === "TIMED_OUT") {
+        channel.send({ type: "broadcast", event: "new_request", payload })
+          .then(() => finish(true)).catch(() => finish(false));
+      } else if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
         finish(false);
       }
     });
@@ -93,7 +114,7 @@ export default function ServicePager({
     <>
       {/* FAB */}
       <button
-        onClick={() => { setLocalTableInput(resolvedTableNumber); setIsOpen(true); }}
+        onClick={() => setIsOpen(true)}
         className={`fixed bottom-56 right-6 w-14 h-14 text-white rounded-full shadow-2xl flex items-center justify-center z-50 hover:scale-110 active:scale-95 transition-all cursor-pointer ${
           sent
             ? "bg-emerald-500 scale-110 animate-service-pulse"

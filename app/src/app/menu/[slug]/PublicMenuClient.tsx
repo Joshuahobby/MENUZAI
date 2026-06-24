@@ -91,7 +91,7 @@ export default function PublicMenuClient(props: PublicMenuClientProps) {
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [customerName, setCustomerName] = useState(() => {
     if (typeof window === "undefined") return "";
-    try { return JSON.parse(localStorage.getItem("menuza_customer_name") || '""'); } catch { return ""; }
+    try { return JSON.parse(localStorage.getItem(`menuza_customer_name_${restaurantId}`) || '""'); } catch { return ""; }
   });
   const [orderTableNumber, setOrderTableNumber] = useState(() => {
     if (typeof window === "undefined") return "";
@@ -102,8 +102,8 @@ export default function PublicMenuClient(props: PublicMenuClientProps) {
   const [isCancelling, setIsCancelling] = useState(false);
 
   useEffect(() => {
-    try { localStorage.setItem("menuza_customer_name", JSON.stringify(customerName)); } catch {}
-  }, [customerName]);
+    try { localStorage.setItem(`menuza_customer_name_${restaurantId}`, JSON.stringify(customerName)); } catch {}
+  }, [customerName, restaurantId]);
 
   useEffect(() => {
     try { localStorage.setItem(`menuza_table_number_${restaurantId}`, JSON.stringify(orderTableNumber)); } catch {}
@@ -130,7 +130,7 @@ export default function PublicMenuClient(props: PublicMenuClientProps) {
     } catch {}
   };
 
-  const resolvedTableNumber = tableFromUrl || orderTableNumber;
+  const resolvedTableNumber = orderTableNumber || tableFromUrl;
 
   // Review state (inline after order)
   const [rating, setRating] = useState(0);
