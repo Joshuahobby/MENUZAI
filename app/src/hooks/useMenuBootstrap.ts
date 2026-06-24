@@ -21,7 +21,7 @@ function resolvePlan(plan: string | null, trialEndsAt: string | null): string {
   return "free";
 }
 
-const BOOTSTRAP_TIMEOUT = 5_000; // 5 seconds — if Supabase queries hang, unblock the UI
+const BOOTSTRAP_TIMEOUT = 20_000; // 20 seconds — cold starts + sequential queries need breathing room
 
 export function useMenuBootstrap() {
   const [user, setUser] = useState<User | null>(null);
@@ -108,10 +108,22 @@ export function useMenuBootstrap() {
       setIsLoading(true);
 
       try {
+        // Run session + restaurant query in parallel — they don't depend on each other
+        const [sessionResult, restaurantResult] = await Promise.all([
+          supabase.auth.getSession(),
+          supabase
+            .from("restaurants")
+            .select("id, name, phone, plan, plan_expires_at, trial_ends_at, logo_url, onboarded, user_id")
+            .eq("user_id", user.id)
+            .order("created_at", { ascending: true })
+            .limit(1)
+            .maybeSingle(),
+        ]);
+
         const {
           data: { session },
           error: sessionError,
-        } = await supabase.auth.getSession();
+        } = sessionResult;
         if (!session || sessionError) {
           handleUnauthorized();
           return;
@@ -119,13 +131,7 @@ export function useMenuBootstrap() {
 
         let restoId: string | undefined;
 
-        const { data: existingRestaurant, error: selectError, status: selectStatus } = await supabase
-          .from("restaurants")
-          .select("id, name, phone, plan, plan_expires_at, trial_ends_at, logo_url, onboarded, user_id")
-          .eq("user_id", user.id)
-          .order("created_at", { ascending: true })
-          .limit(1)
-          .maybeSingle();
+        const { data: existingRestaurant, error: selectError, status: selectStatus } = restaurantResult;
 
         if (isAuthFailure(selectStatus, selectError)) {
           handleUnauthorized();
@@ -342,6 +348,7 @@ export function useMenuBootstrap() {
     return () => {
       cancelled = true;
       clearTimeout(timeoutId);
+      isBootstrappingRef.current = false;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id, authChecked]);

@@ -42,10 +42,16 @@ const nextConfig: NextConfig = {
         hostname: "images.unsplash.com",
       },
       {
-        // Supabase Storage public bucket URLs
+        // Supabase Storage public bucket URLs (direct object access)
         protocol: "https",
         hostname: "*.supabase.co",
         pathname: "/storage/v1/object/public/**",
+      },
+      {
+        // Supabase Storage image transform endpoint (render → webp)
+        protocol: "https",
+        hostname: "*.supabase.co",
+        pathname: "/storage/v1/render/image/public/**",
       },
     ],
   },
