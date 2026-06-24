@@ -19,7 +19,7 @@
   --color-on-secondary-fixed: #1b1b1c;
   --color-on-secondary-fixed-variant: #474746;
 
-  --color-tertiary: #006e2a;
+  --color-tertiary: #1A7A3C;
   --color-tertiary-container: #00b149;
   --color-tertiary-fixed: #69ff87;
   --color-tertiary-fixed-dim: #3ce36a;
@@ -44,9 +44,9 @@
   --color-surface-container-highest: #e5e2e1;
   --color-surface-container-lowest: #ffffff;
 
-  --color-on-surface: #1b1b1c;
+  --color-on-surface: #1A1209;
   --color-on-surface-variant: #5a4136;
-  --color-on-background: #1b1b1c;
+  --color-on-background: #1A1209;
   --color-background: #fcf9f8;
 
   --primary-shadow-color: color-mix(in srgb, var(--color-primary-container, #FF6B00), transparent 60%);
@@ -61,9 +61,13 @@
   --color-whatsapp: #25D366;
   --color-whatsapp-dark: #128C7E;
 
+  --color-accent-saffron: #F5C842;
+  --color-surface-card: #F0EAE0;
+
   --font-headline: 'Plus Jakarta Sans', sans-serif;
-  --font-body: 'Inter', sans-serif;
-  --font-label: 'Inter', sans-serif;
+  --font-syne: 'Syne', sans-serif;
+  --font-body: 'Instrument Sans', sans-serif;
+  --font-label: 'Instrument Sans', sans-serif;
 
   --radius-DEFAULT: 0.5rem;
   --radius-lg: 0.75rem;
