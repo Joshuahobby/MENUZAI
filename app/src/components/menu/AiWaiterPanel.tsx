@@ -66,9 +66,10 @@ export default function AiWaiterPanel({
     }
   }, [pendingOrder?.tableNumber, onTableNumberChange]);
 
-  // Proactive greeting: auto-open after 3s
+  // Proactive greeting: auto-open after 10-15s
   useEffect(() => {
     if (!aiWaiterEnabled || proactiveGreetingFired.current) return;
+    const delay = 10000 + Math.floor(Math.random() * 15000);
     const timer = setTimeout(() => {
       if (proactiveGreetingFired.current) return;
       proactiveGreetingFired.current = true;
@@ -84,7 +85,7 @@ export default function AiWaiterPanel({
         { role: "assistant" as const, content: greetingMap[timeOfDay] },
       ]);
       setIsOpen(true);
-    }, 3000);
+    }, delay);
     return () => clearTimeout(timer);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [aiWaiterEnabled]);
