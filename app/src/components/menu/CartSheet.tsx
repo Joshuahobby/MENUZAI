@@ -25,7 +25,6 @@ interface CartSheetProps {
   isCancelling: boolean;
   upsellItems: MenuItem[];
   slug: string;
-  tableFromUrl: string;
   onClose: () => void;
   onPlaceOrder: () => void;
   onCancelOrder: () => void;
@@ -69,7 +68,6 @@ export default function CartSheet({
   isCancelling,
   upsellItems,
   slug,
-  tableFromUrl,
   onClose,
   onPlaceOrder,
   onCancelOrder,
@@ -233,18 +231,16 @@ export default function CartSheet({
                         className="w-full bg-surface-container-low rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
                       />
                     </div>
-                    {!tableFromUrl && (
-                      <div>
-                        <label className="text-[10px] font-black text-secondary uppercase tracking-[0.18em] mb-1.5 block">Table Number (Required)</label>
-                        <input
-                          type="text"
-                          value={orderTableNumber}
-                          onChange={(e) => onOrderTableNumberChange(e.target.value)}
-                          placeholder="e.g. 5"
-                          className="w-full bg-surface-container-low rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
-                        />
-                      </div>
-                    )}
+                    <div>
+                      <label className="text-[10px] font-black text-secondary uppercase tracking-[0.18em] mb-1.5 block">Table Number (Required)</label>
+                      <input
+                        type="text"
+                        value={orderTableNumber}
+                        onChange={(e) => onOrderTableNumberChange(e.target.value)}
+                        placeholder="e.g. 5"
+                        className="w-full bg-surface-container-low rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
+                      />
+                    </div>
                   </div>
 
                   {showNoteField ? (

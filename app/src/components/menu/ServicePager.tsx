@@ -7,14 +7,12 @@ import { toast } from "sonner";
 interface ServicePagerProps {
   restaurantId: string;
   resolvedTableNumber: string;
-  orderTableNumber: string;
   onOrderTableNumberChange: (val: string) => void;
 }
 
 export default function ServicePager({
   restaurantId,
   resolvedTableNumber,
-  orderTableNumber,
   onOrderTableNumberChange,
 }: ServicePagerProps) {
   const [isOpen, setIsOpen] = useState(false);
@@ -23,6 +21,7 @@ export default function ServicePager({
   const [isSending, setIsSending] = useState(false);
   const [sent, setSent] = useState(false);
   const [cooldown, setCooldown] = useState(false);
+  const [localTableInput, setLocalTableInput] = useState("");
   const lastSentAt = useRef(0);
 
   const COOLDOWN_MS = 5000;
@@ -39,9 +38,9 @@ export default function ServicePager({
     return () => clearTimeout(t);
   }, [cooldown]);
 
-  const handleSend = async (e: React.FormEvent) => {
+  const handleSend = (e: React.FormEvent) => {
     e.preventDefault();
-    const table = resolvedTableNumber;
+    const table = localTableInput.trim();
     if (!table) {
       toast.error("Please enter your table number first.");
       return;
@@ -52,45 +51,50 @@ export default function ServicePager({
       return;
     }
     setIsSending(true);
-    try {
-      const channel = supabase.channel(`table_requests:${restaurantId}`);
-      channel.subscribe(async (status) => {
-        if (status === "SUBSCRIBED") {
-          await channel.send({
-            type: "broadcast",
-            event: "new_request",
-            payload: {
-              id: crypto.randomUUID(),
-              tableNumber: table,
-              type: serviceType,
-              message: serviceMessage.trim(),
-              created_at: new Date().toISOString(),
-              status: "pending",
-            },
-          });
-          supabase.removeChannel(channel);
-          toast.success("Assistance request sent to staff! 🛎️");
-          lastSentAt.current = Date.now();
-          setCooldown(true);
-          setSent(true);
-          setIsOpen(false);
-          setServiceMessage("");
-        }
-      });
-    } catch (err) {
-      console.error("Pager error:", err);
-      toast.error("Failed to connect to waiter service.");
-    } finally {
+    onOrderTableNumberChange(table);
+
+    const channel = supabase.channel(`table_requests:${restaurantId}`);
+    const finish = (success: boolean) => {
+      supabase.removeChannel(channel);
+      if (success) {
+        toast.success("Assistance request sent to staff! 🛎️");
+        lastSentAt.current = Date.now();
+        setCooldown(true);
+        setSent(true);
+        setIsOpen(false);
+        setServiceMessage("");
+      } else {
+        toast.error("Failed to connect to waiter service.");
+      }
       setIsSending(false);
-    }
+    };
+
+    channel.subscribe((status) => {
+      if (status === "SUBSCRIBED") {
+        channel.send({
+          type: "broadcast",
+          event: "new_request",
+          payload: {
+            id: crypto.randomUUID(),
+            tableNumber: table,
+            type: serviceType,
+            message: serviceMessage.trim(),
+            created_at: new Date().toISOString(),
+            status: "pending",
+          },
+        }).then(() => finish(true)).catch(() => finish(false));
+      } else if (status === "CHANNEL_ERROR" || status === "CLOSED" || status === "TIMED_OUT") {
+        finish(false);
+      }
+    });
   };
 
   return (
     <>
       {/* FAB */}
       <button
-        onClick={() => setIsOpen(true)}
-        className={`fixed bottom-48 right-6 w-14 h-14 text-white rounded-full shadow-2xl flex items-center justify-center z-50 hover:scale-110 active:scale-95 transition-all cursor-pointer ${
+        onClick={() => { setLocalTableInput(resolvedTableNumber); setIsOpen(true); }}
+        className={`fixed bottom-56 right-6 w-14 h-14 text-white rounded-full shadow-2xl flex items-center justify-center z-50 hover:scale-110 active:scale-95 transition-all cursor-pointer ${
           sent
             ? "bg-emerald-500 scale-110 animate-service-pulse"
             : "bg-gradient-to-tr from-amber-500 to-amber-600 animate-bounce-slow"
@@ -105,8 +109,8 @@ export default function ServicePager({
 
       {/* Modal */}
       {isOpen && (
-        <div className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center p-0 sm:p-6 bg-black/40 backdrop-blur-sm animate-in fade-in duration-300">
-          <div className="bg-surface w-full max-w-md sm:rounded-[2.5rem] shadow-2xl flex flex-col overflow-hidden animate-in slide-in-from-bottom duration-500">
+        <div className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center p-0 sm:p-6 bg-black/40 backdrop-blur-sm animate-in fade-in duration-300" onClick={() => setIsOpen(false)}>
+          <div onClick={(e) => e.stopPropagation()} className="bg-surface w-full max-w-md sm:rounded-[2.5rem] shadow-2xl flex flex-col overflow-hidden animate-in slide-in-from-bottom duration-500">
             <div className="bg-gradient-to-tr from-amber-500 to-amber-600 p-6 text-white flex justify-between items-center">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-white/20 rounded-2xl flex items-center justify-center">
@@ -114,7 +118,7 @@ export default function ServicePager({
                 </div>
                 <div>
                   <h4 className="font-[var(--font-headline)] font-bold text-sm">Table Assistance</h4>
-                  <p className="text-[10px] opacity-80 uppercase tracking-widest font-black">Table {resolvedTableNumber || "—"}</p>
+                  <p className="text-[10px] opacity-80 uppercase tracking-widest font-black">Table {localTableInput || resolvedTableNumber || "—"}</p>
                 </div>
               </div>
               <button
@@ -152,19 +156,17 @@ export default function ServicePager({
                   })}
                 </div>
               </div>
-              {!resolvedTableNumber && (
-                <div>
-                  <label className="text-[10px] font-black text-secondary uppercase tracking-[0.2em] mb-2 block" htmlFor="service-table">Your Table Number</label>
-                  <input
-                    id="service-table"
-                    type="text"
-                    value={orderTableNumber}
-                    onChange={(e) => onOrderTableNumberChange(e.target.value)}
-                    placeholder="e.g. 5"
-                    className="w-full bg-surface-container-low border-none rounded-xl py-3 px-4 text-sm font-semibold focus:ring-2 focus:ring-amber-500/20"
-                  />
-                </div>
-              )}
+              <div>
+                <label className="text-[10px] font-black text-secondary uppercase tracking-[0.2em] mb-2 block" htmlFor="service-table">Your Table Number</label>
+                <input
+                  id="service-table"
+                  type="text"
+                  value={localTableInput}
+                  onChange={(e) => setLocalTableInput(e.target.value)}
+                  placeholder="e.g. 5"
+                  className="w-full bg-surface-container-low border-none rounded-xl py-3 px-4 text-sm font-semibold focus:ring-2 focus:ring-amber-500/20"
+                />
+              </div>
               <div>
                 <label className="text-[10px] font-black text-secondary uppercase tracking-[0.2em] mb-2 block" htmlFor="service-message">Additional details (Optional)</label>
                 <textarea

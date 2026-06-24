@@ -284,7 +284,7 @@ export default function AiWaiterPanel({
       {/* FAB */}
       <button
         onClick={() => { userInteracted.current = true; setIsOpen(true); }}
-        className="fixed bottom-32 right-6 w-14 h-14 bg-primary text-white rounded-full shadow-2xl flex items-center justify-center z-50 hover:scale-110 active:scale-95 transition-all animate-bounce-slow"
+        className="fixed bottom-36 right-6 w-14 h-14 bg-primary text-white rounded-full shadow-2xl flex items-center justify-center z-50 hover:scale-110 active:scale-95 transition-all animate-bounce-slow"
         title="Ask the AI Waiter"
         aria-label="Ask the AI Waiter"
       >

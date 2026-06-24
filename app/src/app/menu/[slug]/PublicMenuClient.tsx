@@ -95,7 +95,8 @@ export default function PublicMenuClient(props: PublicMenuClientProps) {
   });
   const [orderTableNumber, setOrderTableNumber] = useState(() => {
     if (typeof window === "undefined") return "";
-    try { return JSON.parse(localStorage.getItem("menuza_table_number") || '""'); } catch { return ""; }
+    const fromLocal = (() => { try { return JSON.parse(localStorage.getItem(`menuza_table_number_${restaurantId}`) || '""'); } catch { return ""; } })();
+    return fromLocal || tableFromUrl;
   });
   const [lastOrderId, setLastOrderId] = useState<string | null>(null);
   const [isCancelling, setIsCancelling] = useState(false);
@@ -105,8 +106,8 @@ export default function PublicMenuClient(props: PublicMenuClientProps) {
   }, [customerName]);
 
   useEffect(() => {
-    try { localStorage.setItem("menuza_table_number", JSON.stringify(orderTableNumber)); } catch {}
-  }, [orderTableNumber]);
+    try { localStorage.setItem(`menuza_table_number_${restaurantId}`, JSON.stringify(orderTableNumber)); } catch {}
+  }, [orderTableNumber, restaurantId]);
 
   useEffect(() => {
     try {
@@ -178,13 +179,14 @@ export default function PublicMenuClient(props: PublicMenuClientProps) {
   }, []);
 
   // Sync table number from AI Waiter back to the UI state so it flows to cart, service pager, payment
+  const isQrScan = searchParams.get("src") === "qr";
 
   useEffect(() => {
     trackMenuView(menuId, restaurantId);
-    if (searchParams.get("src") === "qr") {
+    if (isQrScan) {
       trackQRScan(menuId, restaurantId);
     }
-  }, [menuId, restaurantId, searchParams]);
+  }, [menuId, restaurantId, isQrScan]);
 
   // Real-time menu sync
   useEffect(() => {
@@ -486,7 +488,7 @@ export default function PublicMenuClient(props: PublicMenuClientProps) {
             if (isSelected) {
               if (filter.id === "vegan") activeClass = "bg-emerald-600 text-white border-emerald-600 shadow-md shadow-emerald-600/10";
               else if (filter.id === "vegetarian") activeClass = "bg-green-600 text-white border-green-600 shadow-md shadow-green-600/10";
-              else if (filter.id === "gluten-free") activeClass = "bg-amber-50 text-white border-amber-50 shadow-md shadow-amber-50/10";
+              else if (filter.id === "gluten-free") activeClass = "bg-amber-600 text-white border-amber-600 shadow-md shadow-amber-600/10";
               else if (filter.id === "spicy") activeClass = "bg-rose-600 text-white border-rose-600 shadow-md shadow-rose-600/10";
               else if (filter.id === "halal") activeClass = "bg-indigo-600 text-white border-indigo-600 shadow-md shadow-indigo-600/10";
             } else {
@@ -729,7 +731,6 @@ export default function PublicMenuClient(props: PublicMenuClientProps) {
       <ServicePager
         restaurantId={restaurantId}
         resolvedTableNumber={resolvedTableNumber}
-        orderTableNumber={orderTableNumber}
         onOrderTableNumberChange={setOrderTableNumber}
       />
 
@@ -780,7 +781,6 @@ export default function PublicMenuClient(props: PublicMenuClientProps) {
         isCancelling={isCancelling}
         upsellItems={upsellItems}
         slug={slug}
-        tableFromUrl={tableFromUrl}
         onClose={closeCart}
         onPlaceOrder={placeOrder}
         onCancelOrder={handleCancelOrder}

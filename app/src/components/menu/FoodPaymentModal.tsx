@@ -77,13 +77,8 @@ export default function FoodPaymentModal({ restaurantId, menuId, items, total, c
 
       timeoutRef.current = setTimeout(() => {
         stopPolling();
-        setState((prev) => {
-          if (prev === "polling") {
-            setErrorMsg("Payment timed out. Please try again.");
-            return "timeout";
-          }
-          return prev;
-        });
+        setState((prev) => prev === "polling" ? "timeout" : prev);
+        setErrorMsg("Payment timed out. Please try again.");
       }, 120_000);
 
     } catch (err: unknown) {
