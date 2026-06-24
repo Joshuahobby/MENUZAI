@@ -11,6 +11,8 @@ export class OnboardingPage {
   get nameInput() { return this.page.locator("#ob-name"); }
   get taglineInput() { return this.page.locator("#ob-tagline"); }
   get hoursInput() { return this.page.locator("#ob-hours"); }
+  get termsCheckbox() { return this.page.locator('input[type="checkbox"]'); }
+  get optionalToggle() { return this.page.getByRole("button", { name: /tagline & hours/i }); }
   get continueButton() { return this.page.getByRole("button", { name: /continue/i }); }
 
   // Step 2
@@ -20,7 +22,7 @@ export class OnboardingPage {
   get backButton() { return this.page.getByRole("button", { name: /^back$/i }); }
 
   // Step 3
-  get uploadMenuButton() { return this.page.getByRole("button", { name: /upload menu/i }); }
+  get uploadMenuButton() { return this.page.getByRole("button", { name: /upload a photo/i }); }
   get startFromScratchButton() { return this.page.getByRole("button", { name: /start from scratch/i }); }
 
   get errorMessage() { return this.page.locator(".text-error"); }
@@ -28,8 +30,12 @@ export class OnboardingPage {
 
   async completeStep1(name: string, tagline = "", hours = "") {
     await this.nameInput.fill(name);
-    if (tagline) await this.taglineInput.fill(tagline);
-    if (hours) await this.hoursInput.fill(hours);
+    if (tagline || hours) {
+      await this.optionalToggle.click();
+      if (tagline) await this.taglineInput.fill(tagline);
+      if (hours) await this.hoursInput.fill(hours);
+    }
+    await this.termsCheckbox.check();
     await this.continueButton.click();
   }
 

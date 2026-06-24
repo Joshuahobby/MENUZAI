@@ -21,7 +21,7 @@ function resolvePlan(plan: string | null, trialEndsAt: string | null): string {
   return "free";
 }
 
-const BOOTSTRAP_TIMEOUT = 15_000; // 15 seconds — if Supabase queries hang, unblock the UI
+const BOOTSTRAP_TIMEOUT = 5_000; // 5 seconds — if Supabase queries hang, unblock the UI
 
 export function useMenuBootstrap() {
   const [user, setUser] = useState<User | null>(null);

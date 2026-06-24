@@ -16,15 +16,23 @@ test.describe("Onboarding flow", () => {
     await resetOnboarding("e2e-test@menuzai.test");
   });
 
-  test("Step 1 — requires restaurant name", async ({ page }) => {
+  test("Step 1 — Continue button disabled without name or terms", async ({ page }) => {
     const ob = new OnboardingPage(page);
     await ob.goto();
 
     // Skip loading spinner
     await page.waitForSelector("#ob-name", { timeout: 10000 });
-    await ob.continueButton.click();
 
-    await expect(ob.errorMessage).toContainText(/restaurant name/i);
+    // Button should be disabled with empty name
+    await expect(ob.continueButton).toBeDisabled();
+
+    // Fill a name but don't accept terms — still disabled
+    await ob.nameInput.fill("Test");
+    await expect(ob.continueButton).toBeDisabled();
+
+    // Accept terms — button should enable
+    await ob.termsCheckbox.check();
+    await expect(ob.continueButton).toBeEnabled();
   });
 
   test("Step 1 — saves name and advances to Step 2", async ({ page }) => {

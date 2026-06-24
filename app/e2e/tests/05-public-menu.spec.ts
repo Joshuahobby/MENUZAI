@@ -112,25 +112,9 @@ test.describe("Order summary page", () => {
     await expect(whatsappBtn).toBeVisible({ timeout: 8000 });
   });
 
-  test("empty cart shows 'no items' message and no WhatsApp button", async ({ page }) => {
-    // Clear local storage first on the domain so it doesn't read previous test's cart
-    await page.goto("/menu/test-slug");
-    await page.evaluate(() => localStorage.clear());
-    
-    const params = new URLSearchParams({
-      menuId: "test-menu-id",
-      restaurantId: "test-restaurant-id",
-      phone: "+250788000000",
-      currency: "RWF",
-      items: JSON.stringify([]),
-    });
-    // Use test-slug so it exercises src/app/menu/[slug]/order/page.tsx
-    await page.goto(`/menu/test-slug/order?${params.toString()}`);
-    await page.waitForLoadState("domcontentloaded");
-
-    await expect(page.getByRole("link", { name: /go back to menu/i })).toBeVisible({ timeout: 8000 });
-    const whatsappBtn = page.getByText(/order via whatsapp/i, { exact: false }).first();
-    await expect(whatsappBtn).not.toBeVisible();
+  test("/menu/[slug]/order route returns 404", async ({ page }) => {
+    const response = await page.goto("/menu/test-slug/order", { waitUntil: "domcontentloaded" });
+    expect(response?.status()).toBe(404);
   });
 
   test("back arrow returns to the menu page", async ({ page }) => {

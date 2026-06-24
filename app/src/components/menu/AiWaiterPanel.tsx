@@ -51,6 +51,7 @@ export default function AiWaiterPanel({
   const [pendingOrder, setPendingOrder] = useState<ChatOrder | null>(null);
   const [isPlacingChatOrder, setIsPlacingChatOrder] = useState(false);
   const proactiveGreetingFired = useRef(false);
+  const userInteracted = useRef(false);
 
   // Auto-scroll chat to bottom
   useEffect(() => {
@@ -72,6 +73,7 @@ export default function AiWaiterPanel({
     const delay = 10000 + Math.floor(Math.random() * 15000);
     const timer = setTimeout(() => {
       if (proactiveGreetingFired.current) return;
+      if (userInteracted.current) return;
       proactiveGreetingFired.current = true;
       const hour = new Date().getHours();
       const timeOfDay = hour < 12 ? "morning" : hour < 17 ? "afternoon" : "evening";
@@ -281,7 +283,7 @@ export default function AiWaiterPanel({
     <>
       {/* FAB */}
       <button
-        onClick={() => setIsOpen(true)}
+        onClick={() => { userInteracted.current = true; setIsOpen(true); }}
         className="fixed bottom-32 right-6 w-14 h-14 bg-primary text-white rounded-full shadow-2xl flex items-center justify-center z-50 hover:scale-110 active:scale-95 transition-all animate-bounce-slow"
         title="Ask the AI Waiter"
         aria-label="Ask the AI Waiter"

@@ -35,8 +35,8 @@ export async function resetOnboarding(email: string) {
   const user = users.find(u => u.email === email);
   if (!user) return;
 
-  // Reset onboarded status and optionally clear the restaurant row
-  await admin.from("restaurants").update({ onboarded: false }).eq("user_id", user.id);
+  // Reset onboarding state
+  await admin.from("restaurants").update({ onboarded: false, terms_accepted_at: null }).eq("user_id", user.id);
   console.log(`[E2E DB] Reset onboarding for ${email}`);
 }
 
