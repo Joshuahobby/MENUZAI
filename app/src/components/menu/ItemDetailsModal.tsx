@@ -49,13 +49,16 @@ export default function ItemDetailsModal({ item, isOpen, onClose, onAddToCart, c
         {/* Hero Image */}
         <div className="relative w-full h-64 sm:h-72 shrink-0 bg-surface-container-low">
           {item.image ? (
-            <NextImage
-              src={getOptimizedImageUrl(item.image, 800)}
-              alt={item.name}
-              fill
-              className="object-cover"
-              priority
-            />
+            <>
+              <NextImage
+                src={getOptimizedImageUrl(item.image, 800)}
+                alt={item.name}
+                fill
+                className="object-cover"
+                priority
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent z-10" />
+            </>
           ) : (
             <div className="w-full h-full flex flex-col items-center justify-center">
               <span className="material-symbols-outlined text-6xl text-secondary/20">restaurant</span>
@@ -63,7 +66,7 @@ export default function ItemDetailsModal({ item, isOpen, onClose, onAddToCart, c
             </div>
           )}
           {item.available === false && (
-            <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+            <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-20">
               <span className="bg-error text-white font-black px-6 py-2 rounded-full uppercase tracking-widest shadow-xl">Sold Out</span>
             </div>
           )}
@@ -127,7 +130,7 @@ export default function ItemDetailsModal({ item, isOpen, onClose, onAddToCart, c
         </div>
 
         {/* Footer Actions */}
-        <div className="p-6 bg-surface border-t border-surface-container/50 pb-8 sm:pb-6 flex items-center gap-4">
+        <div className="p-6 bg-surface border-t border-outline-variant/10 shadow-[0_-4px_20px_rgba(0,0,0,0.03)] pb-8 sm:pb-6 flex items-center gap-4">
           <div className="flex items-center bg-surface-container-low rounded-2xl h-14 p-1">
             <button 
               onClick={() => setQuantity(q => Math.max(1, q - 1))}
@@ -151,7 +154,8 @@ export default function ItemDetailsModal({ item, isOpen, onClose, onAddToCart, c
             disabled={item.available === false}
             className="flex-1 h-14 bg-[var(--primary-color)] hover:opacity-90 text-white rounded-2xl font-[var(--font-headline)] font-bold text-lg premium-shadow flex items-center justify-center gap-2 active:scale-[0.98] transition-all disabled:opacity-50 disabled:active:scale-100"
           >
-            Add {formatPrice(item.price * quantity, currency)}
+            <span className="text-base">Add for</span>
+            <span className="text-xl">{formatPrice(item.price * quantity, currency)}</span>
           </button>
         </div>
       </div>

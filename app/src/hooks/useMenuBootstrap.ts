@@ -267,8 +267,8 @@ export function useMenuBootstrap() {
             activeMenuName: menu.name ?? "My Menu",
             menuStatus: menu.status === "published" ? "published" : "draft",
             menuSlug: menu.slug ?? null,
-            categories: menu.categories ?? [],
-            menuItems: menu.items ?? [],
+            categories: Array.isArray(menu.categories) ? menu.categories : [],
+            menuItems: Array.isArray(menu.items) ? menu.items : [],
             menuStyle: menu.style && Object.keys(menu.style).length > 0 ? menu.style : defaultStyle,
             lastSynced: new Date(menu.updated_at),
           });

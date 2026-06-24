@@ -532,7 +532,7 @@ export default function PublicMenuClient(props: PublicMenuClientProps) {
               sizes="(max-width: 1024px) 100vw, 1200px"
               priority
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent flex flex-col justify-end p-6 z-10">
+            <div className="absolute inset-0 bg-gradient-to-t from-[var(--primary-color)]/95 via-black/30 to-transparent flex flex-col justify-end p-6 z-10">
               <h1 className="text-white font-[var(--font-headline)] text-3xl font-black tracking-tight drop-shadow-md">{restaurantName}</h1>
               <p className="text-white/90 text-sm mt-1 font-medium flex items-center gap-1">
                 <span className="material-symbols-outlined text-sm">restaurant</span>
@@ -583,6 +583,7 @@ export default function PublicMenuClient(props: PublicMenuClientProps) {
           categories.map(cat => {
             const catItems = filtered.filter(i => i.category === cat.id);
             if (catItems.length === 0) return null;
+            const catIndex = categories.indexOf(cat);
             return (
               <section
                 key={cat.id}
@@ -590,6 +591,13 @@ export default function PublicMenuClient(props: PublicMenuClientProps) {
                 ref={el => { sectionRefs.current[cat.id] = el; }}
                 className="space-y-6 pt-4"
               >
+                {catIndex > 0 && (
+                  <div className="flex items-center gap-3 pt-2 pb-1">
+                    <div className="h-px flex-1 bg-gradient-to-r from-transparent via-outline-variant/20 to-transparent" />
+                    <span className="material-symbols-outlined text-[14px] text-outline-variant/20">more_horiz</span>
+                    <div className="h-px flex-1 bg-gradient-to-r from-transparent via-outline-variant/20 to-transparent" />
+                  </div>
+                )}
                 <h3 className="font-[var(--font-headline)] text-2xl font-extrabold tracking-tight capitalize sticky top-[152px] z-30 bg-surface/90 backdrop-blur-md py-2 border-b border-outline-variant/10">
                   {cat.name}
                 </h3>
@@ -722,7 +730,7 @@ export default function PublicMenuClient(props: PublicMenuClientProps) {
           {totalItems > 0 ? (
             <button
               onClick={() => { trackOrderClick(menuId, restaurantId, totalPrice); setIsCartOpen(true); }}
-              className="w-full h-16 bg-whatsapp hover:bg-whatsapp-dark text-white flex items-center justify-between px-5 gap-3 shadow-[0_12px_40px_rgba(37,211,102,0.4)] active:scale-[0.98] transition-all rounded-[var(--border-radius)]"
+              className="w-full h-16 bg-whatsapp hover:bg-whatsapp-dark text-white flex items-center justify-between px-5 gap-3 shadow-[0_12px_40px_rgba(37,211,102,0.4)] active:scale-[0.98] transition-all duration-300 rounded-[var(--border-radius)] animate-in slide-in-from-bottom-4 fade-in"
             >
               <div className="flex items-center gap-3">
                 <div className="w-8 h-8 bg-white/20 rounded-xl flex items-center justify-center shrink-0">

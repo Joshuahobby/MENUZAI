@@ -49,6 +49,7 @@ export function EditorItemForm({
   const imgInputRef = useRef<HTMLInputElement | null>(null);
   const galleryInputRef = useRef<HTMLInputElement | null>(null);
   const [isGeneratingDesc, setIsGeneratingDesc] = useState(false);
+  const itemTags = item.tags ?? [];
 
   const handleGenerateDescription = async () => {
     if (!item.name) {
@@ -61,7 +62,7 @@ export function EditorItemForm({
       const res = await fetch("/api/ai/description", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: item.name, tags: item.tags }),
+        body: JSON.stringify({ name: item.name, tags: itemTags }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed to generate");
@@ -137,19 +138,19 @@ export function EditorItemForm({
   );
 
   const handleRemoveTag = (tag: string) => {
-    onUpdateItem(item.id, { tags: item.tags.filter((t: string) => t !== tag) });
+    onUpdateItem(item.id, { tags: itemTags.filter((t: string) => t !== tag) });
   };
 
   const toggleDietaryTag = (tagId: string) => {
     const normId = tagId.toLowerCase().trim();
-    const hasTag = item.tags.some((t: string) => t.toLowerCase().trim() === normId);
+    const hasTag = itemTags.some((t: string) => t.toLowerCase().trim() === normId);
     let newTags: string[];
     if (hasTag) {
-      newTags = item.tags.filter((t: string) => t.toLowerCase().trim() !== normId);
+      newTags = itemTags.filter((t: string) => t.toLowerCase().trim() !== normId);
       toast.success(`Removed tag "${tagId}"`);
     } else {
       const properLabel = QUICK_DIETARY_TAGS.find(q => q.id === tagId)?.label || tagId;
-      newTags = [...item.tags, properLabel];
+      newTags = [...itemTags, properLabel];
       toast.success(`Added tag "${properLabel}"`);
     }
     onUpdateItem(item.id, { tags: newTags });
@@ -161,8 +162,8 @@ export function EditorItemForm({
       placeholder: "e.g. Vegan, Spicy, Gluten-Free",
       confirmLabel: "Add",
     });
-    if (tag && !item.tags.includes(tag)) {
-      onUpdateItem(item.id, { tags: [...item.tags, tag] });
+    if (tag && !itemTags.includes(tag)) {
+      onUpdateItem(item.id, { tags: [...itemTags, tag] });
       toast.success(`Tag "${tag}" added`);
     }
   };
@@ -302,9 +303,9 @@ export function EditorItemForm({
             placeholder="Description…"
           />
         </div>
-        {item.tags.length > 0 && (
+        {itemTags.length > 0 && (
           <div className="mt-2 flex gap-1 flex-wrap">
-            {item.tags.map((tag: string) => (
+            {itemTags.map((tag: string) => (
               <span
                 key={tag}
                 className="bg-tertiary/10 text-tertiary text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-widest"
@@ -457,7 +458,7 @@ export function EditorItemForm({
             <p className="text-xs font-bold text-secondary mb-2">Dietary & Allergen Quick Toggles</p>
             <div className="flex flex-wrap gap-2">
               {QUICK_DIETARY_TAGS.map((tag) => {
-                const isActive = item.tags.some(
+                const isActive = itemTags.some(
                   (t: string) => t.toLowerCase().trim() === tag.id
                 );
                 return (
@@ -484,7 +485,7 @@ export function EditorItemForm({
           <div>
             <p className="text-xs font-bold text-secondary mb-2">Custom Tags</p>
             <div className="flex flex-wrap gap-1.5 items-center">
-              {item.tags.map((tag: string) => (
+              {itemTags.map((tag: string) => (
                 <span
                   key={tag}
                   className="flex items-center gap-1 bg-tertiary/10 text-tertiary text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-widest"

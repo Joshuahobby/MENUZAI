@@ -27,7 +27,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   if (!menu) return { title: "Menu Not Found" };
 
   const restaurant = Array.isArray(menu.restaurants) ? menu.restaurants[0] : menu.restaurants;
-  const items = (menu.items ?? []) as { image?: string }[];
+  const safeMenuItems = Array.isArray(menu.items) ? menu.items : [];
+  const items = safeMenuItems as { image?: string }[];
   const ogImage = items.find((i) => i.image)?.image;
 
   const title = `${restaurant?.name ?? "Menu"} | MENUZA AI`;
@@ -91,8 +92,8 @@ export default async function PublicMenuPage({ params }: PageProps) {
       paymentsEnabled={(restaurant as { payments_enabled?: boolean })?.payments_enabled ?? false}
       branded={branded}
       slug={slug}
-      categories={menu.categories ?? []}
-      items={menu.items ?? []}
+      categories={Array.isArray(menu.categories) ? menu.categories : []}
+      items={Array.isArray(menu.items) ? menu.items : []}
       style={menu.style ?? {}}
     />
   );

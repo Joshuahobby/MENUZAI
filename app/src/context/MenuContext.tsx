@@ -315,8 +315,8 @@ export function MenuProvider({ children }: { children: React.ReactNode }) {
       setActiveMenuName(menu.name ?? "My Menu");
       setMenuStatus(menu.status === "published" ? "published" : "draft");
       setMenuSlug(menu.slug ?? null);
-      setCategories(menu.categories ?? []);
-      setMenuItems(menu.items ?? []);
+      setCategories(Array.isArray(menu.categories) ? menu.categories : []);
+      setMenuItems(Array.isArray(menu.items) ? menu.items : []);
       setMenuStyle(menu.style && Object.keys(menu.style).length > 0 ? menu.style : defaultStyle);
       setLastSynced(new Date(menu.updated_at));
     }
@@ -509,8 +509,8 @@ export function MenuProvider({ children }: { children: React.ReactNode }) {
       setActiveMenuName(menu.name ?? "My Menu");
       setMenuStatus(menu.status ?? "draft");
       setMenuSlug(menu.slug ?? null);
-      setCategories(menu.categories ?? []);
-      setMenuItems(menu.items ?? []);
+      setCategories(Array.isArray(menu.categories) ? menu.categories : []);
+      setMenuItems(Array.isArray(menu.items) ? menu.items : []);
     }
   }, [user, restaurantId]);
 

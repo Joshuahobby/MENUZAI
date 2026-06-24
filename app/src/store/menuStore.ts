@@ -133,7 +133,12 @@ export const useMenuStore = create<MenuStore>()(
     setIsLoading: (loading) => set({ isLoading: loading }),
 
     // ── Bulk hydration ───────────────────────────────────────────────────
-    hydrate: (data) => set(data),
+    hydrate: (data) =>
+      set((state) => ({
+        ...data,
+        categories: Array.isArray(data.categories) ? data.categories : state.categories,
+        menuItems: Array.isArray(data.menuItems) ? data.menuItems : state.menuItems,
+      })),
 
     // ── Granular item update — prevents full re-renders on item change ───
     updateItem: (itemId, updates) =>

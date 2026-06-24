@@ -73,8 +73,9 @@ export function BuildSidebarContent({
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed to generate items");
       // Bulk-add all generated items in one state update
-      setMenuItems((prev: import("@/types/menu").MenuItem[]) => [...prev, ...data.items]);
-      toast.success(`✨ Added ${data.items.length} items to your menu!`, { id: toastId });
+      const newItems = Array.isArray(data.items) ? data.items : [];
+      setMenuItems((prev: import("@/types/menu").MenuItem[]) => [...prev, ...newItems]);
+      toast.success(`✨ Added ${newItems.length} items to your menu!`, { id: toastId });
       setAiPrompt("");
       setShowAiPanel(false);
     } catch (err: unknown) {

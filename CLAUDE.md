@@ -146,7 +146,7 @@ MENUZAI is an AI-powered SaaS platform for restaurant menu digitization. Stack: 
 | `/api/notifications/order` | POST | Sends order receipt emails to restaurant owner and (if provided) customer via Resend; body: `{ restaurantId, items, total, currency, customerName?, customerEmail?, tableNumber? }` |
 | `/api/public/stats` | GET | Returns `{ restaurants, orders }` counts for landing page social proof; cached 1 hr (`s-maxage=3600`); falls back to seed values if admin client unavailable |
 | `/api/orders/confirm` | POST | Confirms order, decrements `stock_count` on each item, auto-sets `available=false` when stock hits 0; requires `SUPABASE_SERVICE_ROLE_KEY` |
-| `/api/payments/pawapay` | POST | Payment initiation; amount is looked up server-side from `platform_settings.plan_prices` (not trusted from client), falling back to hardcoded defaults; falls back to simulation if `PAWAPAY_API_KEY` not set |
+| `/api/payments/pawapay` | POST | Payment initiation; amount is looked up server-side from `platform_settings.plan_prices` (not trusted from client), falling back to hardcoded defaults; requires `PAWAPAY_API_KEY` — returns 503 if missing |
 | `/api/payments/food` | POST | Initiates a food order payment via PawaPay; restaurant must have `payments_enabled=true`; creates order in `pending_payment` status; body: `{ restaurantId, menuId, items, total, currency, phone, tableNumber?, customerName? }` |
 | `/api/payments/status` | GET | Poll transaction status by `?depositId=`; auth-scoped to the requesting user; returns `{ status, plan }` |
 | `/api/webhooks/pawapay` | POST | Payment webhook; verifies `X-Pawapay-Signature` RSA-SHA256; on `COMPLETED` upgrades plan and sets `plan_expires_at = now()+30d` |
@@ -377,7 +377,7 @@ Two payment flows share the PawaPay integration:
 1. **Plan upgrade** — `/api/payments/pawapay` initiates, `/api/webhooks/pawapay` confirms. Amount looked up server-side from `PLAN_PRICES`. On `COMPLETED`: upgrades `restaurants.plan`, sets `plan_expires_at = now()+30d`, sends confirmation email via Resend.
 2. **Food order payment** — `/api/payments/food` initiates, same `/api/webhooks/pawapay` webhook handles completion (distinguished by `depositId` prefix). Requires `restaurants.payments_enabled = true`. On `COMPLETED`: marks order `paid = true`, transitions status from `pending_payment` → `pending`.
 
-Set `PAWAPAY_API_KEY` to activate real payments; without it the plan payment route returns a simulated success. The webhook verifies `X-Pawapay-Signature` (RSA-SHA256, `PAWAPAY_WEBHOOK_PUBLIC_KEY`). Set `PAWAPAY_MODE=live` for production (defaults to sandbox).
+Set `PAWAPAY_API_KEY` to activate real payments; without it the plan payment route returns a 503 error. The webhook verifies `X-Pawapay-Signature` (RSA-SHA256, `PAWAPAY_WEBHOOK_PUBLIC_KEY`). Set `PAWAPAY_MODE=live` for production (defaults to sandbox).
 
 ### Other
 
@@ -403,7 +403,7 @@ GitHub Actions workflow at `.github/workflows/ci.yml` runs on every push/PR to `
 
 1. **Lint** — `npm run lint`
 2. **Type-check** — `npx tsc --noEmit`
-3. **Unit tests** — `npm run test` (Vitest, 56 tests across 5 suites)
+3. **Unit tests** — `npm run test` (Vitest, 111 tests across 10 suites)
 4. **Build** — `npm run build`
 
 Vercel auto-deploys from `main` on push.

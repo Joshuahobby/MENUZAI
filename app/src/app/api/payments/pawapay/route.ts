@@ -101,6 +101,11 @@ export async function POST(req: Request) {
     // 5. Store pending transaction in our database (admin client bypasses RLS insert gap)
     const admin = getSupabaseAdmin();
     if (!admin) throw new Error("Server configuration error.");
+
+    if (!process.env.PAWAPAY_API_KEY) {
+      return NextResponse.json({ error: "PAWAPAY_API_KEY is not configured. Set it to process payments." }, { status: 503 });
+    }
+
     const { error: dbError } = await admin.from('transactions').insert({
       deposit_id: depositId, 
       user_id: user.id, 
@@ -117,39 +122,34 @@ export async function POST(req: Request) {
     }
 
     // 6. Initiate Payment with pawaPay
-    if (process.env.PAWAPAY_API_KEY) {
-      const response = await fetch(pawaPayUrl, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${process.env.PAWAPAY_API_KEY}`
-        },
-        body: JSON.stringify(pawapayPayload)
-      });
+    const response = await fetch(pawaPayUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${process.env.PAWAPAY_API_KEY}`
+      },
+      body: JSON.stringify(pawapayPayload)
+    });
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error("PawaPay error response:", response.status, errorText);
-        await admin.from('transactions').update({ status: 'failed' }).eq('deposit_id', depositId);
-        let errorMsg = "Failed to initiate payment with pawaPay";
-        try {
-          const errorData = JSON.parse(errorText);
-          errorMsg = errorData.message || errorData.errorMessage || errorData.description || errorMsg;
-        } catch { /* non-JSON response */ }
-        throw new Error(errorMsg);
-      }
-
-      const pawaPayData = await response.json();
-      return NextResponse.json({ 
-        success: true, 
-        depositId, 
-        externalId: pawaPayData.externalId,
-        message: "Payment initiated. Please check your phone for the MoMo prompt." 
-      });
-    } else {
-      // API key missing – configuration error
-      return NextResponse.json({ error: "PAWAPAY_API_KEY is not configured. Transaction could not be initiated." }, { status: 500 });
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error("PawaPay error response:", response.status, errorText);
+      await admin.from('transactions').update({ status: 'failed' }).eq('deposit_id', depositId);
+      let errorMsg = "Failed to initiate payment with pawaPay";
+      try {
+        const errorData = JSON.parse(errorText);
+        errorMsg = errorData.message || errorData.errorMessage || errorData.description || errorMsg;
+      } catch { /* non-JSON response */ }
+      throw new Error(errorMsg);
     }
+
+    const pawaPayData = await response.json();
+    return NextResponse.json({ 
+      success: true, 
+      depositId, 
+      externalId: pawaPayData.externalId,
+      message: "Payment initiated. Please check your phone for the MoMo prompt." 
+    });
 
   } catch (error: unknown) {
     console.error("Payment initiation error:", error);

@@ -29,7 +29,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
     if (typeof window === "undefined") return [];
     try {
       const stored = localStorage.getItem("menuza_cart");
-      return stored ? (JSON.parse(stored) as CartItem[]) : [];
+      if (!stored) return [];
+      const parsed = JSON.parse(stored);
+      return Array.isArray(parsed) ? parsed : [];
     } catch {
       return [];
     }

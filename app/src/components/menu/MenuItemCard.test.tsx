@@ -124,9 +124,9 @@ describe("MenuItemCard", () => {
     expect(screen.getByText("+2")).toBeDefined();
   });
 
-  it("applies opacity when sold out", () => {
+  it("prevents interaction when sold out", () => {
     const { container } = render(<MenuItemCard {...defaultProps} item={makeItem({ available: false })} />);
     const card = container.firstChild as HTMLElement;
-    expect(card.className).toContain("opacity-60");
+    expect(card.className).toContain("select-none");
   });
 });

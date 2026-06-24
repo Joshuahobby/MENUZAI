@@ -26,9 +26,9 @@ export default function MenuItemCard({
   return (
     <div
       onClick={onSelect}
-      className={`bg-surface-container-lowest overflow-hidden flex flex-col shadow-sm border border-outline-variant/10 rounded-[var(--border-radius)] relative cursor-pointer hover:shadow-md hover:-translate-y-1 transition-all duration-300 ${item.available === false ? "opacity-60" : ""}`}
+      className={`bg-surface-container-lowest overflow-hidden flex flex-col shadow-sm border border-outline-variant/10 hover:border-outline-variant/30 rounded-[var(--border-radius)] relative cursor-pointer hover:shadow-md hover:-translate-y-1 transition-all duration-300 ${item.available === false ? "select-none" : ""}`}
     >
-      <div className={`relative ${menuStyle.layoutDensity === "compact" ? "h-36" : "h-52"}`}>
+      <div className={`relative bg-surface-container-low ${menuStyle.layoutDensity === "compact" ? "h-36" : "h-52"}`}>
         {item.image ? (
           <NextImage
             alt={item.name}

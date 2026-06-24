@@ -5,18 +5,37 @@
  */
 import { test, expect } from "@playwright/test";
 
-const MOCK_EXTRACTION_RESPONSE = {
-  restaurantName: "AI Test Restaurant",
-  categories: [
-    { id: "cat1", name: "Starters" },
-    { id: "cat2", name: "Mains" },
-  ],
-  items: [
-    { id: "i1", name: "Spring Roll", price: 2000, description: "Crispy veg roll", category: "cat1", tags: [], available: true, image: "" },
-    { id: "i2", name: "Grilled Chicken", price: 5500, description: "Served with chips", category: "cat2", tags: [], available: true, image: "" },
-  ],
-  suggestedTheme: null,
-};
+const EXTRACTED_CATEGORIES = [
+  { id: "cat1", name: "Starters" },
+  { id: "cat2", name: "Mains" },
+];
+
+const EXTRACTED_ITEMS = [
+  { id: "i1", name: "Spring Roll", price: 2000, description: "Crispy veg roll", category: "cat1", tags: ["vegan"], available: true, image: "" },
+  { id: "i2", name: "Grilled Chicken", price: 5500, description: "Served with chips", category: "cat2", tags: [], available: true, image: "" },
+];
+
+function buildSSEBody(overrides?: Record<string, unknown>): string {
+  const result = {
+    restaurantName: "AI Test Restaurant",
+    categories: EXTRACTED_CATEGORIES,
+    items: EXTRACTED_ITEMS,
+    suggestedTheme: null,
+    ...overrides,
+  };
+  const events = [
+    `data: ${JSON.stringify({ type: "progress", pct: 50, step: "Reading menu..." })}`,
+    "",
+    `data: ${JSON.stringify({ type: "result", data: result })}`,
+    "",
+  ];
+  return events.join("\n");
+}
+
+const pngBuffer = Buffer.from(
+  "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==",
+  "base64"
+);
 
 test.describe("Upload page", () => {
   test.beforeEach(async ({ page }) => {
@@ -27,13 +46,11 @@ test.describe("Upload page", () => {
 
   test("renders drop zone and upload heading", async ({ page }) => {
     await expect(page.getByText(/Upload Your Menu/i)).toBeVisible({ timeout: 8000 });
-    // Drop zone exists
     const dropZone = page.locator('[class*="border-dashed"]').first();
     await expect(dropZone).toBeVisible();
   });
 
   test("rejects PDF files (unsupported type)", async ({ page }) => {
-    // Create a minimal fake PDF in memory via data transfer
     const fakeFile = {
       name: "menu.pdf",
       mimeType: "application/pdf",
@@ -47,23 +64,15 @@ test.describe("Upload page", () => {
       buffer: fakeFile.buffer,
     });
 
-    // Should show 0 selected files (filtered out) or an error
     const errorMsg = page.locator("[class*='error'], .text-error").first();
     const hasError = await errorMsg.isVisible().catch(() => false);
     const fileList = page.getByText(/menu\.pdf/);
     const hasFile = await fileList.isVisible().catch(() => false);
 
-    // Either rejected silently (not shown) or shows error
     expect(hasError || !hasFile).toBe(true);
   });
 
   test("accepts a valid PNG file", async ({ page }) => {
-    // Create a minimal 1x1 PNG
-    const pngBuffer = Buffer.from(
-      "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==",
-      "base64"
-    );
-
     const input = page.locator('input[type="file"]');
     await input.setInputFiles({
       name: "menu.png",
@@ -71,34 +80,25 @@ test.describe("Upload page", () => {
       buffer: pngBuffer,
     });
 
-    // File should appear in the list
     await expect(page.getByText("menu.png")).toBeVisible({ timeout: 5000 });
   });
 
   test("extract button is disabled when no files selected", async ({ page }) => {
-    // Extract button should be absent or disabled with no files
     const extractBtn = page.getByRole("button", { name: /extract|analyse|analyze/i });
     const hasExtract = await extractBtn.isVisible().catch(() => false);
     if (hasExtract) {
       await expect(extractBtn).toBeDisabled();
     }
-    // If not present yet, that's also correct (button only appears after file selection)
   });
 
-  test("shows progress bar and redirects to /ai-result after extraction", async ({ page }) => {
-    // Mock the API so we don't call real AI
+  test("extracts and redirects to /ai-result (SSE mock)", async ({ page }) => {
     await page.route("/api/extract-menu", async (route) => {
       await route.fulfill({
         status: 200,
-        contentType: "application/json",
-        body: JSON.stringify(MOCK_EXTRACTION_RESPONSE),
+        contentType: "text/event-stream",
+        body: buildSSEBody(),
       });
     });
-
-    const pngBuffer = Buffer.from(
-      "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==",
-      "base64"
-    );
 
     const input = page.locator('input[type="file"]');
     await input.setInputFiles({
@@ -107,12 +107,10 @@ test.describe("Upload page", () => {
       buffer: pngBuffer,
     });
 
-    // Find and click extract button
     const extractBtn = page.getByRole("button", { name: /extract|analyse|analyze|upload/i }).first();
     await extractBtn.waitFor({ state: "visible", timeout: 5000 });
     await extractBtn.click();
 
-    // Should show extracting state briefly then redirect
     await page.waitForURL("/ai-result", { timeout: 15000 });
     await expect(page).toHaveURL("/ai-result");
   });
@@ -126,11 +124,6 @@ test.describe("Upload page", () => {
       });
     });
 
-    const pngBuffer = Buffer.from(
-      "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==",
-      "base64"
-    );
-
     const input = page.locator('input[type="file"]');
     await input.setInputFiles({
       name: "menu.png",
@@ -142,7 +135,6 @@ test.describe("Upload page", () => {
     await extractBtn.waitFor({ state: "visible", timeout: 5000 });
     await extractBtn.click();
 
-    // Should show error state
     await page.waitForFunction(
       () => document.body.innerText.toLowerCase().includes("error") ||
              document.body.innerText.includes("AI model unavailable"),
@@ -151,11 +143,6 @@ test.describe("Upload page", () => {
   });
 
   test("can remove a selected file", async ({ page }) => {
-    const pngBuffer = Buffer.from(
-      "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==",
-      "base64"
-    );
-
     const input = page.locator('input[type="file"]');
     await input.setInputFiles({
       name: "remove-me.png",
@@ -165,12 +152,29 @@ test.describe("Upload page", () => {
 
     await expect(page.getByText("remove-me.png")).toBeVisible({ timeout: 5000 });
 
-    // Find remove button (×, close, remove)
     const removeBtn = page.getByRole("button", { name: /remove|×|close|delete/i }).first();
     const hasRemove = await removeBtn.isVisible().catch(() => false);
     if (hasRemove) {
       await removeBtn.click();
       await expect(page.getByText("remove-me.png")).not.toBeVisible({ timeout: 3000 });
     }
+  });
+});
+
+test.describe("AI Result page (after extraction)", () => {
+  test("shows empty state with navigation when no items loaded", async ({ page }) => {
+    await page.goto("/ai-result");
+    await page.waitForURL("/ai-result", { timeout: 10000 });
+
+    // Shows the empty state
+    await expect(page.getByText("No items extracted")).toBeVisible({ timeout: 15000 });
+
+    // "Try Again" links to upload
+    await expect(page.getByRole("link", { name: /try again/i })).toBeVisible();
+    await expect(page.getByRole("link", { name: /try again/i })).toHaveAttribute("href", "/upload");
+
+    // "Go to Editor" links to dashboard editor
+    await expect(page.getByRole("link", { name: /go to editor/i })).toBeVisible();
+    await expect(page.getByRole("link", { name: /go to editor/i })).toHaveAttribute("href", "/dashboard/editor");
   });
 });
