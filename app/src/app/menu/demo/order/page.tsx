@@ -10,7 +10,11 @@ import { restaurant } from "@/data/mockData";
 function OrderContent() {
   const searchParams = useSearchParams();
   const [customerName, setCustomerName] = useState("");
-  const [tableNumber, setTableNumber] = useState("");
+
+  const initialTable = (() => {
+    try { const t = searchParams.get("table"); return t ? `Table ${t}` : ""; } catch { return ""; }
+  })();
+  const [tableNumber, setTableNumber] = useState(initialTable);
 
   let items: CartItem[] = [];
   let currency = "RWF";

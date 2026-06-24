@@ -9,18 +9,34 @@ interface TestMenu {
   slug: string;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function getTestUserId(admin: any): Promise<string> {
+  const email = process.env.E2E_TEST_EMAIL || "e2e-test@menuzai.test";
+  const { data, error } = await admin.auth.admin.listUsers({ page: 1, perPage: 1000 });
+  if (error || !data?.users?.length) throw new Error(`Failed to list users: ${error?.message}`);
+  const user = data.users.find((u: { email: string }) => u.email === email);
+  if (!user) throw new Error(`Test user not found: ${email}`);
+  return user.id;
+}
+
 export async function createTestMenu(): Promise<TestMenu> {
   const admin = createClient(SUPABASE_URL, SERVICE_ROLE_KEY, {
     auth: { autoRefreshToken: false, persistSession: false },
   });
 
+  const userId = await getTestUserId(admin);
   const slug = `e2e-test-menu-${Date.now()}`;
+
+  // Clean up any existing restaurants for this user so the location-limit
+  // DB trigger (migration 033) doesn't block creation
+  await admin.from("menus").delete().eq("user_id", userId);
+  await admin.from("restaurants").delete().eq("user_id", userId);
 
   // Create a restaurant for the test
   const { data: restaurant, error: rErr } = await admin
     .from("restaurants")
     .insert({
-      user_id: "00000000-0000-0000-0000-000000000000",
+      user_id: userId,
       name: "E2E Test Restaurant",
       phone: "+250788000000",
       onboarded: true,
@@ -36,7 +52,7 @@ export async function createTestMenu(): Promise<TestMenu> {
     .from("menus")
     .insert({
       restaurant_id: restaurant.id,
-      user_id: "00000000-0000-0000-0000-000000000000",
+      user_id: userId,
       name: "E2E Test Menu",
       slug,
       status: "published",

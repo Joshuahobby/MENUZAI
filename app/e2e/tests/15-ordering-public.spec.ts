@@ -22,7 +22,7 @@ test.describe("Public menu ordering flow", () => {
   });
 
   test("menu page renders with items and categories", async ({ page }) => {
-    await expect(page.getByText("E2E Test Restaurant")).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText("E2E Test Restaurant").first()).toBeVisible({ timeout: 10000 });
     await expect(page.getByText("Samosa").first()).toBeVisible({ timeout: 5000 });
     await expect(page.getByText("Beef Burger").first()).toBeVisible();
   });
@@ -62,7 +62,7 @@ test.describe("Public menu ordering flow", () => {
     }
 
     // Click place order — WhatsApp opens in a new tab
-    const orderBtn = page.getByText(/order via whatsapp/i).first();
+    const orderBtn = page.getByText(/view order/i).first();
     await expect(orderBtn).toBeVisible({ timeout: 5000 });
 
     const [popup] = await Promise.all([
@@ -86,6 +86,6 @@ test.describe("Public menu ordering flow", () => {
     if (!menuData) throw new Error("No menu data");
     await page.goto(`/menu/${menuData.slug}/history`);
     await page.waitForLoadState("domcontentloaded");
-    await expect(page.getByText("Order History")).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText("Order History").first()).toBeVisible({ timeout: 10000 });
   });
 });
