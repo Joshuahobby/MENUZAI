@@ -148,7 +148,7 @@ export default function ServicePager({
                         onClick={() => setServiceType(opt.id as "call_waiter" | "bill" | "water" | "custom")}
                         className={`flex flex-col p-4 rounded-2xl border text-left transition-all cursor-pointer ${isSelected ? "border-amber-500 bg-amber-500/5 text-amber-600 ring-2 ring-amber-500/10 font-bold" : "border-outline-variant/15 hover:bg-surface-container-low text-secondary"}`}
                       >
-                        <span className="material-symbols-outlined text-xl mb-2">{opt.icon}</span>
+                        <span className={`material-symbols-outlined text-xl mb-2${isSelected ? " icon-fill" : ""}`}>{opt.icon}</span>
                         <span className="text-xs font-bold block">{opt.name}</span>
                         <span className="text-[9px] opacity-75 font-normal block mt-0.5">{opt.sub}</span>
                       </button>
