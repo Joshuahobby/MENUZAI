@@ -340,7 +340,7 @@ export default function PublicMenuClient(props: PublicMenuClientProps) {
           rating,
           customerName: "Guest",
           comment: reviewComment,
-          orderId: null,
+          orderId: lastOrderId,
         }),
       });
       if (res.ok) {
@@ -539,6 +539,15 @@ export default function PublicMenuClient(props: PublicMenuClientProps) {
                 Welcome to our digital menu
               </p>
             </div>
+          </section>
+        )}
+
+        {/* All sold out banner */}
+        {items.length > 0 && items.every(i => i.available === false) && !searchQuery.trim() && (
+          <section className="bg-rose-50 dark:bg-rose-950/20 border border-rose-200 dark:border-rose-800/30 rounded-[var(--border-radius)] p-6 text-center">
+            <span className="material-symbols-outlined text-3xl text-rose-400 block mb-2">no_food</span>
+            <h3 className="font-[var(--font-headline)] font-extrabold text-base text-rose-700 dark:text-rose-300">Currently Unavailable</h3>
+            <p className="text-sm text-rose-600/80 dark:text-rose-400/80 mt-1">All items are sold out right now. Please check back later.</p>
           </section>
         )}
 

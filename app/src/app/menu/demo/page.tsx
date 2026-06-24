@@ -50,9 +50,12 @@ function getDemoAiReply(input: string): string {
   return "Great question! 🍽️ Our menu changes seasonally, but right now the **Truffle Ribeye** and **Mediterranean Salmon** are getting the most praise. Is there anything specific I can help you find?";
 }
 
+// Filter out hidden categories for the demo
+const VISIBLE_CATEGORIES = MOCK_CATEGORIES.filter(c => !c.hidden);
+
 export default function CustomerMenuPage() {
   const containerRef = useRef<HTMLDivElement>(null);
-  const [activeCategory, setActiveCategory] = useState(MOCK_CATEGORIES[0]?.id ?? "specials");
+  const [activeCategory, setActiveCategory] = useState(VISIBLE_CATEGORIES[0]?.id ?? "");
   const [cart, setCart] = useState<CartItem[]>([]);
   const [chatOpen, setChatOpen] = useState(false);
   const [chatInput, setChatInput] = useState("");
@@ -125,7 +128,7 @@ export default function CustomerMenuPage() {
       {/* Category Tabs */}
       <nav className="sticky top-[120px] z-40 bg-surface/95 backdrop-blur-sm py-4 overflow-x-auto hide-scrollbar">
         <div className="flex px-6 gap-3">
-          {MOCK_CATEGORIES.map(cat => (
+          {VISIBLE_CATEGORIES.map(cat => (
             <button
               key={cat.id}
               onClick={() => setActiveCategory(cat.id)}
@@ -143,7 +146,7 @@ export default function CustomerMenuPage() {
 
       <main className="px-6 pt-4 space-y-8">
         {/* Hero Banner — first category */}
-        {activeCategory === MOCK_CATEGORIES[0]?.id && (
+        {activeCategory === VISIBLE_CATEGORIES[0]?.id && (
           <section className="relative h-48 overflow-hidden group rounded-[var(--border-radius)]">
             <NextImage
               alt="Featured Dish"
@@ -169,7 +172,7 @@ export default function CustomerMenuPage() {
         <section className="space-y-6">
           <div className="flex items-center justify-between">
             <h3 className="font-[var(--font-headline)] text-xl font-extrabold tracking-tight capitalize">
-              {MOCK_CATEGORIES.find(c => c.id === activeCategory)?.name ?? activeCategory}
+              {VISIBLE_CATEGORIES.find(c => c.id === activeCategory)?.name ?? activeCategory}
             </h3>
             <span className="text-[var(--primary-color)] font-[var(--font-headline)] text-xs font-bold uppercase tracking-widest">
               {filtered.length} items

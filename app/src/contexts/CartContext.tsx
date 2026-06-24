@@ -28,7 +28,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<CartItem[]>(() => {
     if (typeof window === "undefined") return [];
     try {
-      const stored = localStorage.getItem("menuza_cart");
+      const stored = localStorage.getItem("menuza_cart_context");
       if (!stored) return [];
       const parsed = JSON.parse(stored);
       return Array.isArray(parsed) ? parsed : [];
@@ -40,7 +40,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   // Save to localStorage when items change
   useEffect(() => {
-    localStorage.setItem("menuza_cart", JSON.stringify(items));
+    localStorage.setItem("menuza_cart_context", JSON.stringify(items));
   }, [items]);
 
   const setAnalyticsProps = useCallback((props: AnalyticsProps) => {

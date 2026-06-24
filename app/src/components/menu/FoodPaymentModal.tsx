@@ -49,14 +49,9 @@ export default function FoodPaymentModal({ restaurantId, menuId, items, total, c
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Payment initiation failed");
 
+      if (data.error) throw new Error(data.error);
+
       orderIdRef.current = data.orderId || null;
-
-      if (data.simulated) {
-        setState("success");
-        onSuccess(data.orderId);
-        return;
-      }
-
       setState("polling");
 
       // Poll for payment status every 3 seconds, timeout after 2 minutes
@@ -73,7 +68,11 @@ export default function FoodPaymentModal({ restaurantId, menuId, items, total, c
             setState("failed");
             setErrorMsg("Payment was declined. Please try again.");
           }
-        } catch { /* network error during poll — ignore */ }
+        } catch {
+          stopPolling();
+          setState("failed");
+          setErrorMsg("Payment check failed due to a network error. Please contact the restaurant.");
+        }
       }, 3000);
 
       timeoutRef.current = setTimeout(() => {

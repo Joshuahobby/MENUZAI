@@ -132,43 +132,47 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Failed to initiate payment" }, { status: 500 });
     }
 
-    // Call PawaPay if API key is configured
-    if (process.env.PAWAPAY_API_KEY) {
-      const baseUrl = process.env.PAWAPAY_BASE_URL ??
-        (process.env.PAWAPAY_MODE === "sandbox"
-          ? "https://api.sandbox.pawapay.io/v1"
-          : "https://api.pawapay.io/v1");
-
-      const pawapayPayload = {
-        depositId,
-        amount: calculatedTotal.toString(),
-        currency: menuCurrency,
-        country: "RWA",
-        correspondent,
-        payer: { type: "MSISDN", address: { value: phone } },
-        customerTimestamp: new Date().toISOString(),
-        statementDescription: `Order at ${restaurant.name ?? "MENUZA AI"}`,
-        callbackUrl: `${process.env.NEXT_PUBLIC_SITE_URL}/api/webhooks/pawapay`,
-      };
-
-      const response = await fetch(`${baseUrl}/deposits`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${process.env.PAWAPAY_API_KEY}` },
-        body: JSON.stringify(pawapayPayload),
-      });
-
-      if (!response.ok) {
-        const text = await response.text();
-        console.error("PawaPay food payment error:", response.status, text);
-        await Promise.all([
-          admin.from("transactions").update({ status: "failed" }).eq("deposit_id", depositId),
-          admin.from("orders").delete().eq("id", order.id),
-        ]);
-        return NextResponse.json({ error: "Payment initiation failed. Please try again." }, { status: 502 });
-      }
+    if (!process.env.PAWAPAY_API_KEY) {
+      // Roll back the pending order and transaction
+      await admin.from("orders").delete().eq("id", order.id);
+      await admin.from("transactions").delete().eq("deposit_id", depositId);
+      return NextResponse.json({ error: "PAWAPAY_API_KEY is not configured. Online payments are unavailable." }, { status: 503 });
     }
 
-    return NextResponse.json({ depositId, orderId: order.id, simulated: !process.env.PAWAPAY_API_KEY });
+    const baseUrl = process.env.PAWAPAY_BASE_URL ??
+      (process.env.PAWAPAY_MODE === "sandbox"
+        ? "https://api.sandbox.pawapay.io/v1"
+        : "https://api.pawapay.io/v1");
+
+    const pawapayPayload = {
+      depositId,
+      amount: calculatedTotal.toString(),
+      currency: menuCurrency,
+      country: "RWA",
+      correspondent,
+      payer: { type: "MSISDN", address: { value: phone } },
+      customerTimestamp: new Date().toISOString(),
+      statementDescription: `Order at ${restaurant.name ?? "MENUZA AI"}`,
+      callbackUrl: `${process.env.NEXT_PUBLIC_SITE_URL}/api/webhooks/pawapay`,
+    };
+
+    const response = await fetch(`${baseUrl}/deposits`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${process.env.PAWAPAY_API_KEY}` },
+      body: JSON.stringify(pawapayPayload),
+    });
+
+    if (!response.ok) {
+      const text = await response.text();
+      console.error("PawaPay food payment error:", response.status, text);
+      await Promise.all([
+        admin.from("transactions").update({ status: "failed" }).eq("deposit_id", depositId),
+        admin.from("orders").delete().eq("id", order.id),
+      ]);
+      return NextResponse.json({ error: "Payment initiation failed. Please try again." }, { status: 502 });
+    }
+
+    return NextResponse.json({ depositId, orderId: order.id });
   } catch (err) {
     console.error("food payment error:", err);
     return NextResponse.json({ error: "Internal error" }, { status: 500 });
