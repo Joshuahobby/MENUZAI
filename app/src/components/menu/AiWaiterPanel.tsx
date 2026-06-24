@@ -282,8 +282,9 @@ export default function AiWaiterPanel({
       {/* FAB */}
       <button
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-24 right-6 w-14 h-14 bg-primary text-white rounded-full shadow-2xl flex items-center justify-center z-50 hover:scale-110 active:scale-95 transition-all animate-bounce-slow"
+        className="fixed bottom-32 right-6 w-14 h-14 bg-primary text-white rounded-full shadow-2xl flex items-center justify-center z-50 hover:scale-110 active:scale-95 transition-all animate-bounce-slow"
         title="Ask the AI Waiter"
+        aria-label="Ask the AI Waiter"
       >
         <span className="material-symbols-outlined text-2xl icon-fill">robot_2</span>
         <div className="absolute -top-1 -right-1 w-4 h-4 bg-tertiary rounded-full border-2 border-white animate-pulse" />
@@ -307,11 +308,12 @@ export default function AiWaiterPanel({
                 onClick={() => setIsOpen(false)}
                 className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors"
                 title="Close chat"
+                aria-label="Close AI Waiter chat"
               >
                 <span className="material-symbols-outlined text-sm">close</span>
               </button>
             </div>
-            <div ref={scrollRef} className="flex-1 overflow-y-auto p-6 space-y-4 bg-surface-container-lowest custom-scrollbar">
+            <div ref={scrollRef} role="log" aria-live="polite" className="flex-1 overflow-y-auto p-6 space-y-4 bg-surface-container-lowest custom-scrollbar">
               {messages.map((msg, i) => (
                 <div key={i} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
                   <div className={`max-w-[85%] px-5 py-3 text-sm font-medium ${
@@ -403,11 +405,13 @@ export default function AiWaiterPanel({
                 onChange={(e) => setInput(e.target.value)}
                 autoFocus
                 className="flex-1 bg-surface-container-low rounded-2xl px-5 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 font-medium"
+                aria-label="Ask the AI Waiter"
               />
               <button
                 type="submit"
                 disabled={!input.trim() || isLoading}
                 className="w-12 h-12 bg-primary text-white rounded-2xl flex items-center justify-center disabled:opacity-50 active:scale-95 transition-all shadow-lg"
+                aria-label="Send message"
               >
                 <span className="material-symbols-outlined text-[20px] font-bold">send</span>
               </button>

@@ -26,6 +26,9 @@ export default function MenuItemCard({
   return (
     <div
       onClick={onSelect}
+      onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onSelect(); } }}
+      tabIndex={0}
+      role="button"
       className={`bg-surface-container-lowest overflow-hidden flex flex-col shadow-sm border border-outline-variant/10 hover:border-outline-variant/30 rounded-[var(--border-radius)] relative cursor-pointer hover:shadow-md hover:-translate-y-1 transition-all duration-300 ${item.available === false ? "select-none" : ""}`}
     >
       <div className={`relative bg-surface-container-low ${menuStyle.layoutDensity === "compact" ? "h-36" : "h-52"}`}>
@@ -95,21 +98,23 @@ export default function MenuItemCard({
             className={`w-full flex items-center justify-between bg-[var(--primary-color)]/10 rounded-[var(--border-radius)] mt-auto ${menuStyle.layoutDensity === "compact" ? "py-1" : "py-1.5"}`}
             onClick={(e) => e.stopPropagation()}
           >
-            <button
-              type="button"
-              onClick={(e) => { e.stopPropagation(); onDecrement(); }}
-              className="w-10 h-10 flex items-center justify-center text-[var(--primary-color)] hover:bg-[var(--primary-color)]/10 rounded-[var(--border-radius)] transition-colors active:scale-90"
-            >
-              <span className="material-symbols-outlined text-[20px]">{cartQty === 1 ? "delete" : "remove"}</span>
-            </button>
-            <span className="font-[var(--font-headline)] font-black text-[var(--primary-color)] text-base min-w-[2ch] text-center">{cartQty}</span>
-            <button
-              type="button"
-              onClick={(e) => { e.stopPropagation(); onIncrement(); }}
-              className="w-10 h-10 flex items-center justify-center text-[var(--primary-color)] hover:bg-[var(--primary-color)]/10 rounded-[var(--border-radius)] transition-colors active:scale-90"
-            >
-              <span className="material-symbols-outlined text-[20px]">add</span>
-            </button>
+              <button
+                type="button"
+                onClick={(e) => { e.stopPropagation(); onDecrement(); }}
+                className="w-10 h-10 flex items-center justify-center text-[var(--primary-color)] hover:bg-[var(--primary-color)]/10 rounded-[var(--border-radius)] transition-colors active:scale-90"
+                aria-label={cartQty === 1 ? `Remove ${item.name} from cart` : `Decrease ${item.name} quantity`}
+              >
+                <span className="material-symbols-outlined text-[20px]">{cartQty === 1 ? "delete" : "remove"}</span>
+              </button>
+              <span className="font-[var(--font-headline)] font-black text-[var(--primary-color)] text-base min-w-[2ch] text-center">{cartQty}</span>
+              <button
+                type="button"
+                onClick={(e) => { e.stopPropagation(); onIncrement(); }}
+                className="w-10 h-10 flex items-center justify-center text-[var(--primary-color)] hover:bg-[var(--primary-color)]/10 rounded-[var(--border-radius)] transition-colors active:scale-90"
+                aria-label={`Increase ${item.name} quantity`}
+              >
+                <span className="material-symbols-outlined text-[20px]">add</span>
+              </button>
           </div>
         ) : (
           <button

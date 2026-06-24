@@ -1,8 +1,10 @@
 import { getSupabasePublicClient } from "@/lib/supabase-public";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import PublicMenuClient from "./PublicMenuClient";
 import { showBranding } from "@/lib/plans";
+import type { MenuItem } from "@/types/menu";
 
 // Re-render at most every 60 seconds — menu content rarely changes mid-service.
 // View count increments fire on each regeneration only (approximate, intentional).
@@ -81,20 +83,63 @@ export default async function PublicMenuPage({ params }: PageProps) {
     .eq("id", menu.id)
     .then(() => {});
 
+  const safeCategories = Array.isArray(menu.categories) ? menu.categories as { id: string; name: string; hidden?: boolean; items?: string[] }[] : [];
+  const safeItems = Array.isArray(menu.items) ? menu.items as MenuItem[] : [];
+
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Restaurant",
+    name: restaurant?.name ?? "Restaurant",
+    ...(restaurant?.tagline ? { description: restaurant.tagline } : {}),
+    ...(restaurant?.phone ? { telephone: restaurant.phone } : {}),
+    hasMenu: {
+      "@type": "Menu",
+      name: menu.name,
+      hasMenuSection: safeCategories.filter(c => !c.hidden).map(cat => ({
+        "@type": "MenuSection",
+        name: cat.name,
+        hasMenuItem: safeItems
+          .filter(i => i.category === cat.id && i.available !== false)
+          .map(item => ({
+            "@type": "MenuItem",
+            name: item.name,
+            ...(item.description ? { description: item.description } : {}),
+            offers: {
+              "@type": "Offer",
+              price: item.price,
+              priceCurrency: (menu.style as { currency?: string })?.currency ?? "RWF",
+            },
+            ...(item.image ? { image: item.image } : {}),
+            ...(item.tags && item.tags.length > 0
+              ? { suitableForDiet: item.tags.filter(t => ["vegan", "vegetarian", "gluten-free", "halal"].includes(t)).map(t => `https://schema.org/${t === "gluten-free" ? "GlutenFreeDiet" : t.charAt(0).toUpperCase() + t.slice(1) + "Diet"}`) }
+              : {}),
+          })),
+      })),
+    },
+  };
+
   return (
-    <PublicMenuClient
-      menuId={menu.id}
-      restaurantId={menu.restaurant_id}
-      restaurantName={restaurant?.name ?? "Restaurant"}
-      restaurantPhone={restaurant?.phone ?? ""}
-      restaurantLogoUrl={(restaurant as { logo_url?: string })?.logo_url ?? ""}
-      aiWaiterEnabled={aiWaiterEnabled}
-      paymentsEnabled={(restaurant as { payments_enabled?: boolean })?.payments_enabled ?? false}
-      branded={branded}
-      slug={slug}
-      categories={Array.isArray(menu.categories) ? menu.categories : []}
-      items={Array.isArray(menu.items) ? menu.items : []}
-      style={menu.style ?? {}}
-    />
+    <section>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      <Suspense fallback={<div className="min-h-screen bg-surface" />}>
+        <PublicMenuClient
+          menuId={menu.id}
+          restaurantId={menu.restaurant_id}
+          restaurantName={restaurant?.name ?? "Restaurant"}
+          restaurantPhone={restaurant?.phone ?? ""}
+          restaurantLogoUrl={(restaurant as { logo_url?: string })?.logo_url ?? ""}
+          aiWaiterEnabled={aiWaiterEnabled}
+          paymentsEnabled={(restaurant as { payments_enabled?: boolean })?.payments_enabled ?? false}
+          branded={branded}
+          slug={slug}
+          categories={safeCategories}
+          items={safeItems}
+          style={menu.style ?? {}}
+        />
+      </Suspense>
+    </section>
   );
 }

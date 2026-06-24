@@ -149,6 +149,7 @@ export default function CartSheet({
               <button
                 onClick={onClose}
                 className="w-9 h-9 flex items-center justify-center rounded-xl text-secondary hover:bg-surface-container transition-colors"
+                aria-label="Close order sheet"
               >
                 <span className="material-symbols-outlined text-[20px]">close</span>
               </button>
@@ -181,6 +182,7 @@ export default function CartSheet({
                           type="button"
                           onClick={() => onDecrementQty(item.id)}
                           className="w-9 h-9 flex items-center justify-center text-secondary hover:text-error hover:bg-error/5 transition-colors active:scale-90"
+                          aria-label={item.quantity === 1 ? `Remove ${item.name} from cart` : `Decrease ${item.name} quantity`}
                         >
                           <span className="material-symbols-outlined text-[18px]">{item.quantity === 1 ? "delete" : "remove"}</span>
                         </button>
@@ -189,6 +191,7 @@ export default function CartSheet({
                           type="button"
                           onClick={() => onIncrementQty(item.id)}
                           className="w-9 h-9 flex items-center justify-center text-primary hover:bg-primary/10 transition-colors active:scale-90"
+                          aria-label={`Increase ${item.name} quantity`}
                         >
                           <span className="material-symbols-outlined text-[18px]">add</span>
                         </button>

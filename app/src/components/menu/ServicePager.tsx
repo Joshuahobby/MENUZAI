@@ -90,12 +90,13 @@ export default function ServicePager({
       {/* FAB */}
       <button
         onClick={() => setIsOpen(true)}
-        className={`fixed bottom-40 right-6 w-14 h-14 text-white rounded-full shadow-2xl flex items-center justify-center z-50 hover:scale-110 active:scale-95 transition-all cursor-pointer ${
+        className={`fixed bottom-48 right-6 w-14 h-14 text-white rounded-full shadow-2xl flex items-center justify-center z-50 hover:scale-110 active:scale-95 transition-all cursor-pointer ${
           sent
             ? "bg-emerald-500 scale-110 animate-service-pulse"
             : "bg-gradient-to-tr from-amber-500 to-amber-600 animate-bounce-slow"
         }`}
         title={sent ? "Sent!" : "Call Waiter / Request Service"}
+        aria-label={sent ? "Service request sent" : "Call Waiter / Request Service"}
       >
         <span className={`material-symbols-outlined text-2xl font-bold transition-all ${!sent && "icon-fill"}`}>
           {sent ? "check_circle" : "concierge"}
@@ -120,6 +121,7 @@ export default function ServicePager({
                 onClick={() => setIsOpen(false)}
                 className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors cursor-pointer"
                 title="Close pager"
+                aria-label="Close service pager"
               >
                 <span className="material-symbols-outlined text-sm">close</span>
               </button>

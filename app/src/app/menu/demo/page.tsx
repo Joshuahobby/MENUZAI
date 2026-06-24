@@ -57,6 +57,8 @@ export default function CustomerMenuPage() {
   const containerRef = useRef<HTMLDivElement>(null);
   const [activeCategory, setActiveCategory] = useState(VISIBLE_CATEGORIES[0]?.id ?? "");
   const [cart, setCart] = useState<CartItem[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchOpen, setSearchOpen] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
   const [chatInput, setChatInput] = useState("");
   const [chatMsgs, setChatMsgs] = useState<ChatMsg[]>([
@@ -74,7 +76,12 @@ export default function CustomerMenuPage() {
     }
   }, []);
 
-  const filtered = ITEMS.filter(i => i.category === activeCategory);
+  const filtered = ITEMS.filter(i => {
+    if (i.category !== activeCategory) return false;
+    if (!searchQuery.trim()) return true;
+    const q = searchQuery.toLowerCase();
+    return i.name.toLowerCase().includes(q) || i.description.toLowerCase().includes(q);
+  });
   const totalItems = cart.reduce((s, i) => s + i.quantity, 0);
   const totalPrice = cart.reduce((s, i) => s + i.price * i.quantity, 0);
 
@@ -116,14 +123,35 @@ export default function CustomerMenuPage() {
           </span>
         </div>
         <div className="flex items-center gap-4">
-          <button className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-surface-container-low transition-colors">
-            <span className="material-symbols-outlined text-on-surface-variant">search</span>
+          <button
+            onClick={() => { setSearchOpen(!searchOpen); if (searchOpen) setSearchQuery(""); }}
+            className={`w-10 h-10 flex items-center justify-center rounded-full transition-colors ${searchOpen ? "bg-primary/10 text-primary" : "hover:bg-surface-container-low text-on-surface-variant"}`}
+            aria-label={searchOpen ? "Close search" : "Search menu"}
+          >
+            <span className="material-symbols-outlined">{searchOpen ? "close" : "search"}</span>
           </button>
           <div className="w-10 h-10 rounded-full bg-surface-container-highest overflow-hidden flex items-center justify-center">
             <span className="material-symbols-outlined text-secondary text-sm">person</span>
           </div>
         </div>
       </header>
+
+      {searchOpen && (
+        <div className="px-6 py-3 sticky top-[100px] z-50 bg-surface border-b border-surface-container">
+          <div className="relative max-w-md">
+            <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-secondary text-sm">search</span>
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search menu items..."
+              className="w-full bg-surface-container-low rounded-2xl pl-11 pr-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
+              autoFocus
+              aria-label="Search menu items"
+            />
+          </div>
+        </div>
+      )}
 
       {/* Category Tabs */}
       <nav className="sticky top-[120px] z-40 bg-surface/95 backdrop-blur-sm py-4 overflow-x-auto hide-scrollbar">
@@ -241,7 +269,7 @@ export default function CustomerMenuPage() {
       {!chatOpen && (
         <button
           onClick={() => setChatOpen(true)}
-          className="fixed bottom-28 right-6 w-14 h-14 bg-primary text-white rounded-full shadow-2xl flex items-center justify-center z-50 hover:scale-110 active:scale-95 transition-all"
+          className="fixed bottom-36 right-6 w-14 h-14 bg-primary text-white rounded-full shadow-2xl flex items-center justify-center z-50 hover:scale-110 active:scale-95 transition-all"
           title="Chat with AI Waiter"
         >
           <span className="material-symbols-outlined text-2xl icon-fill">robot_2</span>

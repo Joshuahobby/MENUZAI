@@ -42,6 +42,7 @@ export default function ItemDetailsModal({ item, isOpen, onClose, onAddToCart, c
         <button
           onClick={onClose}
           className="absolute top-4 right-4 w-10 h-10 bg-black/40 hover:bg-black/60 text-white backdrop-blur-md rounded-full flex items-center justify-center z-20 transition-all"
+          aria-label={`Close ${item.name} details`}
         >
           <span className="material-symbols-outlined text-lg">close</span>
         </button>
@@ -121,7 +122,7 @@ export default function ItemDetailsModal({ item, isOpen, onClose, onAddToCart, c
               <div className="flex gap-3 overflow-x-auto pb-2 hide-scrollbar">
                 {item.gallery.map((url, idx) => (
                   <div key={idx} className="relative w-24 h-24 rounded-2xl overflow-hidden shrink-0 border border-outline-variant/20 shadow-sm">
-                    <NextImage src={getOptimizedImageUrl(url, 400)} alt={`Gallery ${idx}`} fill className="object-cover" />
+                    <NextImage src={getOptimizedImageUrl(url, 400)} alt={`${item.name} photo ${idx + 1}`} fill className="object-cover" />
                   </div>
                 ))}
               </div>
@@ -132,18 +133,20 @@ export default function ItemDetailsModal({ item, isOpen, onClose, onAddToCart, c
         {/* Footer Actions */}
         <div className="p-6 bg-surface border-t border-outline-variant/10 shadow-[0_-4px_20px_rgba(0,0,0,0.03)] pb-8 sm:pb-6 flex items-center gap-4">
           <div className="flex items-center bg-surface-container-low rounded-2xl h-14 p-1">
-            <button 
+            <button
               onClick={() => setQuantity(q => Math.max(1, q - 1))}
               disabled={item.available === false || quantity <= 1}
               className="w-12 h-full rounded-xl flex items-center justify-center text-secondary hover:bg-surface-container hover:text-on-surface transition-colors disabled:opacity-50"
+              aria-label={`Decrease ${item.name} quantity`}
             >
               <span className="material-symbols-outlined">remove</span>
             </button>
             <span className="w-10 text-center font-bold text-on-surface">{quantity}</span>
-            <button 
+            <button
               onClick={() => setQuantity(q => q + 1)}
               disabled={item.available === false}
               className="w-12 h-full rounded-xl flex items-center justify-center text-secondary hover:bg-surface-container hover:text-on-surface transition-colors disabled:opacity-50"
+              aria-label={`Increase ${item.name} quantity`}
             >
               <span className="material-symbols-outlined">add</span>
             </button>
@@ -153,6 +156,7 @@ export default function ItemDetailsModal({ item, isOpen, onClose, onAddToCart, c
             onClick={handleAdd}
             disabled={item.available === false}
             className="flex-1 h-14 bg-[var(--primary-color)] hover:opacity-90 text-white rounded-2xl font-[var(--font-headline)] font-bold text-lg premium-shadow flex items-center justify-center gap-2 active:scale-[0.98] transition-all disabled:opacity-50 disabled:active:scale-100"
+            aria-label={`Add ${item.name} for ${formatPrice(item.price * quantity, currency)}`}
           >
             <span className="text-base">Add for</span>
             <span className="text-xl">{formatPrice(item.price * quantity, currency)}</span>

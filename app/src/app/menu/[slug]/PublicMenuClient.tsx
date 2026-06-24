@@ -66,10 +66,9 @@ export default function PublicMenuClient(props: PublicMenuClientProps) {
   const [cart, setCart] = useState<CartItem[]>(() => {
     if (typeof window === "undefined") return [];
     try {
-      const raw = localStorage.getItem("menuza_cart");
+      const raw = localStorage.getItem(`menuza_cart_${restaurantId}`);
       if (!raw) return [];
       const parsed = JSON.parse(raw);
-      if (parsed.restaurantId !== restaurantId) return [];
       if (Date.now() - parsed.savedAt > 30 * 60 * 1000) return [];
       return parsed.items as CartItem[];
     } catch { return []; }
@@ -111,8 +110,8 @@ export default function PublicMenuClient(props: PublicMenuClientProps) {
 
   useEffect(() => {
     try {
-      const payload = { items: cart, restaurantId, savedAt: Date.now() };
-      localStorage.setItem("menuza_cart", JSON.stringify(payload));
+      const payload = { items: cart, savedAt: Date.now() };
+      localStorage.setItem(`menuza_cart_${restaurantId}`, JSON.stringify(payload));
     } catch {}
   }, [cart, restaurantId]);
 
@@ -430,10 +429,11 @@ export default function PublicMenuClient(props: PublicMenuClientProps) {
             <button
               onClick={() => { setSearchOpen(!searchOpen); if (searchOpen) setSearchQuery(""); }}
               className={`w-10 h-10 flex items-center justify-center rounded-full transition-colors ${searchOpen ? "bg-primary/10 text-primary" : "hover:bg-surface-container-low text-on-surface-variant"}`}
+              aria-label={searchOpen ? "Close search" : "Search menu"}
             >
               <span className="material-symbols-outlined">{searchOpen ? "close" : "search"}</span>
             </button>
-            <div className="w-10 h-10 rounded-full bg-surface-container-highest overflow-hidden flex items-center justify-center">
+            <div className="w-10 h-10 rounded-full bg-surface-container-highest overflow-hidden flex items-center justify-center" aria-label="Account">
               <span className="material-symbols-outlined text-secondary text-sm">person</span>
             </div>
           </div>
