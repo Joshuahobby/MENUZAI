@@ -459,8 +459,8 @@ export default function PublicMenuClient(props: PublicMenuClientProps) {
         )}
       </header>
 
-      {/* Category Tabs & Dietary Filters */}
-      <nav className="sticky top-20 z-40 bg-surface/95 backdrop-blur-sm pt-4 pb-2.5 overflow-x-auto hide-scrollbar border-b border-outline-variant/5">
+      {/* Category Tabs & Dietary Filters — top tracks header height (h-20=80px; +60px when search open) */}
+      <nav className={`sticky ${searchOpen ? "top-[140px]" : "top-20"} z-40 bg-surface/95 backdrop-blur-sm pt-4 pb-2.5 overflow-x-auto hide-scrollbar border-b border-outline-variant/5`}>
         <div className="flex px-6 gap-3">
           {categories.map((cat) => (
             <button
@@ -611,7 +611,7 @@ export default function PublicMenuClient(props: PublicMenuClientProps) {
                     <div className="h-px flex-1 bg-linear-to-r from-transparent via-outline-variant/20 to-transparent" />
                   </div>
                 )}
-                <h3 className="font-headline text-2xl font-extrabold tracking-tight capitalize sticky top-[152px] z-30 bg-surface/90 backdrop-blur-md py-2 border-b border-outline-variant/10">
+                <h3 className={`font-headline text-2xl font-extrabold tracking-tight capitalize sticky ${searchOpen ? "top-[250px]" : "top-[190px]"} z-30 bg-surface/90 backdrop-blur-md py-2 border-b border-outline-variant/10`}>
                   {cat.name}
                 </h3>
                 <div className={
