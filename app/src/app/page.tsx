@@ -71,16 +71,16 @@ export default function LandingPage() {
       <PublicNav />
 
       {/* ── Hero ── */}
-      <section className="min-h-[92vh] relative overflow-hidden">
+      <section className="min-h-[80vh] lg:min-h-[92vh] relative overflow-hidden">
         {/* Decorative glows — outside the grid so they don't become grid items */}
         <div className="hero-glow hidden lg:block w-[500px] h-[500px] bg-primary/6 -top-24 -left-24" />
         <div className="hero-glow hidden lg:block w-[300px] h-[300px] bg-primary-container/5 top-32 left-1/4" style={{ animationDelay: "3s" } as React.CSSProperties} />
 
         {/* Grid wrapper */}
-        <div className="min-h-[92vh] grid grid-cols-1 lg:grid-cols-[1fr_46%]">
+        <div className="min-h-[80vh] lg:min-h-[92vh] grid grid-cols-1 lg:grid-cols-[1fr_46%]">
 
         {/* Left — copy */}
-        <div className="flex flex-col justify-center px-8 sm:px-12 lg:px-20 py-28 lg:py-0 relative">
+        <div className="flex flex-col justify-center px-6 sm:px-12 lg:px-20 py-20 lg:py-0 relative">
           <p className="hero-animate text-xs font-bold tracking-[0.2em] uppercase text-primary/70 mb-6 flex items-center gap-3" style={{ "--ha-delay": "0ms" } as React.CSSProperties}>
             <span className="w-8 h-px bg-primary/70 inline-block" />
             Built for Africa
@@ -509,15 +509,19 @@ export default function LandingPage() {
             </p>
           </div>
           <div className={`reveal${demoInView ? " visible" : ""} rounded-3xl overflow-hidden shadow-2xl border border-black/8 aspect-video bg-on-surface`} style={{ "--rv-delay": "260ms" } as React.CSSProperties}>
-            <video
-              poster="https://img.youtube.com/vi/G4vp5NQnk-I/maxresdefault.jpg"
-              controls
-              preload="none"
-              playsInline
-              className="w-full h-full object-cover"
-            >
-              <source src="/menuza-demo.mp4" type="video/mp4" />
-            </video>
+            {demoInView ? (
+              <video
+                poster="https://img.youtube.com/vi/G4vp5NQnk-I/maxresdefault.jpg"
+                controls
+                preload="none"
+                playsInline
+                className="w-full h-full object-cover"
+              >
+                <source src="/menuza-demo.mp4" type="video/mp4" />
+              </video>
+            ) : (
+              <div className="w-full h-full bg-on-surface/5" />
+            )}
           </div>
           <p className="text-center mt-4 text-xs text-secondary/50">90 seconds · Photo → AI extraction → live QR menu → staff dashboard</p>
         </div>

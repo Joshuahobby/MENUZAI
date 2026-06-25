@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState, useEffect } from "react";
+import { usePathname } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 
 const NAV_LINKS = [
@@ -13,6 +14,12 @@ const NAV_LINKS = [
 export function PublicNav({ activePath }: { activePath?: string }) {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const pathname = usePathname();
+
+  // On the home page, "Pricing" scrolls to the #pricing section instead of
+  // navigating away to /pricing.
+  const resolveHref = (href: string) =>
+    href === "/pricing" && pathname === "/" ? "/#pricing" : href;
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => setIsLoggedIn(!!data.session));
@@ -37,7 +44,7 @@ export function PublicNav({ activePath }: { activePath?: string }) {
           {NAV_LINKS.map(({ href, label }) => (
             <Link
               key={href}
-              href={href}
+              href={resolveHref(href)}
               className={`text-sm font-medium py-2.5 transition-colors ${
                 activePath === href
                   ? "text-primary font-semibold"
@@ -96,7 +103,7 @@ export function PublicNav({ activePath }: { activePath?: string }) {
           {NAV_LINKS.map(({ href, label }) => (
             <Link
               key={href}
-              href={href}
+              href={resolveHref(href)}
               onClick={() => setMobileOpen(false)}
               className={`block py-3 text-sm font-medium border-b border-black/5 last:border-0 transition-colors ${
                 activePath === href
