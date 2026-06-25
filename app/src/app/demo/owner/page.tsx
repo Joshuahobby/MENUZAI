@@ -168,8 +168,8 @@ export default function OwnerDemoPage() {
     <div className="min-h-screen bg-surface text-on-surface">
       <DemoBanner role="owner" restaurantName={RESTAURANT} />
 
-      {/* Header */}
-      <header className="bg-surface-container-lowest border-b border-black/6 px-6 py-5">
+      {/* Header — sticky below the DemoBanner (h-10 = 40px = top-10) */}
+      <header className="bg-surface-container-lowest border-b border-black/6 px-6 py-5 sticky top-10 z-40">
         <div className="max-w-6xl mx-auto flex items-center justify-between gap-4">
           <div>
             <p className="text-xs font-bold uppercase tracking-widest text-secondary/50 mb-0.5">Owner Dashboard</p>
@@ -188,8 +188,8 @@ export default function OwnerDemoPage() {
         </div>
       </header>
 
-      {/* Tab bar */}
-      <div className="bg-surface-container-lowest border-b border-black/6 px-6">
+      {/* Tab bar — sticky below banner (40px) + header (~88px) = top-32 */}
+      <div className="bg-surface-container-lowest border-b border-black/6 px-6 sticky top-32 z-30">
         <div className="max-w-6xl mx-auto flex gap-1 overflow-x-auto hide-scrollbar">
           {TABS.map(tab => (
             <button key={tab} onClick={() => setActiveTab(tab)}

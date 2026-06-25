@@ -86,7 +86,7 @@ export default function DemoHubPage() {
       </section>
 
       {/* ── Role Cards ── */}
-      <section className="pb-28 px-6">
+      <section className="pb-16 lg:pb-28 px-6">
         <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-5">
           {ROLES.map((r) => (
             <div key={r.role}
