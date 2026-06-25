@@ -15,7 +15,7 @@ const fmt = (n: number) => new Intl.NumberFormat("en-US").format(n);
 
 const CITIES = ["Kigali"];
 
-const HERO_PILLS = ["AI Waiter (Pro+)", "QR ordering", "WhatsApp alerts", "14-day free trial"];
+const HERO_PILLS = ["AI Waiter included", "QR ordering", "WhatsApp alerts", "14-day free trial"];
 
 const FEATURES = [
   { icon: "support_agent",    title: "AI Digital Waiter",    desc: "Greets every guest the moment they scan, answers questions, upsells high-margin dishes, and places their order — all in chat. Zero staff time.",  highlight: true  },
@@ -127,8 +127,8 @@ export default function LandingPage() {
           {/* Trust signal */}
           <div className="hero-animate flex items-center gap-2.5 text-xs text-secondary/60" style={{ "--ha-delay": "820ms" } as React.CSSProperties}>
             <div className="flex">
-              {["K"].map((l, i) => (
-                <div key={i} className="w-6 h-6 rounded-full bg-primary/15 border-2 border-surface flex items-center justify-center text-[9px] font-black text-primary">{l}</div>
+              {["K", "K", "K"].map((l, i) => (
+                <div key={i} className={`w-6 h-6 rounded-full bg-primary/15 border-2 border-surface flex items-center justify-center text-[9px] font-black text-primary${i > 0 ? " -ml-1.5" : ""}`}>{l}</div>
               ))}
             </div>
             <span>Restaurants in <strong className="text-on-surface/70">Kigali, Rwanda</strong> trust MENUZA AI</span>
@@ -136,23 +136,25 @@ export default function LandingPage() {
 
           {/* Mobile product snippet — hidden on desktop where the full right panel shows */}
           <div className="flex lg:hidden gap-3 mt-8 items-end">
-            <div className="flex-1 bg-white rounded-2xl p-3.5 shadow-lg border border-black/6">
+            <div className="flex-1 bg-surface-card rounded-2xl p-3.5 shadow-lg border border-black/6">
               <div className="flex items-center gap-1.5 mb-2.5">
                 <div className="w-4 h-4 bg-primary rounded-md flex items-center justify-center">
                   <span className="material-symbols-outlined text-white icon-fill text-[8px]">restaurant_menu</span>
                 </div>
                 <p className="font-headline font-extrabold text-[0.6rem] text-on-surface">Kigali Grill</p>
               </div>
-              {[
-                { name: "Brochette ya Nk’osa", price: "3,500" },
-                { name: "Isombe na Poisson",        price: "2,800" },
-                { name: "Chips na Viande",           price: "3,000" },
-              ].map(({ name, price }) => (
-                <div key={name} className="flex justify-between items-center py-1 border-b border-black/5 last:border-0">
-                  <span className="text-on-surface/80 font-medium text-[0.42rem] truncate mr-1">{name}</span>
-                  <span className="text-primary font-bold text-[0.42rem] shrink-0">{price}</span>
-                </div>
-              ))}
+              <div style={{ filter: "blur(0.5px)" }}>
+                {[
+                  { name: "Brochette ya Nk’osa", price: "3,500" },
+                  { name: "Isombe na Poisson",   price: "2,800" },
+                  { name: "Chips na Viande",     price: "3,000" },
+                ].map(({ name, price }) => (
+                  <div key={name} className="flex justify-between items-center py-1 border-b border-black/5 last:border-0">
+                    <span className="text-on-surface/70 font-medium text-[0.35rem] truncate mr-1">{name}</span>
+                    <span className="text-primary font-bold text-[0.35rem] shrink-0">{price}</span>
+                  </div>
+                ))}
+              </div>
             </div>
             <div className="w-[44%] shrink-0">
               <div className="bg-on-surface rounded-2xl overflow-hidden shadow-xl">
@@ -161,17 +163,17 @@ export default function LandingPage() {
                   <p className="text-white font-bold text-[0.48rem]">AI Waiter</p>
                   <div className="ml-auto w-1 h-1 bg-green-400 rounded-full" />
                 </div>
-                <div className="px-2.5 py-2 space-y-1.5 bg-surface-container-lowest">
+                <div className="px-2.5 py-2 space-y-1.5 bg-surface-container-lowest" style={{ filter: "blur(0.5px)" }}>
                   <div className="bg-surface-container rounded-xl px-2 py-1.5">
-                    <p className="text-[0.42rem] text-on-surface">Good evening! What can I get you? 🍽️</p>
+                    <p className="text-[0.35rem] text-on-surface/80">Good evening! What can I get you? 🍽️</p>
                   </div>
                   <div className="flex justify-end">
                     <div className="bg-primary rounded-xl px-2 py-1.5 max-w-[80%]">
-                      <p className="text-[0.42rem] text-white">What&apos;s popular?</p>
+                      <p className="text-[0.35rem] text-white">What&apos;s popular?</p>
                     </div>
                   </div>
                   <div className="bg-surface-container rounded-xl px-2 py-1.5">
-                    <p className="text-[0.42rem] text-on-surface">Brochette ya Nk&apos;osa ⭐ Shall I add it?</p>
+                    <p className="text-[0.35rem] text-on-surface/80">Brochette ya Nk&apos;osa ⭐ Shall I add it?</p>
                   </div>
                 </div>
               </div>
