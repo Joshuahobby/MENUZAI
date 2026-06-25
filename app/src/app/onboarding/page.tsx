@@ -241,29 +241,33 @@ export default function OnboardingPage() {
                     <label className="text-[10px] font-black text-secondary uppercase tracking-[0.2em] mb-1.5 block" htmlFor="ob-category">
                       Restaurant Type
                     </label>
-                    <select
-                      id="ob-category"
-                      className="w-full bg-surface-container-lowest border border-black/8 rounded-xl py-3.5 px-4 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors outline-none appearance-none"
-                      value={category}
-                      onChange={(e) => setCategory(e.target.value)}
-                    >
-                      <option value="">Select type</option>
-                      <option value="cafe">Café</option>
-                      <option value="fine-dining">Fine Dining</option>
-                      <option value="fast-food">Fast Food</option>
-                      <option value="street-food">Street Food</option>
-                      <option value="bar">Bar &amp; Lounge</option>
-                      <option value="bakery">Bakery</option>
-                      <option value="other">Other</option>
-                    </select>
+                    <div className="relative">
+                      <select
+                        id="ob-category"
+                        className="w-full bg-surface-container-lowest border border-black/8 rounded-xl py-3.5 px-4 pr-10 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors outline-none appearance-none"
+                        value={category}
+                        onChange={(e) => setCategory(e.target.value)}
+                      >
+                        <option value="">Select type</option>
+                        <option value="cafe">Café</option>
+                        <option value="fine-dining">Fine Dining</option>
+                        <option value="fast-food">Fast Food</option>
+                        <option value="street-food">Street Food</option>
+                        <option value="bar">Bar &amp; Lounge</option>
+                        <option value="bakery">Bakery</option>
+                        <option value="other">Other</option>
+                      </select>
+                      <span className="material-symbols-outlined pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[18px] text-secondary/50">expand_more</span>
+                    </div>
                   </div>
                   <div>
                     <label className="text-[10px] font-black text-secondary uppercase tracking-[0.2em] mb-1.5 block" htmlFor="ob-currency">
                       Currency
                     </label>
+                    <div className="relative">
                     <select
                       id="ob-currency"
-                      className="w-full bg-surface-container-lowest border border-black/8 rounded-xl py-3.5 px-4 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors outline-none appearance-none"
+                      className="w-full bg-surface-container-lowest border border-black/8 rounded-xl py-3.5 px-4 pr-10 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors outline-none appearance-none"
                       value={currency}
                       onChange={(e) => setCurrency(e.target.value)}
                     >
@@ -281,6 +285,8 @@ export default function OnboardingPage() {
                       <option value="EUR">EUR — Euro</option>
                       <option value="GBP">GBP — British Pound</option>
                     </select>
+                    <span className="material-symbols-outlined pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[18px] text-secondary/50">expand_more</span>
+                    </div>
                   </div>
                 </div>
 

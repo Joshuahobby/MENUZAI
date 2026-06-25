@@ -63,7 +63,7 @@ function LoginForm() {
   // ── Email confirmation screen ─────────────────────────────────────────────
   if (view === "confirm-email") {
     return (
-      <div className="w-full max-w-md bg-surface-container-lowest rounded-3xl p-10 shadow-sm border border-black/6 text-center space-y-6">
+      <div className="w-full max-w-md bg-surface-container-lowest rounded-3xl p-6 sm:p-10 shadow-sm border border-black/6 text-center space-y-6">
         <div className="w-14 h-14 bg-tertiary/10 rounded-2xl flex items-center justify-center mx-auto">
           <span className="material-symbols-outlined text-2xl text-tertiary">mark_email_unread</span>
         </div>
@@ -111,7 +111,7 @@ function LoginForm() {
   // ── Forgot password screen ────────────────────────────────────────────────
   if (view === "forgot-password") {
     return (
-      <div className="w-full max-w-md bg-surface-container-lowest rounded-3xl p-10 shadow-sm border border-black/6 space-y-6">
+      <div className="w-full max-w-md bg-surface-container-lowest rounded-3xl p-6 sm:p-10 shadow-sm border border-black/6 space-y-6">
         <div>
           <Link href="/" className="flex items-center gap-2 mb-8">
             <div className="w-7 h-7 bg-primary rounded-md flex items-center justify-center">
@@ -191,7 +191,7 @@ function LoginForm() {
 
   // ── Main auth form ────────────────────────────────────────────────────────
   return (
-    <div className="w-full max-w-md bg-surface-container-lowest rounded-3xl p-10 shadow-sm border border-black/6">
+    <div className="w-full max-w-md bg-surface-container-lowest rounded-3xl p-6 sm:p-10 shadow-sm border border-black/6">
       {/* Brand */}
       <div className="mb-8">
         <Link href="/" className="flex items-center gap-2 mb-8">
