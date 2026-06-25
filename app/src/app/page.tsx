@@ -10,59 +10,20 @@ import { supabase } from "@/lib/supabase";
 
 const fmt = (n: number) => new Intl.NumberFormat("en-US").format(n);
 
-const VIDEO_ID = "G4vp5NQnk-I";
-const POSTER_URL = `https://img.youtube.com/vi/${VIDEO_ID}/maxresdefault.jpg`;
-
-function HeroVideo() {
-  const [playing, setPlaying] = useState(false);
-  return (
-    <div className="relative">
-      <div className="rounded-3xl overflow-hidden shadow-2xl border border-black/10 aspect-video bg-black">
-        {playing ? (
-          <iframe
-            src={`https://www.youtube.com/embed/${VIDEO_ID}?autoplay=1&rel=0&modestbranding=1&playsinline=1`}
-            title="MENUZA AI — Product Demo"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            allowFullScreen
-            className="w-full h-full"
-          />
-        ) : (
-          <button
-            type="button"
-            onClick={() => setPlaying(true)}
-            className="relative w-full h-full group block"
-            aria-label="Play product demo video"
-          >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={POSTER_URL}
-              alt="MENUZA AI product demo thumbnail"
-              className="w-full h-full object-cover"
-              loading="lazy"
-            />
-            <div className="absolute inset-0 bg-black/30 group-hover:bg-black/40 transition-colors flex items-center justify-center">
-              <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
-                <span className="material-symbols-outlined text-primary text-3xl icon-fill ml-1">play_arrow</span>
-              </div>
-            </div>
-          </button>
-        )}
-      </div>
-      <div className="mt-4 flex items-center gap-2 text-xs text-secondary font-medium justify-center">
-        <span className="material-symbols-outlined text-[14px] text-primary">play_circle</span>
-        90 seconds · QR scan → AI order → staff dashboard
-      </div>
-    </div>
-  );
-}
-
 const FEATURES = [
-  { icon: "support_agent",        title: "AI Digital Waiter",       desc: "Greets guests on arrival, takes orders in chat, and follows up after the meal — a full-service waiter that costs nothing per shift." },
-  { icon: "receipt_long",         title: "Real-time Ordering",       desc: "Orders appear on your staff panel the moment they are placed. No printers, no delays." },
-  { icon: "document_scanner",     title: "Upload & Convert",         desc: "Photograph your paper menu. Our AI reads every item, price, and description in seconds." },
-  { icon: "analytics",            title: "Live Analytics",           desc: "Know which dishes get viewed but not ordered. Make decisions on data, not intuition." },
-  { icon: "chat",                 title: "WhatsApp Integration",     desc: "Orders flow straight into your WhatsApp — no third-party app required." },
-  { icon: "notifications",        title: "Instant Alerts",           desc: "Push, email, and in-dashboard notifications the moment a customer places an order." },
+  { icon: "support_agent",    title: "AI Digital Waiter",   desc: "Greets guests on arrival, takes orders in chat, and follows up after the meal — a full-service waiter that costs nothing per shift." },
+  { icon: "receipt_long",     title: "Real-time Ordering",  desc: "Orders appear on your staff panel the moment they are placed. No printers, no delays." },
+  { icon: "document_scanner", title: "Upload & Convert",    desc: "Photograph your paper menu. Our AI reads every item, price, and description in seconds." },
+  { icon: "analytics",        title: "Live Analytics",      desc: "Know which dishes get viewed but not ordered. Make decisions on data, not intuition." },
+  { icon: "chat",             title: "WhatsApp Integration",desc: "Orders flow straight into your WhatsApp — no third-party app required." },
+  { icon: "notifications",    title: "Instant Alerts",      desc: "Push, email, and in-dashboard notifications the moment a customer places an order." },
+];
+
+const STEPS = [
+  { num: "1",   label: "Photograph",  sub: "Your paper menu" },
+  { num: "7s",  label: "AI reads it", sub: "Every item extracted" },
+  { num: "3",   label: "You edit",    sub: "Add prices, photos, tags" },
+  { num: "→",   label: "It's live",   sub: "QR code ready to print" },
 ];
 
 export default function LandingPage() {
@@ -84,44 +45,96 @@ export default function LandingPage() {
   const ctaHref = isLoggedIn ? "/dashboard" : "/login?signup=true";
 
   return (
-    <div className="min-h-screen bg-[#faf8f6] text-on-surface">
-
+    <div className="min-h-screen bg-surface text-on-surface">
       <PublicNav />
 
       {/* ── Hero ── */}
-      <section className="pt-24 pb-28 px-6 overflow-hidden">
-        <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
-          <div>
-            <p className="text-xs font-bold tracking-[0.25em] uppercase text-primary/70 mb-7">
-              AI-Powered Restaurant Menus
-            </p>
-            <h1 className="text-5xl md:text-[64px] font-[var(--font-headline)] font-extrabold leading-[1.05] tracking-tighter mb-7">
-              The digital menu your restaurant deserves
-            </h1>
-            <p className="text-lg text-secondary leading-relaxed max-w-lg mb-10">
-              Turn every QR scan into a seamless guest experience. Manage orders, track performance, and let AI handle the upselling — all from one dashboard.
-            </p>
-            <div className="flex flex-wrap gap-3">
-              <Link href={ctaHref} className="px-7 py-3.5 bg-primary text-white font-bold rounded-xl text-sm hover:opacity-90 transition-opacity shadow-md shadow-primary/20">
-                Start Free Trial — No Card Required
-              </Link>
-              <a href="https://youtu.be/G4vp5NQnk-I" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 px-7 py-3.5 border border-black/10 text-on-surface font-bold rounded-xl text-sm hover:bg-black/3 transition-colors">
-                <span className="material-symbols-outlined text-[18px] text-primary">play_circle</span>
-                Watch Demo (90s)
-              </a>
-            </div>
+      <section className="min-h-[92vh] grid grid-cols-1 lg:grid-cols-[1fr_42%] overflow-hidden">
+        {/* Left — copy */}
+        <div className="flex flex-col justify-center px-8 sm:px-12 lg:px-20 py-28 lg:py-0">
+          <p className="text-xs font-bold tracking-[0.2em] uppercase text-primary/70 mb-8 flex items-center gap-3">
+            <span className="w-8 h-px bg-primary/70 inline-block" />
+            Built for Africa
+          </p>
+          <h1
+            className="text-5xl sm:text-6xl lg:text-[4.5rem] font-extrabold leading-[1.03] tracking-tighter mb-8"
+          >
+            Your menu.<br />
+            In their hands.<br />
+            <span className="text-primary">In two minutes.</span>
+          </h1>
+          <p className="text-lg text-secondary leading-relaxed max-w-lg mb-10">
+            Photograph your paper menu. AI reads every item in 7 seconds. Publish a live QR menu — no technical knowledge required.
+          </p>
+          <div className="flex flex-wrap gap-3">
+            <Link
+              href={ctaHref}
+              className="px-7 py-3.5 bg-primary text-white font-bold rounded-[2rem] text-sm hover:bg-[#a04100] transition-colors shadow-md shadow-primary/20"
+            >
+              Start free — no card needed
+            </Link>
+            <a
+              href="#demo"
+              className="flex items-center gap-2 px-7 py-3.5 border border-outline-variant text-on-surface font-bold rounded-[2rem] text-sm hover:border-primary/40 hover:bg-surface-container-low transition-colors"
+            >
+              <span className="material-symbols-outlined text-[18px] text-primary">play_circle</span>
+              Watch demo (90s)
+            </a>
           </div>
+        </div>
 
-          <HeroVideo />
+        {/* Right — phone mockup, bleed to edge */}
+        <div className="hidden lg:flex bg-surface-card items-center justify-center relative overflow-hidden">
+          <div className="w-[220px] rounded-[2.2rem] p-5 shadow-2xl relative z-10 bg-on-surface -rotate-3">
+            <p className="font-syne font-extrabold text-[0.85rem] text-primary mb-3 tracking-[-0.01em]">
+              Nyamirambo Kitchen
+            </p>
+            <div className="h-[3px] bg-primary rounded-full mb-3" />
+            <p className="text-[0.6rem] font-bold text-surface/80 uppercase tracking-wider mb-2">Mains</p>
+            {[
+              ["Brochette ya Nk'osa", "3,500"],
+              ["Isombe na Poisson",   "2,800"],
+              ["Igisafuriya cy'Inkoko","4,200"],
+              ["Chips na Viande",     "3,000"],
+            ].map(([name, price]) => (
+              <div key={name} className="flex justify-between items-center py-1.5 border-b border-white/10 text-[0.55rem]">
+                <span className="text-surface/70">{name}</span>
+                <span className="text-primary font-semibold">{price} RWF</span>
+              </div>
+            ))}
+            <p className="text-[0.5rem] text-primary/50 text-center mt-3">Powered by MENUZA AI</p>
+          </div>
+          {/* Background word */}
+          <span className="absolute bottom-6 right-4 select-none pointer-events-none leading-none font-syne font-extrabold text-[6rem] text-primary opacity-[0.07]">
+            LIVE
+          </span>
         </div>
       </section>
 
+      {/* ── Progress Strip ── */}
+      <div className="bg-on-surface">
+        <div className="max-w-5xl mx-auto grid grid-cols-2 md:grid-cols-4">
+          {STEPS.map((step, i) => (
+            <div key={i} className="px-8 py-8 border-r border-white/10 last:border-r-0 col-span-1">
+              <p className="text-primary leading-none mb-2 font-syne font-extrabold text-[2rem]">
+                {step.num}
+              </p>
+              <p className="text-sm font-semibold text-surface/90 mb-0.5">{step.label}</p>
+              <p className="text-xs text-surface/40">{step.sub}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
       {/* ── Value Proposition ── */}
-      <section className="py-24 bg-white border-y border-black/5 px-6">
+      <section className="py-24 bg-surface-container-lowest border-y border-black/5 px-6">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <p className="text-xs font-bold tracking-[0.25em] uppercase text-secondary/50 mb-4">The Problem</p>
-            <h2 className="text-4xl md:text-5xl font-[var(--font-headline)] font-black tracking-tight mb-5">
+            <h2
+              className="text-4xl md:text-5xl font-black tracking-tight mb-5"
+  
+            >
               Most menus just list. Yours should sell.
             </h2>
             <p className="text-secondary text-lg max-w-xl mx-auto">
@@ -130,11 +143,11 @@ export default function LandingPage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-            <div className="bg-[#faf8f6] p-8 rounded-3xl border border-black/5">
-              <div className="w-10 h-10 bg-red-50 text-red-400 rounded-xl flex items-center justify-center mb-6">
+            <div className="bg-surface p-8 rounded-3xl border border-black/5">
+              <div className="w-10 h-10 bg-error-container/50 text-error/60 rounded-xl flex items-center justify-center mb-6">
                 <span className="material-symbols-outlined text-xl">visibility_off</span>
               </div>
-              <h3 className="text-lg font-[var(--font-headline)] font-bold mb-3">Zero Visibility</h3>
+              <h3 className="text-lg font-bold mb-3" style={{ fontFamily: "var(--font-headline)" }}>Zero Visibility</h3>
               <p className="text-secondary text-sm leading-relaxed">You don&apos;t know which dishes get viewed but never ordered. Every day is a blind guess.</p>
             </div>
 
@@ -142,15 +155,15 @@ export default function LandingPage() {
               <div className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center mb-6">
                 <span className="material-symbols-outlined text-white text-xl">auto_awesome</span>
               </div>
-              <h3 className="text-lg font-[var(--font-headline)] font-bold mb-3 text-white">MENUZA AI turns your menu into a revenue engine</h3>
+              <h3 className="text-lg font-bold mb-3 text-white" style={{ fontFamily: "var(--font-headline)" }}>MENUZA AI turns your menu into a revenue engine</h3>
               <p className="text-white/50 text-sm leading-relaxed">AI-powered design, real-time ordering, and smart analytics — all working together.</p>
             </div>
 
-            <div className="bg-[#faf8f6] p-8 rounded-3xl border border-black/5">
-              <div className="w-10 h-10 bg-emerald-50 text-emerald-500 rounded-xl flex items-center justify-center mb-6">
+            <div className="bg-surface p-8 rounded-3xl border border-black/5">
+              <div className="w-10 h-10 bg-tertiary/10 text-tertiary rounded-xl flex items-center justify-center mb-6">
                 <span className="material-symbols-outlined text-xl">qr_code_2</span>
               </div>
-              <h3 className="text-lg font-[var(--font-headline)] font-bold mb-3">Scan &amp; Order</h3>
+              <h3 className="text-lg font-bold mb-3" style={{ fontFamily: "var(--font-headline)" }}>Scan &amp; Order</h3>
               <p className="text-secondary text-sm leading-relaxed">No app downloads. Guests scan, browse, and order in under 30 seconds.</p>
             </div>
           </div>
@@ -162,7 +175,10 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto">
           <div className="max-w-2xl mb-16">
             <p className="text-xs font-bold tracking-[0.25em] uppercase text-secondary/50 mb-4">Features</p>
-            <h2 className="text-4xl font-[var(--font-headline)] font-black tracking-tight mb-5">
+            <h2
+              className="text-4xl font-black tracking-tight mb-5"
+  
+            >
               Everything you need to run a great restaurant
             </h2>
             <p className="text-secondary text-lg leading-relaxed">
@@ -188,7 +204,7 @@ export default function LandingPage() {
           </div>
 
           <div className="mt-8 text-center">
-            <Link href={ctaHref} className="inline-block px-7 py-3.5 bg-primary text-white font-bold rounded-xl text-sm hover:opacity-90 transition-opacity">
+            <Link href={ctaHref} className="inline-block px-7 py-3.5 bg-primary text-white font-bold rounded-[2rem] text-sm hover:bg-[#a04100] transition-colors">
               Start building your menu
             </Link>
           </div>
@@ -196,12 +212,14 @@ export default function LandingPage() {
       </section>
 
       {/* ── AI Waiter Showcase ── */}
-      <section className="py-28 px-6 bg-white border-y border-black/5">
+      <section className="py-28 px-6 bg-surface-container-lowest border-y border-black/5">
         <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-          {/* Left — copy */}
           <div>
             <p className="text-xs font-bold tracking-[0.25em] uppercase text-primary/70 mb-5">AI Digital Waiter</p>
-            <h2 className="text-4xl md:text-5xl font-[var(--font-headline)] font-black tracking-tight leading-[1.06] mb-6">
+            <h2
+              className="text-4xl md:text-5xl font-black tracking-tight leading-[1.06] mb-6"
+  
+            >
               Your best waiter.<br />Works every shift.
             </h2>
             <p className="text-secondary text-lg leading-relaxed mb-8 max-w-md">
@@ -209,10 +227,10 @@ export default function LandingPage() {
             </p>
             <ul className="space-y-4 mb-10">
               {[
-                { icon: "schedule", text: "Available 24/7 — never calls in sick" },
-                { icon: "trending_up", text: "Proactively suggests add-ons to increase order value" },
-                { icon: "translate", text: "Adapts tone — friendly, formal, or vibrant" },
-                { icon: "rate_review", text: "Follows up after the meal to prompt a review" },
+                { icon: "schedule",     text: "Available 24/7 — never calls in sick" },
+                { icon: "trending_up",  text: "Proactively suggests add-ons to increase order value" },
+                { icon: "translate",    text: "Adapts tone — friendly, formal, or vibrant" },
+                { icon: "rate_review",  text: "Follows up after the meal to prompt a review" },
               ].map((item) => (
                 <li key={item.icon} className="flex items-center gap-3 text-sm text-secondary">
                   <span className="material-symbols-outlined text-[18px] text-primary shrink-0">{item.icon}</span>
@@ -221,17 +239,16 @@ export default function LandingPage() {
               ))}
             </ul>
             <div className="flex items-center gap-3">
-              <Link href="/demo/owner" className="px-6 py-3 bg-primary text-white font-bold rounded-xl text-sm hover:opacity-90 transition-opacity shadow-md shadow-primary/20">
+              <Link href="/demo/owner" className="px-6 py-3 bg-primary text-white font-bold rounded-[2rem] text-sm hover:bg-[#a04100] transition-colors shadow-md shadow-primary/20">
                 See live demo
               </Link>
               <span className="text-xs text-secondary/50">Pro &amp; Business plans</span>
             </div>
           </div>
 
-          {/* Right — mock chat UI */}
+          {/* Chat mockup */}
           <div className="relative">
             <div className="bg-on-surface rounded-[2rem] overflow-hidden shadow-2xl max-w-sm mx-auto">
-              {/* Chat header */}
               <div className="bg-primary px-6 py-5 flex items-center gap-3">
                 <div className="w-10 h-10 bg-white/20 rounded-2xl flex items-center justify-center shrink-0">
                   <span className="material-symbols-outlined text-white text-xl icon-fill">robot_2</span>
@@ -240,12 +257,10 @@ export default function LandingPage() {
                   <p className="text-white font-bold text-sm">AI Digital Waiter</p>
                   <p className="text-white/60 text-[10px] uppercase tracking-widest font-black">Powered by MENUZA AI</p>
                 </div>
-                <div className="ml-auto w-2 h-2 bg-emerald-400 rounded-full animate-pulse" />
+                <div className="ml-auto w-2 h-2 bg-tertiary/70 rounded-full animate-pulse" />
               </div>
 
-              {/* Messages */}
               <div className="px-4 py-5 space-y-4 bg-surface-container-lowest">
-                {/* AI */}
                 <div className="flex items-end gap-2">
                   <div className="w-7 h-7 bg-primary/10 rounded-xl flex items-center justify-center shrink-0">
                     <span className="material-symbols-outlined text-primary text-sm icon-fill">robot_2</span>
@@ -254,13 +269,11 @@ export default function LandingPage() {
                     <p className="text-xs text-on-surface leading-relaxed">Good evening! Welcome to Kigali Grill 🍽️ I&apos;m your digital waiter. What can I get for you tonight?</p>
                   </div>
                 </div>
-                {/* Customer */}
                 <div className="flex justify-end">
                   <div className="bg-primary rounded-2xl rounded-br-sm px-4 py-3 max-w-[75%]">
                     <p className="text-xs text-white leading-relaxed">What&apos;s your most popular dish?</p>
                   </div>
                 </div>
-                {/* AI */}
                 <div className="flex items-end gap-2">
                   <div className="w-7 h-7 bg-primary/10 rounded-xl flex items-center justify-center shrink-0">
                     <span className="material-symbols-outlined text-primary text-sm icon-fill">robot_2</span>
@@ -269,13 +282,11 @@ export default function LandingPage() {
                     <p className="text-xs text-on-surface leading-relaxed">Our guests love the <strong>Grilled Tilapia</strong> 🐟 — crispy skin, served with plantain and kachumbari. It&apos;s our bestseller this week! Shall I add it for you?</p>
                   </div>
                 </div>
-                {/* Customer */}
                 <div className="flex justify-end">
                   <div className="bg-primary rounded-2xl rounded-br-sm px-4 py-3 max-w-[75%]">
                     <p className="text-xs text-white leading-relaxed">Yes! And a Fanta please.</p>
                   </div>
                 </div>
-                {/* AI */}
                 <div className="flex items-end gap-2">
                   <div className="w-7 h-7 bg-primary/10 rounded-xl flex items-center justify-center shrink-0">
                     <span className="material-symbols-outlined text-primary text-sm icon-fill">robot_2</span>
@@ -286,7 +297,6 @@ export default function LandingPage() {
                 </div>
               </div>
 
-              {/* Input bar */}
               <div className="px-4 py-4 bg-surface-container-lowest border-t border-surface-container flex items-center gap-2">
                 <div className="flex-1 bg-surface-container rounded-xl px-4 py-2.5 text-xs text-secondary/40">
                   Ask about the menu…
@@ -297,8 +307,7 @@ export default function LandingPage() {
               </div>
             </div>
 
-            {/* Floating badge */}
-            <div className="absolute -bottom-4 -right-4 bg-white rounded-2xl shadow-xl border border-black/6 px-4 py-3 flex items-center gap-2.5 hidden lg:flex">
+            <div className="absolute -bottom-4 -right-4 bg-surface rounded-2xl shadow-xl border border-black/6 px-4 py-3 items-center gap-2.5 hidden lg:flex">
               <span className="material-symbols-outlined text-tertiary text-xl">receipt_long</span>
               <div>
                 <p className="text-xs font-black text-on-surface">Order confirmed</p>
@@ -309,27 +318,61 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ── Pricing Preview ── */}
-      <section className="py-24 px-6 bg-white border-y border-black/5" id="pricing">
+      {/* ── Demo Video ── */}
+      <section className="py-24 px-6" id="demo">
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center mb-10">
+            <p className="text-xs font-bold tracking-[0.25em] uppercase text-secondary/50 mb-4">See It in Action</p>
+            <h2
+              className="text-4xl font-black tracking-tight mb-4"
+  
+            >
+              From photo to live menu in 90 seconds
+            </h2>
+            <p className="text-secondary max-w-md mx-auto">
+              Watch a restaurant owner photograph their menu, edit with AI, and go live — start to finish.
+            </p>
+          </div>
+          <div className="rounded-3xl overflow-hidden shadow-2xl border border-black/8 aspect-video bg-on-surface">
+            <video
+              poster="https://img.youtube.com/vi/G4vp5NQnk-I/maxresdefault.jpg"
+              controls
+              preload="none"
+              playsInline
+              className="w-full h-full object-cover"
+            >
+              <source src="/menuza-demo.mp4" type="video/mp4" />
+            </video>
+          </div>
+          <p className="text-center mt-4 text-xs text-secondary/50">90 seconds · QR scan → AI extraction → staff dashboard</p>
+        </div>
+      </section>
+
+      {/* ── Pricing ── */}
+      <section className="py-24 px-6 bg-surface-container-lowest border-y border-black/5" id="pricing">
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-16">
             <p className="text-xs font-bold tracking-[0.25em] uppercase text-secondary/50 mb-4">Pricing</p>
-            <h2 className="text-4xl font-[var(--font-headline)] font-black tracking-tight mb-4">Transparent pricing</h2>
+            <h2
+              className="text-4xl font-black tracking-tight mb-4"
+  
+            >
+              Transparent pricing
+            </h2>
             <p className="text-secondary">14-day free trial — no credit card required. Upgrade when you&apos;re ready.</p>
           </div>
 
-          {/* Billing toggle */}
           <div className="flex justify-center mb-10">
-            <div className="inline-flex items-center bg-white border border-black/8 rounded-xl p-1 shadow-sm">
+            <div className="inline-flex items-center bg-surface border border-black/8 rounded-xl p-1 shadow-sm">
               <button
                 onClick={() => setIsAnnual(false)}
-                className={`px-6 py-2 rounded-lg text-sm font-semibold transition-all cursor-pointer ${!isAnnual ? "bg-on-surface text-surface shadow-sm" : "text-secondary hover:text-on-surface"}`}
+                className={`px-6 py-2 rounded-lg text-sm font-semibold transition-colors cursor-pointer ${!isAnnual ? "bg-on-surface text-surface shadow-sm" : "text-secondary hover:text-on-surface"}`}
               >
                 Monthly
               </button>
               <button
                 onClick={() => setIsAnnual(true)}
-                className={`px-6 py-2 rounded-lg text-sm font-semibold transition-all flex items-center gap-2.5 cursor-pointer ${isAnnual ? "bg-on-surface text-surface shadow-sm" : "text-secondary hover:text-on-surface"}`}
+                className={`px-6 py-2 rounded-lg text-sm font-semibold transition-colors flex items-center gap-2.5 cursor-pointer ${isAnnual ? "bg-on-surface text-surface shadow-sm" : "text-secondary hover:text-on-surface"}`}
               >
                 Annual
                 <span className={`text-[9px] font-black tracking-widest uppercase px-2 py-0.5 rounded-full transition-colors ${isAnnual ? "bg-white/15 text-white" : "bg-primary/10 text-primary"}`}>
@@ -339,8 +382,8 @@ export default function LandingPage() {
             </div>
           </div>
 
-          {/* Free Lite — inline strip */}
-          <div className="flex flex-wrap items-center justify-between gap-4 bg-[#faf8f6] border border-black/6 rounded-2xl px-6 py-4 mb-6 shadow-sm">
+          {/* Free Lite strip */}
+          <div className="flex flex-wrap items-center justify-between gap-4 bg-surface border border-black/6 rounded-2xl px-6 py-4 mb-6 shadow-sm">
             <div className="flex flex-wrap items-center gap-x-5 gap-y-1">
               <span className="text-xs font-black uppercase tracking-[0.2em] text-secondary/50">Free Lite</span>
               <span className="text-sm font-bold text-on-surface">0 RWF</span>
@@ -358,18 +401,15 @@ export default function LandingPage() {
             </Link>
           </div>
 
-          {/* Pro + Business */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
             {pricingPlans.filter(plan => plan.amountRwf > 0).map((plan, i) => {
               const displayPrice = `${fmt(plan.amountRwf * (isAnnual ? 11 : 1))} RWF`;
               const displayPeriod = isAnnual ? "/ year" : "/ month";
               const pricingHref = `/pricing${isAnnual ? "?billing=annual" : ""}`;
               return (
-                <div key={i} className={`rounded-3xl p-8 flex flex-col relative ${
-                  plan.popular ? "bg-on-surface shadow-xl shadow-black/15" : "bg-[#faf8f6] border border-black/6"
-                }`}>
+                <div key={i} className={`rounded-3xl p-8 flex flex-col relative ${plan.popular ? "bg-on-surface shadow-xl shadow-black/15" : "bg-surface border border-black/6"}`}>
                   {plan.popular && (
-                    <div className="absolute -top-px left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary to-transparent rounded-t-3xl" />
+                    <div className="absolute -top-px left-0 right-0 h-px bg-linear-to-r from-transparent via-primary to-transparent rounded-t-3xl" />
                   )}
                   <p className={`text-xs font-bold tracking-[0.2em] uppercase mb-3 ${plan.popular ? "text-white/40" : "text-secondary/60"}`}>
                     {plan.name}
@@ -383,7 +423,7 @@ export default function LandingPage() {
                       </p>
                     )}
                   </div>
-                  <ul className="space-y-3 flex-grow mb-8">
+                  <ul className="space-y-3 grow mb-8">
                     {plan.features.map((f, j) => (
                       <li key={j} className="flex items-start gap-2.5 text-sm">
                         <span className="material-symbols-outlined text-[14px] text-primary mt-0.5 shrink-0">check</span>
@@ -393,11 +433,7 @@ export default function LandingPage() {
                   </ul>
                   <Link
                     href={pricingHref}
-                    className={`block w-full py-3.5 text-center text-sm font-bold rounded-xl transition-colors ${
-                      plan.popular
-                        ? "bg-primary text-white hover:opacity-90"
-                        : "border border-black/10 text-on-surface hover:bg-black/3"
-                    }`}
+                    className={`block w-full py-3.5 text-center text-sm font-bold rounded-[2rem] transition-colors ${plan.popular ? "bg-primary text-white hover:bg-[#a04100]" : "border border-black/10 text-on-surface hover:bg-black/3"}`}
                   >
                     {plan.cta}
                   </Link>
@@ -407,7 +443,9 @@ export default function LandingPage() {
           </div>
 
           <p className="text-center mt-8 text-sm text-secondary">
-            <Link href={`/pricing${isAnnual ? "?billing=annual" : ""}`} className="text-primary font-semibold hover:underline">See full plan comparison →</Link>
+            <Link href={`/pricing${isAnnual ? "?billing=annual" : ""}`} className="text-primary font-semibold hover:underline">
+              See full plan comparison →
+            </Link>
           </p>
         </div>
       </section>
@@ -416,19 +454,21 @@ export default function LandingPage() {
       <section className="py-28 px-6">
         <div className="max-w-3xl mx-auto bg-on-surface rounded-3xl px-12 py-20 text-center">
           <p className="text-xs font-bold tracking-[0.25em] uppercase text-white/30 mb-6">Get started</p>
-          <h2 className="text-4xl md:text-5xl font-[var(--font-headline)] font-black text-white tracking-tight leading-tight mb-5">
+          <h2
+            className="text-4xl md:text-5xl font-black text-white tracking-tight leading-tight mb-5"
+
+          >
             Elevate your restaurant&apos;s digital presence
           </h2>
           <p className="text-white/40 text-base mb-6 leading-relaxed max-w-lg mx-auto">
             Join restaurants across Africa using MENUZA AI to serve more guests, more efficiently.
           </p>
           <LiveStats />
-
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            <Link href={ctaHref} className="px-8 py-4 bg-primary text-white font-bold rounded-xl text-sm hover:opacity-90 transition-opacity shadow-lg shadow-primary/20">
+            <Link href={ctaHref} className="px-8 py-4 bg-primary text-white font-bold rounded-[2rem] text-sm hover:bg-[#a04100] transition-colors shadow-lg shadow-primary/20">
               Start Free Trial — No Card Required
             </Link>
-            <a href="mailto:support@menuzaai.com" className="px-8 py-4 bg-white/8 text-white/60 font-bold rounded-xl text-sm hover:bg-white/12 transition-colors border border-white/10">
+            <a href="mailto:support@menuzaai.com" className="px-8 py-4 bg-white/8 text-white/60 font-bold rounded-[2rem] text-sm hover:bg-white/12 transition-colors border border-white/10">
               Talk to Sales
             </a>
           </div>
@@ -436,14 +476,14 @@ export default function LandingPage() {
       </section>
 
       {/* ── Footer ── */}
-      <footer className="border-t border-black/5 bg-[#faf8f6]">
+      <footer className="border-t border-black/5 bg-surface">
         <div className="max-w-7xl mx-auto px-8 py-16 grid grid-cols-1 md:grid-cols-4 gap-12">
           <div className="md:col-span-2">
             <div className="flex items-center gap-2.5 mb-4">
               <div className="w-7 h-7 bg-primary rounded-md flex items-center justify-center">
                 <span className="material-symbols-outlined text-white icon-fill text-base">restaurant_menu</span>
               </div>
-              <span className="font-[var(--font-headline)] font-black text-base tracking-tight">
+              <span className="font-headline font-black text-base tracking-tight">
                 MENUZA <span className="text-primary">AI</span>
               </span>
             </div>
@@ -455,10 +495,10 @@ export default function LandingPage() {
           <div>
             <p className="font-bold text-xs uppercase tracking-widest text-on-surface/40 mb-5">Product</p>
             <ul className="space-y-3 text-sm text-secondary">
-              <li><Link href="/features"       className="hover:text-primary transition-colors">Features</Link></li>
-              <li><Link href="/pricing"        className="hover:text-primary transition-colors">Pricing</Link></li>
-              <li><Link href="/menu/demo"      className="hover:text-primary transition-colors">Live Demo</Link></li>
-              <li><Link href="/dashboard"      className="hover:text-primary transition-colors">Dashboard</Link></li>
+              <li><Link href="/features"  className="hover:text-primary transition-colors">Features</Link></li>
+              <li><Link href="/pricing"   className="hover:text-primary transition-colors">Pricing</Link></li>
+              <li><Link href="/menu/demo" className="hover:text-primary transition-colors">Live Demo</Link></li>
+              <li><Link href="/dashboard" className="hover:text-primary transition-colors">Dashboard</Link></li>
             </ul>
           </div>
 
@@ -466,9 +506,9 @@ export default function LandingPage() {
             <p className="font-bold text-xs uppercase tracking-widest text-on-surface/40 mb-5">Company</p>
             <ul className="space-y-3 text-sm text-secondary">
               <li><a href="mailto:support@menuzaai.com" className="hover:text-primary transition-colors">Contact Us</a></li>
-              <li><Link href={ctaHref}          className="hover:text-primary transition-colors">Sign Up Free</Link></li>
-              <li><Link href="/terms"          className="hover:text-primary transition-colors">Terms of Service</Link></li>
-              <li><Link href="/privacy"        className="hover:text-primary transition-colors">Privacy Policy</Link></li>
+              <li><Link href={ctaHref}   className="hover:text-primary transition-colors">Sign Up Free</Link></li>
+              <li><Link href="/terms"    className="hover:text-primary transition-colors">Terms of Service</Link></li>
+              <li><Link href="/privacy"  className="hover:text-primary transition-colors">Privacy Policy</Link></li>
             </ul>
           </div>
         </div>
@@ -480,6 +520,7 @@ export default function LandingPage() {
           </div>
         </div>
       </footer>
+
       <BackToTop />
     </div>
   );
@@ -495,7 +536,6 @@ function LiveStats() {
       .catch(() => {});
   }, []);
 
-  // Only show when numbers are large enough to be credible social proof
   if (!stats || stats.restaurants < 10 || stats.orders < 1000) return <div className="mb-8 h-8" />;
 
   return (

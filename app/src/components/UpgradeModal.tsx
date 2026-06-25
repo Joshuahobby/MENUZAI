@@ -51,7 +51,7 @@ export function UpgradeProvider({ children }: { children: React.ReactNode }) {
         <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
           <div className="bg-surface-container-lowest rounded-[2rem] w-full max-w-md shadow-2xl relative animate-in fade-in zoom-in-95 duration-200 overflow-hidden">
             {/* Header */}
-            <div className="bg-gradient-to-br from-primary to-primary-container p-8 pb-6">
+            <div className="bg-linear-to-br from-primary to-primary-container p-8 pb-6">
               <button
                 type="button"
                 onClick={() => setOpen(false)}
@@ -60,7 +60,7 @@ export function UpgradeProvider({ children }: { children: React.ReactNode }) {
                 <span className="material-symbols-outlined text-[18px]">close</span>
               </button>
               <span className="material-symbols-outlined text-white text-[40px] mb-3 block">workspace_premium</span>
-              <h2 className="text-2xl font-[var(--font-headline)] font-black text-white tracking-tight">
+              <h2 className="text-2xl font-headline font-black text-white tracking-tight">
                 {opts.feature ? `${opts.feature} requires Pro` : "Upgrade to Pro"}
               </h2>
               {opts.description && (
@@ -92,7 +92,7 @@ export function UpgradeProvider({ children }: { children: React.ReactNode }) {
               <button
                 type="button"
                 onClick={() => { setOpen(false); setCheckoutOpen(true); }}
-                className="w-full py-4 bg-gradient-to-tr from-primary to-primary-container text-white font-bold rounded-xl shadow-lg shadow-primary/20 active:scale-95 transition-all flex items-center justify-center gap-2"
+                className="w-full py-4 bg-linear-to-tr from-primary to-primary-container text-white font-bold rounded-xl shadow-lg shadow-primary/20 active:scale-95 transition-colors flex items-center justify-center gap-2"
               >
                 <span className="material-symbols-outlined text-[20px]">send_to_mobile</span>
                 Upgrade with Mobile Money

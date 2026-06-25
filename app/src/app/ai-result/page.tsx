@@ -25,7 +25,7 @@ export default function AIResultPage() {
             <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center shadow-md shadow-primary/20">
               <span className="material-symbols-outlined text-white icon-fill text-lg">restaurant_menu</span>
             </div>
-            <span className="font-[var(--font-headline)] font-black text-lg tracking-tight text-on-surface">
+            <span className="font-headline font-black text-lg tracking-tight text-on-surface">
               MENUZA <span className="text-primary">AI</span>
             </span>
           </Link>
@@ -34,12 +34,12 @@ export default function AIResultPage() {
           <div className="w-20 h-20 bg-surface-container-high rounded-full flex items-center justify-center mb-6">
             <span className="material-symbols-outlined text-4xl text-secondary">search_off</span>
           </div>
-          <h2 className="text-2xl font-[var(--font-headline)] font-bold mb-3">No items extracted</h2>
+          <h2 className="text-2xl font-headline font-bold mb-3">No items extracted</h2>
           <p className="text-secondary text-sm max-w-sm mb-8">
             The AI couldn&apos;t find any menu items in your image. Try a clearer photo or one with more visible text.
           </p>
           <div className="flex gap-4">
-            <Link href="/upload" className="px-6 py-3 bg-gradient-to-tr from-primary to-primary-container text-white font-bold rounded-xl shadow-lg shadow-primary/20 active:scale-95 transition-all">
+            <Link href="/upload" className="px-6 py-3 bg-linear-to-tr from-primary to-primary-container text-white font-bold rounded-xl shadow-lg shadow-primary/20 active:scale-95 transition-colors">
               Try Again
             </Link>
             <Link href="/dashboard/editor" className="px-6 py-3 bg-surface-container-highest text-on-surface font-bold rounded-xl hover:bg-surface-container-high transition-colors">
@@ -58,7 +58,7 @@ export default function AIResultPage() {
           <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center shadow-md shadow-primary/20">
             <span className="material-symbols-outlined text-white icon-fill text-lg">restaurant_menu</span>
           </div>
-          <span className="font-[var(--font-headline)] font-black text-lg tracking-tight text-on-surface">
+          <span className="font-headline font-black text-lg tracking-tight text-on-surface">
             MENUZA <span className="text-primary">AI</span>
           </span>
         </Link>
@@ -72,7 +72,7 @@ export default function AIResultPage() {
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 py-12">
         <div className="mb-10">
-          <h1 className="text-3xl font-[var(--font-headline)] font-extrabold tracking-tight mb-2">Review Extracted Menu</h1>
+          <h1 className="text-3xl font-headline font-extrabold tracking-tight mb-2">Review Extracted Menu</h1>
           <p className="text-secondary">Edit any field inline. Remove items that don&apos;t look right. When done, continue to the editor.</p>
           <p className="text-[10px] text-secondary/50 mt-1.5 flex items-center gap-1">
             <span className="material-symbols-outlined text-[12px]">sync</span>
@@ -83,9 +83,9 @@ export default function AIResultPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Categories panel */}
           <div className="lg:col-span-1 space-y-3">
-            <h2 className="font-[var(--font-headline)] font-bold text-lg mb-4">Categories</h2>
+            <h2 className="font-headline font-bold text-lg mb-4">Categories</h2>
             {Object.entries(grouped).map(([cat, items]) => (
-              <div key={cat} className="p-4 bg-surface-container-lowest rounded-2xl flex items-center justify-between border border-transparent hover:border-primary/10 hover:shadow-sm transition-all">
+              <div key={cat} className="p-4 bg-surface-container-lowest rounded-2xl flex items-center justify-between border border-transparent hover:border-primary/10 hover:shadow-sm transition-colors">
                 <span className="font-bold text-sm capitalize">{cat}</span>
                 <span className="text-xs font-bold text-primary bg-primary/10 px-2 py-1 rounded-md">{items.length} items</span>
               </div>
@@ -98,11 +98,11 @@ export default function AIResultPage() {
 
           {/* Items panel */}
           <div className="lg:col-span-2 space-y-4">
-            <h2 className="font-[var(--font-headline)] font-bold text-lg mb-4">
+            <h2 className="font-headline font-bold text-lg mb-4">
               Items <span className="text-secondary font-normal text-base">({menuItems.length})</span>
             </h2>
             {menuItems.map((item) => (
-              <div key={item.id} className="group p-6 bg-surface-container-lowest rounded-2xl hover:shadow-md transition-all border border-transparent hover:border-primary/10 relative">
+              <div key={item.id} className="group p-6 bg-surface-container-lowest rounded-2xl hover:shadow-md transition-colors border border-transparent hover:border-primary/10 relative">
                 {/* Delete — always visible at reduced opacity so it's tappable on mobile */}
                 <button
                   type="button"
@@ -123,7 +123,7 @@ export default function AIResultPage() {
 
                 <div className="flex justify-between items-start mb-3 pr-8 gap-3">
                   <input
-                    className="font-[var(--font-headline)] font-bold text-lg bg-transparent border-none focus:outline-none focus:ring-2 focus:ring-primary/20 rounded-lg px-2 -mx-2 flex-1 min-w-0"
+                    className="font-headline font-bold text-lg bg-transparent border-none focus:outline-none focus:ring-2 focus:ring-primary/20 rounded-lg px-2 -mx-2 flex-1 min-w-0"
                     value={item.name}
                     title="Item name"
                     placeholder="Item Name"
@@ -178,7 +178,7 @@ export default function AIResultPage() {
               toast.success("Menu saved! Opening editor…");
               router.push("/dashboard/editor");
             }}
-            className="px-4 sm:px-8 py-4 bg-gradient-to-tr from-primary to-primary-container text-white font-bold rounded-xl shadow-lg shadow-primary/20 active:scale-95 transition-all text-base sm:text-lg flex items-center gap-2"
+            className="px-4 sm:px-8 py-4 bg-linear-to-tr from-primary to-primary-container text-white font-bold rounded-xl shadow-lg shadow-primary/20 active:scale-95 transition-colors text-base sm:text-lg flex items-center gap-2"
           >
             <span className="hidden sm:inline">Save & Continue to Editor</span>
             <span className="sm:hidden">Continue to Editor</span>

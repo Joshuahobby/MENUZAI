@@ -16,9 +16,10 @@ interface Order {
 
 interface Props {
   restaurantId: string;
+  currency: string;
 }
 
-export default function OrderHistory({ restaurantId }: Props) {
+export default function OrderHistory({ restaurantId, currency }: Props) {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [cancellingId, setCancellingId] = useState<string | null>(null);
@@ -70,9 +71,9 @@ export default function OrderHistory({ restaurantId }: Props) {
 
   const statusLabel: Record<string, { label: string; color: string; icon: string }> = {
     pending_payment: { label: "Awaiting Payment", color: "text-amber-600", icon: "hourglass_bottom" },
-    pending: { label: "Pending", color: "text-blue-600", icon: "pending" },
-    preparing: { label: "Preparing", color: "text-purple-600", icon: "cooking" },
-    confirmed: { label: "Ready", color: "text-emerald-600", icon: "check_circle" },
+    pending: { label: "Pending", color: "text-amber-700", icon: "pending" },
+    preparing: { label: "Preparing", color: "text-secondary", icon: "cooking" },
+    confirmed: { label: "Ready", color: "text-tertiary", icon: "check_circle" },
     cancelled: { label: "Cancelled", color: "text-secondary", icon: "cancel" },
   };
 
@@ -88,10 +89,10 @@ export default function OrderHistory({ restaurantId }: Props) {
     <div className="min-h-dvh bg-surface">
       <div className="max-w-lg mx-auto px-4 pt-6 pb-10">
         <div className="flex items-center gap-3 mb-6">
-          <button onClick={() => window.history.back()} className="w-10 h-10 rounded-full bg-surface-container flex items-center justify-center hover:bg-surface-container-high transition-all">
+          <button onClick={() => window.history.back()} className="w-10 h-10 rounded-full bg-surface-container flex items-center justify-center hover:bg-surface-container-high transition-colors">
             <span className="material-symbols-outlined">arrow_back</span>
           </button>
-          <h1 className="font-[var(--font-headline)] font-extrabold text-xl">Order History</h1>
+          <h1 className="font-headline font-extrabold text-xl">Order History</h1>
         </div>
 
         {error && (
@@ -137,7 +138,7 @@ export default function OrderHistory({ restaurantId }: Props) {
                       {order.items.slice(0, 5).map((item: { id: string; name: string; price: number; quantity: number }) => (
                         <div key={item.id} className="flex justify-between text-sm">
                           <span className="text-on-surface">{item.name} <span className="text-secondary">×{item.quantity}</span></span>
-                          <span className="font-bold">{formatPrice(item.price * item.quantity, "RWF")}</span>
+                          <span className="font-bold">{formatPrice(item.price * item.quantity, currency)}</span>
                         </div>
                       ))}
                       {order.items.length > 5 && (
@@ -148,7 +149,7 @@ export default function OrderHistory({ restaurantId }: Props) {
 
                   <div className="flex justify-between items-center pt-2 border-t border-surface-container">
                     <span className="font-extrabold text-base">Total</span>
-                    <span className="font-extrabold text-primary">{formatPrice(order.total ?? 0, "RWF")}</span>
+                    <span className="font-extrabold text-primary">{formatPrice(order.total ?? 0, currency)}</span>
                   </div>
 
                   {cancelling && (
@@ -156,7 +157,7 @@ export default function OrderHistory({ restaurantId }: Props) {
                       type="button"
                       onClick={() => handleCancel(order.id)}
                       disabled={cancellingId === order.id}
-                      className="w-full py-2.5 rounded-xl text-sm font-bold border border-error/30 text-error bg-transparent hover:bg-error/5 transition-all disabled:opacity-40"
+                      className="w-full py-2.5 rounded-xl text-sm font-bold border border-error/30 text-error bg-transparent hover:bg-error/5 transition-colors disabled:opacity-40"
                     >
                       {cancellingId === order.id ? "Cancelling..." : "Cancel Order"}
                     </button>

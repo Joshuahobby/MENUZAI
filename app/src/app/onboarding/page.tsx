@@ -147,14 +147,14 @@ export default function OnboardingPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#faf8f6] text-on-surface overflow-x-hidden">
+    <div className="min-h-screen bg-surface text-on-surface overflow-x-hidden">
       {/* Header */}
-      <header className="w-full sticky top-0 z-50 bg-[#faf8f6]/90 backdrop-blur-md border-b border-black/5 px-6 h-16 flex justify-between items-center">
+      <header className="w-full sticky top-0 z-50 bg-surface/90 backdrop-blur-md border-b border-black/5 px-6 h-16 flex justify-between items-center">
         <Link href="/" className="flex items-center gap-2">
           <div className="w-7 h-7 bg-primary rounded-md flex items-center justify-center">
             <span className="material-symbols-outlined text-white icon-fill text-base">restaurant_menu</span>
           </div>
-          <span className="font-[var(--font-headline)] font-black text-base tracking-tight">
+          <span className="font-headline font-black text-base tracking-tight">
             MENUZA <span className="text-primary">AI</span>
           </span>
         </Link>
@@ -182,7 +182,7 @@ export default function OnboardingPage() {
               return (
                 <div key={num} className="flex items-center flex-1 last:flex-none">
                   <div className="flex flex-col items-center gap-1.5">
-                    <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm transition-all duration-300 ${
+                    <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm transition-colors duration-300 ${
                       done   ? "bg-tertiary text-white shadow-sm" :
                       active ? "bg-primary text-white shadow-lg shadow-primary/30 ring-4 ring-primary/10" :
                                "bg-surface-container-high text-secondary"
@@ -197,7 +197,7 @@ export default function OnboardingPage() {
                     </span>
                   </div>
                   {idx < 2 && (
-                    <div className={`flex-1 h-0.5 mx-2 mb-5 rounded-full transition-all duration-500 ${
+                    <div className={`flex-1 h-0.5 mx-2 mb-5 rounded-full transition-colors duration-500 ${
                       step > num ? "bg-tertiary" : "bg-surface-container-highest"
                     }`} />
                   )}
@@ -213,7 +213,7 @@ export default function OnboardingPage() {
           {step === 1 && (
             <div className="space-y-7 animate-[fadeIn_0.3s_ease]">
               <div className="text-center">
-                <h1 className="text-2xl sm:text-3xl font-[var(--font-headline)] font-extrabold tracking-tight mb-2">
+                <h1 className="text-2xl sm:text-3xl font-headline font-extrabold tracking-tight mb-2">
                   Tell us about your restaurant
                 </h1>
                 <p className="text-secondary">This info appears on your digital menu</p>
@@ -227,7 +227,7 @@ export default function OnboardingPage() {
                   </label>
                   <input
                     id="ob-name"
-                    className="w-full bg-white border border-black/8 rounded-xl py-3.5 px-4 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all outline-none"
+                    className="w-full bg-surface-container-lowest border border-black/8 rounded-xl py-3.5 px-4 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors outline-none"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     placeholder="e.g. Kigali Bites Café"
@@ -243,7 +243,7 @@ export default function OnboardingPage() {
                     </label>
                     <select
                       id="ob-category"
-                      className="w-full bg-white border border-black/8 rounded-xl py-3.5 px-4 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all outline-none appearance-none"
+                      className="w-full bg-surface-container-lowest border border-black/8 rounded-xl py-3.5 px-4 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors outline-none appearance-none"
                       value={category}
                       onChange={(e) => setCategory(e.target.value)}
                     >
@@ -263,7 +263,7 @@ export default function OnboardingPage() {
                     </label>
                     <select
                       id="ob-currency"
-                      className="w-full bg-white border border-black/8 rounded-xl py-3.5 px-4 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all outline-none appearance-none"
+                      className="w-full bg-surface-container-lowest border border-black/8 rounded-xl py-3.5 px-4 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors outline-none appearance-none"
                       value={currency}
                       onChange={(e) => setCurrency(e.target.value)}
                     >
@@ -300,7 +300,7 @@ export default function OnboardingPage() {
                       <label className="text-[10px] font-black text-secondary uppercase tracking-[0.2em] mb-1.5 block" htmlFor="ob-tagline">Tagline</label>
                       <input
                         id="ob-tagline"
-                        className="w-full bg-white border border-black/8 rounded-xl py-3.5 px-4 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all outline-none"
+                        className="w-full bg-surface-container-lowest border border-black/8 rounded-xl py-3.5 px-4 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors outline-none"
                         value={tagline}
                         onChange={(e) => setTagline(e.target.value)}
                         placeholder="e.g. Fresh local flavors, served with love"
@@ -310,7 +310,7 @@ export default function OnboardingPage() {
                       <label className="text-[10px] font-black text-secondary uppercase tracking-[0.2em] mb-1.5 block" htmlFor="ob-hours">Opening Hours</label>
                       <input
                         id="ob-hours"
-                        className="w-full bg-white border border-black/8 rounded-xl py-3.5 px-4 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all outline-none"
+                        className="w-full bg-surface-container-lowest border border-black/8 rounded-xl py-3.5 px-4 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors outline-none"
                         value={hours}
                         onChange={(e) => setHours(e.target.value)}
                         placeholder="e.g. Mon–Sat 7am–10pm"
@@ -320,7 +320,7 @@ export default function OnboardingPage() {
                 )}
 
                 {/* Terms */}
-                <label className="flex items-start gap-3 cursor-pointer p-4 rounded-xl border border-black/6 bg-white hover:bg-[#faf8f6] transition-colors">
+                <label className="flex items-start gap-3 cursor-pointer p-4 rounded-xl border border-black/6 bg-surface-container-lowest hover:bg-surface-container-low transition-colors">
                   <input
                     type="checkbox"
                     checked={termsAccepted}
@@ -341,7 +341,7 @@ export default function OnboardingPage() {
               <button
                 onClick={saveStep1}
                 disabled={saving || !termsAccepted || !name.trim()}
-                className="w-full py-4 bg-primary rounded-2xl font-bold text-white hover:opacity-90 transition-opacity disabled:opacity-40 disabled:cursor-not-allowed text-sm active:scale-[0.98]"
+                className="w-full py-4 bg-primary rounded-[2rem] font-bold text-white hover:bg-[#a04100] transition-colors disabled:opacity-40 disabled:cursor-not-allowed text-sm active:scale-[0.98]"
               >
                 {saving ? "Saving…" : "Continue →"}
               </button>
@@ -355,13 +355,13 @@ export default function OnboardingPage() {
                 <div className="w-14 h-14 mx-auto bg-whatsapp/10 rounded-2xl flex items-center justify-center mb-5">
                   <svg className="w-7 h-7 fill-whatsapp" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L0 24l6.335-1.662c1.72.937 3.659 1.432 5.71 1.433h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
                 </div>
-                <h1 className="text-2xl sm:text-3xl font-[var(--font-headline)] font-extrabold tracking-tight mb-2">
+                <h1 className="text-2xl sm:text-3xl font-headline font-extrabold tracking-tight mb-2">
                   Set up WhatsApp ordering
                 </h1>
                 <p className="text-secondary">Customers will order directly to your phone</p>
               </div>
 
-              <div className="bg-white rounded-2xl border border-black/6 p-5 space-y-5">
+              <div className="bg-surface-container-lowest rounded-2xl border border-black/6 p-5 space-y-5">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="font-bold text-sm">Enable WhatsApp Ordering</p>
@@ -369,10 +369,10 @@ export default function OnboardingPage() {
                   </div>
                   <button
                     onClick={() => setWhatsappEnabled(!whatsappEnabled)}
-                    className={`w-12 h-7 rounded-full transition-all relative cursor-pointer shrink-0 ${whatsappEnabled ? "bg-whatsapp" : "bg-surface-container-highest"}`}
+                    className={`w-12 h-7 rounded-full transition-colors relative cursor-pointer shrink-0 ${whatsappEnabled ? "bg-whatsapp" : "bg-surface-container-highest"}`}
                     aria-label={whatsappEnabled ? "Disable WhatsApp" : "Enable WhatsApp"}
                   >
-                    <div className={`w-5 h-5 bg-white rounded-full absolute top-1 transition-all shadow-sm ${whatsappEnabled ? "right-1" : "left-1"}`} />
+                    <div className={`w-5 h-5 bg-white rounded-full absolute top-1 transition-colors shadow-sm ${whatsappEnabled ? "right-1" : "left-1"}`} />
                   </button>
                 </div>
 
@@ -383,7 +383,7 @@ export default function OnboardingPage() {
                     </label>
                     <input
                       id="ob-phone"
-                      className="w-full bg-[#faf8f6] border border-black/8 rounded-xl py-3.5 px-4 text-sm focus:ring-2 focus:ring-whatsapp/30 focus:border-whatsapp transition-all outline-none"
+                      className="w-full bg-surface-container-low border border-black/8 rounded-xl py-3.5 px-4 text-sm focus:ring-2 focus:ring-whatsapp/30 focus:border-whatsapp transition-colors outline-none"
                       value={phone}
                       onChange={(e) => setPhone(e.target.value)}
                       placeholder="+250 788 000 000"
@@ -396,16 +396,16 @@ export default function OnboardingPage() {
               </div>
 
               {whatsappEnabled && phone && (
-                <div className="bg-white rounded-2xl p-5 border border-black/6">
+                <div className="bg-surface-container-lowest rounded-2xl p-5 border border-black/6">
                   <p className="text-[10px] font-black text-secondary uppercase tracking-[0.2em] mb-3">How orders arrive</p>
                   <div className="flex items-start gap-3">
                     <div className="w-8 h-8 rounded-full bg-whatsapp/15 flex items-center justify-center text-whatsapp shrink-0">
                       <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L0 24l6.335-1.662c1.72.937 3.659 1.432 5.71 1.433h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
                     </div>
-                    <div className="bg-[#f0fdf4] rounded-2xl rounded-tl-sm p-4 shadow-sm text-sm text-on-surface leading-relaxed">
+                    <div className="bg-tertiary/10 rounded-2xl rounded-tl-sm p-4 shadow-sm text-sm text-on-surface leading-relaxed">
                       <p>Hello <span className="font-bold">{name || "Restaurant"}</span>, I&apos;d like to order:</p>
                       <p className="mt-1">· Classic Burger ×1</p>
-                      <p className="mt-2 font-bold text-green-700">Total: 5,000 {currency}</p>
+                      <p className="mt-2 font-bold text-tertiary">Total: 5,000 {currency}</p>
                     </div>
                   </div>
                 </div>
@@ -416,14 +416,14 @@ export default function OnboardingPage() {
               <div className="flex gap-3">
                 <button
                   onClick={() => { setError(null); setStep(1); }}
-                  className="px-5 py-4 bg-white border border-black/8 rounded-2xl font-bold text-sm text-secondary hover:bg-[#faf8f6] transition-all active:scale-[0.98]"
+                  className="px-5 py-4 bg-surface-container-lowest border border-black/8 rounded-2xl font-bold text-sm text-secondary hover:bg-surface-container-low transition-colors active:scale-[0.98]"
                 >
                   Back
                 </button>
                 <button
                   onClick={saveStep2}
                   disabled={saving}
-                  className="flex-1 py-4 bg-primary rounded-2xl font-bold text-white hover:opacity-90 transition-opacity disabled:opacity-50 text-sm active:scale-[0.98]"
+                  className="flex-1 py-4 bg-primary rounded-[2rem] font-bold text-white hover:bg-[#a04100] transition-colors disabled:opacity-50 text-sm active:scale-[0.98]"
                 >
                   {saving ? "Saving…" : whatsappEnabled ? "Save & Continue →" : "Skip & Continue →"}
                 </button>
@@ -436,23 +436,23 @@ export default function OnboardingPage() {
           {step === 3 && (
             <div className="space-y-6 animate-[fadeIn_0.3s_ease]">
               <div className="text-center">
-                <div className="w-14 h-14 mx-auto bg-gradient-to-tr from-primary to-primary-container rounded-2xl flex items-center justify-center mb-5 shadow-lg shadow-primary/25">
+                <div className="w-14 h-14 mx-auto bg-linear-to-tr from-primary to-primary-container rounded-2xl flex items-center justify-center mb-5 shadow-lg shadow-primary/25">
                   <span className="material-symbols-outlined text-white text-3xl icon-fill">rocket_launch</span>
                 </div>
-                <h1 className="text-2xl sm:text-3xl font-[var(--font-headline)] font-extrabold tracking-tight mb-1">
+                <h1 className="text-2xl sm:text-3xl font-headline font-extrabold tracking-tight mb-1">
                   {name ? `${name} is almost live!` : "Almost there!"}
                 </h1>
                 <p className="text-secondary text-sm">Your 14-day Pro trial is active — no card needed. How do you want to start?</p>
               </div>
 
               {/* Trial progress bar */}
-              <div className="bg-white rounded-2xl border border-black/6 p-4">
+              <div className="bg-surface-container-lowest rounded-2xl border border-black/6 p-4">
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-xs font-black uppercase tracking-widest text-secondary/60">Trial Progress</span>
                   <span className="text-xs font-bold text-primary">Day 1 of 14</span>
                 </div>
                 <div className="h-1.5 bg-surface-container-high rounded-full overflow-hidden">
-                  <div className="h-full bg-gradient-to-r from-primary to-primary-container rounded-full w-[7%]" />
+                  <div className="h-full bg-linear-to-r from-primary to-primary-container rounded-full w-[7%]" />
                 </div>
                 <p className="text-[11px] text-secondary/60 mt-2">Full Pro access — then choose your plan</p>
               </div>
@@ -462,7 +462,7 @@ export default function OnboardingPage() {
                 <button
                   onClick={() => finishOnboarding("upload")}
                   disabled={saving}
-                  className="group relative flex flex-col items-start p-6 bg-on-surface rounded-3xl text-left transition-all hover:opacity-90 active:scale-[0.98] disabled:opacity-60 cursor-pointer"
+                  className="group relative flex flex-col items-start p-6 bg-on-surface rounded-3xl text-left transition-colors hover:bg-black/70 active:scale-[0.98] disabled:opacity-60 cursor-pointer"
                 >
                   <div className="w-12 h-12 bg-white/15 rounded-2xl flex items-center justify-center text-white mb-4">
                     <span className="material-symbols-outlined text-2xl">auto_awesome</span>
@@ -470,7 +470,7 @@ export default function OnboardingPage() {
                   <div className="absolute top-4 right-4 bg-primary px-2.5 py-1 rounded-full">
                     <span className="text-white text-[9px] font-black uppercase tracking-wider">Fastest</span>
                   </div>
-                  <h3 className="text-lg font-[var(--font-headline)] font-bold text-white mb-1">Upload a Photo</h3>
+                  <h3 className="text-lg font-headline font-bold text-white mb-1">Upload a Photo</h3>
                   <p className="text-white/70 text-sm leading-snug">Take a photo of your existing menu — AI extracts all items in seconds.</p>
                   <div className="mt-5 flex items-center gap-1.5 text-white/80 font-bold text-xs">
                     {saving ? "Setting up…" : "Recommended"}
@@ -481,12 +481,12 @@ export default function OnboardingPage() {
                 <button
                   onClick={() => finishOnboarding("editor")}
                   disabled={saving}
-                  className="group flex flex-col items-start p-6 bg-white rounded-3xl text-left transition-all hover:bg-[#faf8f6] border border-black/6 active:scale-[0.98] disabled:opacity-60 cursor-pointer"
+                  className="group flex flex-col items-start p-6 bg-surface-container-lowest rounded-3xl text-left transition-colors hover:bg-surface-container-low border border-black/6 active:scale-[0.98] disabled:opacity-60 cursor-pointer"
                 >
                   <div className="w-12 h-12 bg-surface-container-low rounded-2xl flex items-center justify-center text-primary mb-4 shadow-sm">
                     <span className="material-symbols-outlined text-2xl">edit_note</span>
                   </div>
-                  <h3 className="text-lg font-[var(--font-headline)] font-bold text-on-surface mb-1">Start from Scratch</h3>
+                  <h3 className="text-lg font-headline font-bold text-on-surface mb-1">Start from Scratch</h3>
                   <p className="text-secondary text-sm leading-snug">Build your menu manually with full control over layout and style.</p>
                   <div className="mt-5 flex items-center gap-1.5 text-primary font-bold text-xs">
                     {saving ? "Setting up…" : "Open Editor"}

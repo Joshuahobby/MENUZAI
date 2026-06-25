@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import webpush from "web-push";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
 
 export const dynamic = "force-dynamic";
@@ -139,7 +140,51 @@ export async function POST(req: Request) {
       );
     }
 
-    const results = await Promise.allSettled(promises);
+    // Push notification (runs in parallel with emails, best-effort)
+    const pushPromise = (async () => {
+      const publicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY ?? process.env.VAPID_PUBLIC_KEY;
+      const privateKey = process.env.VAPID_PRIVATE_KEY;
+      const contact = process.env.VAPID_CONTACT_EMAIL;
+      if (!publicKey || !privateKey || !contact) return;
+      try {
+        webpush.setVapidDetails(`mailto:${contact}`, publicKey, privateKey);
+        const { data: subs } = await supabaseAdmin
+          .from("push_subscriptions")
+          .select("id, subscription")
+          .eq("restaurant_id", restaurantId);
+        if (!subs?.length) return;
+        const itemCount = (items as { quantity: number }[]).reduce((s, i) => s + (i.quantity ?? 1), 0);
+        const pushBody = [
+          customerName ? `From ${esc(customerName)}` : null,
+          tableNumber ? `Table ${tableNumber}` : null,
+          `${itemCount} item${itemCount !== 1 ? "s" : ""}`,
+        ].filter(Boolean).join(" · ") || "A new order has arrived";
+        const payload = JSON.stringify({
+          title: `New Order — ${restaurant.name}`,
+          body: pushBody,
+          url: "/dashboard/orders",
+        });
+        const staleIds: string[] = [];
+        await Promise.allSettled(
+          subs.map(async (row) => {
+            try {
+              await webpush.sendNotification(row.subscription as webpush.PushSubscription, payload);
+            } catch (err: unknown) {
+              if (err instanceof Error && "statusCode" in err && (err as { statusCode: number }).statusCode === 410) {
+                staleIds.push(row.id);
+              }
+            }
+          })
+        );
+        if (staleIds.length > 0) {
+          await supabaseAdmin.from("push_subscriptions").delete().in("id", staleIds);
+        }
+      } catch {
+        // Push is best-effort — don't surface errors to the caller
+      }
+    })();
+
+    const [results] = await Promise.all([Promise.allSettled(promises), pushPromise]);
     const anyFailed = results.some(r => r.status === "rejected" || (r.status === "fulfilled" && !r.value.ok));
 
     if (anyFailed) {

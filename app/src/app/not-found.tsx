@@ -2,19 +2,19 @@ import Link from "next/link";
 
 export default function NotFound() {
   return (
-    <div className="min-h-screen bg-[#faf8f6] flex flex-col items-center justify-center p-6 text-center">
+    <div className="min-h-screen bg-surface flex flex-col items-center justify-center p-6 text-center">
       {/* Logo */}
       <Link href="/" className="flex items-center gap-2 mb-16">
         <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
           <span className="material-symbols-outlined text-white icon-fill text-lg">restaurant_menu</span>
         </div>
-        <span className="font-[var(--font-headline)] font-black text-base tracking-tight">
+        <span className="font-headline font-black text-base tracking-tight">
           MENUZA <span className="text-primary">AI</span>
         </span>
       </Link>
 
       {/* 404 */}
-      <p className="text-[120px] lg:text-[160px] font-black font-[var(--font-headline)] leading-none text-black/6 select-none mb-0">
+      <p className="text-[120px] lg:text-[160px] font-black font-headline leading-none text-black/6 select-none mb-0">
         404
       </p>
 
@@ -36,13 +36,13 @@ export default function NotFound() {
       <div className="flex flex-col sm:flex-row items-center gap-3">
         <Link
           href="/"
-          className="px-6 py-3 bg-primary text-white text-sm font-bold rounded-xl hover:opacity-90 transition-opacity"
+          className="px-6 py-3 bg-primary text-white text-sm font-bold rounded-[2rem] hover:bg-[#a04100] transition-colors"
         >
           Back to Home
         </Link>
         <Link
           href="/dashboard"
-          className="px-6 py-3 bg-white border border-black/8 text-on-surface text-sm font-bold rounded-xl hover:bg-surface-container shadow-sm transition-colors"
+          className="px-6 py-3 bg-surface-container-lowest border border-black/8 text-on-surface text-sm font-bold rounded-xl hover:bg-surface-container-low shadow-sm transition-colors"
         >
           Go to Dashboard
         </Link>

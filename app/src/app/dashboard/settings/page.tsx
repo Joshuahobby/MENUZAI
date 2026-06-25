@@ -310,7 +310,7 @@ export default function SettingsPage() {
           <div className="w-16 h-16 rounded-2xl bg-error/10 text-error flex items-center justify-center mb-6">
             <span className="material-symbols-outlined text-3xl icon-fill">gpp_maybe</span>
           </div>
-          <h2 className="text-xl font-[var(--font-headline)] font-extrabold tracking-tight mb-2">
+          <h2 className="text-xl font-headline font-extrabold tracking-tight mb-2">
             Access Restricted
           </h2>
           <p className="text-sm text-secondary mb-6 leading-relaxed">
@@ -318,7 +318,7 @@ export default function SettingsPage() {
           </p>
           <a
             href="/dashboard"
-            className="px-6 py-3 bg-gradient-to-br from-primary to-primary-container rounded-xl font-bold text-sm text-white shadow-lg shadow-primary/20 hover:opacity-90 active:scale-95 transition-all text-center block w-full"
+            className="px-6 py-3 bg-linear-to-br from-primary to-primary-container rounded-xl font-bold text-sm text-white shadow-lg shadow-primary/20 hover:bg-[#a04100] active:scale-95 transition-colors text-center block w-full"
           >
             Return to Dashboard
           </a>
@@ -341,7 +341,7 @@ export default function SettingsPage() {
       />
 
       <div className="mb-10">
-        <h1 className="text-3xl font-[var(--font-headline)] font-extrabold tracking-tight mb-1">Settings</h1>
+        <h1 className="text-3xl font-headline font-extrabold tracking-tight mb-1">Settings</h1>
         <p className="text-secondary">Manage your restaurant profile and WhatsApp ordering</p>
       </div>
 
@@ -349,7 +349,7 @@ export default function SettingsPage() {
 
         {/* Plan & Billing */}
         <div className="bg-surface-container-lowest p-6 sm:p-8 rounded-[2rem] border border-surface-container/50 lg:col-span-2">
-          <h3 className="font-[var(--font-headline)] font-bold text-lg mb-2">Subscription & Plan</h3>
+          <h3 className="font-headline font-bold text-lg mb-2">Subscription & Plan</h3>
           <p className="text-sm text-secondary mb-5">
             You are on the{" "}
             <span className="font-bold text-primary uppercase">{restaurantPlan}</span> plan.
@@ -362,14 +362,14 @@ export default function SettingsPage() {
               <button
                 type="button"
                 onClick={() => setIsAnnual(false)}
-                className={`px-5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${!isAnnual ? "bg-on-surface text-surface shadow-sm" : "text-secondary hover:text-on-surface"}`}
+                className={`px-5 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer ${!isAnnual ? "bg-on-surface text-surface shadow-sm" : "text-secondary hover:text-on-surface"}`}
               >
                 Monthly
               </button>
               <button
                 type="button"
                 onClick={() => setIsAnnual(true)}
-                className={`px-5 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-2 cursor-pointer ${isAnnual ? "bg-on-surface text-surface shadow-sm" : "text-secondary hover:text-on-surface"}`}
+                className={`px-5 py-1.5 rounded-lg text-xs font-semibold transition-colors flex items-center gap-2 cursor-pointer ${isAnnual ? "bg-on-surface text-surface shadow-sm" : "text-secondary hover:text-on-surface"}`}
               >
                 Annual
                 <span className={`text-[8px] font-black tracking-widest uppercase px-1.5 py-0.5 rounded-full transition-colors ${isAnnual ? "bg-white/15 text-white" : "bg-primary/10 text-primary"}`}>
@@ -388,7 +388,7 @@ export default function SettingsPage() {
             const fpRank = PLAN_ORDER[fpKey] ?? 0;
             const isDowngradable = fpRank < currentRank;
             return (
-              <div className={`flex flex-wrap items-center justify-between gap-4 rounded-2xl px-6 py-4 mb-4 border transition-all ${isCurrent ? "border-primary bg-primary/5 ring-2 ring-primary ring-offset-2" : "border-surface-container bg-surface-container-lowest"}`}>
+              <div className={`flex flex-wrap items-center justify-between gap-4 rounded-2xl px-6 py-4 mb-4 border transition-colors ${isCurrent ? "border-primary bg-primary/5 ring-2 ring-primary ring-offset-2" : "border-surface-container bg-surface-container-lowest"}`}>
                 <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
                   {isCurrent && (
                     <span className="text-[10px] font-bold bg-primary text-white px-2.5 py-0.5 rounded-full uppercase tracking-widest shrink-0">
@@ -435,7 +435,7 @@ export default function SettingsPage() {
               return (
                 <div
                   key={p.name}
-                  className={`relative flex flex-col p-6 rounded-2xl border transition-all ${isCurrent ? "border-primary bg-primary/5 ring-2 ring-primary ring-offset-2" : "border-surface-container bg-surface-container-lowest"}`}
+                  className={`relative flex flex-col p-6 rounded-2xl border transition-colors ${isCurrent ? "border-primary bg-primary/5 ring-2 ring-primary ring-offset-2" : "border-surface-container bg-surface-container-lowest"}`}
                 >
                   {isCurrent && (
                     <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary text-white text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-widest">
@@ -443,7 +443,7 @@ export default function SettingsPage() {
                     </span>
                   )}
                   <div className="mb-4">
-                    <p className="font-[var(--font-headline)] font-bold text-base">{p.name}</p>
+                    <p className="font-headline font-bold text-base">{p.name}</p>
                     <p className="text-2xl font-black mt-1">
                       {displayPrice}
                       <span className="text-xs font-normal text-secondary">{displayPeriod}</span>
@@ -481,7 +481,7 @@ export default function SettingsPage() {
                         type="button"
                         onClick={() => handleUpgrade(`${p.name} (${isAnnual ? "Annual" : "Monthly"})`, computedAmount)}
                         disabled={changingPlan}
-                        className="w-full py-2.5 text-center text-xs font-bold text-white bg-gradient-to-tr from-primary to-primary-container rounded-xl shadow shadow-primary/20 hover:opacity-90 active:scale-95 transition-all disabled:opacity-50"
+                        className="w-full py-2.5 text-center text-xs font-bold text-white bg-linear-to-tr from-primary to-primary-container rounded-xl shadow shadow-primary/20 hover:bg-[#a04100] active:scale-95 transition-colors disabled:opacity-50"
                       >
                         Upgrade to {p.name}
                       </button>
@@ -504,7 +504,7 @@ export default function SettingsPage() {
 
         {/* Logo Upload */}
         <div className="bg-surface-container-lowest p-6 sm:p-8 rounded-[2rem] border border-surface-container/50 lg:col-span-2">
-          <h3 className="font-[var(--font-headline)] font-bold text-lg mb-6">Restaurant Logo</h3>
+          <h3 className="font-headline font-bold text-lg mb-6">Restaurant Logo</h3>
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6">
             {/* Preview */}
             <div
@@ -569,7 +569,7 @@ export default function SettingsPage() {
 
         {/* Restaurant Info */}
         <div className="bg-surface-container-lowest p-6 sm:p-8 rounded-[2rem] border border-surface-container/50">
-          <h3 className="font-[var(--font-headline)] font-bold text-lg mb-6">Restaurant Info</h3>
+          <h3 className="font-headline font-bold text-lg mb-6">Restaurant Info</h3>
           <div className="space-y-5">
             <div>
               <label className="text-xs font-bold text-secondary uppercase tracking-[0.2em] mb-2 block" htmlFor="restaurant-name">Restaurant Name</label>
@@ -589,7 +589,7 @@ export default function SettingsPage() {
             <button
               onClick={saveRestaurantInfo}
               disabled={savingInfo}
-              className="w-full py-3 bg-gradient-to-br from-primary to-primary-container rounded-xl font-bold text-sm text-white shadow-lg shadow-primary/20 hover:opacity-90 transition-all active:scale-95 mt-4 disabled:opacity-60">
+              className="w-full py-3 bg-linear-to-br from-primary to-primary-container rounded-xl font-bold text-sm text-white shadow-lg shadow-primary/20 hover:bg-[#a04100] transition-colors active:scale-95 mt-4 disabled:opacity-60">
               {savingInfo ? "Saving..." : savedInfo ? "Saved!" : "Save Changes"}
             </button>
           </div>
@@ -597,7 +597,7 @@ export default function SettingsPage() {
 
         {/* Currency */}
         <div className="bg-surface-container-lowest p-6 sm:p-8 rounded-[2rem] border border-surface-container/50">
-          <h3 className="font-[var(--font-headline)] font-bold text-lg mb-2">Currency</h3>
+          <h3 className="font-headline font-bold text-lg mb-2">Currency</h3>
           <p className="text-xs text-secondary mb-6">Applied to all prices on your active menu and customer-facing pages.</p>
           <div className="space-y-5">
             <div>
@@ -622,7 +622,7 @@ export default function SettingsPage() {
             <button
               type="button"
               onClick={saveCurrency}
-              className="w-full py-3 bg-gradient-to-br from-primary to-primary-container rounded-xl font-bold text-sm text-white shadow-lg shadow-primary/20 hover:opacity-90 transition-all active:scale-95">
+              className="w-full py-3 bg-linear-to-br from-primary to-primary-container rounded-xl font-bold text-sm text-white shadow-lg shadow-primary/20 hover:bg-[#a04100] transition-colors active:scale-95">
               Save Currency
             </button>
           </div>
@@ -636,10 +636,10 @@ export default function SettingsPage() {
                 <span className="material-symbols-outlined text-3xl text-primary icon-fill">workspace_premium</span>
               </div>
               <div>
-                <p className="font-[var(--font-headline)] font-bold text-lg mb-1">AI Waiter is a Pro Feature</p>
+                <p className="font-headline font-bold text-lg mb-1">AI Waiter is a Pro Feature</p>
                 <p className="text-sm text-secondary max-w-xs">Upgrade to Pro to deploy an AI Digital Waiter on your public menu that answers questions, upsells, and drives orders 24/7.</p>
               </div>
-              <a href="/pricing" className="px-6 py-3 bg-primary-container text-white font-bold rounded-xl text-sm hover:shadow-lg transition-all active:scale-95">
+              <a href="/pricing" className="px-6 py-3 bg-primary-container text-white font-bold rounded-[2rem] text-sm hover:bg-[#a04100] transition-colors active:scale-95">
                 Upgrade to Pro →
               </a>
             </div>
@@ -649,7 +649,7 @@ export default function SettingsPage() {
               <span className="material-symbols-outlined text-2xl icon-fill font-bold">robot_2</span>
             </div>
             <div>
-              <h3 className="font-[var(--font-headline)] font-bold text-lg">AI Digital Waiter Assistant</h3>
+              <h3 className="font-headline font-bold text-lg">AI Digital Waiter Assistant</h3>
               <p className="text-xs text-secondary mt-0.5">Customize your AI waiter&apos;s personality, upselling logic, and menu guidelines</p>
             </div>
           </div>
@@ -671,7 +671,7 @@ export default function SettingsPage() {
                         key={t.id}
                         type="button"
                         onClick={() => setAiTone(t.id as "friendly" | "formal" | "vibrant")}
-                        className={`flex flex-col items-center justify-center p-4 rounded-xl border text-center transition-all cursor-pointer ${isSelected ? "border-primary bg-primary/5 text-primary ring-2 ring-primary/20 font-bold" : "border-surface-container hover:bg-surface-container-low text-secondary"}`}
+                        className={`flex flex-col items-center justify-center p-4 rounded-xl border text-center transition-colors cursor-pointer ${isSelected ? "border-primary bg-primary/5 text-primary ring-2 ring-primary/20 font-bold" : "border-surface-container hover:bg-surface-container-low text-secondary"}`}
                       >
                         <span className="material-symbols-outlined text-xl mb-2">{t.icon}</span>
                         <span className="text-[10px]">{t.name}</span>
@@ -711,7 +711,7 @@ export default function SettingsPage() {
                 type="button"
                 onClick={saveAiSettings}
                 disabled={savingAiSettings}
-                className="w-full py-3.5 bg-gradient-to-br from-primary to-primary-container rounded-xl font-bold text-sm text-white shadow-lg shadow-primary/20 hover:opacity-90 transition-all active:scale-95 disabled:opacity-60 cursor-pointer"
+                className="w-full py-3.5 bg-linear-to-br from-primary to-primary-container rounded-xl font-bold text-sm text-white shadow-lg shadow-primary/20 hover:bg-[#a04100] transition-colors active:scale-95 disabled:opacity-60 cursor-pointer"
               >
                 {savingAiSettings ? "Saving Settings..." : savedAiSettings ? "AI Settings Saved!" : "Save AI Customization"}
               </button>
@@ -762,7 +762,7 @@ export default function SettingsPage() {
 
         {/* Account */}
         <div className="bg-surface-container-lowest p-6 sm:p-8 rounded-[2rem] border border-surface-container/50 lg:col-span-2">
-          <h3 className="font-[var(--font-headline)] font-bold text-lg mb-6">Account</h3>
+          <h3 className="font-headline font-bold text-lg mb-6">Account</h3>
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary shrink-0">
@@ -777,7 +777,7 @@ export default function SettingsPage() {
               type="button"
               onClick={signOut}
               disabled={signingOut}
-              className="flex items-center gap-2 px-5 py-3 bg-surface-container-high text-secondary font-bold rounded-xl text-sm hover:bg-error/10 hover:text-error transition-all disabled:opacity-50"
+              className="flex items-center gap-2 px-5 py-3 bg-surface-container-high text-secondary font-bold rounded-xl text-sm hover:bg-error/10 hover:text-error transition-colors disabled:opacity-50"
             >
               <span className="material-symbols-outlined text-[18px]">logout</span>
               {signingOut ? "Signing out…" : "Sign Out"}
@@ -798,7 +798,7 @@ export default function SettingsPage() {
                 type="button"
                 onClick={handleDeleteAccount}
                 disabled={deletingAccount}
-                className="shrink-0 flex items-center gap-2 px-5 py-2.5 bg-error/10 text-error font-bold rounded-xl text-sm hover:bg-error hover:text-white transition-all disabled:opacity-50"
+                className="shrink-0 flex items-center gap-2 px-5 py-2.5 bg-error/10 text-error font-bold rounded-xl text-sm hover:bg-error hover:text-white transition-colors disabled:opacity-50"
               >
                 <span className="material-symbols-outlined text-[18px]">delete_forever</span>
                 {deletingAccount ? "Deleting…" : "Delete Account"}
@@ -814,10 +814,10 @@ export default function SettingsPage() {
               <span className="material-symbols-outlined text-2xl icon-fill">workspace_premium</span>
             </div>
             <div className="flex-1">
-              <p className="font-[var(--font-headline)] font-bold text-lg">Team & Staff Management</p>
+              <p className="font-headline font-bold text-lg">Team & Staff Management</p>
               <p className="text-sm text-secondary mt-0.5">Invite managers and staff, assign roles, and manage access — available on Pro and Business plans.</p>
             </div>
-            <a href="/pricing" className="shrink-0 px-5 py-2.5 bg-primary-container text-white font-bold rounded-xl text-sm hover:shadow-lg transition-all active:scale-95">
+            <a href="/pricing" className="shrink-0 px-5 py-2.5 bg-primary-container text-white font-bold rounded-[2rem] text-sm hover:bg-[#a04100] transition-colors active:scale-95">
               Upgrade to Pro →
             </a>
           </div>
@@ -831,15 +831,15 @@ export default function SettingsPage() {
             <CustomDomainSection restaurantId={restaurantId} />
           ) : (
             <div className="bg-surface-container-lowest p-6 sm:p-8 rounded-[2rem] border border-surface-container/50 lg:col-span-2">
-              <p className="font-[var(--font-headline)] font-bold text-lg mb-1">Custom Domain</p>
+              <p className="font-headline font-bold text-lg mb-1">Custom Domain</p>
               <p className="text-sm text-secondary mb-4">Point your own domain to your menu so customers see your brand, not ours.</p>
-              <div className="flex items-center gap-3 p-4 bg-amber-500/5 border border-amber-500/20 rounded-xl">
+              <div className="flex items-center gap-3 p-4 bg-accent-saffron/10 border border-accent-saffron/30 rounded-xl">
                 <span className="material-symbols-outlined text-amber-600 text-[20px] icon-fill">workspace_premium</span>
                 <div className="flex-1">
                   <p className="text-sm font-semibold text-on-surface">Business plan only</p>
                   <p className="text-xs text-secondary">Upgrade to Business to use a custom domain (e.g. menu.yourrestaurant.com).</p>
                 </div>
-                <a href="/pricing" className="shrink-0 px-4 py-2 bg-amber-500 text-white font-bold rounded-xl text-xs hover:bg-amber-600 transition-all">
+                <a href="/pricing" className="shrink-0 px-4 py-2 bg-primary text-white font-bold rounded-[2rem] text-xs hover:bg-[#a04100] transition-colors">
                   Upgrade →
                 </a>
               </div>
@@ -852,7 +852,7 @@ export default function SettingsPage() {
           <div className="bg-surface-container-lowest p-6 sm:p-8 rounded-[2rem] border border-surface-container/50 lg:col-span-2">
             <div className="flex items-center justify-between mb-6">
               <div>
-                <p className="font-[var(--font-headline)] font-bold text-lg">Locations</p>
+                <p className="font-headline font-bold text-lg">Locations</p>
                 <p className="text-sm text-secondary mt-0.5">Manage multiple restaurant locations under one account.</p>
               </div>
               <button
@@ -862,7 +862,7 @@ export default function SettingsPage() {
                   const locationName = await prompt({ title: "New Location", message: "Enter the name for this location:", placeholder: "e.g. Kimironko Branch" });
                   if (locationName) await createRestaurantLocation(locationName);
                 }}
-                className="flex items-center gap-2 px-4 py-2 bg-primary text-white text-sm font-bold rounded-xl hover:bg-primary/90 transition-colors"
+                className="flex items-center gap-2 px-4 py-2 bg-primary text-white text-sm font-bold rounded-xl hover:bg-[#a04100] transition-colors"
               >
                 <span className="material-symbols-outlined text-[18px]">add_location</span>
                 Add Location
@@ -896,15 +896,15 @@ export default function SettingsPage() {
         {/* WhatsApp Settings */}
         <div className="bg-surface-container-lowest p-6 sm:p-8 rounded-[2rem] border border-surface-container/50 lg:col-span-2">
           <div className="flex items-center justify-between mb-6">
-            <h3 className="font-[var(--font-headline)] font-bold text-lg flex items-center gap-2">
+            <h3 className="font-headline font-bold text-lg flex items-center gap-2">
               <svg className="w-5 h-5 fill-whatsapp" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L0 24l6.335-1.662c1.72.937 3.659 1.432 5.71 1.433h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
               WhatsApp Ordering
             </h3>
             <button type="button" onClick={() => setWhatsappEnabled(!whatsappEnabled)}
               title={whatsappEnabled ? "Disable WhatsApp Ordering" : "Enable WhatsApp Ordering"}
               aria-label={whatsappEnabled ? "Disable WhatsApp Ordering" : "Enable WhatsApp Ordering"}
-              className={`w-12 h-7 rounded-full transition-all relative ${whatsappEnabled ? "bg-whatsapp" : "bg-surface-container-highest"}`}>
-              <div className={`w-5 h-5 bg-white rounded-full absolute top-1 transition-all shadow-sm ${whatsappEnabled ? "right-1" : "left-1"}`}></div>
+              className={`w-12 h-7 rounded-full transition-colors relative ${whatsappEnabled ? "bg-whatsapp" : "bg-surface-container-highest"}`}>
+              <div className={`w-5 h-5 bg-white rounded-full absolute top-1 transition-colors shadow-sm ${whatsappEnabled ? "right-1" : "left-1"}`}></div>
             </button>
           </div>
 
@@ -933,7 +933,7 @@ export default function SettingsPage() {
                 <button
                   onClick={saveWhatsAppSettings}
                   disabled={savingWhatsApp}
-                  className="w-full py-3 bg-whatsapp hover:bg-whatsapp-dark text-white rounded-xl font-bold transition-all active:scale-95 disabled:opacity-60">
+                  className="w-full py-3 bg-whatsapp hover:bg-whatsapp-dark text-white rounded-xl font-bold transition-colors active:scale-95 disabled:opacity-60">
                   {savingWhatsApp ? "Saving..." : savedWhatsApp ? "Saved!" : "Save WhatsApp Settings"}
                 </button>
               </div>
@@ -944,7 +944,7 @@ export default function SettingsPage() {
                     <div className="w-8 h-8 rounded-full bg-whatsapp/20 flex items-center justify-center text-whatsapp shrink-0">
                       <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L0 24l6.335-1.662c1.72.937 3.659 1.432 5.71 1.433h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
                     </div>
-                    <div className="bg-white rounded-2xl rounded-tl-sm p-4 shadow-sm text-sm text-on-surface leading-relaxed">
+                    <div className="bg-surface-container-lowest rounded-2xl rounded-tl-sm p-4 shadow-sm text-sm text-on-surface leading-relaxed">
                       <p>Hello, I&apos;d like to order:</p>
                       <p className="mt-1">• Classic Burger x1</p>
                       <p>• Summer Spritz x2</p>
@@ -963,7 +963,7 @@ export default function SettingsPage() {
         {userRole === "owner" && (
           <div className="bg-surface-container-lowest p-6 sm:p-8 rounded-[2rem] border border-surface-container/50 lg:col-span-2">
             <div className="flex items-center justify-between mb-2">
-              <h3 className="font-[var(--font-headline)] font-bold text-lg flex items-center gap-2">
+              <h3 className="font-headline font-bold text-lg flex items-center gap-2">
                 <span className="material-symbols-outlined text-primary icon-fill text-[22px]">payments</span>
                 Online Payments
               </h3>
@@ -979,9 +979,9 @@ export default function SettingsPage() {
                   setSavingPayments(false);
                 }}
                 aria-label={paymentsEnabled ? "Disable online payments" : "Enable online payments"}
-                className={`w-12 h-7 rounded-full transition-all relative disabled:opacity-50 ${paymentsEnabled ? "bg-primary" : "bg-surface-container-highest"}`}
+                className={`w-12 h-7 rounded-full transition-colors relative disabled:opacity-50 ${paymentsEnabled ? "bg-primary" : "bg-surface-container-highest"}`}
               >
-                <div className={`w-5 h-5 bg-white rounded-full absolute top-1 transition-all shadow-sm ${paymentsEnabled ? "right-1" : "left-1"}`} />
+                <div className={`w-5 h-5 bg-white rounded-full absolute top-1 transition-colors shadow-sm ${paymentsEnabled ? "right-1" : "left-1"}`} />
               </button>
             </div>
             <p className="text-sm text-secondary mb-4">Let customers pay via Mobile Money (MTN MoMo / Airtel) directly at checkout instead of paying on delivery.</p>
@@ -1021,7 +1021,7 @@ function CustomDomainSection({ restaurantId }: { restaurantId: string | null }) 
 
   return (
     <div className="bg-surface-container-lowest p-6 sm:p-8 rounded-[2rem] border border-surface-container/50 lg:col-span-2">
-      <p className="font-[var(--font-headline)] font-bold text-lg mb-1">Custom Domain</p>
+      <p className="font-headline font-bold text-lg mb-1">Custom Domain</p>
       <p className="text-sm text-secondary mb-6">Point your own domain to this menu. Visitors who open your domain will see your published menu directly.</p>
 
       <div className="flex gap-3 mb-6">
@@ -1033,7 +1033,7 @@ function CustomDomainSection({ restaurantId }: { restaurantId: string | null }) 
           className="flex-1 bg-surface-container-low border border-outline-variant/30 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 font-mono"
         />
         <button type="button" onClick={handleSave} disabled={saving || domain === saved}
-          className="px-5 py-3 bg-primary text-white text-sm font-bold rounded-xl hover:bg-primary/90 transition-colors disabled:opacity-50">
+          className="px-5 py-3 bg-primary text-white text-sm font-bold rounded-[2rem] hover:bg-[#a04100] transition-colors disabled:opacity-50">
           {saving ? "Saving…" : "Save"}
         </button>
       </div>

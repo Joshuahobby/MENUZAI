@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { getSupabasePublicClient } from "@/lib/supabase-public";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
@@ -5,6 +6,18 @@ import { Suspense } from "react";
 import PublicMenuClient from "./PublicMenuClient";
 import { showBranding } from "@/lib/plans";
 import type { MenuItem } from "@/types/menu";
+
+const fetchPublicMenu = cache(async (slug: string) => {
+  const supabase = getSupabasePublicClient();
+  const { data } = await supabase
+    .from("menus")
+    .select("id, name, slug, categories, items, style, view_count, restaurant_id, restaurants!inner(name, phone, tagline, logo_url, plan, trial_ends_at, payments_enabled)")
+    .eq("slug", slug)
+    .eq("status", "published")
+    .limit(1)
+    .maybeSingle();
+  return data;
+});
 
 // Re-render at most every 60 seconds — menu content rarely changes mid-service.
 // View count increments fire on each regeneration only (approximate, intentional).
@@ -16,15 +29,7 @@ interface PageProps {
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
-  const supabase = getSupabasePublicClient();
-
-  const { data: menu } = await supabase
-    .from("menus")
-    .select("name, items, restaurants!inner(name, tagline)")
-    .eq("slug", slug)
-    .eq("status", "published")
-    .limit(1)
-    .maybeSingle();
+  const menu = await fetchPublicMenu(slug);
 
   if (!menu) return { title: "Menu Not Found" };
 
@@ -58,15 +63,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function PublicMenuPage({ params }: PageProps) {
   const { slug } = await params;
-  const supabase = getSupabasePublicClient();
-
-  const { data: menu } = await supabase
-    .from("menus")
-    .select("id, name, slug, categories, items, style, view_count, restaurant_id, restaurants!inner(name, phone, tagline, logo_url, plan, trial_ends_at, payments_enabled)")
-    .eq("slug", slug)
-    .eq("status", "published")
-    .limit(1)
-    .maybeSingle();
+  const menu = await fetchPublicMenu(slug);
 
   if (!menu) notFound();
 
@@ -77,7 +74,7 @@ export default async function PublicMenuPage({ params }: PageProps) {
   const aiWaiterEnabled = plan !== "free" || (trialEndsAt != null && new Date(trialEndsAt) > new Date());
 
   // Increment view count (fire and forget)
-  supabase
+  getSupabasePublicClient()
     .from("menus")
     .update({ view_count: (menu.view_count ?? 0) + 1 })
     .eq("id", menu.id)

@@ -66,7 +66,7 @@ export function QRPosterRenderer({ data, url, className = "", id }: QRPosterRend
                 )}
                 
                 <div className={`${isA4 ? 'mt-6 space-y-4' : 'mt-1 space-y-2'}`}>
-                  <h2 className={`${isA4 ? 'text-7xl' : 'text-xl'} font-[var(--font-headline)] font-black uppercase tracking-tight leading-tight qp-primary-color`}>
+                  <h2 className={`${isA4 ? 'text-7xl' : 'text-xl'} font-headline font-black uppercase tracking-tight leading-tight qp-primary-color`}>
                     {headline}
                   </h2>
                   <div className={`${isA4 ? 'h-1.5 w-20' : 'h-1 w-12'} bg-primary/20 mx-auto rounded-full`} />
@@ -111,7 +111,7 @@ export function QRPosterRenderer({ data, url, className = "", id }: QRPosterRend
             {backgroundImage && (
               <>
                 <NextImage src={backgroundImage} alt="Background" fill className="object-cover opacity-60 scale-110" />
-                <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-transparent to-black/90" />
+                <div className="absolute inset-0 bg-linear-to-b from-black/80 via-transparent to-black/90" />
               </>
             )}
             
@@ -121,7 +121,7 @@ export function QRPosterRenderer({ data, url, className = "", id }: QRPosterRend
                 <span className={`${isA4 ? 'text-lg' : 'text-[10px]'} font-black text-white/50 uppercase tracking-[0.4em]`}>Restaurant</span>
                 <div className="h-[1px] w-8 bg-white/30" />
               </div>
-              <h2 className={`${isA4 ? 'text-8xl' : 'text-3xl'} font-[var(--font-headline)] font-black text-white uppercase tracking-tighter leading-none`}>
+              <h2 className={`${isA4 ? 'text-8xl' : 'text-3xl'} font-headline font-black text-white uppercase tracking-tighter leading-none`}>
                 {headline}
               </h2>
               <p className={`${isA4 ? 'text-2xl' : 'text-[11px]'} font-bold text-white/80 tracking-wide`}>{subheadline}</p>
@@ -166,7 +166,7 @@ export function QRPosterRenderer({ data, url, className = "", id }: QRPosterRend
       case "elegant-minimal":
         return (
           <div className="w-full h-full bg-surface-container-lowest flex flex-col items-center justify-center p-12 relative overflow-hidden qp-text-color">
-            <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-primary to-primary-container" />
+            <div className="absolute top-0 left-0 w-full h-2 bg-linear-to-r from-primary to-primary-container" />
             
             <div className="flex flex-col items-center gap-8 w-full">
               <div className="text-center">
@@ -175,7 +175,7 @@ export function QRPosterRenderer({ data, url, className = "", id }: QRPosterRend
                   <span className="text-[9px] font-black uppercase tracking-[0.3em] text-secondary">Welcome</span>
                   <div className="w-8 h-[1px] bg-outline-variant" />
                 </div>
-                <h2 className={`${isA4 ? 'text-7xl' : 'text-2xl'} font-[var(--font-headline)] font-extrabold tracking-tight mb-4`}>
+                <h2 className={`${isA4 ? 'text-7xl' : 'text-2xl'} font-headline font-extrabold tracking-tight mb-4`}>
                   {headline}
                 </h2>
                 <p className={`${isA4 ? 'text-2xl' : 'text-xs'} font-medium text-secondary`}>{subheadline}</p>

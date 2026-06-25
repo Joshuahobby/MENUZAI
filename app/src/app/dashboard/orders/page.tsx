@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { useMenu } from "@/context/MenuContext";
@@ -52,11 +52,11 @@ const STATUS_TABS: { value: StatusFilter; label: string }[] = [
 ];
 
 const STATUS_STYLE = {
-  pending_payment: { badge: "bg-violet-500/10 text-violet-700 dark:text-violet-400", dot: "bg-violet-500",  icon: "hourglass_top" },
-  pending:         { badge: "bg-amber-500/10 text-amber-700 dark:text-amber-400",     dot: "bg-amber-500",   icon: "pending" },
-  preparing:       { badge: "bg-blue-500/10 text-blue-700 dark:text-blue-400",       dot: "bg-blue-500",    icon: "skillet" },
-  confirmed:       { badge: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400", dot: "bg-emerald-500", icon: "check_circle" },
-  cancelled:       { badge: "bg-rose-500/10 text-rose-700 dark:text-rose-400",       dot: "bg-rose-500",    icon: "cancel" },
+  pending_payment: { badge: "bg-accent-saffron/15 text-amber-700", dot: "bg-accent-saffron",  icon: "hourglass_top" },
+  pending:         { badge: "bg-accent-saffron/15 text-amber-700",     dot: "bg-accent-saffron",   icon: "pending" },
+  preparing:       { badge: "bg-secondary-container text-secondary",               dot: "bg-secondary",    icon: "skillet" },
+  confirmed:       { badge: "bg-tertiary/10 text-tertiary",                           dot: "bg-tertiary",     icon: "check_circle" },
+  cancelled:       { badge: "bg-error/10 text-error",                                dot: "bg-error",        icon: "cancel" },
 };
 
 function SkeletonOrder() {
@@ -103,6 +103,7 @@ export default function OrdersPage() {
   const [notifPermission, setNotifPermission] = useState<NotificationPermission | null>(null);
   const [newOrderFlash, setNewOrderFlash] = useState(false);
   const [showPermissionPrompt, setShowPermissionPrompt] = useState(false);
+  const [view, setView] = useState<"list" | "floor">("list");
   const initialLoadDone = useRef(false);
   const soundEnabledRef = useRef(soundEnabled);
   const audioCtxRef = useRef<AudioContext | null>(null);
@@ -462,8 +463,8 @@ export default function OrdersPage() {
   const urgencyClass = (order: OrderRow) => {
     if (order.status !== "pending" && order.status !== "preparing" && order.status !== "pending_payment") return null;
     const m = getWaitMinutes(order.created_at);
-    if (m >= 15) return { chip: "bg-red-500/10 text-red-600", label: `${m}m ⚠️` };
-    if (m >= 5) return { chip: "bg-amber-500/10 text-amber-600", label: `${m}m` };
+    if (m >= 15) return { chip: "bg-error/10 text-error", label: `${m}m ⚠️` };
+    if (m >= 5) return { chip: "bg-accent-saffron/15 text-amber-600", label: `${m}m` };
     return null;
   };
 
@@ -495,6 +496,31 @@ export default function OrdersPage() {
 
   const aiWaiterOrderCount = orders.filter((o) => o.source === "ai_waiter").length;
 
+  const floorTables = useMemo(() => {
+    type Urgency = "pending" | "preparing" | "confirmed" | "idle";
+    const tableMap = new Map<string, { tableNum: string; orders: OrderRow[]; requests: TableRequest[]; urgency: Urgency }>();
+    orders.forEach(o => {
+      if (!o.table_number || o.status === "cancelled") return;
+      if (!tableMap.has(o.table_number)) tableMap.set(o.table_number, { tableNum: o.table_number, orders: [], requests: [], urgency: "idle" });
+      tableMap.get(o.table_number)!.orders.push(o);
+    });
+    tableRequests.filter(r => r.status === "pending").forEach(r => {
+      if (!tableMap.has(r.tableNumber)) tableMap.set(r.tableNumber, { tableNum: r.tableNumber, orders: [], requests: [], urgency: "idle" });
+      tableMap.get(r.tableNumber)!.requests.push(r);
+    });
+    tableMap.forEach(t => {
+      const statuses = t.orders.map(o => o.status);
+      if (statuses.some(s => s === "pending_payment" || s === "pending")) t.urgency = "pending";
+      else if (statuses.some(s => s === "preparing")) t.urgency = "preparing";
+      else if (statuses.some(s => s === "confirmed")) t.urgency = "confirmed";
+    });
+    return Array.from(tableMap.values()).sort((a, b) => {
+      const na = parseInt(a.tableNum) || 0;
+      const nb = parseInt(b.tableNum) || 0;
+      return na !== nb ? na - nb : a.tableNum.localeCompare(b.tableNum);
+    });
+  }, [orders, tableRequests]);
+
   const filtered = orders.filter((o) => {
     const matchesStatus = filter === "all" || o.status === filter;
     if (!matchesStatus) return false;
@@ -523,7 +549,7 @@ export default function OrdersPage() {
           </div>
           <div className="flex items-center gap-2 shrink-0">
             <button type="button" onClick={enableNotifications}
-              className="px-4 py-2 bg-primary text-white text-xs font-bold rounded-xl hover:bg-primary/90 transition-colors">
+              className="px-4 py-2 bg-primary text-white text-xs font-bold rounded-xl hover:bg-[#a04100] transition-colors">
               Enable
             </button>
             <button type="button" onClick={() => setShowPermissionPrompt(false)}
@@ -537,7 +563,7 @@ export default function OrdersPage() {
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-8 gap-4">
         <div>
-          <h1 className="text-3xl font-[var(--font-headline)] font-extrabold tracking-tight mb-1">
+          <h1 className="text-3xl font-headline font-extrabold tracking-tight mb-1">
             Real-Time Staff Panel
           </h1>
           <p className="text-secondary text-sm">Monitor live customer orders and instant table service notifications</p>
@@ -548,7 +574,7 @@ export default function OrdersPage() {
             <button
               type="button"
               onClick={enableNotifications}
-              className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold bg-primary/10 text-primary hover:bg-primary/20 transition-all cursor-pointer"
+              className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold bg-primary/10 text-primary hover:bg-primary/20 transition-colors cursor-pointer"
               title="Enable push notifications for new orders"
             >
               <span className="material-symbols-outlined text-sm">notifications</span>
@@ -557,8 +583,9 @@ export default function OrdersPage() {
           )}
 
           <button
+            type="button"
             onClick={() => setSoundEnabled(!soundEnabled)}
-            className={`flex items-center justify-center w-10 h-10 rounded-xl transition-all cursor-pointer ${
+            className={`flex items-center justify-center w-10 h-10 rounded-xl transition-colors cursor-pointer ${
               soundEnabled ? "bg-primary/10 text-primary" : "bg-surface-container text-secondary"
             }`}
             title={soundEnabled ? "Mute sound" : "Enable sound"}
@@ -568,8 +595,21 @@ export default function OrdersPage() {
             </span>
           </button>
 
-          <div className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold ${isLive ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400" : "bg-surface-container text-secondary"}`}>
-            <span className={`w-2 h-2 rounded-full ${isLive ? "bg-emerald-500 animate-pulse" : "bg-secondary"}`} />
+          <div className="flex items-center bg-surface-container p-0.5 rounded-xl gap-0.5">
+            <button type="button" onClick={() => setView("list")} title="List view"
+              className={`px-3 py-1.5 rounded-[10px] text-xs font-bold transition-colors flex items-center gap-1.5 ${view === "list" ? "bg-surface-container-lowest shadow-sm text-on-surface" : "text-secondary hover:text-on-surface"}`}>
+              <span className="material-symbols-outlined text-[16px]">list</span>
+              <span className="hidden sm:inline">List</span>
+            </button>
+            <button type="button" onClick={() => setView("floor")} title="Floor plan view"
+              className={`px-3 py-1.5 rounded-[10px] text-xs font-bold transition-colors flex items-center gap-1.5 ${view === "floor" ? "bg-surface-container-lowest shadow-sm text-on-surface" : "text-secondary hover:text-on-surface"}`}>
+              <span className="material-symbols-outlined text-[16px]">grid_view</span>
+              <span className="hidden sm:inline">Floor</span>
+            </button>
+          </div>
+
+          <div className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold ${isLive ? "bg-tertiary/10 text-tertiary" : "bg-surface-container text-secondary"}`}>
+            <span className={`w-2 h-2 rounded-full ${isLive ? "bg-tertiary animate-pulse" : "bg-secondary"}`} />
             {isLive ? "Live Sync Active" : "Connecting..."}
           </div>
         </div>
@@ -585,7 +625,7 @@ export default function OrdersPage() {
           <p className="text-2xl font-extrabold">{todayOrders.length}</p>
           <p className="text-[10px] text-secondary mt-0.5">orders processed today</p>
         </div>
-        <div className={`rounded-3xl p-5 border transition-all duration-300 ${newOrderFlash ? "bg-amber-50 border-amber-400 animate-flash-pulse shadow-lg shadow-amber-200/50 dark:bg-amber-950/30 dark:border-amber-500" : "bg-surface-container-lowest border-surface-container/50"}`}>
+        <div className={`rounded-3xl p-5 border transition-colors duration-300 ${newOrderFlash ? "bg-accent-saffron/10 border-accent-saffron/50 animate-flash-pulse shadow-lg shadow-accent-saffron/20" : "bg-surface-container-lowest border-surface-container/50"}`}>
           <div className="flex items-center gap-2 mb-2">
             <span className={`material-symbols-outlined text-amber-500 icon-fill text-lg ${newOrderFlash ? "animate-bounce" : ""}`}>pending</span>
             <p className="text-[10px] font-bold text-secondary uppercase tracking-[0.2em]">Pending Action</p>
@@ -593,12 +633,12 @@ export default function OrdersPage() {
           <p className="text-2xl font-extrabold text-amber-500">{pendingCount}</p>
           <p className="text-[10px] text-secondary mt-0.5">require immediate attention</p>
         </div>
-        <div className="bg-surface-container-lowest rounded-3xl p-5 border border-violet-500/20">
+        <div className="bg-surface-container-lowest rounded-3xl p-5 border border-primary/15">
           <div className="flex items-center gap-2 mb-2">
-            <span className="material-symbols-outlined text-violet-500 icon-fill text-lg">robot_2</span>
+            <span className="material-symbols-outlined text-primary icon-fill text-lg">robot_2</span>
             <p className="text-[10px] font-bold text-secondary uppercase tracking-[0.2em]">AI Waiter Orders</p>
           </div>
-          <p className="text-2xl font-extrabold text-violet-600 dark:text-violet-400">{aiWaiterOrderCount}</p>
+          <p className="text-2xl font-extrabold text-primary">{aiWaiterOrderCount}</p>
           <p className="text-[10px] text-secondary mt-0.5">
             {todayOrders.filter((o) => o.source === "ai_waiter").length > 0
               ? `${todayOrders.filter((o) => o.source === "ai_waiter").length} today`
@@ -608,10 +648,10 @@ export default function OrdersPage() {
         <div className="bg-surface-container-lowest rounded-3xl p-5 border border-surface-container/50 relative overflow-hidden col-span-2 sm:col-span-1">
           <div className="relative z-10">
             <div className="flex items-center gap-2 mb-2">
-              <span className="material-symbols-outlined text-emerald-500 icon-fill text-lg">payments</span>
+              <span className="material-symbols-outlined text-tertiary icon-fill text-lg">payments</span>
               <p className="text-[10px] font-bold text-secondary uppercase tracking-[0.2em]">Today&apos;s Revenue</p>
             </div>
-            <p className="text-2xl font-extrabold leading-none text-emerald-600 dark:text-emerald-400">{formatPrice(todayRevenue, currency)}</p>
+            <p className="text-2xl font-extrabold leading-none text-tertiary">{formatPrice(todayRevenue, currency)}</p>
             <p className="text-[10px] text-secondary mt-0.5">excluding cancelled orders</p>
           </div>
           {todayRevenue > 0 && (
@@ -626,13 +666,74 @@ export default function OrdersPage() {
         </div>
       </div>
 
+      {/* Floor Plan View */}
+      {view === "floor" && (
+        <div className="mb-8">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="font-headline font-bold text-xl flex items-center gap-2">
+              <span className="material-symbols-outlined text-primary">grid_view</span>
+              Floor Plan
+            </h2>
+            <p className="text-xs text-secondary">Live table status — click a table to filter orders</p>
+          </div>
+
+          {floorTables.length === 0 ? (
+            <div className="bg-surface-container-lowest border border-black/6 rounded-3xl p-12 text-center">
+              <span className="material-symbols-outlined text-5xl text-secondary/30 block mb-3">table_restaurant</span>
+              <p className="font-bold text-secondary text-sm">No active tables</p>
+              <p className="text-xs text-secondary/70 mt-1">Tables appear here when orders include a table number, or when customers request assistance.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-3">
+              {floorTables.map(table => {
+                const urgencyStyle = {
+                  pending:   { card: "bg-accent-saffron/10 border-accent-saffron/40 hover:border-accent-saffron/70", dot: "bg-accent-saffron animate-pulse", label: "text-amber-700" },
+                  preparing: { card: "bg-secondary-container/40 border-secondary/20 hover:border-secondary/40",   dot: "bg-secondary",                   label: "text-secondary" },
+                  confirmed: { card: "bg-tertiary/8 border-tertiary/20 hover:border-tertiary/40",                  dot: "bg-tertiary",                    label: "text-tertiary" },
+                  idle:      { card: "bg-surface-container-lowest border-black/6 hover:border-black/12",           dot: "bg-secondary/40",                label: "text-secondary" },
+                }[table.urgency];
+                const hasPendingRequest = table.requests.length > 0;
+                return (
+                  <button
+                    key={table.tableNum}
+                    type="button"
+                    onClick={() => { setView("list"); setFilter("all"); setOrderSearch(table.tableNum); }}
+                    className={`relative border-2 rounded-2xl p-3 flex flex-col items-center gap-2 transition-colors cursor-pointer ${urgencyStyle.card}`}
+                    title={`Table ${table.tableNum} — ${table.orders.length} order${table.orders.length !== 1 ? "s" : ""}${hasPendingRequest ? " · assistance requested" : ""}`}
+                  >
+                    {hasPendingRequest && (
+                      <span className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-error rounded-full flex items-center justify-center">
+                        <span className="material-symbols-outlined text-white text-[10px] icon-fill">notifications_active</span>
+                      </span>
+                    )}
+                    <div className={`w-3 h-3 rounded-full ${urgencyStyle.dot}`} />
+                    <span className="font-headline font-extrabold text-lg leading-none text-on-surface">{table.tableNum}</span>
+                    <span className={`text-[10px] font-bold ${urgencyStyle.label}`}>
+                      {table.orders.length} order{table.orders.length !== 1 ? "s" : ""}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Legend */}
+          <div className="flex items-center gap-5 mt-4 text-[11px] text-secondary">
+            <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-accent-saffron" />Pending</span>
+            <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-secondary" />Preparing</span>
+            <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-tertiary" />Ready</span>
+            <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-error" />Needs help</span>
+          </div>
+        </div>
+      )}
+
       {/* Main Grid: Orders (Left) vs Table Pager (Right) */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+      <div className={`grid grid-cols-1 lg:grid-cols-3 gap-8 items-start ${view === "floor" ? "hidden" : ""}`}>
         {/* Left Side: Orders list */}
         <div className="lg:col-span-2 space-y-6">
           <div className="space-y-4 border-b border-surface-container pb-4">
             <div className="flex items-center justify-between">
-              <h2 className="font-[var(--font-headline)] font-bold text-xl flex items-center gap-2">
+              <h2 className="font-headline font-bold text-xl flex items-center gap-2">
                 <span className="material-symbols-outlined text-primary">receipt_long</span>
                 Orders List
               </h2>
@@ -644,7 +745,7 @@ export default function OrdersPage() {
                   value={orderSearch}
                   onChange={(e) => setOrderSearch(e.target.value)}
                   placeholder="Search by name, table…"
-                  className="bg-surface-container rounded-xl pl-8 pr-3 py-2 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 w-44 sm:w-56 transition-all"
+                  className="bg-surface-container rounded-xl pl-8 pr-3 py-2 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 w-44 sm:w-56 transition-colors"
                 />
               </div>
             </div>
@@ -659,7 +760,7 @@ export default function OrdersPage() {
                     key={tab.value}
                     type="button"
                     onClick={() => setFilter(tab.value)}
-                    className={`px-3 py-1.5 text-xs font-bold rounded-xl transition-all flex items-center gap-1.5 cursor-pointer ${
+                    className={`px-3 py-1.5 text-xs font-bold rounded-xl transition-colors flex items-center gap-1.5 cursor-pointer ${
                       isSelected ? "bg-primary text-white" : "bg-surface-container hover:bg-surface-container-high text-secondary"
                     }`}
                   >
@@ -690,7 +791,7 @@ export default function OrdersPage() {
                       key={s.value}
                       type="button"
                       onClick={() => setSourceFilter(s.value)}
-                      className={`px-3 py-1 text-[10px] font-bold rounded-lg transition-all flex items-center gap-1 cursor-pointer ${
+                      className={`px-3 py-1 text-[10px] font-bold rounded-lg transition-colors flex items-center gap-1 cursor-pointer ${
                         isSelected ? "bg-primary/15 text-primary ring-1 ring-primary/30" : "bg-surface-container hover:bg-surface-container-high text-secondary"
                       }`}
                     >
@@ -726,7 +827,7 @@ export default function OrdersPage() {
                 return (
                   <div
                     key={order.id}
-                    className={`bg-surface-container-lowest rounded-[2rem] p-6 border shadow-sm flex flex-col transition-all ${
+                    className={`bg-surface-container-lowest rounded-[2rem] p-6 border shadow-sm flex flex-col transition-colors ${
                       order.status === "pending" && isNew
                         ? "border-primary ring-2 ring-primary/10 shadow-md"
                         : "border-surface-container/50 hover:shadow-md"
@@ -743,12 +844,12 @@ export default function OrdersPage() {
                             </span>
                           )}
                           {order.source === "ai_waiter" && (
-                            <span className="inline-flex items-center gap-1 text-[9px] font-black uppercase tracking-wide px-2 py-1 rounded-xl bg-violet-500/10 text-violet-600 dark:text-violet-400 shrink-0">
+                            <span className="inline-flex items-center gap-1 text-[9px] font-black uppercase tracking-wide px-2 py-1 rounded-xl bg-primary/10 text-primary shrink-0">
                               <span className="material-symbols-outlined text-[11px]">robot_2</span>
                               AI Waiter
                             </span>
                           )}
-                          <h3 className="font-[var(--font-headline)] font-bold text-base leading-tight truncate">
+                          <h3 className="font-headline font-bold text-base leading-tight truncate">
                             {order.customer_name || "Guest"}
                           </h3>
                           {isNew && order.status === "pending" && (
@@ -807,7 +908,7 @@ export default function OrdersPage() {
                     {/* Total */}
                     <div className="border-t border-surface-container pt-4 mb-5 flex justify-between items-center">
                       <span className="text-[9px] font-bold text-secondary uppercase tracking-[0.2em]">Total Amount</span>
-                      <span className="font-[var(--font-headline)] font-extrabold text-lg text-primary">
+                      <span className="font-headline font-extrabold text-lg text-primary">
                         {formatPrice(order.total, currency)}
                       </span>
                     </div>
@@ -815,7 +916,7 @@ export default function OrdersPage() {
                     {/* Actions */}
                     <div className="grid grid-cols-2 gap-3">
                       {order.status === "pending_payment" && (
-                        <div className="col-span-2 py-2.5 px-4 rounded-xl text-xs font-bold bg-violet-500/10 text-violet-600 dark:text-violet-400 flex items-center justify-center gap-1.5">
+                        <div className="col-span-2 py-2.5 px-4 rounded-xl text-xs font-bold bg-primary/10 text-primary flex items-center justify-center gap-1.5">
                           <span className="material-symbols-outlined text-sm">hourglass_top</span>
                           Awaiting payment confirmation
                         </div>
@@ -825,14 +926,14 @@ export default function OrdersPage() {
                           <button
                             type="button"
                             onClick={() => updateStatus(order.id, "cancelled")}
-                            className="py-2.5 px-4 rounded-xl font-bold text-xs bg-error/10 text-error hover:bg-error/20 transition-all cursor-pointer"
+                            className="py-2.5 px-4 rounded-xl font-bold text-xs bg-error/10 text-error hover:bg-error/20 transition-colors cursor-pointer"
                           >
                             Decline
                           </button>
                           <button
                             type="button"
                             onClick={() => updateStatus(order.id, "preparing")}
-                            className="py-2.5 px-4 rounded-xl font-bold text-xs bg-primary text-white shadow-md shadow-primary/10 hover:opacity-90 transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                            className="py-2.5 px-4 rounded-[2rem] font-bold text-xs bg-primary text-white shadow-md shadow-primary/10 hover:bg-[#a04100] transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
                           >
                             <span className="material-symbols-outlined text-sm">skillet</span>
                             Accept
@@ -844,14 +945,14 @@ export default function OrdersPage() {
                           <button
                             type="button"
                             onClick={() => updateStatus(order.id, "cancelled")}
-                            className="py-2.5 px-4 rounded-xl font-bold text-xs bg-surface-container text-secondary hover:bg-error/10 hover:text-error transition-all cursor-pointer"
+                            className="py-2.5 px-4 rounded-xl font-bold text-xs bg-surface-container text-secondary hover:bg-error/10 hover:text-error transition-colors cursor-pointer"
                           >
                             Cancel
                           </button>
                           <button
                             type="button"
                             onClick={() => confirmOrder(order.id)}
-                            className="py-2.5 px-4 rounded-xl font-bold text-xs bg-gradient-to-br from-emerald-500 to-emerald-600 text-white shadow-md shadow-emerald-500/10 hover:opacity-90 transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                            className="py-2.5 px-4 rounded-xl font-bold text-xs bg-linear-to-br from-emerald-500 to-emerald-600 text-white shadow-md shadow-emerald-500/10 hover:bg-tertiary transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
                           >
                             <span className="material-symbols-outlined text-sm">check</span>
                             Mark Ready
@@ -863,11 +964,11 @@ export default function OrdersPage() {
                           <button
                             type="button"
                             onClick={() => updateStatus(order.id, "cancelled")}
-                            className="py-2.5 px-4 rounded-xl font-bold text-xs bg-surface-container text-secondary hover:bg-error/10 hover:text-error transition-all cursor-pointer"
+                            className="py-2.5 px-4 rounded-xl font-bold text-xs bg-surface-container text-secondary hover:bg-error/10 hover:text-error transition-colors cursor-pointer"
                           >
                             Cancel
                           </button>
-                          <div className="py-2.5 px-4 rounded-xl font-bold text-xs bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center gap-1.5">
+                          <div className="py-2.5 px-4 rounded-xl font-bold text-xs bg-tertiary/10 text-tertiary flex items-center justify-center gap-1.5">
                             <span className="material-symbols-outlined text-sm icon-fill">check_circle</span>
                             Served
                           </div>
@@ -877,7 +978,7 @@ export default function OrdersPage() {
                         <button
                           type="button"
                           onClick={() => updateStatus(order.id, "pending")}
-                          className="col-span-2 py-2.5 px-4 rounded-xl font-bold text-xs bg-surface-container hover:bg-primary/10 hover:text-primary transition-all flex items-center justify-center gap-2 cursor-pointer"
+                          className="col-span-2 py-2.5 px-4 rounded-xl font-bold text-xs bg-surface-container hover:bg-primary/10 hover:text-primary transition-colors flex items-center justify-center gap-2 cursor-pointer"
                         >
                           <span className="material-symbols-outlined text-sm">undo</span>
                           Restore to Pending
@@ -894,7 +995,7 @@ export default function OrdersPage() {
         {/* Right Side: Real-Time Table service pager */}
         <div className="space-y-6">
           <div className="border-b border-surface-container pb-4">
-            <h2 className="font-[var(--font-headline)] font-bold text-xl flex items-center gap-2">
+            <h2 className="font-headline font-bold text-xl flex items-center gap-2">
               <span className="material-symbols-outlined text-primary icon-fill">notifications_active</span>
               Table Pager
             </h2>
@@ -902,7 +1003,7 @@ export default function OrdersPage() {
 
           <div className="bg-surface-container-lowest p-6 rounded-[2rem] border border-surface-container/50 shadow-sm space-y-6">
             <div>
-              <h3 className="font-[var(--font-headline)] font-bold text-sm">Live Service Calls</h3>
+              <h3 className="font-headline font-bold text-sm">Live Service Calls</h3>
               <p className="text-secondary text-[11px] mt-0.5">Real-time waiter calls from customers browsing the QR menus</p>
             </div>
 
@@ -919,7 +1020,7 @@ export default function OrdersPage() {
                 {tableRequests.map((req) => (
                   <div
                     key={req.id}
-                    className="p-4 rounded-2xl bg-surface-container-low border border-outline-variant/15 flex flex-col justify-between gap-3 relative overflow-hidden transition-all hover:bg-surface-container"
+                    className="p-4 rounded-2xl bg-surface-container-low border border-outline-variant/15 flex flex-col justify-between gap-3 relative overflow-hidden transition-colors hover:bg-surface-container"
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex items-center gap-2.5">
@@ -929,9 +1030,9 @@ export default function OrdersPage() {
                         <div>
                           <span className={`text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full ${
                             req.type === "bill" 
-                              ? "bg-amber-500/10 text-amber-600 dark:text-amber-400" 
+                              ? "bg-accent-saffron/15 text-amber-600" 
                               : req.type === "water" 
-                              ? "bg-blue-500/10 text-blue-600 dark:text-blue-400" 
+                              ? "bg-secondary-container text-secondary"
                               : "bg-primary/10 text-primary"
                           }`}>
                             {req.type === "bill" ? "Bill 💵" : req.type === "water" ? "Water 🥛" : "Waiter 🛎️"}
@@ -943,7 +1044,7 @@ export default function OrdersPage() {
                       <button
                         type="button"
                         onClick={() => handleResolveRequest(req.id)}
-                        className="text-secondary hover:text-emerald-500 p-1 transition-colors cursor-pointer shrink-0"
+                        className="text-secondary hover:text-tertiary p-1 transition-colors cursor-pointer shrink-0"
                         title="Mark as Resolved"
                       >
                         <span className="material-symbols-outlined text-lg">check_circle</span>

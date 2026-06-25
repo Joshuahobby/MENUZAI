@@ -79,7 +79,7 @@ export function ImageUpload({ currentUrl, onUpload, userId, folder = "items" }: 
           </div>
         )}
         {/* Overlay on hover/empty */}
-        <div className={`absolute inset-0 flex items-center justify-center transition-all ${uploading ? "bg-black/50" : currentUrl ? "bg-black/0 group-hover:bg-black/40" : "bg-black/0 group-hover:bg-black/10"}`}>
+        <div className={`absolute inset-0 flex items-center justify-center transition-colors ${uploading ? "bg-black/50" : currentUrl ? "bg-black/0 group-hover:bg-black/40" : "bg-black/0 group-hover:bg-black/10"}`}>
           {uploading ? (
             <div className="w-8 h-8 border-3 border-white border-t-transparent rounded-full animate-spin" />
           ) : (

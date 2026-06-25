@@ -11,14 +11,14 @@ export const metadata = {
 
 export default function PrivacyPage() {
   return (
-    <div className="min-h-screen bg-[#faf8f6] text-on-surface">
+    <div className="min-h-screen bg-surface text-on-surface">
 
       <PublicNav />
 
       {/* ── Content ── */}
       <main className="max-w-3xl mx-auto px-6 py-20">
         <p className="text-xs font-bold tracking-[0.25em] uppercase text-primary/70 mb-4">Legal</p>
-        <h1 className="text-4xl font-[var(--font-headline)] font-extrabold tracking-tighter mb-3">Privacy Policy</h1>
+        <h1 className="text-4xl font-headline font-extrabold tracking-tighter mb-3">Privacy Policy</h1>
         <p className="text-secondary text-sm mb-12">Last updated: {LAST_UPDATED}</p>
 
         <div className="prose prose-sm max-w-none space-y-10 text-on-surface/80 leading-relaxed">

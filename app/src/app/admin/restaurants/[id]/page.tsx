@@ -8,23 +8,23 @@ import { formatRelativeTime, formatPrice } from "@/lib/utils";
 
 const PLAN_STYLES: Record<string, { label: string; className: string }> = {
   free:     { label: "Free",     className: "bg-surface-container text-secondary" },
-  trial:    { label: "Trial",    className: "bg-violet-500/10 text-violet-600" },
-  pro:      { label: "Pro",      className: "bg-emerald-500/10 text-emerald-700" },
-  business: { label: "Business", className: "bg-amber-500/10 text-amber-700" },
+  trial:    { label: "Trial",    className: "bg-primary/10 text-primary" },
+  pro:      { label: "Pro",      className: "bg-tertiary/10 text-tertiary" },
+  business: { label: "Business", className: "bg-accent-saffron/15 text-amber-700" },
 };
 
 const ORDER_STATUS_STYLES: Record<string, string> = {
-  pending:         "bg-amber-500/10 text-amber-700",
-  pending_payment: "bg-blue-500/10 text-blue-600",
+  pending:         "bg-accent-saffron/15 text-amber-700",
+  pending_payment: "bg-accent-saffron/15 text-amber-700",
   preparing:       "bg-primary/10 text-primary",
-  confirmed:       "bg-emerald-500/10 text-emerald-700",
-  cancelled:       "bg-red-500/10 text-red-600",
+  confirmed:       "bg-tertiary/10 text-tertiary",
+  cancelled:       "bg-error/10 text-error",
 };
 
 const TX_STATUS_STYLES: Record<string, string> = {
-  completed: "bg-emerald-500/10 text-emerald-700",
-  pending:   "bg-amber-500/10 text-amber-700",
-  failed:    "bg-red-500/10 text-red-600",
+  completed: "bg-tertiary/10 text-tertiary",
+  pending:   "bg-accent-saffron/15 text-amber-700",
+  failed:    "bg-error/10 text-error",
   expired:   "bg-surface-container text-secondary",
 };
 
@@ -52,9 +52,9 @@ const TABS: { key: Tab; label: string; icon: string }[] = [
 
 function KpiCard({ label, value }: { label: string; value: string | number }) {
   return (
-    <div className="bg-white border border-black/6 rounded-2xl p-5 shadow-sm">
+    <div className="bg-surface-container-lowest border border-black/6 rounded-2xl p-5">
       <p className="text-[10px] font-bold text-secondary uppercase tracking-widest mb-2">{label}</p>
-      <p className="text-2xl font-extrabold font-[var(--font-headline)] text-on-surface">{value}</p>
+      <p className="text-2xl font-extrabold font-headline text-on-surface">{value}</p>
     </div>
   );
 }
@@ -209,7 +209,7 @@ export default function RestaurantDetailPage() {
       </div>
 
       {/* Restaurant header */}
-      <div className="bg-white border border-black/6 rounded-2xl p-5 shadow-sm mb-6">
+      <div className="bg-surface-container-lowest border border-black/6 rounded-2xl p-5 mb-6">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="min-w-0">
             <div className="flex items-center gap-3 flex-wrap">
@@ -218,7 +218,7 @@ export default function RestaurantDetailPage() {
                 {planStyle.label}
               </span>
               {!restaurant.onboarded && (
-                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold bg-amber-500/10 text-amber-600">
+                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold bg-accent-saffron/15 text-amber-600">
                   Not onboarded
                 </span>
               )}
@@ -236,9 +236,9 @@ export default function RestaurantDetailPage() {
               type="button"
               onClick={handleTogglePayments}
               disabled={togglingPayments}
-              className={`flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-bold rounded-lg transition-all disabled:opacity-60 ${
+              className={`flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-bold rounded-lg transition-colors disabled:opacity-60 ${
                 restaurant.payments_enabled
-                  ? "bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
+                  ? "bg-tertiary/10 text-tertiary hover:bg-tertiary/20"
                   : "bg-surface-container text-secondary hover:bg-surface-container-high"
               }`}
             >
@@ -251,7 +251,7 @@ export default function RestaurantDetailPage() {
             <button
               type="button"
               onClick={() => { setOverridePlan(restaurant.plan as Plan); setOverrideExpiry(30); setShowOverrideModal(true); }}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-bold bg-primary/8 text-primary hover:bg-primary/15 rounded-lg transition-all"
+              className="flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-bold bg-primary/8 text-primary hover:bg-primary/15 rounded-lg transition-colors"
             >
               <span className="material-symbols-outlined text-[14px]">manage_accounts</span>
               Override Plan
@@ -260,7 +260,7 @@ export default function RestaurantDetailPage() {
             <button
               type="button"
               onClick={() => { setDeleteConfirmed(false); setShowDeleteModal(true); }}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-bold bg-red-50 text-red-500 hover:bg-red-100 rounded-lg transition-all"
+              className="flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-bold bg-error-container/50 text-error hover:bg-error-container rounded-lg transition-colors"
             >
               <span className="material-symbols-outlined text-[14px]">delete</span>
               Delete
@@ -273,7 +273,7 @@ export default function RestaurantDetailPage() {
             <span className="text-amber-600 font-medium">Expires {formatRelativeTime(restaurant.plan_expires_at)}</span>
           )}
           {restaurant.trial_ends_at && restaurant.resolvedPlan === "trial" && (
-            <span className="text-violet-600 font-medium">Trial ends {formatRelativeTime(restaurant.trial_ends_at)}</span>
+            <span className="text-primary font-medium">Trial ends {formatRelativeTime(restaurant.trial_ends_at)}</span>
           )}
         </div>
       </div>
@@ -287,13 +287,13 @@ export default function RestaurantDetailPage() {
       </div>
 
       {/* Tabs */}
-      <div className="flex items-center gap-1 bg-white border border-black/6 rounded-xl p-1 mb-6 shadow-sm overflow-x-auto">
+      <div className="flex items-center gap-1 bg-surface-container-lowest border border-black/6 rounded-xl p-1 mb-6 shadow-sm overflow-x-auto">
         {TABS.map(t => (
           <button
             type="button"
             key={t.key}
             onClick={() => setTab(t.key)}
-            className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${
+            className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-bold transition-colors whitespace-nowrap ${
               tab === t.key
                 ? "bg-primary/10 text-primary"
                 : "text-secondary hover:text-on-surface hover:bg-surface-container"
@@ -315,7 +315,7 @@ export default function RestaurantDetailPage() {
               <p className="text-xs font-bold uppercase tracking-widest text-secondary mb-3">Recent Orders</p>
               <div className="space-y-2">
                 {orders.slice(0, 5).map(o => (
-                  <div key={o.id} className="bg-white border border-black/6 rounded-xl p-4 flex items-center gap-4 shadow-sm">
+                  <div key={o.id} className="bg-surface-container-lowest border border-black/6 rounded-xl p-4 flex items-center gap-4">
                     <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold capitalize whitespace-nowrap ${ORDER_STATUS_STYLES[o.status] ?? ""}`}>
                       {o.status.replace("_", " ")}
                     </span>
@@ -341,7 +341,7 @@ export default function RestaurantDetailPage() {
               <p className="text-xs font-bold uppercase tracking-widest text-secondary mb-3">Recent Payments</p>
               <div className="space-y-2">
                 {transactions.slice(0, 3).map(tx => (
-                  <div key={tx.id} className="bg-white border border-black/6 rounded-xl p-4 flex items-center gap-4 shadow-sm">
+                  <div key={tx.id} className="bg-surface-container-lowest border border-black/6 rounded-xl p-4 flex items-center gap-4">
                     <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold capitalize whitespace-nowrap ${TX_STATUS_STYLES[tx.status] ?? ""}`}>
                       {tx.status}
                     </span>
@@ -368,9 +368,9 @@ export default function RestaurantDetailPage() {
           {menus.length === 0 ? (
             <p className="text-secondary text-sm text-center py-16">No menus yet.</p>
           ) : menus.map(m => (
-            <div key={m.id} className="bg-white border border-black/6 rounded-xl p-4 flex items-center gap-4 shadow-sm">
+            <div key={m.id} className="bg-surface-container-lowest border border-black/6 rounded-xl p-4 flex items-center gap-4">
               <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                m.status === "published" ? "bg-emerald-500/10 text-emerald-700" : "bg-surface-container text-secondary"
+                m.status === "published" ? "bg-tertiary/10 text-tertiary" : "bg-surface-container text-secondary"
               }`}>
                 {m.status}
               </span>
@@ -389,7 +389,7 @@ export default function RestaurantDetailPage() {
 
       {/* Orders Tab */}
       {tab === "orders" && (
-        <div className="bg-white border border-black/6 rounded-2xl shadow-sm overflow-hidden">
+        <div className="bg-surface-container-lowest border border-black/6 rounded-2xl overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
@@ -427,7 +427,7 @@ export default function RestaurantDetailPage() {
 
       {/* Transactions Tab */}
       {tab === "transactions" && (
-        <div className="bg-white border border-black/6 rounded-2xl shadow-sm overflow-hidden">
+        <div className="bg-surface-container-lowest border border-black/6 rounded-2xl overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
@@ -460,7 +460,7 @@ export default function RestaurantDetailPage() {
                           type="button"
                           onClick={() => handleCancelTx(tx.id)}
                           disabled={cancellingTx === tx.id}
-                          className="px-2.5 py-1 text-[11px] font-bold bg-red-50 text-red-500 hover:bg-red-100 rounded-lg transition-all disabled:opacity-60"
+                          className="px-2.5 py-1 text-[11px] font-bold bg-error-container/50 text-error hover:bg-error-container rounded-lg transition-colors disabled:opacity-60"
                         >
                           {cancellingTx === tx.id ? "…" : "Cancel"}
                         </button>
@@ -477,9 +477,9 @@ export default function RestaurantDetailPage() {
       {/* Delete Confirmation Modal */}
       {showDeleteModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
-          <div className="bg-white w-full max-w-sm rounded-2xl p-7 shadow-2xl border border-black/6">
-            <div className="w-12 h-12 bg-red-100 rounded-2xl flex items-center justify-center mb-4">
-              <span className="material-symbols-outlined text-red-500 text-[24px]">warning</span>
+          <div className="bg-surface-container-lowest w-full max-w-sm rounded-2xl p-7 shadow-2xl border border-black/6">
+            <div className="w-12 h-12 bg-error-container rounded-2xl flex items-center justify-center mb-4">
+              <span className="material-symbols-outlined text-error text-[24px]">warning</span>
             </div>
             <h2 className="font-bold text-lg text-on-surface mb-1">Delete Restaurant</h2>
             <p className="text-sm text-secondary mb-4">
@@ -487,21 +487,21 @@ export default function RestaurantDetailPage() {
               <span className="font-semibold text-on-surface">{restaurant.name}</span>,
               all its menus, orders, and the owner&apos;s account. This action cannot be undone.
             </p>
-            <label className="flex items-center gap-3 p-3 bg-red-50 rounded-xl cursor-pointer mb-5">
+            <label className="flex items-center gap-3 p-3 bg-error-container/50 rounded-xl cursor-pointer mb-5">
               <input
                 type="checkbox"
                 checked={deleteConfirmed}
                 onChange={e => setDeleteConfirmed(e.target.checked)}
                 className="w-4 h-4 accent-red-500"
               />
-              <span className="text-xs font-bold text-red-700">I understand this is permanent and irreversible</span>
+              <span className="text-xs font-bold text-error">I understand this is permanent and irreversible</span>
             </label>
             <div className="flex gap-3">
               <button
                 type="button"
                 onClick={() => setShowDeleteModal(false)}
                 disabled={deleting}
-                className="flex-1 py-2.5 rounded-xl text-sm font-bold bg-surface-container text-secondary hover:bg-surface-container-high transition-all disabled:opacity-60"
+                className="flex-1 py-2.5 rounded-xl text-sm font-bold bg-surface-container text-secondary hover:bg-surface-container-high transition-colors disabled:opacity-60"
               >
                 Cancel
               </button>
@@ -509,7 +509,7 @@ export default function RestaurantDetailPage() {
                 type="button"
                 onClick={handleDelete}
                 disabled={!deleteConfirmed || deleting}
-                className="flex-1 py-2.5 rounded-xl text-sm font-bold bg-red-500 text-white hover:bg-red-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 py-2.5 rounded-xl text-sm font-bold bg-error text-white hover:bg-error transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {deleting ? "Deleting…" : "Delete Forever"}
               </button>
@@ -521,7 +521,7 @@ export default function RestaurantDetailPage() {
       {/* Plan Override Modal */}
       {showOverrideModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
-          <div className="bg-white w-full max-w-sm rounded-2xl p-7 shadow-2xl border border-black/6">
+          <div className="bg-surface-container-lowest w-full max-w-sm rounded-2xl p-7 shadow-2xl border border-black/6">
             <h2 className="font-bold text-lg text-on-surface mb-1">Override Plan</h2>
             <p className="text-sm text-secondary mb-6">
               <span className="font-semibold text-on-surface">{restaurant.name}</span>
@@ -538,7 +538,7 @@ export default function RestaurantDetailPage() {
                       type="button"
                       key={p}
                       onClick={() => setOverridePlan(p)}
-                      className={`py-2 rounded-xl text-xs font-bold capitalize border-2 transition-all ${
+                      className={`py-2 rounded-xl text-xs font-bold capitalize border-2 transition-colors ${
                         overridePlan === p
                           ? "border-primary bg-primary/5 text-primary"
                           : "border-black/8 text-secondary hover:border-primary/30"
@@ -568,7 +568,7 @@ export default function RestaurantDetailPage() {
                 type="button"
                 onClick={() => setShowOverrideModal(false)}
                 disabled={savingOverride}
-                className="flex-1 py-2.5 rounded-xl text-sm font-bold bg-surface-container text-secondary hover:bg-surface-container-high transition-all disabled:opacity-60"
+                className="flex-1 py-2.5 rounded-xl text-sm font-bold bg-surface-container text-secondary hover:bg-surface-container-high transition-colors disabled:opacity-60"
               >
                 Cancel
               </button>
@@ -576,7 +576,7 @@ export default function RestaurantDetailPage() {
                 type="button"
                 onClick={handleOverrideSave}
                 disabled={savingOverride}
-                className="flex-1 py-2.5 rounded-xl text-sm font-bold bg-primary text-white hover:opacity-90 transition-all disabled:opacity-60"
+                className="flex-1 py-2.5 rounded-[2rem] text-sm font-bold bg-primary text-white hover:bg-[#a04100] transition-colors disabled:opacity-60"
               >
                 {savingOverride ? "Saving…" : "Confirm"}
               </button>

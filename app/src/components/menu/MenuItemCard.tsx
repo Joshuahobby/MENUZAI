@@ -12,6 +12,7 @@ interface MenuItemCardProps {
   onIncrement: () => void;
   onDecrement: () => void;
   cartQty: number;
+  priority?: boolean;
 }
 
 export default function MenuItemCard({
@@ -22,6 +23,7 @@ export default function MenuItemCard({
   onIncrement,
   onDecrement,
   cartQty,
+  priority = false,
 }: MenuItemCardProps) {
   return (
     <div
@@ -29,7 +31,7 @@ export default function MenuItemCard({
       onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onSelect(); } }}
       tabIndex={0}
       role="button"
-      className={`bg-surface-container-lowest overflow-hidden flex flex-col shadow-sm border border-outline-variant/10 hover:border-outline-variant/30 rounded-[var(--border-radius)] relative cursor-pointer hover:shadow-md hover:-translate-y-1 transition-all duration-300 ${item.available === false ? "select-none" : ""}`}
+      className={`bg-surface-container-lowest overflow-hidden flex flex-col shadow-sm border border-outline-variant/10 hover:border-outline-variant/30 rounded-[var(--border-radius)] relative cursor-pointer hover:shadow-md hover:-translate-y-1 transition-[colors,transform,shadow] duration-200 ${item.available === false ? "select-none" : ""}`}
     >
       <div className={`relative bg-surface-container-low ${menuStyle.layoutDensity === "compact" ? "h-36" : "h-52"}`}>
         {item.image ? (
@@ -39,6 +41,7 @@ export default function MenuItemCard({
             src={getOptimizedImageUrl(item.image, 600)}
             fill
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 400px"
+            priority={priority}
           />
         ) : (
           <div className="w-full h-full bg-surface-container flex items-center justify-center">
@@ -46,7 +49,7 @@ export default function MenuItemCard({
           </div>
         )}
         <div className="absolute top-4 right-4 bg-white/95 backdrop-blur-md px-4 py-2 z-10 shadow-sm rounded-[calc(var(--border-radius)/2)]">
-          <span className="font-[var(--font-headline)] font-extrabold text-lg text-[var(--primary-color)]">{formatPrice(item.price, menuStyle.currency ?? "RWF")}</span>
+          <span className="font-headline font-extrabold text-lg text-[var(--primary-color)]">{formatPrice(item.price, menuStyle.currency ?? "RWF")}</span>
         </div>
         {item.available === false && (
           <div className="absolute inset-0 bg-black/40 flex items-center justify-center z-20">
@@ -63,7 +66,7 @@ export default function MenuItemCard({
 
       <div className={`flex flex-col flex-1 ${menuStyle.layoutDensity === "compact" ? "p-4" : menuStyle.layoutDensity === "spacious" ? "p-8" : "p-6"}`}>
         <div className="flex justify-between items-start mb-2">
-          <h4 className="font-[var(--font-headline)] text-lg font-extrabold">{item.name}</h4>
+          <h4 className="font-headline text-lg font-extrabold">{item.name}</h4>
           {item.badge && (
             <div className={`flex items-center gap-1 ${item.badge === "healthy" ? "text-tertiary" : "text-[var(--primary-color)]"}`}>
               <span className="material-symbols-outlined icon-fill">
@@ -106,7 +109,7 @@ export default function MenuItemCard({
               >
                 <span className="material-symbols-outlined text-[20px]">{cartQty === 1 ? "delete" : "remove"}</span>
               </button>
-              <span className="font-[var(--font-headline)] font-black text-[var(--primary-color)] text-base min-w-[2ch] text-center">{cartQty}</span>
+              <span className="font-headline font-black text-[var(--primary-color)] text-base min-w-[2ch] text-center">{cartQty}</span>
               <button
                 type="button"
                 onClick={(e) => { e.stopPropagation(); onIncrement(); }}
@@ -119,7 +122,7 @@ export default function MenuItemCard({
         ) : (
           <button
             onClick={(e) => { e.stopPropagation(); onAddToCart(); }}
-            className={`w-full text-white font-[var(--font-headline)] font-bold flex items-center justify-center gap-2 active:scale-95 transition-all hover:opacity-90 bg-[var(--primary-color)] rounded-[var(--border-radius)] premium-shadow ${menuStyle.layoutDensity === "compact" ? "py-2.5 text-sm mt-auto" : "py-4 mt-auto"}`}
+            className={`w-full text-white font-headline font-bold flex items-center justify-center gap-2 active:scale-95 transition-colors hover:opacity-90 bg-[var(--primary-color)] rounded-[var(--border-radius)] premium-shadow ${menuStyle.layoutDensity === "compact" ? "py-2.5 text-sm mt-auto" : "py-4 mt-auto"}`}
           >
             Add to Cart
             <span className="material-symbols-outlined text-lg">add_circle</span>

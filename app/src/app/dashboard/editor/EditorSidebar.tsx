@@ -22,9 +22,9 @@ export function EditorSidebar({
   const [tab, setTab] = useState<"build" | "design">("build");
 
   return (
-    <aside className="hidden lg:flex lg:flex-col w-80 h-full bg-[#faf8f6] border-r border-black/6 shrink-0">
+    <aside className="hidden lg:flex lg:flex-col w-80 h-full bg-surface border-r border-black/6 shrink-0">
       {/* Tabs */}
-      <div className="flex items-center border-b border-black/6 bg-[#faf8f6] shrink-0">
+      <div className="flex items-center border-b border-black/6 bg-surface shrink-0">
         <button
           className={`flex-1 py-4 text-xs font-bold uppercase tracking-widest transition-colors ${tab === "build" ? "text-primary bg-primary/10" : "text-secondary hover:bg-black/3 hover:text-on-surface"}`}
           onClick={() => setTab("build")}
@@ -45,7 +45,7 @@ export function EditorSidebar({
       </div>
 
       {/* Content */}
-      <div className="flex-1 overflow-hidden flex flex-col bg-[#faf8f6]">
+      <div className="flex-1 overflow-hidden flex flex-col bg-surface">
         {tab === "build" && (
           <BuildSidebarContent
             activeCategoryId={activeCategoryId}

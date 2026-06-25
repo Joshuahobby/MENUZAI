@@ -19,13 +19,13 @@ export default function DashboardError({ error, reset }: { error: Error & { dige
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <button
             onClick={reset}
-            className="px-6 py-3 bg-primary-container text-white font-bold rounded-xl active:scale-95 transition-all text-sm"
+            className="px-6 py-3 bg-primary-container text-white font-bold rounded-[2rem] active:scale-95 transition-colors text-sm"
           >
             Try Again
           </button>
           <Link
             href="/dashboard"
-            className="px-6 py-3 bg-surface-container-highest text-on-surface font-bold rounded-xl hover:bg-surface-variant transition-all text-sm"
+            className="px-6 py-3 bg-surface-container-highest text-on-surface font-bold rounded-xl hover:bg-surface-variant transition-colors text-sm"
           >
             Back to Dashboard
           </Link>

@@ -178,7 +178,7 @@ export default function MenusPage() {
           <div className="w-16 h-16 rounded-2xl bg-error/10 text-error flex items-center justify-center mb-6">
             <span className="material-symbols-outlined text-3xl icon-fill">gpp_maybe</span>
           </div>
-          <h2 className="text-xl font-[var(--font-headline)] font-extrabold tracking-tight mb-2">
+          <h2 className="text-xl font-headline font-extrabold tracking-tight mb-2">
             Access Restricted
           </h2>
           <p className="text-sm text-secondary mb-6 leading-relaxed">
@@ -186,7 +186,7 @@ export default function MenusPage() {
           </p>
           <a
             href="/dashboard"
-            className="px-6 py-3 bg-gradient-to-br from-primary to-primary-container rounded-xl font-bold text-sm text-white shadow-lg shadow-primary/20 hover:opacity-90 active:scale-95 transition-all text-center block w-full"
+            className="px-6 py-3 bg-linear-to-br from-primary to-primary-container rounded-xl font-bold text-sm text-white shadow-lg shadow-primary/20 hover:bg-[#a04100] active:scale-95 transition-colors text-center block w-full"
           >
             Return to Dashboard
           </a>
@@ -201,13 +201,13 @@ export default function MenusPage() {
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-6 gap-4">
         <div>
-          <h1 className="text-3xl font-[var(--font-headline)] font-extrabold tracking-tight mb-1">My Menus</h1>
+          <h1 className="text-3xl font-headline font-extrabold tracking-tight mb-1">My Menus</h1>
           <p className="text-secondary">Manage all your digital menus in one place</p>
         </div>
         <button
           onClick={handleCreateNew}
           disabled={atCreateLimit}
-          className="px-6 py-3 bg-gradient-to-tr from-primary to-primary-container text-white font-bold rounded-xl shadow-lg shadow-primary/20 active:scale-95 transition-all flex items-center gap-2 cursor-pointer border-none outline-none disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100"
+          className="px-6 py-3 bg-linear-to-tr from-primary to-primary-container text-white font-bold rounded-xl shadow-lg shadow-primary/20 active:scale-95 transition-colors flex items-center gap-2 cursor-pointer border-none outline-none disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100"
         >
           <span className="material-symbols-outlined text-sm">add</span> Create New Menu
         </button>
@@ -254,7 +254,7 @@ export default function MenusPage() {
             return (
               <div
                 key={menu.id}
-                className={`bg-surface-container-lowest rounded-[2rem] overflow-hidden shadow-sm border transition-all relative ${
+                className={`bg-surface-container-lowest rounded-[2rem] overflow-hidden shadow-sm border transition-colors relative ${
                   isActive ? "border-primary shadow-primary/10" : "border-surface-container/50 hover:shadow-lg"
                 }`}
               >
@@ -269,7 +269,7 @@ export default function MenusPage() {
                   <button
                     type="button"
                     onClick={(e) => { e.stopPropagation(); setOpenMenuActions(actionsOpen ? null : menu.id); }}
-                    className="w-8 h-8 rounded-full bg-white shadow-md flex items-center justify-center text-secondary hover:text-on-surface transition-colors"
+                    className="w-8 h-8 rounded-full bg-surface-container-lowest shadow-md flex items-center justify-center text-secondary hover:text-on-surface transition-colors"
                     title="Menu options"
                   >
                     <span className="material-symbols-outlined text-[18px]">more_vert</span>
@@ -277,7 +277,7 @@ export default function MenusPage() {
 
                   {actionsOpen && (
                     <div
-                      className="absolute top-10 right-0 bg-white rounded-2xl shadow-xl border border-black/5 py-1.5 min-w-[170px] overflow-hidden"
+                      className="absolute top-10 right-0 bg-surface-container-lowest rounded-2xl shadow-xl border border-black/5 py-1.5 min-w-[170px] overflow-hidden"
                       onClick={(e) => e.stopPropagation()}
                     >
                       <button
@@ -310,7 +310,7 @@ export default function MenusPage() {
                       <button
                         type="button"
                         onClick={() => { setOpenMenuActions(null); handleDelete(menu.id, menu.name); }}
-                        className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-semibold hover:bg-red-50 transition-colors text-error text-left"
+                        className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-semibold hover:bg-error-container/50 transition-colors text-error text-left"
                       >
                         <span className="material-symbols-outlined text-[18px]">delete</span>
                         Delete
@@ -319,7 +319,7 @@ export default function MenusPage() {
                   )}
                 </div>
 
-                <div className="h-40 bg-gradient-to-br from-primary/10 to-primary-container/10 flex items-center justify-center">
+                <div className="h-40 bg-linear-to-br from-primary/10 to-primary-container/10 flex items-center justify-center">
                   <span className="material-symbols-outlined text-primary/30 text-[80px]">restaurant_menu</span>
                 </div>
 
@@ -327,7 +327,7 @@ export default function MenusPage() {
                   <div className="flex items-center justify-between mb-2">
                     <h3
                       title={menu.name}
-                      className="font-[var(--font-headline)] font-bold text-lg truncate pr-2"
+                      className="font-headline font-bold text-lg truncate pr-2"
                     >
                       {menu.name}
                     </h3>
@@ -368,7 +368,7 @@ export default function MenusPage() {
                     ) : (
                       <button
                         onClick={() => handlePublish(menu.id)}
-                        className="flex-1 py-3 bg-tertiary text-white font-bold rounded-xl text-sm hover:opacity-90 transition-all border-none cursor-pointer"
+                        className="flex-1 py-3 bg-tertiary text-white font-bold rounded-[2rem] text-sm hover:bg-[#145c2c] transition-colors border-none cursor-pointer"
                       >
                         Publish
                       </button>
@@ -382,12 +382,12 @@ export default function MenusPage() {
           {/* Create New card */}
           <button
             onClick={handleCreateNew}
-            className="bg-surface-container-lowest rounded-[2rem] border-2 border-dashed border-outline-variant/40 flex flex-col items-center justify-center min-h-[300px] hover:border-primary/40 hover:bg-primary/5 transition-all cursor-pointer group outline-none"
+            className="bg-surface-container-lowest rounded-[2rem] border-2 border-dashed border-outline-variant/40 flex flex-col items-center justify-center min-h-[300px] hover:border-primary/40 hover:bg-primary/5 transition-colors cursor-pointer group outline-none"
           >
             {atCreateLimit ? (
               <>
                 <span className="material-symbols-outlined text-amber-500 text-4xl mb-4">lock</span>
-                <p className="font-[var(--font-headline)] font-bold text-on-surface">Menu Limit Reached</p>
+                <p className="font-headline font-bold text-on-surface">Menu Limit Reached</p>
                 <p className="text-sm text-secondary mb-4 px-6 text-center">
                   Free plan allows 1 menu. Delete yours or upgrade to create more.
                 </p>
@@ -398,7 +398,7 @@ export default function MenusPage() {
             ) : (
               <>
                 <span className="material-symbols-outlined text-primary text-4xl mb-4 group-hover:scale-110 transition-transform">add_circle</span>
-                <p className="font-[var(--font-headline)] font-bold text-on-surface">Create Blank Menu</p>
+                <p className="font-headline font-bold text-on-surface">Create Blank Menu</p>
                 <p className="text-sm text-secondary">Start from scratch</p>
               </>
             )}
@@ -419,7 +419,7 @@ function UsagePill({
 }) {
   return (
     <span className={`flex items-center gap-1.5 text-xs font-semibold px-3 py-1 rounded-full ${
-      atLimit ? "bg-amber-100 text-amber-700" : "bg-surface-container text-secondary"
+      atLimit ? "bg-accent-saffron/20 text-amber-700" : "bg-surface-container text-secondary"
     }`}>
       {atLimit && <span className="material-symbols-outlined text-sm">warning</span>}
       {label}: {used}/{max}

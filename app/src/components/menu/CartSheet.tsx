@@ -130,7 +130,7 @@ export default function CartSheet({
           <>
             <div className="px-6 py-4 flex items-center justify-between shrink-0 border-b border-outline-variant/10">
               <div>
-                <h2 className="font-[var(--font-headline)] font-extrabold text-xl tracking-tight">Your Order</h2>
+                <h2 className="font-headline font-extrabold text-xl tracking-tight">Your Order</h2>
                 {resolvedTableNumber && (
                   <p className="text-xs text-secondary font-bold flex items-center gap-1 mt-0.5">
                     <span className="material-symbols-outlined text-[13px]">table_restaurant</span>
@@ -195,7 +195,7 @@ export default function CartSheet({
                         </button>
                       </div>
                       <div className="min-w-[4.5rem] text-right shrink-0">
-                        <p className="font-[var(--font-headline)] font-extrabold text-sm text-primary">{formatPrice(item.price * item.quantity, currency)}</p>
+                        <p className="font-headline font-extrabold text-sm text-primary">{formatPrice(item.price * item.quantity, currency)}</p>
                       </div>
                     </div>
                   ))}
@@ -271,15 +271,15 @@ export default function CartSheet({
             {cart.length > 0 && (
               <div className="px-6 py-5 bg-surface border-t border-outline-variant/10 shrink-0">
                 <div className="flex justify-between items-center mb-4">
-                  <span className="font-[var(--font-headline)] font-bold text-lg text-secondary">Total</span>
-                  <span className="font-[var(--font-headline)] font-extrabold text-2xl text-primary">{formatPrice(totalPrice, currency)}</span>
+                  <span className="font-headline font-bold text-lg text-secondary">Total</span>
+                  <span className="font-headline font-extrabold text-2xl text-primary">{formatPrice(totalPrice, currency)}</span>
                 </div>
                 <div className="flex flex-col gap-2">
                   <button
                     type="button"
                     onClick={onPlaceOrder}
                     disabled={isPlacingOrder || isOffline}
-                    className="w-full h-14 bg-whatsapp hover:bg-whatsapp-dark text-white rounded-2xl flex items-center justify-center gap-3 shadow-[0_8px_24px_rgba(37,211,102,0.35)] active:scale-[0.98] transition-all disabled:opacity-60 disabled:cursor-not-allowed font-[var(--font-headline)] font-extrabold tracking-tight uppercase text-sm"
+                    className="w-full h-14 bg-whatsapp hover:bg-whatsapp-dark text-white rounded-2xl flex items-center justify-center gap-3 shadow-[0_8px_24px_rgba(37,211,102,0.35)] active:scale-[0.98] transition-colors disabled:opacity-60 disabled:cursor-not-allowed font-headline font-extrabold tracking-tight uppercase text-sm"
                   >
                     {isOffline ? (
                       <>
@@ -311,7 +311,7 @@ export default function CartSheet({
                         onShowPaymentModal(true);
                       }}
                       disabled={isPlacingOrder || isOffline}
-                      className="w-full h-12 bg-primary hover:bg-primary/90 text-white rounded-2xl flex items-center justify-center gap-2 active:scale-[0.98] transition-all disabled:opacity-60 font-bold text-sm"
+                      className="w-full h-12 bg-primary hover:bg-[#a04100] text-white rounded-2xl flex items-center justify-center gap-2 active:scale-[0.98] transition-colors disabled:opacity-60 font-bold text-sm"
                     >
                       <span className="material-symbols-outlined text-[18px]">payments</span>
                       Pay with Mobile Money

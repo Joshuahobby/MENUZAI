@@ -115,7 +115,7 @@ export default function CustomerMenuPage() {
       {/* Header */}
       <header className="w-full sticky top-10 z-50 bg-surface/95 backdrop-blur-xl flex justify-between items-center px-6 h-20">
         <div className="flex flex-col">
-          <span className="text-2xl font-[var(--font-headline)] font-black tracking-tighter text-[var(--primary-color)]">
+          <span className="text-2xl font-headline font-black tracking-tighter text-[var(--primary-color)]">
             {MOCK_RESTAURANT.name}
           </span>
           <span className="text-[10px] font-bold uppercase tracking-widest text-secondary -mt-1 font-[var(--font-body)]">
@@ -160,7 +160,7 @@ export default function CustomerMenuPage() {
             <button
               key={cat.id}
               onClick={() => setActiveCategory(cat.id)}
-              className={`px-6 py-2.5 font-[var(--font-headline)] font-bold text-sm whitespace-nowrap transition-all duration-300 rounded-[var(--border-radius)] cursor-pointer ${
+              className={`px-6 py-2.5 font-headline font-bold text-sm whitespace-nowrap transition-colors duration-300 rounded-[var(--border-radius)] cursor-pointer ${
                 activeCategory === cat.id
                   ? "text-white shadow-lg bg-[var(--primary-color)]"
                   : "bg-surface-container-low text-on-surface-variant hover:bg-surface-container-high"
@@ -184,11 +184,11 @@ export default function CustomerMenuPage() {
               sizes="(max-width: 1024px) 100vw, 800px"
               priority
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end p-6 z-10">
+            <div className="absolute inset-0 bg-linear-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end p-6 z-10">
               <span className="inline-block px-3 py-1 bg-tertiary-container text-on-tertiary-container text-[10px] font-bold uppercase tracking-widest rounded-full mb-2 w-fit">
                 Chef&apos;s Pick
               </span>
-              <h2 className="text-white font-[var(--font-headline)] text-2xl font-extrabold tracking-tight">
+              <h2 className="text-white font-headline text-2xl font-extrabold tracking-tight">
                 Truffle Ribeye Steak
               </h2>
               <p className="text-white/80 text-xs mt-1 italic">Limited availability for dinner service</p>
@@ -199,10 +199,10 @@ export default function CustomerMenuPage() {
         {/* Menu Items */}
         <section className="space-y-6">
           <div className="flex items-center justify-between">
-            <h3 className="font-[var(--font-headline)] text-xl font-extrabold tracking-tight capitalize">
+            <h3 className="font-headline text-xl font-extrabold tracking-tight capitalize">
               {VISIBLE_CATEGORIES.find(c => c.id === activeCategory)?.name ?? activeCategory}
             </h3>
-            <span className="text-[var(--primary-color)] font-[var(--font-headline)] text-xs font-bold uppercase tracking-widest">
+            <span className="text-[var(--primary-color)] font-headline text-xs font-bold uppercase tracking-widest">
               {filtered.length} items
             </span>
           </div>
@@ -228,14 +228,14 @@ export default function CustomerMenuPage() {
                       sizes="(max-width: 768px) 100vw, 600px"
                     />
                     <div className="absolute top-4 right-4 bg-white/95 backdrop-blur-md px-4 py-2 z-10 shadow-sm rounded-xl">
-                      <span className="font-[var(--font-headline)] font-extrabold text-lg text-[var(--primary-color)]">
+                      <span className="font-headline font-extrabold text-lg text-[var(--primary-color)]">
                         {formatPrice(item.price, DEMO_STYLE.currency)}
                       </span>
                     </div>
                   </div>
                   <div className="flex flex-col p-6">
                     <div className="flex justify-between items-start mb-2">
-                      <h4 className="font-[var(--font-headline)] text-lg font-extrabold">{item.name}</h4>
+                      <h4 className="font-headline text-lg font-extrabold">{item.name}</h4>
                       {item.badge && (
                         <div className={`flex items-center gap-1 ${item.badge === "healthy" ? "text-tertiary" : "text-[var(--primary-color)]"}`}>
                           <span className="material-symbols-outlined icon-fill text-[18px]">
@@ -250,7 +250,7 @@ export default function CustomerMenuPage() {
                     </p>
                     <button
                       onClick={() => addToCart(item)}
-                      className="w-full text-white font-[var(--font-headline)] font-bold flex items-center justify-center gap-2 active:scale-95 transition-all hover:opacity-90 bg-[var(--primary-color)] rounded-[var(--border-radius)] premium-shadow py-4 mt-auto cursor-pointer"
+                      className="w-full text-white font-headline font-bold flex items-center justify-center gap-2 active:scale-95 transition-colors hover:opacity-90 bg-[var(--primary-color)] rounded-[var(--border-radius)] premium-shadow py-4 mt-auto cursor-pointer"
                     >
                       Add to Cart
                       <span className="material-symbols-outlined text-lg">add_circle</span>
@@ -269,7 +269,7 @@ export default function CustomerMenuPage() {
       {!chatOpen && (
         <button
           onClick={() => setChatOpen(true)}
-          className="fixed bottom-36 right-6 w-14 h-14 bg-primary text-white rounded-full shadow-2xl flex items-center justify-center z-50 hover:scale-110 active:scale-95 transition-all"
+          className="fixed bottom-36 right-6 w-14 h-14 bg-primary text-white rounded-full shadow-2xl flex items-center justify-center z-50 hover:scale-110 active:scale-95 transition-[colors,transform]"
           title="Chat with AI Waiter"
         >
           <span className="material-symbols-outlined text-2xl icon-fill">robot_2</span>
@@ -353,7 +353,7 @@ export default function CustomerMenuPage() {
                     setAiTyping(false);
                   }, 900 + Math.random() * 600);
                 }}
-                className="w-9 h-9 bg-primary rounded-xl flex items-center justify-center shrink-0 hover:opacity-90 active:scale-95 transition-all"
+                className="w-9 h-9 bg-primary rounded-xl flex items-center justify-center shrink-0 hover:bg-[#a04100] active:scale-95 transition-colors"
               >
                 <span className="material-symbols-outlined text-white text-sm">send</span>
               </button>
@@ -368,12 +368,12 @@ export default function CustomerMenuPage() {
           {totalItems > 0 ? (
             <button
               onClick={handleOrderClick}
-              className="w-full h-16 bg-whatsapp hover:bg-whatsapp-dark text-white flex items-center justify-center gap-3 shadow-[0_12px_40px_rgba(37,211,102,0.4)] active:scale-95 transition-all rounded-[var(--border-radius)] cursor-pointer"
+              className="w-full h-16 bg-whatsapp hover:bg-whatsapp-dark text-white flex items-center justify-center gap-3 shadow-[0_12px_40px_rgba(37,211,102,0.4)] active:scale-95 transition-colors rounded-[var(--border-radius)] cursor-pointer"
             >
               <svg className="w-6 h-6 fill-current shrink-0" viewBox="0 0 24 24">
                 <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L0 24l6.335-1.662c1.72.937 3.659 1.432 5.71 1.433h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
               </svg>
-              <span className="font-[var(--font-headline)] font-extrabold tracking-tight uppercase text-sm">
+              <span className="font-headline font-extrabold tracking-tight uppercase text-sm">
                 Order via WhatsApp ({totalItems}) — {formatPrice(totalPrice, DEMO_STYLE.currency)}
               </span>
             </button>

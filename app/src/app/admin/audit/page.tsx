@@ -17,10 +17,10 @@ interface AuditEntry {
 }
 
 const ACTION_STYLES: Record<string, { label: string; iconClass: string; icon: string; badge: string }> = {
-  plan_override:       { label: "Plan Override",       icon: "swap_horiz", iconClass: "bg-amber-500/10 text-amber-600",   badge: "bg-amber-500/10 text-amber-700"   },
-  ai_config_change:    { label: "AI Config Change",    icon: "smart_toy",  iconClass: "bg-blue-500/10 text-blue-600",     badge: "bg-blue-500/10 text-blue-700"     },
-  plan_price_change:   { label: "Price Change",        icon: "sell",       iconClass: "bg-emerald-500/10 text-emerald-600", badge: "bg-emerald-500/10 text-emerald-700" },
-  restaurant_deleted:  { label: "Restaurant Deleted",  icon: "delete",     iconClass: "bg-red-500/10 text-red-600",       badge: "bg-red-500/10 text-red-700"       },
+  plan_override:       { label: "Plan Override",       icon: "swap_horiz", iconClass: "bg-accent-saffron/15 text-amber-600",   badge: "bg-accent-saffron/15 text-amber-700"   },
+  ai_config_change:    { label: "AI Config Change",    icon: "smart_toy",  iconClass: "bg-primary/10 text-primary",     badge: "bg-primary/10 text-primary"     },
+  plan_price_change:   { label: "Price Change",        icon: "sell",       iconClass: "bg-tertiary/10 text-tertiary", badge: "bg-tertiary/10 text-tertiary" },
+  restaurant_deleted:  { label: "Restaurant Deleted",  icon: "delete",     iconClass: "bg-error/10 text-error",       badge: "bg-error/10 text-error"       },
 };
 
 function summarise(entry: AuditEntry): string {
@@ -89,7 +89,7 @@ export default function AdminAuditPage() {
           type="button"
           onClick={load}
           disabled={loading}
-          className="flex items-center gap-2 px-4 py-2 text-xs font-bold text-secondary bg-white border border-black/6 hover:bg-surface-container rounded-xl shadow-sm transition-all disabled:opacity-60"
+          className="flex items-center gap-2 px-4 py-2 text-xs font-bold text-secondary bg-surface-container-lowest border border-black/6 hover:bg-surface-container rounded-xl shadow-sm transition-colors disabled:opacity-60"
         >
           <span className={`material-symbols-outlined text-[16px] ${loading ? "animate-spin" : ""}`}>sync</span>
           Refresh
@@ -103,10 +103,10 @@ export default function AdminAuditPage() {
             type="button"
             key={f.value}
             onClick={() => setFilter(f.value)}
-            className={`px-3 py-2 rounded-xl text-xs font-bold transition-all ${
+            className={`px-3 py-2 rounded-xl text-xs font-bold transition-colors ${
               filter === f.value
                 ? "bg-primary/10 text-primary"
-                : "bg-white border border-black/6 text-secondary hover:bg-surface-container shadow-sm"
+                : "bg-surface-container-lowest border border-black/6 text-secondary hover:bg-surface-container shadow-sm"
             }`}
           >
             {f.label}
@@ -142,7 +142,7 @@ export default function AdminAuditPage() {
                   </div>
 
                   {/* Card */}
-                  <div className="flex-1 bg-white border border-black/6 rounded-2xl p-4 shadow-sm min-w-0">
+                  <div className="flex-1 bg-surface-container-lowest border border-black/6 rounded-2xl p-4 min-w-0">
                     <div className="flex items-start justify-between gap-2 flex-wrap mb-1.5">
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${style.badge}`}>

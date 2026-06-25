@@ -93,7 +93,7 @@ export default function TemplatesPage() {
           <div className="w-16 h-16 rounded-2xl bg-error/10 text-error flex items-center justify-center mb-6">
             <span className="material-symbols-outlined text-3xl icon-fill">gpp_maybe</span>
           </div>
-          <h2 className="text-xl font-[var(--font-headline)] font-extrabold tracking-tight mb-2">
+          <h2 className="text-xl font-headline font-extrabold tracking-tight mb-2">
             Access Restricted
           </h2>
           <p className="text-sm text-secondary mb-6 leading-relaxed">
@@ -101,7 +101,7 @@ export default function TemplatesPage() {
           </p>
           <a
             href="/dashboard"
-            className="px-6 py-3 bg-gradient-to-br from-primary to-primary-container rounded-xl font-bold text-sm text-white shadow-lg shadow-primary/20 hover:opacity-90 active:scale-95 transition-all text-center block w-full"
+            className="px-6 py-3 bg-linear-to-br from-primary to-primary-container rounded-xl font-bold text-sm text-white shadow-lg shadow-primary/20 hover:bg-[#a04100] active:scale-95 transition-colors text-center block w-full"
           >
             Return to Dashboard
           </a>
@@ -114,7 +114,7 @@ export default function TemplatesPage() {
     <div className="p-6 lg:p-12 pb-24 lg:pb-12">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-[var(--font-headline)] font-extrabold tracking-tight mb-1">Template Gallery</h1>
+        <h1 className="text-3xl font-headline font-extrabold tracking-tight mb-1">Template Gallery</h1>
         <p className="text-secondary">Browse professionally designed restaurant menu templates</p>
       </div>
 
@@ -127,7 +127,7 @@ export default function TemplatesPage() {
               key={cat}
               type="button"
               onClick={() => setCatFilter(cat)}
-              className={`px-4 py-2 text-xs font-bold rounded-xl transition-all ${
+              className={`px-4 py-2 text-xs font-bold rounded-xl transition-colors ${
                 catFilter === cat
                   ? "bg-primary/10 text-primary"
                   : "text-secondary hover:bg-surface-container-low"
@@ -145,7 +145,7 @@ export default function TemplatesPage() {
               key={f}
               type="button"
               onClick={() => setTierFilter(f)}
-              className={`px-4 py-2 text-xs font-bold rounded-xl capitalize transition-all ${
+              className={`px-4 py-2 text-xs font-bold rounded-xl capitalize transition-colors ${
                 tierFilter === f
                   ? f === "pro"
                     ? "bg-primary-container/20 text-primary-container"
@@ -178,7 +178,7 @@ export default function TemplatesPage() {
               }
               setPreviewId(t.id);
             }}
-            className="bg-surface-container-lowest rounded-[2rem] overflow-hidden shadow-sm hover:shadow-xl transition-all cursor-pointer group border border-transparent hover:border-primary/10"
+            className="bg-surface-container-lowest rounded-[2rem] overflow-hidden shadow-sm hover:shadow-xl transition-colors cursor-pointer group border border-transparent hover:border-primary/10"
           >
             {/* Live Preview Thumbnail */}
             <div className="relative h-64 overflow-hidden bg-surface-container-low">
@@ -192,7 +192,7 @@ export default function TemplatesPage() {
               </div>
               
               {/* Overlay Gradient */}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+              <div className="absolute inset-0 bg-linear-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
 
               {/* Tier badge */}
               <div className="absolute top-4 right-4 z-10">
@@ -222,7 +222,7 @@ export default function TemplatesPage() {
             {/* Card body */}
             <div className="p-6">
               <div className="flex items-start justify-between gap-2 mb-1">
-                <h3 className="font-[var(--font-headline)] font-bold text-lg leading-tight">{t.name}</h3>
+                <h3 className="font-headline font-bold text-lg leading-tight">{t.name}</h3>
                 <div
                   className="w-5 h-5 rounded-full shrink-0 mt-0.5 ring-2 ring-white shadow-sm"
                   style={{ backgroundColor: t.config.primaryColor ?? "#FF6B00" }}
@@ -280,7 +280,7 @@ export default function TemplatesPage() {
               <div className="flex items-start justify-between mb-6">
                 <div>
                   <p className="text-secondary text-xs font-bold uppercase tracking-[0.2em] mb-2">{CATEGORY_LABELS[preview.category]}</p>
-                  <h2 className="text-3xl font-[var(--font-headline)] font-extrabold leading-tight mb-2">{preview.name}</h2>
+                  <h2 className="text-3xl font-headline font-extrabold leading-tight mb-2">{preview.name}</h2>
                   <div className="flex items-center gap-2">
                     <span
                       className={`text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-full ${
@@ -334,7 +334,7 @@ export default function TemplatesPage() {
                     applyAndGo(preview);
                   }}
                   disabled={preview.tier === "pro" && plan === "free"}
-                  className="w-full py-5 bg-gradient-to-br from-primary to-primary-container rounded-[2rem] font-bold text-white shadow-xl shadow-primary/20 hover:shadow-2xl hover:-translate-y-0.5 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  className="w-full py-5 bg-linear-to-br from-primary to-primary-container rounded-[2rem] font-bold text-white shadow-xl shadow-primary/20 hover:shadow-2xl hover:-translate-y-0.5 active:scale-95 transition-[colors,transform,shadow] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
                   {preview.tier === "pro" && plan === "free" ? (
                     <>
@@ -355,7 +355,7 @@ export default function TemplatesPage() {
                     setPreviewId(null);
                     setPrintId(preview.id);
                   }}
-                  className="w-full py-5 bg-surface-container-high rounded-[2rem] font-bold text-on-surface hover:bg-surface-container-highest transition-all flex items-center justify-center gap-2"
+                  className="w-full py-5 bg-surface-container-high rounded-[2rem] font-bold text-on-surface hover:bg-surface-container-highest transition-colors flex items-center justify-center gap-2"
                 >
                   <span className="material-symbols-outlined text-xl">print</span>
                   Print Preview / Share

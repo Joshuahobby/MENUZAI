@@ -68,7 +68,7 @@ const ROLES = [
 
 export default function DemoHubPage() {
   return (
-    <div className="min-h-screen bg-[#faf8f6] text-on-surface">
+    <div className="min-h-screen bg-surface text-on-surface">
       <PublicNav activePath="/demo" />
 
       {/* ── Hero ── */}
@@ -77,7 +77,7 @@ export default function DemoHubPage() {
           <span className="material-symbols-outlined text-[14px]">play_circle</span>
           No account needed
         </div>
-        <h1 className="text-5xl md:text-[58px] font-[var(--font-headline)] font-extrabold tracking-tighter leading-[1.05] mb-5 max-w-2xl mx-auto">
+        <h1 className="text-5xl md:text-[58px] font-extrabold tracking-tighter leading-[1.05] mb-5 max-w-2xl mx-auto">
           See MENUZA AI in action
         </h1>
         <p className="text-lg text-secondary max-w-lg mx-auto leading-relaxed">
@@ -90,7 +90,7 @@ export default function DemoHubPage() {
         <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-5">
           {ROLES.map((r) => (
             <div key={r.role}
-              className={`relative flex flex-col rounded-3xl border-2 p-8 transition-all duration-200 ${r.border} ${r.ring} ${r.highlight ? "bg-on-surface" : "bg-white"}`}
+              className={`relative flex flex-col rounded-3xl border-2 p-8 transition-colors duration-200 ${r.border} ${r.ring} ${r.highlight ? "bg-on-surface" : "bg-surface-container-low"}`}
             >
               {r.highlight && (
                 <span className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-primary text-white text-[9px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full shadow-md">
@@ -105,17 +105,17 @@ export default function DemoHubPage() {
               <p className={`text-[10px] font-black uppercase tracking-widest mb-1 ${r.highlight ? "text-white/40" : "text-secondary/50"}`}>
                 {r.tagline}
               </p>
-              <h2 className={`text-xl font-[var(--font-headline)] font-extrabold mb-3 ${r.highlight ? "text-white" : "text-on-surface"}`}>
+              <h2 className={`text-xl font-extrabold mb-3 ${r.highlight ? "text-white" : "text-on-surface"}`}>
                 {r.label}
               </h2>
               <p className={`text-sm leading-relaxed mb-7 ${r.highlight ? "text-white/50" : "text-secondary"}`}>
                 {r.desc}
               </p>
 
-              <ul className="space-y-2.5 mb-8 flex-grow">
+              <ul className="space-y-2.5 mb-8 grow">
                 {r.features.map((f, i) => (
                   <li key={i} className="flex items-start gap-2.5">
-                    <span className={`material-symbols-outlined text-[14px] mt-0.5 shrink-0 ${r.highlight ? "text-primary" : "text-primary"}`}>
+                    <span className="material-symbols-outlined text-[14px] mt-0.5 shrink-0 text-primary">
                       check_circle
                     </span>
                     <span className={`text-xs leading-snug ${r.highlight ? "text-white/60" : "text-secondary"}`}>{f}</span>
@@ -124,10 +124,10 @@ export default function DemoHubPage() {
               </ul>
 
               <Link href={r.href}
-                className={`flex items-center justify-center gap-2 w-full py-3.5 text-sm font-bold rounded-xl transition-all ${
+                className={`flex items-center justify-center gap-2 w-full py-3.5 text-sm font-bold rounded-[2rem] transition-colors ${
                   r.highlight
-                    ? "bg-primary text-white hover:opacity-90 shadow-lg shadow-primary/30"
-                    : "bg-on-surface text-surface hover:opacity-90"
+                    ? "bg-primary text-white hover:bg-[#a04100] shadow-lg shadow-primary/30"
+                    : "bg-on-surface text-surface hover:bg-black/80"
                 }`}
               >
                 <span className="material-symbols-outlined text-[16px]">play_arrow</span>
@@ -146,10 +146,10 @@ export default function DemoHubPage() {
       </section>
 
       {/* ── What you can do ── */}
-      <section className="py-20 px-6 bg-white border-y border-black/5">
+      <section className="py-20 px-6 bg-surface-container-lowest border-y border-black/5">
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-12">
-            <h2 className="text-2xl font-[var(--font-headline)] font-black tracking-tight mb-3">
+            <h2 className="text-2xl font-black tracking-tight mb-3">
               Everything is interactive
             </h2>
             <p className="text-secondary text-sm max-w-md mx-auto">
@@ -171,7 +171,7 @@ export default function DemoHubPage() {
               { icon: "table_restaurant",   text: "Track table numbers" },
               { icon: "timer",              text: "See urgency timers" },
             ].map((item, i) => (
-              <div key={i} className="flex flex-col items-center gap-3 p-5 bg-[#faf8f6] rounded-2xl border border-black/5 text-center">
+              <div key={i} className="flex flex-col items-center gap-3 p-5 bg-surface-container-low rounded-2xl border border-black/5 text-center">
                 <span className="material-symbols-outlined text-primary text-[28px]">{item.icon}</span>
                 <span className="text-xs font-semibold text-secondary leading-tight">{item.text}</span>
               </div>
@@ -183,20 +183,20 @@ export default function DemoHubPage() {
       {/* ── CTA ── */}
       <section className="py-20 px-6">
         <div className="max-w-xl mx-auto text-center">
-          <h2 className="text-3xl font-[var(--font-headline)] font-black tracking-tight mb-4">
+          <h2 className="text-3xl font-black tracking-tight mb-4">
             Convinced? Get your restaurant online in minutes.
           </h2>
           <p className="text-secondary mb-8">14-day free trial — no credit card required.</p>
-          <AuthCta className="inline-block px-8 py-4 bg-primary text-white font-bold rounded-xl text-sm hover:opacity-90 transition-opacity shadow-lg shadow-primary/20">
+          <AuthCta className="inline-block px-8 py-4 bg-primary text-white font-bold rounded-[2rem] text-sm hover:bg-[#a04100] transition-colors shadow-lg shadow-primary/20">
             Start Free Trial — No Card Required
           </AuthCta>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-black/5 bg-[#faf8f6] py-8 px-8">
+      <footer className="border-t border-black/5 bg-surface py-8 px-8">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
-          <span className="font-[var(--font-headline)] font-black tracking-tight text-primary">MENUZA AI</span>
+          <span className="font-headline font-black tracking-tight text-primary">MENUZA AI</span>
           <p className="text-xs text-secondary/50">© 2026 Menuza Systems Inc.</p>
           <div className="flex gap-6 text-xs font-medium text-secondary/60">
             <Link href="/" className="hover:text-primary transition-colors">Home</Link>

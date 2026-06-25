@@ -19,7 +19,7 @@ export function MobileBottomBar({
   const { addItem, menuStatus, isSyncing, publishMenu, unpublishMenu } = useMenu();
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 lg:hidden z-30 bg-white border-t border-black/6 flex h-14">
+    <div className="fixed bottom-0 left-0 right-0 lg:hidden z-30 bg-surface-container-lowest border-t border-black/6 flex h-14">
       {/* Sections */}
       <button
         type="button"

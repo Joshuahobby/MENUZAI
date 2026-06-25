@@ -99,16 +99,16 @@ export default function PricingPage() {
     supabase.auth.getSession().then(({ data }) => setIsLoggedIn(!!data.session));
   }, []);
 
-  const proPrice  = isAnnual ? proMonthly * 11  : proMonthly;
-  const bizPrice  = isAnnual ? bizMonthly * 11  : bizMonthly;
-  const period    = isAnnual ? "per year" : "per month";
+  const proPrice = isAnnual ? proMonthly * 11 : proMonthly;
+  const bizPrice = isAnnual ? bizMonthly * 11 : bizMonthly;
+  const period   = isAnnual ? "per year" : "per month";
 
   const openCheckout = (name: string, price: number, e: React.MouseEvent) => {
     if (isLoggedIn) { e.preventDefault(); setSelectedPlan({ name, price }); setCheckoutOpen(true); }
   };
 
   return (
-    <div className="min-h-screen bg-[#faf8f6] text-on-surface">
+    <div className="min-h-screen bg-surface text-on-surface">
       <CheckoutModal
         isOpen={checkoutOpen}
         onClose={() => setCheckoutOpen(false)}
@@ -121,7 +121,7 @@ export default function PricingPage() {
       {/* ── Hero ── */}
       <section className="pt-24 pb-16 px-6 text-center">
         <p className="text-xs font-bold tracking-[0.25em] uppercase text-primary/70 mb-6">Pricing</p>
-        <h1 className="text-5xl md:text-[64px] font-[var(--font-headline)] font-extrabold tracking-tighter leading-[1.05] mb-5 max-w-2xl mx-auto">
+        <h1 className="text-5xl md:text-[64px] font-extrabold tracking-tighter leading-[1.05] mb-5 max-w-2xl mx-auto">
           Simple,<br className="hidden sm:block" /> transparent pricing
         </h1>
         <p className="text-lg text-secondary max-w-xl mx-auto mb-12 leading-relaxed">
@@ -129,10 +129,10 @@ export default function PricingPage() {
         </p>
 
         {/* Billing Toggle */}
-        <div className="inline-flex items-center bg-white border border-black/8 rounded-xl p-1 shadow-sm">
+        <div className="inline-flex items-center bg-surface-container-low border border-black/8 rounded-xl p-1 shadow-sm">
           <button
             onClick={() => setIsAnnual(false)}
-            className={`px-6 py-2 rounded-lg text-sm font-semibold transition-all cursor-pointer ${
+            className={`px-6 py-2 rounded-lg text-sm font-semibold transition-colors cursor-pointer ${
               !isAnnual ? "bg-on-surface text-surface shadow-sm" : "text-secondary hover:text-on-surface"
             }`}
           >
@@ -140,7 +140,7 @@ export default function PricingPage() {
           </button>
           <button
             onClick={() => setIsAnnual(true)}
-            className={`px-6 py-2 rounded-lg text-sm font-semibold transition-all flex items-center gap-2.5 cursor-pointer ${
+            className={`px-6 py-2 rounded-lg text-sm font-semibold transition-colors flex items-center gap-2.5 cursor-pointer ${
               isAnnual ? "bg-on-surface text-surface shadow-sm" : "text-secondary hover:text-on-surface"
             }`}
           >
@@ -165,7 +165,7 @@ export default function PricingPage() {
         <div className="max-w-3xl mx-auto">
 
           {/* Free — inline strip */}
-          <div className="flex flex-wrap items-center justify-between gap-4 bg-white border border-black/6 rounded-2xl px-6 py-4 mb-6 shadow-sm">
+          <div className="flex flex-wrap items-center justify-between gap-4 bg-surface-container-low border border-black/6 rounded-2xl px-6 py-4 mb-6 shadow-sm">
             <div className="flex flex-wrap items-center gap-x-5 gap-y-1">
               <span className="text-xs font-black uppercase tracking-[0.2em] text-secondary/50">Free</span>
               <span className="text-sm font-bold text-on-surface">0 RWF</span>
@@ -188,108 +188,108 @@ export default function PricingPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
 
-          {/* Pro */}
-          <div className="bg-on-surface rounded-3xl p-10 flex flex-col relative shadow-2xl shadow-black/20">
-            <div className="absolute -top-px left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary to-transparent rounded-t-3xl" />
+            {/* Pro */}
+            <div className="bg-on-surface rounded-3xl p-10 flex flex-col relative shadow-2xl shadow-black/20">
+              <div className="absolute -top-px left-0 right-0 h-px bg-linear-to-r from-transparent via-primary to-transparent rounded-t-3xl" />
 
-            <div className="mb-10">
-              <div className="flex items-center justify-between mb-3">
-                <p className="text-xs font-bold tracking-[0.2em] uppercase text-white/50">Pro</p>
-                <span className="text-[9px] font-black tracking-widest uppercase bg-primary text-white px-2.5 py-1 rounded-full">
-                  Most Popular
+              <div className="mb-10">
+                <div className="flex items-center justify-between mb-3">
+                  <p className="text-xs font-bold tracking-[0.2em] uppercase text-white/50">Pro</p>
+                  <span className="text-[9px] font-black tracking-widest uppercase bg-primary text-white px-2.5 py-1 rounded-full">
+                    Most Popular
+                  </span>
+                </div>
+                <p className="text-sm text-white/50 leading-relaxed">For restaurants ready to grow.</p>
+              </div>
+
+              <div className="mb-10">
+                <div className="flex items-baseline gap-1">
+                  <span className="text-5xl font-black tracking-tight text-white font-syne">{fmt(proPrice)}</span>
+                  <span className="text-lg font-bold text-white/50 ml-1">RWF</span>
+                </div>
+                <p className="text-xs text-white/40 mt-1.5">{period}</p>
+                {isAnnual && (
+                  <p className="text-xs text-primary mt-1 font-semibold">
+                    Save {fmt(proMonthly)} RWF vs monthly
+                  </p>
+                )}
+              </div>
+
+              <div className="h-px bg-white/8 mb-8" />
+
+              <ul className="space-y-4 grow mb-10">
+                {PRO_FEATURES.map((f, i) => {
+                  const [main, sub] = f.split(" — ");
+                  return (
+                    <li key={i} className="flex items-start gap-3">
+                      <span className="material-symbols-outlined text-[15px] text-primary mt-0.5 shrink-0">check</span>
+                      <span className="text-sm text-white/80 leading-snug">
+                        {main}
+                        {sub && <span className="text-white/40"> — {sub}</span>}
+                      </span>
+                    </li>
+                  );
+                })}
+              </ul>
+
+              <div className="flex items-center gap-2 bg-white/10 rounded-xl px-3 py-2 mb-4">
+                <span className="material-symbols-outlined text-[14px] text-primary-container">verified</span>
+                <span className="text-[10px] text-white/70">
+                  <strong className="text-white">14-day money-back guarantee.</strong> Full refund if you&apos;re not happy.
                 </span>
               </div>
-              <p className="text-sm text-white/50 leading-relaxed">For restaurants ready to grow.</p>
+              <Link
+                href={isLoggedIn ? "/dashboard" : "/login?signup=true"}
+                onClick={(e) => openCheckout(`Pro (${isAnnual ? "Annual" : "Monthly"})`, proPrice, e)}
+                className="block w-full py-3.5 text-center text-sm font-bold rounded-[2rem] bg-primary text-white hover:bg-[#a04100] transition-colors shadow-lg shadow-primary/30"
+              >
+                Go Pro
+              </Link>
             </div>
 
-            <div className="mb-10">
-              <div className="flex items-baseline gap-1">
-                <span className="text-5xl font-black tracking-tight text-white">{fmt(proPrice)}</span>
-                <span className="text-lg font-bold text-white/50 ml-1">RWF</span>
+            {/* Business */}
+            <div className="bg-surface-container-low rounded-3xl p-10 flex flex-col border border-black/6 shadow-sm">
+              <div className="mb-10">
+                <p className="text-xs font-bold tracking-[0.2em] uppercase text-secondary/60 mb-3">Business</p>
+                <p className="text-sm text-secondary leading-relaxed">For multi-location operations.</p>
               </div>
-              <p className="text-xs text-white/40 mt-1.5">{period}</p>
-              {isAnnual && (
-                <p className="text-xs text-primary mt-1 font-semibold">
-                  Save {fmt(proMonthly)} RWF vs monthly
-                </p>
-              )}
-            </div>
 
-            <div className="h-px bg-white/8 mb-8" />
-
-            <ul className="space-y-4 flex-grow mb-10">
-              {PRO_FEATURES.map((f, i) => {
-                const [main, sub] = f.split(" — ");
-                return (
-                  <li key={i} className="flex items-start gap-3">
-                    <span className="material-symbols-outlined text-[15px] text-primary mt-0.5 shrink-0">check</span>
-                    <span className="text-sm text-white/80 leading-snug">
-                      {main}
-                      {sub && <span className="text-white/40"> — {sub}</span>}
-                    </span>
-                  </li>
-                );
-              })}
-            </ul>
-
-            <div className="flex items-center gap-2 bg-white/10 rounded-xl px-3 py-2 mb-4">
-              <span className="material-symbols-outlined text-[14px] text-primary-container">verified</span>
-              <span className="text-[10px] text-white/70">
-                <strong className="text-white">14-day money-back guarantee.</strong> Full refund if you&apos;re not happy.
-              </span>
-            </div>
-            <Link
-              href={isLoggedIn ? "/dashboard" : "/login?signup=true"}
-              onClick={(e) => openCheckout(`Pro (${isAnnual ? "Annual" : "Monthly"})`, proPrice, e)}
-              className="block w-full py-3.5 text-center text-sm font-bold rounded-xl bg-primary text-white hover:opacity-90 transition-opacity shadow-lg shadow-primary/30"
-            >
-              Go Pro
-            </Link>
-          </div>
-
-          {/* Business */}
-          <div className="bg-white rounded-3xl p-10 flex flex-col border border-black/6 shadow-sm">
-            <div className="mb-10">
-              <p className="text-xs font-bold tracking-[0.2em] uppercase text-secondary/60 mb-3">Business</p>
-              <p className="text-sm text-secondary leading-relaxed">For multi-location operations.</p>
-            </div>
-
-            <div className="mb-10">
-              <div className="flex items-baseline gap-1">
-                <span className="text-5xl font-black tracking-tight">{fmt(bizPrice)}</span>
-                <span className="text-lg font-bold text-secondary ml-1">RWF</span>
+              <div className="mb-10">
+                <div className="flex items-baseline gap-1">
+                  <span className="text-5xl font-black tracking-tight font-syne">{fmt(bizPrice)}</span>
+                  <span className="text-lg font-bold text-secondary ml-1">RWF</span>
+                </div>
+                <p className="text-xs text-secondary/60 mt-1.5">{period}</p>
+                {isAnnual && (
+                  <p className="text-xs text-primary mt-1 font-semibold">
+                    Save {fmt(bizMonthly)} RWF vs monthly
+                  </p>
+                )}
               </div>
-              <p className="text-xs text-secondary/60 mt-1.5">{period}</p>
-              {isAnnual && (
-                <p className="text-xs text-primary mt-1 font-semibold">
-                  Save {fmt(bizMonthly)} RWF vs monthly
-                </p>
-              )}
+
+              <div className="h-px bg-black/5 mb-8" />
+
+              <ul className="space-y-4 grow mb-10">
+                {BUSINESS_FEATURES.map((f, i) => <FeatureRow key={i} text={f} muted />)}
+              </ul>
+
+              <a
+                href="mailto:support@menuzaai.com?subject=MENUZA%20AI%20Business%20Plan"
+                className="block w-full py-3.5 text-center text-sm font-bold rounded-[2rem] border border-outline-variant text-on-surface hover:border-primary/30 hover:bg-surface-container-high transition-colors"
+              >
+                Contact Sales
+              </a>
             </div>
-
-            <div className="h-px bg-black/5 mb-8" />
-
-            <ul className="space-y-4 flex-grow mb-10">
-              {BUSINESS_FEATURES.map((f, i) => <FeatureRow key={i} text={f} muted />)}
-            </ul>
-
-            <a
-              href="mailto:support@menuzaai.com?subject=MENUZA%20AI%20Business%20Plan"
-              className="block w-full py-3.5 text-center text-sm font-bold rounded-xl border border-black/10 text-secondary hover:bg-black/3 transition-colors"
-            >
-              Contact Sales
-            </a>
-          </div>
 
           </div>
         </div>
       </section>
 
       {/* ── Comparison table ── */}
-      <section className="py-24 px-6 bg-white border-y border-black/5">
+      <section className="py-24 px-6 bg-surface-container-lowest border-y border-black/5">
         <div className="max-w-4xl mx-auto">
           <p className="text-xs font-bold tracking-[0.25em] uppercase text-secondary/50 text-center mb-4">Compare</p>
-          <h2 className="text-3xl font-[var(--font-headline)] font-black mb-16 text-center tracking-tight">
+          <h2 className="text-3xl font-black mb-16 text-center tracking-tight">
             Every plan, side by side
           </h2>
           <div className="overflow-hidden">
@@ -341,12 +341,12 @@ export default function PricingPage() {
       <section className="py-28 px-6">
         <div className="max-w-2xl mx-auto">
           <p className="text-xs font-bold tracking-[0.25em] uppercase text-secondary/50 text-center mb-4">FAQ</p>
-          <h2 className="text-3xl font-[var(--font-headline)] font-black mb-16 text-center tracking-tight">
-            Questions & answers
+          <h2 className="text-3xl font-black mb-16 text-center tracking-tight">
+            Questions &amp; answers
           </h2>
           <div className="space-y-2">
             {faqs.map((faq, i) => (
-              <div key={i} className="bg-white border border-black/6 rounded-2xl px-8 py-7">
+              <div key={i} className="bg-surface-container-low border border-black/6 rounded-2xl px-8 py-7">
                 <p className="font-bold mb-2 text-[15px]">{faq.q}</p>
                 <p className="text-secondary text-sm leading-relaxed">{faq.a}</p>
               </div>
@@ -359,19 +359,19 @@ export default function PricingPage() {
       <section className="py-28 px-6 bg-on-surface">
         <div className="max-w-xl mx-auto text-center">
           <p className="text-xs font-bold tracking-[0.25em] uppercase text-white/30 mb-6">Get started</p>
-          <h2 className="text-4xl font-[var(--font-headline)] font-black mb-4 text-white tracking-tight leading-tight">
+          <h2 className="text-4xl font-black mb-4 text-white tracking-tight leading-tight">
             Elevate your restaurant&apos;s digital presence
           </h2>
           <p className="text-white/40 text-base mb-12 leading-relaxed">
             Join restaurants across Africa using MENUZA AI to serve more customers, more efficiently.
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            <AuthCta className="inline-block px-8 py-4 bg-primary text-white font-bold rounded-xl text-sm hover:opacity-90 transition-opacity shadow-lg shadow-primary/20">
+            <AuthCta className="inline-block px-8 py-4 bg-primary text-white font-bold rounded-[2rem] text-sm hover:bg-[#a04100] transition-colors shadow-lg shadow-primary/20">
               Start Free — No Card Required
             </AuthCta>
             <a
               href="mailto:support@menuzaai.com"
-              className="inline-block px-8 py-4 bg-white/8 text-white/70 font-bold rounded-xl text-sm hover:bg-white/12 transition-colors border border-white/10"
+              className="inline-block px-8 py-4 bg-white/8 text-white/70 font-bold rounded-[2rem] text-sm hover:bg-white/12 transition-colors border border-white/10"
             >
               Talk to Sales
             </a>
@@ -380,9 +380,9 @@ export default function PricingPage() {
       </section>
 
       {/* ── Footer ── */}
-      <footer className="py-10 px-8 border-t border-black/6 bg-[#faf8f6]">
+      <footer className="py-10 px-8 border-t border-black/6 bg-surface">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
-          <span className="font-[var(--font-headline)] font-black tracking-tight text-primary">MENUZA AI</span>
+          <span className="font-headline font-black tracking-tight text-primary">MENUZA AI</span>
           <p className="text-xs text-secondary/50">© 2026 Menuza Systems Inc. All rights reserved.</p>
           <div className="flex gap-8 text-xs font-medium text-secondary/60">
             <Link href="/" className="hover:text-primary transition-colors">Home</Link>

@@ -61,7 +61,7 @@ export default function AnalyticsPage() {
           <div className="w-16 h-16 rounded-2xl bg-error/10 text-error flex items-center justify-center mb-6">
             <span className="material-symbols-outlined text-3xl icon-fill">gpp_maybe</span>
           </div>
-          <h2 className="text-xl font-[var(--font-headline)] font-extrabold tracking-tight mb-2">
+          <h2 className="text-xl font-headline font-extrabold tracking-tight mb-2">
             Access Restricted
           </h2>
           <p className="text-sm text-secondary mb-6 leading-relaxed">
@@ -69,7 +69,7 @@ export default function AnalyticsPage() {
           </p>
           <a
             href="/dashboard"
-            className="px-6 py-3 bg-gradient-to-br from-primary to-primary-container rounded-xl font-bold text-sm text-white shadow-lg shadow-primary/20 hover:opacity-90 active:scale-95 transition-all text-center block w-full"
+            className="px-6 py-3 bg-linear-to-br from-primary to-primary-container rounded-xl font-bold text-sm text-white shadow-lg shadow-primary/20 hover:bg-[#a04100] active:scale-95 transition-colors text-center block w-full"
           >
             Return to Dashboard
           </a>
@@ -117,14 +117,14 @@ export default function AnalyticsPage() {
     <div className="p-6 lg:p-12 pb-24 lg:pb-12">
       <header className="flex flex-col md:flex-row justify-between items-start md:items-end mb-10 gap-4">
         <div>
-          <h1 className="text-3xl font-[var(--font-headline)] font-extrabold tracking-tight mb-1">Analytics</h1>
+          <h1 className="text-3xl font-headline font-extrabold tracking-tight mb-1">Analytics</h1>
           <p className="text-secondary font-medium">Deep dive into your restaurant&apos;s performance metrics.</p>
         </div>
         <div className="relative">
           <button
             type="button"
             onClick={() => setRangeOpen(v => !v)}
-            className="bg-surface-container-lowest px-4 py-2.5 rounded-xl border border-surface-container flex items-center gap-3 shadow-sm hover:border-primary/30 transition-all"
+            className="bg-surface-container-lowest px-4 py-2.5 rounded-xl border border-surface-container flex items-center gap-3 shadow-sm hover:border-primary/30 transition-colors"
           >
             <span className="material-symbols-outlined text-primary text-xl icon-fill">calendar_month</span>
             <span className="text-sm font-semibold">
@@ -156,13 +156,13 @@ export default function AnalyticsPage() {
       </header>
 
       {plan === "free" && (
-        <div className="mb-8 bg-gradient-to-br from-primary/10 to-primary-container/10 border border-primary/20 rounded-2xl p-6 flex flex-col sm:flex-row items-start sm:items-center gap-4">
+        <div className="mb-8 bg-linear-to-br from-primary/10 to-primary-container/10 border border-primary/20 rounded-2xl p-6 flex flex-col sm:flex-row items-start sm:items-center gap-4">
           <span className="material-symbols-outlined text-primary text-3xl icon-fill shrink-0">workspace_premium</span>
           <div className="flex-1">
             <p className="font-bold text-base">Unlock Advanced Analytics</p>
             <p className="text-secondary text-sm">You&apos;re on the Free plan — data is limited to 7 days. Upgrade to Pro for 90-day history, heatmaps, and revenue breakdowns.</p>
           </div>
-          <a href="/pricing" className="shrink-0 px-5 py-2.5 bg-primary-container text-white font-bold rounded-xl text-sm hover:shadow-lg transition-all active:scale-95">
+          <a href="/pricing" className="shrink-0 px-5 py-2.5 bg-primary-container text-white font-bold rounded-[2rem] text-sm hover:bg-[#a04100] transition-colors active:scale-95">
             Upgrade to Pro
           </a>
         </div>
@@ -190,7 +190,7 @@ export default function AnalyticsPage() {
             { label: "QR Scans", value: (kpis.qrScans ?? 0).toLocaleString(), icon: "qr_code_scanner", color: "text-primary" },
           ] : []),
           ...((kpis.aiWaiterOrders ?? 0) > 0 ? [
-            { label: "AI Waiter Orders", value: (kpis.aiWaiterOrders ?? 0).toLocaleString(), icon: "smart_toy", color: "text-violet-600" },
+            { label: "AI Waiter Orders", value: (kpis.aiWaiterOrders ?? 0).toLocaleString(), icon: "smart_toy", color: "text-primary" },
           ] : []),
         ].map((kpi) => (
           <div key={kpi.label} className="bg-surface-container-lowest p-6 rounded-3xl shadow-sm border border-surface-container/50">
@@ -205,10 +205,10 @@ export default function AnalyticsPage() {
 
       {/* Daily Views Chart */}
       {dailyViews.length > 0 && (
-        <div className="mb-8 bg-surface-container-lowest p-8 rounded-3xl border border-surface-container/50 shadow-sm">
+        <div className="mb-8 bg-surface-container-lowest p-8 rounded-3xl border border-surface-container/50">
           <div className="flex justify-between items-center mb-6">
             <div>
-              <h3 className="text-xl font-[var(--font-headline)] font-bold">Menu Views</h3>
+              <h3 className="text-xl font-headline font-bold">Menu Views</h3>
               <p className="text-xs text-secondary font-medium mt-1">Daily traffic over the selected period</p>
             </div>
             <span className="text-2xl font-extrabold text-primary">{kpis.views.toLocaleString()}</span>
@@ -245,10 +245,10 @@ export default function AnalyticsPage() {
 
       {/* Daily Revenue Chart */}
       {dailyRevenue.length > 0 && kpis.revenue > 0 && (
-        <div className="mb-8 bg-surface-container-lowest p-8 rounded-3xl border border-surface-container/50 shadow-sm">
+        <div className="mb-8 bg-surface-container-lowest p-8 rounded-3xl border border-surface-container/50">
           <div className="flex justify-between items-center mb-6">
             <div>
-              <h3 className="text-xl font-[var(--font-headline)] font-bold">Revenue Trend</h3>
+              <h3 className="text-xl font-headline font-bold">Revenue Trend</h3>
               <p className="text-xs text-secondary font-medium mt-1">Daily revenue over the selected period</p>
             </div>
             <span className="text-2xl font-extrabold text-tertiary">{formatPrice(kpis.revenue, currency)}</span>
@@ -285,10 +285,10 @@ export default function AnalyticsPage() {
 
       {/* Conversion Funnel */}
       {funnel.length > 0 && funnel[0].count > 0 && (
-        <div className="mb-8 bg-surface-container-lowest p-8 rounded-3xl border border-surface-container/50 shadow-sm">
+        <div className="mb-8 bg-surface-container-lowest p-8 rounded-3xl border border-surface-container/50">
           <div className="flex justify-between items-center mb-6">
             <div>
-              <h3 className="text-xl font-[var(--font-headline)] font-bold">Conversion Funnel</h3>
+              <h3 className="text-xl font-headline font-bold">Conversion Funnel</h3>
               <p className="text-xs text-secondary font-medium mt-1">Customer journey from menu view to order</p>
             </div>
           </div>
@@ -314,7 +314,7 @@ export default function AnalyticsPage() {
                   </div>
                   <div className="h-2.5 w-full bg-surface-container rounded-full overflow-hidden">
                     <div
-                      className="h-full rounded-full transition-all duration-700"
+                      className="h-full rounded-full transition-colors duration-700"
                       style={{
                         width: `${pct}%`,
                         background: `linear-gradient(to right, var(--color-primary), var(--color-primary-container))`,
@@ -331,9 +331,9 @@ export default function AnalyticsPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Popularity Heatmap */}
-        <div className="bg-surface-container-lowest p-8 rounded-3xl border border-surface-container/50 shadow-sm">
+        <div className="bg-surface-container-lowest p-8 rounded-3xl border border-surface-container/50">
           <div className="flex justify-between items-center mb-6">
-            <h3 className="text-xl font-[var(--font-headline)] font-bold">Popularity Heatmap</h3>
+            <h3 className="text-xl font-headline font-bold">Popularity Heatmap</h3>
             <span className="text-[10px] font-bold text-secondary uppercase tracking-widest">By Interactions</span>
           </div>
           {topItems.length === 0 ? (
@@ -361,7 +361,7 @@ export default function AnalyticsPage() {
                       </div>
                       <div className="h-2 w-full bg-surface-container-low rounded-full overflow-hidden">
                         <div 
-                          className="h-full bg-gradient-to-r from-primary to-primary-container rounded-full transition-all duration-1000"
+                          className="h-full bg-linear-to-r from-primary to-primary-container rounded-full transition-colors duration-1000"
                           style={{ width: `${heatPercent}%` }}
                         />
                       </div>
@@ -374,9 +374,9 @@ export default function AnalyticsPage() {
         </div>
 
         {/* Peak Hours */}
-        <div className="bg-surface-container-lowest p-8 rounded-3xl border border-surface-container/50 shadow-sm">
+        <div className="bg-surface-container-lowest p-8 rounded-3xl border border-surface-container/50">
           <div className="flex justify-between items-center mb-8">
-            <h3 className="text-xl font-[var(--font-headline)] font-bold">Peak Hours</h3>
+            <h3 className="text-xl font-headline font-bold">Peak Hours</h3>
             {peakHour.count > 0 && (
               <span className="bg-primary/10 text-primary font-bold px-3 py-1 rounded-lg text-[10px]">
                 {peakHour.hour}:00 Peak
@@ -391,7 +391,7 @@ export default function AnalyticsPage() {
               return (
               <div key={h.hour} className="flex-1 flex flex-col items-center gap-2">
                 <div
-                  className={`w-full rounded-t-lg transition-all min-h-[4px] peak-bar-${h.hour} ${h.count === peakHour.count && h.count > 0 ? "bg-primary-container" : "bg-surface-container-low"}`}
+                  className={`w-full rounded-t-lg transition-colors min-h-[4px] peak-bar-${h.hour} ${h.count === peakHour.count && h.count > 0 ? "bg-primary-container" : "bg-surface-container-low"}`}
                 />
                 <span className={`text-[8px] font-bold ${h.count === peakHour.count && h.count > 0 ? "text-primary" : "text-secondary"}`}>
                   {h.hour}
@@ -403,10 +403,10 @@ export default function AnalyticsPage() {
 
         {/* Day of Week */}
         {maxDowCount > 0 && (
-          <div className="bg-surface-container-lowest p-8 rounded-3xl border border-surface-container/50 shadow-sm">
+          <div className="bg-surface-container-lowest p-8 rounded-3xl border border-surface-container/50">
             <div className="flex justify-between items-center mb-6">
               <div>
-                <h3 className="text-xl font-[var(--font-headline)] font-bold">Day of Week</h3>
+                <h3 className="text-xl font-headline font-bold">Day of Week</h3>
                 <p className="text-xs text-secondary font-medium mt-1">Activity by day — peak: <span className="text-primary font-bold">{DOW_LABELS[peakDowIdx]}</span></p>
               </div>
             </div>
@@ -429,12 +429,12 @@ export default function AnalyticsPage() {
 
         {/* Order Source Split */}
         {((kpis.whatsappOrders ?? 0) + (kpis.aiWaiterOrders ?? 0)) > 0 && (
-          <div className="bg-surface-container-lowest p-8 rounded-3xl border border-surface-container/50 shadow-sm">
-            <h3 className="text-xl font-[var(--font-headline)] font-bold mb-6">Order Sources</h3>
+          <div className="bg-surface-container-lowest p-8 rounded-3xl border border-surface-container/50">
+            <h3 className="text-xl font-headline font-bold mb-6">Order Sources</h3>
             <div className="space-y-4">
               {[
                 { label: "WhatsApp", count: kpis.whatsappOrders ?? 0, color: "bg-tertiary-container" },
-                { label: "AI Waiter", count: kpis.aiWaiterOrders ?? 0, color: "bg-violet-400" },
+                { label: "AI Waiter", count: kpis.aiWaiterOrders ?? 0, color: "bg-primary/50" },
               ].map((src) => {
                 const total = (kpis.whatsappOrders ?? 0) + (kpis.aiWaiterOrders ?? 0);
                 const pct = total > 0 ? (src.count / total) * 100 : 0;
@@ -445,7 +445,7 @@ export default function AnalyticsPage() {
                       <span className="text-secondary font-mono">{src.count} <span className="text-[10px]">({pct.toFixed(0)}%)</span></span>
                     </div>
                     <div className="h-2.5 w-full bg-surface-container rounded-full overflow-hidden">
-                      <div className={`h-full rounded-full ${src.color} transition-all duration-700`} style={{ width: `${pct}%` }} />
+                      <div className={`h-full rounded-full ${src.color} transition-colors duration-700`} style={{ width: `${pct}%` }} />
                     </div>
                   </div>
                 );
@@ -455,9 +455,9 @@ export default function AnalyticsPage() {
         )}
 
         {/* Live Activity */}
-        <div className="bg-surface-container-lowest p-8 rounded-3xl border border-surface-container/50 shadow-sm lg:col-span-2">
+        <div className="bg-surface-container-lowest p-8 rounded-3xl border border-surface-container/50 lg:col-span-2">
           <div className="flex items-center justify-between mb-6">
-            <h3 className="text-xl font-[var(--font-headline)] font-bold flex items-center gap-2">
+            <h3 className="text-xl font-headline font-bold flex items-center gap-2">
               <span className="flex h-2 w-2 rounded-full bg-tertiary-container animate-pulse"></span> Recent Activity
             </h3>
           </div>

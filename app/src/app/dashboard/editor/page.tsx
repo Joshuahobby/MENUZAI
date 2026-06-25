@@ -15,6 +15,7 @@ import { toast } from "sonner";
 import { PrintView } from "../templates/PrintView";
 import { DEMO_DATA, type TplData } from "../templates/TemplatePreview";
 import { QRCodeModal } from "@/components/QRCodeModal";
+import { StockManagerModal } from "./StockManagerModal";
 import {
   DndContext,
   closestCenter,
@@ -62,6 +63,7 @@ export default function MenuEditorPage() {
     restaurantName,
     userRole,
     restaurantPhone,
+    updateItem,
   } = useMenu();
 
   const hasPhone = !!(restaurantPhone && restaurantPhone.trim().length > 5);
@@ -103,6 +105,7 @@ export default function MenuEditorPage() {
   const [catActionSheet, setCatActionSheet] = useState<{ id: string; name: string; hidden?: boolean } | null>(null);
   const [isPrintOpen, setIsPrintOpen] = useState(false);
   const [isQRModalOpen, setIsQRModalOpen] = useState(false);
+  const [isStockOpen, setIsStockOpen] = useState(false);
 
   const printData: TplData = useMemo(() => {
     if (categories.length === 0) return { ...DEMO_DATA, restaurantName: restaurantName || DEMO_DATA.restaurantName };
@@ -189,7 +192,7 @@ export default function MenuEditorPage() {
 
   if (isLoading) {
     return (
-      <div className="h-screen flex items-center justify-center bg-[#faf8f6]">
+      <div className="h-screen flex items-center justify-center bg-surface">
         <div className="flex flex-col items-center gap-4">
           <div className="w-12 h-12 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
           <p className="text-sm font-bold text-secondary animate-pulse">Loading Editor…</p>
@@ -201,8 +204,8 @@ export default function MenuEditorPage() {
   if (userRole === "staff") {
     return (
       <div className="p-6 lg:p-12 flex flex-col items-center justify-center min-h-[60vh] text-center">
-        <div className="w-full max-w-md bg-white border border-black/6 p-10 rounded-3xl shadow-sm flex flex-col items-center">
-          <div className="w-14 h-14 rounded-2xl bg-red-50 text-red-400 flex items-center justify-center mb-6">
+        <div className="w-full max-w-md bg-surface-container-lowest border border-black/6 p-10 rounded-3xl shadow-sm flex flex-col items-center">
+          <div className="w-14 h-14 rounded-2xl bg-error-container/50 text-error/60 flex items-center justify-center mb-6">
             <span className="material-symbols-outlined text-2xl icon-fill">gpp_maybe</span>
           </div>
           <h2 className="text-xl font-bold tracking-tight mb-2">Access Restricted</h2>
@@ -211,7 +214,7 @@ export default function MenuEditorPage() {
           </p>
           <a
             href="/dashboard"
-            className="px-6 py-3 bg-primary rounded-xl font-bold text-sm text-white hover:opacity-90 transition-opacity text-center block w-full"
+            className="px-6 py-3 bg-primary rounded-[2rem] font-bold text-sm text-white hover:bg-[#a04100] transition-colors text-center block w-full"
           >
             Return to Dashboard
           </a>
@@ -226,7 +229,7 @@ export default function MenuEditorPage() {
       className="h-[calc(100vh)] flex flex-col overflow-hidden"
     >
       {/* ── Top Bar ── */}
-      <header className="bg-white/90 backdrop-blur-xl flex justify-between items-center px-4 lg:px-6 h-14 border-b border-black/6 shrink-0 z-20">
+      <header className="bg-surface/90 backdrop-blur-xl flex justify-between items-center px-4 lg:px-6 h-14 border-b border-black/6 shrink-0 z-20">
         {/* Left side */}
         <div className="flex items-center gap-3 min-w-0">
           <Link href="/dashboard/menus" className="w-8 h-8 rounded-xl flex items-center justify-center hover:bg-black/5 transition-colors text-secondary hover:text-on-surface shrink-0">
@@ -276,7 +279,7 @@ export default function MenuEditorPage() {
                   type="button"
                   title={v.charAt(0).toUpperCase() + v.slice(1)}
                   onClick={() => setViewport(v)}
-                  className={`p-1.5 rounded-full transition-all ${viewport === v ? "bg-white shadow-sm text-primary" : "text-on-surface/40 hover:bg-white/50"}`}
+                  className={`p-1.5 rounded-full transition-colors ${viewport === v ? "bg-white shadow-sm text-primary" : "text-on-surface/40 hover:bg-white/50"}`}
                 >
                   <span className="material-symbols-outlined text-[18px]">{icons[v]}</span>
                 </button>
@@ -293,14 +296,14 @@ export default function MenuEditorPage() {
               <Link
                 href={`/menu/${menuSlug}`}
                 target="_blank"
-                className="px-3 py-1.5 bg-tertiary/10 text-tertiary rounded-lg font-bold text-xs flex items-center gap-1.5 hover:bg-tertiary/15 transition-all"
+                className="px-3 py-1.5 bg-tertiary/10 text-tertiary rounded-lg font-bold text-xs flex items-center gap-1.5 hover:bg-tertiary/15 transition-colors"
               >
                 <span className="material-symbols-outlined text-sm">open_in_new</span>
                 View Menu
               </Link>
               <button
                 onClick={() => setIsQRModalOpen(true)}
-                className="p-2 bg-tertiary/10 text-tertiary rounded-lg hover:bg-tertiary/15 transition-all"
+                className="p-2 bg-tertiary/10 text-tertiary rounded-lg hover:bg-tertiary/15 transition-colors"
                 title="QR Code"
               >
                 <span className="material-symbols-outlined text-sm">qr_code_2</span>
@@ -308,8 +311,17 @@ export default function MenuEditorPage() {
             </div>
           )}
           <button
+            type="button"
+            onClick={() => setIsStockOpen(true)}
+            className="hidden lg:flex items-center justify-center gap-2 px-4 h-9 rounded-xl bg-accent-saffron/10 text-amber-700 hover:bg-accent-saffron/20 transition-colors font-bold text-xs"
+            title="Manage stock counts"
+          >
+            <span className="material-symbols-outlined text-[16px]">inventory_2</span>
+            Stock
+          </button>
+          <button
             onClick={() => setIsPrintOpen(true)}
-            className="hidden lg:flex items-center justify-center gap-2 px-5 h-9 rounded-xl bg-on-surface text-surface hover:bg-on-surface/90 transition-all font-bold text-xs shadow-sm"
+            className="hidden lg:flex items-center justify-center gap-2 px-5 h-9 rounded-xl bg-on-surface text-surface hover:bg-on-surface/90 transition-colors font-bold text-xs shadow-sm"
           >
             <span className="material-symbols-outlined text-[16px]">visibility</span>
             Preview & Print
@@ -326,7 +338,7 @@ export default function MenuEditorPage() {
             {showMobileMenu && (
               <>
                 <div className="fixed inset-0 z-40" onClick={() => setShowMobileMenu(false)} />
-                <div className="fixed top-14 right-4 z-50 bg-white rounded-2xl shadow-lg border border-black/8 py-1.5 min-w-[180px]">
+                <div className="fixed top-14 right-4 z-50 bg-surface-container-lowest rounded-2xl shadow-lg border border-black/8 py-1.5 min-w-[180px]">
                   {menuStatus === "published" && menuSlug && (
                     <>
                       <Link
@@ -347,6 +359,14 @@ export default function MenuEditorPage() {
                       </button>
                     </>
                   )}
+                  <button
+                    type="button"
+                    onClick={() => { setIsStockOpen(true); setShowMobileMenu(false); }}
+                    className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium hover:bg-black/4 transition-colors text-left"
+                  >
+                    <span className="material-symbols-outlined text-sm text-amber-700">inventory_2</span>
+                    Manage Stock
+                  </button>
                   <button
                     onClick={() => { setIsPrintOpen(true); setShowMobileMenu(false); }}
                     className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium hover:bg-black/4 transition-colors text-left"
@@ -369,7 +389,7 @@ export default function MenuEditorPage() {
               type="button"
               onClick={async () => { await unpublishMenu(); setPublishedSlug(null); }}
               disabled={isSyncing}
-              className="px-3 lg:px-4 py-2 bg-black/6 rounded-xl font-bold text-xs lg:text-sm text-on-surface hover:bg-black/10 transition-all disabled:opacity-60"
+              className="px-3 lg:px-4 py-2 bg-black/6 rounded-xl font-bold text-xs lg:text-sm text-on-surface hover:bg-black/10 transition-colors disabled:opacity-60"
             >
               Unpublish
             </button>
@@ -381,7 +401,7 @@ export default function MenuEditorPage() {
                 if (slug) { setPublishedSlug(slug); setTimeout(() => setPublishedSlug(null), 3000); toast.success("Menu published!"); }
               }}
               disabled={isSyncing}
-              className="px-3 lg:px-6 py-2 bg-primary rounded-xl font-bold text-xs lg:text-sm text-white shadow-md shadow-primary/20 hover:opacity-90 transition-opacity disabled:opacity-60"
+              className="px-3 lg:px-6 py-2 bg-primary rounded-[2rem] font-bold text-xs lg:text-sm text-white shadow-md shadow-primary/20 hover:bg-[#a04100] transition-colors disabled:opacity-60"
             >
               Publish
             </button>
@@ -391,7 +411,7 @@ export default function MenuEditorPage() {
 
       {/* WhatsApp warning — orders won't work without a phone number */}
       {menuStatus === "published" && !hasPhone && (
-        <div className="bg-amber-50 border-b border-amber-200 px-4 py-2.5 flex items-center gap-2 text-xs font-semibold text-amber-800 shrink-0">
+        <div className="bg-accent-saffron/10 border-b border-accent-saffron/30 px-4 py-2.5 flex items-center gap-2 text-xs font-semibold text-amber-800 shrink-0">
           <span className="material-symbols-outlined text-amber-500 text-[16px]">warning</span>
           Menu is live but no WhatsApp number is set — customers can&apos;t order.
           <a href="/dashboard/settings" className="underline font-bold ml-1 hover:text-amber-900">Fix in Settings →</a>
@@ -429,7 +449,7 @@ export default function MenuEditorPage() {
           <div className="flex-1 overflow-auto flex flex-col items-center p-3 pb-20 lg:p-8 lg:pb-8">
             <div
               data-viewport={viewport}
-              className={`device-frame w-full ${vp.width} ${vp.rounded} shadow-2xl shadow-black/20 overflow-hidden ${vp.border} flex flex-col transition-all duration-300 bg-[var(--bg-color)]`}
+              className={`device-frame w-full ${vp.width} ${vp.rounded} shadow-2xl shadow-black/20 overflow-hidden ${vp.border} flex flex-col transition-[width,height] duration-300 bg-[var(--bg-color)]`}
             >
               <div className="flex-1 overflow-y-auto hide-scrollbar flex flex-col">
                 {/* Header image */}
@@ -442,9 +462,9 @@ export default function MenuEditorPage() {
                     sizes="(max-width: 900px) 100vw, 900px"
                     priority
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-black/10 z-10" />
+                  <div className="absolute inset-0 bg-linear-to-t from-black/40 via-transparent to-black/10 z-10" />
                   <div className="absolute bottom-0 left-0 right-0 z-20 bg-[var(--primary-color)] px-6 py-3.5">
-                    <h1 className="text-white font-[var(--font-headline)] text-2xl font-black tracking-tight leading-tight">
+                    <h1 className="text-white font-headline text-2xl font-black tracking-tight leading-tight">
                       {activeCategory?.name || "Select a Category"}
                     </h1>
                   </div>
@@ -481,7 +501,7 @@ export default function MenuEditorPage() {
                   {activeCategoryId ? (
                     <div
                       onClick={() => addItem(activeCategoryId)}
-                      className="border-2 border-dashed border-outline-variant/40 rounded-3xl p-6 flex flex-col items-center justify-center gap-2 hover:border-primary/40 hover:bg-primary/5 transition-all cursor-pointer"
+                      className="border-2 border-dashed border-outline-variant/40 rounded-3xl p-6 flex flex-col items-center justify-center gap-2 hover:border-primary/40 hover:bg-primary/5 transition-colors cursor-pointer"
                     >
                       <span className="material-symbols-outlined text-primary text-3xl">add_circle</span>
                       <span className="text-sm font-bold text-on-surface-variant">Add item to {activeCategory?.name}</span>
@@ -499,7 +519,7 @@ export default function MenuEditorPage() {
                           const name = await prompt({ title: "New Section", placeholder: "e.g. Starters, Mains, Drinks", confirmLabel: "Add Section" });
                           if (name) { addCategory(name); toast.success(`"${name}" section added.`); }
                         }}
-                        className="px-6 py-3 bg-primary text-white rounded-2xl text-sm font-bold shadow-md shadow-primary/20 hover:opacity-90 transition-opacity"
+                        className="px-6 py-3 bg-primary text-white rounded-2xl text-sm font-bold shadow-md shadow-primary/20 hover:bg-[#a04100] transition-colors"
                       >
                         Add First Section
                       </button>
@@ -532,7 +552,7 @@ export default function MenuEditorPage() {
             className="fixed top-0 left-0 right-0 bottom-14 bg-black/40 z-40 lg:hidden"
             onClick={() => { setMobileSheet(null); setExpandedItemId(null); }}
           />
-          <div className="fixed bottom-14 left-0 right-0 z-50 bg-white rounded-t-3xl max-h-[78vh] flex flex-col lg:hidden shadow-2xl">
+          <div className="fixed bottom-14 left-0 right-0 z-50 bg-surface-container-lowest rounded-t-3xl max-h-[78vh] flex flex-col lg:hidden shadow-2xl">
             <div className="shrink-0 pt-3 pb-1 flex flex-col items-center">
               <div className="w-10 h-1 bg-black/10 rounded-full" />
             </div>
@@ -580,6 +600,15 @@ export default function MenuEditorPage() {
           url={`${window.location.origin}/menu/${menuSlug}?src=qr`}
           isOpen={isQRModalOpen}
           onClose={() => setIsQRModalOpen(false)}
+        />
+      )}
+
+      {isStockOpen && (
+        <StockManagerModal
+          categories={categories}
+          menuItems={menuItems}
+          updateItem={updateItem}
+          onClose={() => setIsStockOpen(false)}
         />
       )}
     </div>

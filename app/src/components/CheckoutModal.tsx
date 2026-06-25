@@ -109,7 +109,7 @@ export function CheckoutModal({ isOpen, onClose, planName, priceAmount, onSucces
         {stage === "confirmed" && (
           <div className="flex flex-col items-center text-center py-4">
             <span className="material-symbols-outlined text-[64px] text-tertiary mb-4">check_circle</span>
-            <h2 className="text-2xl font-[var(--font-headline)] font-black tracking-tight mb-2">You&apos;re on {planName}!</h2>
+            <h2 className="text-2xl font-headline font-black tracking-tight mb-2">You&apos;re on {planName}!</h2>
             <p className="text-secondary text-sm mb-8 leading-relaxed">
               Payment confirmed. Your plan has been upgraded — enjoy all the new features.
             </p>
@@ -126,14 +126,14 @@ export function CheckoutModal({ isOpen, onClose, planName, priceAmount, onSucces
         {stage === "failed" && (
           <div className="flex flex-col items-center text-center py-4">
             <span className="material-symbols-outlined text-[64px] text-error mb-4">cancel</span>
-            <h2 className="text-2xl font-[var(--font-headline)] font-black tracking-tight mb-2">Payment failed</h2>
+            <h2 className="text-2xl font-headline font-black tracking-tight mb-2">Payment failed</h2>
             <p className="text-secondary text-sm mb-8 leading-relaxed">
               The payment was not completed. Please check your Mobile Money balance and try again.
             </p>
             <button
               type="button"
               onClick={() => setStage("form")}
-              className="w-full py-3 bg-primary text-white font-bold rounded-xl text-sm hover:bg-primary/90 transition-colors"
+              className="w-full py-3 bg-primary text-white font-bold rounded-xl text-sm hover:bg-[#a04100] transition-colors"
             >
               Try again
             </button>
@@ -143,7 +143,7 @@ export function CheckoutModal({ isOpen, onClose, planName, priceAmount, onSucces
         {stage === "awaiting" && (
           <div className="flex flex-col items-center text-center py-4">
             <span className="material-symbols-outlined text-[56px] text-primary mb-4 animate-pulse">smartphone</span>
-            <h2 className="text-2xl font-[var(--font-headline)] font-black tracking-tight mb-3">Check your phone</h2>
+            <h2 className="text-2xl font-headline font-black tracking-tight mb-3">Check your phone</h2>
             <p className="text-secondary text-sm mb-6 leading-relaxed">
               A Mobile Money prompt has been sent to{" "}
               <span className="font-bold text-on-surface">250{phoneNumber.replace(/^0+/, "")}</span>.
@@ -166,7 +166,7 @@ export function CheckoutModal({ isOpen, onClose, planName, priceAmount, onSucces
         {stage === "form" && (
           <>
             <div className="mb-8">
-              <h2 className="text-2xl font-[var(--font-headline)] font-black tracking-tight mb-2">Checkout</h2>
+              <h2 className="text-2xl font-headline font-black tracking-tight mb-2">Checkout</h2>
               <p className="text-secondary text-sm">
                 You are upgrading to the <span className="font-bold text-primary">{planName}</span> plan.
               </p>
@@ -189,7 +189,7 @@ export function CheckoutModal({ isOpen, onClose, planName, priceAmount, onSucces
                     placeholder="78XXXXXXX"
                     value={phoneNumber}
                     onChange={(e) => setPhoneNumber(e.target.value)}
-                    className="w-full bg-surface-container-low border border-outline-variant/30 rounded-xl py-3 pl-14 pr-4 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all font-medium"
+                    className="w-full bg-surface-container-low border border-outline-variant/30 rounded-xl py-3 pl-14 pr-4 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors font-medium"
                     required
                   />
                 </div>
@@ -199,7 +199,7 @@ export function CheckoutModal({ isOpen, onClose, planName, priceAmount, onSucces
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-4 bg-gradient-to-tr from-primary to-primary-container text-white font-bold rounded-xl shadow-lg shadow-primary-container/20 active:scale-95 transition-all flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed disabled:active:scale-100"
+                className="w-full py-4 bg-linear-to-tr from-primary to-primary-container text-white font-bold rounded-xl shadow-lg shadow-primary-container/20 active:scale-95 transition-colors flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed disabled:active:scale-100"
               >
                 {loading ? (
                   <span className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>

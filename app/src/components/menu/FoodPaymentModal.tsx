@@ -119,10 +119,10 @@ export default function FoodPaymentModal({ restaurantId, menuId, items, total, c
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h2 className="font-[var(--font-headline)] font-extrabold text-lg text-on-surface">Pay with Mobile Money</h2>
+            <h2 className="font-headline font-extrabold text-lg text-on-surface">Pay with Mobile Money</h2>
             <p className="text-sm text-secondary mt-0.5">MTN MoMo or Airtel Money</p>
           </div>
-          <button onClick={onClose} disabled={state === "polling" || state === "initiating"} className="w-9 h-9 rounded-full bg-surface-container flex items-center justify-center text-secondary hover:bg-surface-container-high transition-all disabled:opacity-40">
+          <button onClick={onClose} disabled={state === "polling" || state === "initiating"} className="w-9 h-9 rounded-full bg-surface-container flex items-center justify-center text-secondary hover:bg-surface-container-high transition-colors disabled:opacity-40">
             <span className="material-symbols-outlined text-[18px]">close</span>
           </button>
         </div>
@@ -154,7 +154,7 @@ export default function FoodPaymentModal({ restaurantId, menuId, items, total, c
             {state === "idle" ? (
               <button
                 onClick={handleInitiate}
-                className="w-full py-3.5 rounded-2xl text-sm font-bold bg-gradient-to-br from-primary to-primary-container text-white shadow-lg shadow-primary/20 hover:opacity-90 transition-all"
+                className="w-full py-3.5 rounded-2xl text-sm font-bold bg-linear-to-br from-primary to-primary-container text-white shadow-lg shadow-primary/20 hover:bg-[#a04100] transition-colors"
               >
                 Pay Now
               </button>
@@ -162,14 +162,14 @@ export default function FoodPaymentModal({ restaurantId, menuId, items, total, c
               <div className="flex flex-col gap-2">
                 <button
                   onClick={handleRetry}
-                  className="w-full py-3.5 rounded-2xl text-sm font-bold bg-gradient-to-br from-primary to-primary-container text-white shadow-lg shadow-primary/20 hover:opacity-90 transition-all"
+                  className="w-full py-3.5 rounded-2xl text-sm font-bold bg-linear-to-br from-primary to-primary-container text-white shadow-lg shadow-primary/20 hover:bg-[#a04100] transition-colors"
                 >
                   Try Again
                 </button>
                 <button
                   type="button"
                   onClick={handleCancelOrder}
-                  className="w-full py-3 rounded-2xl text-sm font-bold border border-error/30 text-error bg-transparent hover:bg-error/5 transition-all"
+                  className="w-full py-3 rounded-2xl text-sm font-bold border border-error/30 text-error bg-transparent hover:bg-error/5 transition-colors"
                 >
                   Cancel Order
                 </button>

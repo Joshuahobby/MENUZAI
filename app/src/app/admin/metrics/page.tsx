@@ -41,22 +41,22 @@ interface CronStatus {
 }
 
 const CRON_DOT: Record<string, string> = {
-  success: "bg-emerald-500",
-  error:   "bg-red-500",
-  running: "bg-amber-400 animate-pulse",
-  never:   "bg-amber-400",
+  success: "bg-tertiary",
+  error:   "bg-error",
+  running: "bg-accent-saffron animate-pulse",
+  never:   "bg-accent-saffron",
 };
 
 const CRON_BG: Record<string, string> = {
   success: "",
-  error:   "bg-red-50",
-  running: "bg-amber-50",
-  never:   "bg-amber-50/50",
+  error:   "bg-error-container/50",
+  running: "bg-accent-saffron/10",
+  never:   "bg-accent-saffron/10",
 };
 
 const CRON_TEXT: Record<string, string> = {
-  success: "text-emerald-600",
-  error:   "text-red-500",
+  success: "text-tertiary",
+  error:   "text-error",
   running: "text-amber-600",
   never:   "text-amber-600",
 };
@@ -85,14 +85,14 @@ function KpiCard({
   icon: string; accent: string; href?: string;
 }) {
   const inner = (
-    <div className={`bg-white border border-black/6 rounded-2xl p-5 shadow-sm h-full ${href ? "hover:border-primary/20 hover:shadow-md transition-all" : ""}`}>
+    <div className={`bg-surface-container-lowest border border-black/6 rounded-2xl p-5 h-full ${href ? "hover:border-primary/20 hover:shadow-md transition-colors" : ""}`}>
       <div className="flex items-start justify-between mb-3">
         <p className="text-[10px] font-bold text-secondary uppercase tracking-widest">{label}</p>
         <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${accent}`}>
           <span className="material-symbols-outlined text-[16px] icon-fill">{icon}</span>
         </div>
       </div>
-      <p className="text-2xl font-extrabold font-[var(--font-headline)] text-on-surface">{value}</p>
+      <p className="text-2xl font-extrabold font-headline text-on-surface">{value}</p>
       {sub && <p className="text-xs text-secondary mt-1">{sub}</p>}
     </div>
   );
@@ -102,14 +102,14 @@ function KpiCard({
 function PlanBar({ metrics }: { metrics: Metrics }) {
   const total = metrics.totalRestaurants || 1;
   const segments = [
-    { key: "trial",    count: metrics.trialCount,    dot: "bg-violet-400", textColor: "text-violet-700", bg: "bg-violet-50",  label: "Trial"     },
+    { key: "trial",    count: metrics.trialCount,    dot: "bg-primary/70", textColor: "text-primary", bg: "bg-primary/5",  label: "Trial"     },
     { key: "pro",      count: metrics.proCount,      dot: "bg-primary",    textColor: "text-primary",    bg: "bg-primary/5",  label: "Pro"        },
     { key: "business", count: metrics.businessCount, dot: "bg-tertiary",   textColor: "text-tertiary",   bg: "bg-tertiary/5", label: "Business"   },
-    { key: "free",     count: metrics.freeLiteCount, dot: "bg-slate-300",  textColor: "text-secondary",  bg: "bg-slate-50",   label: "Free Lite"  },
+    { key: "free",     count: metrics.freeLiteCount, dot: "bg-secondary/30",  textColor: "text-secondary",  bg: "bg-surface-container-low",   label: "Free Lite"  },
   ];
 
   return (
-    <div className="bg-white border border-black/6 rounded-2xl shadow-sm overflow-hidden">
+    <div className="bg-surface-container-lowest border border-black/6 rounded-2xl overflow-hidden">
       <div className="px-5 py-4 border-b border-black/6">
         <p className="text-[10px] font-bold text-secondary uppercase tracking-widest">Plan Distribution</p>
       </div>
@@ -122,7 +122,7 @@ function PlanBar({ metrics }: { metrics: Metrics }) {
               className={`${s.bg} p-5 ${i < 3 ? "border-r border-black/6" : ""} ${i >= 2 ? "border-t sm:border-t-0 border-black/6" : ""}`}
             >
               <div className={`w-2.5 h-2.5 rounded-full ${s.dot} mb-3`} />
-              <p className={`text-2xl font-extrabold font-[var(--font-headline)] ${s.textColor}`}>{s.count}</p>
+              <p className={`text-2xl font-extrabold font-headline ${s.textColor}`}>{s.count}</p>
               <p className="text-xs font-bold text-secondary mt-0.5">{s.label}</p>
               <p className="text-[11px] text-secondary/50 mt-0.5">{pct}% of total</p>
             </div>
@@ -190,7 +190,7 @@ export default function AdminMetricsPage() {
           onClick={() => loadMetrics(true)}
           disabled={loading || cooldown}
           title={cooldown ? "Wait 30s between refreshes" : undefined}
-          className="flex items-center gap-2 px-4 py-2 text-xs font-bold text-secondary bg-white border border-black/6 hover:bg-surface-container rounded-xl shadow-sm transition-all disabled:opacity-60 disabled:cursor-not-allowed"
+          className="flex items-center gap-2 px-4 py-2 text-xs font-bold text-secondary bg-surface-container-lowest border border-black/6 hover:bg-surface-container rounded-xl shadow-sm transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
         >
           <span className={`material-symbols-outlined text-[16px] ${loading ? "animate-spin" : ""}`}>sync</span>
           {cooldown ? "Cooling down…" : "Refresh"}
@@ -198,7 +198,7 @@ export default function AdminMetricsPage() {
       </div>
 
       {error && (
-        <div className="mb-6 p-4 bg-red-50 border border-red-100 text-red-600 text-sm rounded-xl">{error}</div>
+        <div className="mb-6 p-4 bg-error-container/50 border border-error/20 text-error text-sm rounded-xl">{error}</div>
       )}
 
       {loading && !metrics ? (
@@ -209,13 +209,13 @@ export default function AdminMetricsPage() {
         <div className="space-y-6">
 
           {/* MRR hero */}
-          <div className="bg-gradient-to-br from-primary/8 to-primary-container/5 border border-primary/15 rounded-2xl p-6 shadow-sm">
+          <div className="bg-linear-to-br from-primary/8 to-primary-container/5 border border-primary/15 rounded-2xl p-6 shadow-sm">
             <div className="flex items-start justify-between">
               <div>
                 <p className="text-[10px] font-bold text-primary/70 uppercase tracking-widest mb-2">
                   Estimated Monthly Revenue
                 </p>
-                <p className="text-4xl font-extrabold font-[var(--font-headline)] text-primary">
+                <p className="text-4xl font-extrabold font-headline text-primary">
                   {fmt(metrics.mrrRwf)} RWF
                 </p>
                 <p className="text-xs text-secondary mt-1.5">
@@ -233,31 +233,31 @@ export default function AdminMetricsPage() {
 
           {/* Primary KPIs */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            <KpiCard label="Total Restaurants" value={metrics.totalRestaurants} sub="all plans"    icon="storefront"       accent="bg-blue-500/10 text-blue-600"     href="/admin/restaurants" />
-            <KpiCard label="Pro Subscribers"   value={metrics.proCount}         sub="paid plan"    icon="workspace_premium" accent="bg-emerald-500/10 text-emerald-600" href="/admin/subscriptions" />
-            <KpiCard label="Business"          value={metrics.businessCount}    sub="paid plan"    icon="domain"            accent="bg-amber-500/10 text-amber-600"    href="/admin/subscriptions" />
-            <KpiCard label="On Trial"          value={metrics.trialCount}       sub="14-day trial" icon="hourglass_top"     accent="bg-violet-500/10 text-violet-600" />
+            <KpiCard label="Total Restaurants" value={metrics.totalRestaurants} sub="all plans"    icon="storefront"       accent="bg-primary/10 text-primary"     href="/admin/restaurants" />
+            <KpiCard label="Pro Subscribers"   value={metrics.proCount}         sub="paid plan"    icon="workspace_premium" accent="bg-tertiary/10 text-tertiary" href="/admin/subscriptions" />
+            <KpiCard label="Business"          value={metrics.businessCount}    sub="paid plan"    icon="domain"            accent="bg-accent-saffron/15 text-amber-600"    href="/admin/subscriptions" />
+            <KpiCard label="On Trial"          value={metrics.trialCount}       sub="14-day trial" icon="hourglass_top"     accent="bg-primary/10 text-primary" />
           </div>
 
           {/* Secondary KPIs */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            <KpiCard label="Free Lite"    value={metrics.freeLiteCount}                    sub="trial expired"      icon="lock_open"    accent="bg-slate-100 text-slate-500" />
+            <KpiCard label="Free Lite"    value={metrics.freeLiteCount}                    sub="trial expired"      icon="lock_open"    accent="bg-surface-container-low text-secondary" />
             <KpiCard label="Total Orders" value={fmt(metrics.totalOrders)}                 sub="all time"           icon="receipt_long" accent="bg-primary/10 text-primary"  href="/admin/transactions" />
             <KpiCard label="Orders Today" value={metrics.ordersToday}                      sub="since midnight UTC" icon="today"        accent="bg-primary/10 text-primary" />
-            <KpiCard label="AI Waiter"    value={metrics.aiWaiterOrders}                   sub="in-chat orders"     icon="smart_toy"    accent="bg-violet-500/10 text-violet-600" />
+            <KpiCard label="AI Waiter"    value={metrics.aiWaiterOrders}                   sub="in-chat orders"     icon="smart_toy"    accent="bg-primary/10 text-primary" />
           </div>
 
           {/* Menus row */}
           <div className="grid grid-cols-2 gap-4">
-            <KpiCard label="Total Menus"     value={metrics.totalMenus}     sub="across all restaurants" icon="menu_book" accent="bg-blue-500/10 text-blue-600" />
-            <KpiCard label="Published Menus" value={metrics.publishedMenus} sub="live on public URLs"     icon="public"    accent="bg-emerald-500/10 text-emerald-600" />
+            <KpiCard label="Total Menus"     value={metrics.totalMenus}     sub="across all restaurants" icon="menu_book" accent="bg-primary/10 text-primary" />
+            <KpiCard label="Published Menus" value={metrics.publishedMenus} sub="live on public URLs"     icon="public"    accent="bg-tertiary/10 text-tertiary" />
           </div>
 
           {/* Two-column bottom section */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
             {/* Recent sign-ups */}
-            <div className="bg-white border border-black/6 rounded-2xl shadow-sm overflow-hidden">
+            <div className="bg-surface-container-lowest border border-black/6 rounded-2xl overflow-hidden">
               <div className="px-5 py-4 border-b border-black/6 flex items-center justify-between">
                 <p className="text-xs font-bold text-secondary uppercase tracking-widest">Recent Sign-ups</p>
                 <Link href="/admin/restaurants" className="text-[11px] font-bold text-primary hover:opacity-80">
@@ -295,7 +295,7 @@ export default function AdminMetricsPage() {
             </div>
 
             {/* Cron health */}
-            <div className="bg-white border border-black/6 rounded-2xl shadow-sm overflow-hidden">
+            <div className="bg-surface-container-lowest border border-black/6 rounded-2xl overflow-hidden">
               <div className="px-5 py-4 border-b border-black/6">
                 <p className="text-xs font-bold text-secondary uppercase tracking-widest">Cron Job Health</p>
               </div>
@@ -312,7 +312,7 @@ export default function AdminMetricsPage() {
                         </p>
                         <p className="text-[11px] text-secondary">{c.schedule}</p>
                         {c.errorMessage && (
-                          <p className="text-[11px] text-red-500 truncate mt-0.5" title={c.errorMessage}>
+                          <p className="text-[11px] text-error truncate mt-0.5" title={c.errorMessage}>
                             {c.errorMessage}
                           </p>
                         )}

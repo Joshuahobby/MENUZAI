@@ -224,13 +224,13 @@ export default function UploadPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#faf8f6] text-on-surface">
-      <header className="w-full sticky top-0 z-50 bg-[#faf8f6]/90 backdrop-blur-md border-b border-black/5 px-4 sm:px-8 h-16 flex justify-between items-center">
+    <div className="min-h-screen bg-surface text-on-surface">
+      <header className="w-full sticky top-0 z-50 bg-surface/90 backdrop-blur-md border-b border-black/5 px-4 sm:px-8 h-16 flex justify-between items-center">
         <Link href="/" className="flex items-center gap-2 shrink-0">
           <div className="w-7 h-7 bg-primary rounded-md flex items-center justify-center">
             <span className="material-symbols-outlined text-white icon-fill text-base">restaurant_menu</span>
           </div>
-          <span className="font-[var(--font-headline)] font-black text-base tracking-tight">
+          <span className="font-headline font-black text-base tracking-tight">
             MENUZA <span className="text-primary">AI</span>
           </span>
         </Link>
@@ -245,7 +245,7 @@ export default function UploadPage() {
             <div className="space-y-8">
               <div>
                 <p className="text-xs font-bold tracking-[0.25em] uppercase text-secondary/50 mb-4">AI Extraction</p>
-                <h1 className="text-4xl font-[var(--font-headline)] font-extrabold tracking-tight mb-3">
+                <h1 className="text-4xl font-headline font-extrabold tracking-tight mb-3">
                   Upload your menu
                 </h1>
                 <p className="text-secondary">Up to {MAX_FILES} pages — we&apos;ll extract and merge them all.</p>
@@ -285,7 +285,7 @@ export default function UploadPage() {
                     type="button"
                     disabled={isProcessingPdf}
                     onClick={(e) => { e.stopPropagation(); fileRef.current?.click(); }}
-                    className="mt-6 px-6 py-2.5 bg-primary text-white text-sm font-bold rounded-xl hover:opacity-90 transition-opacity disabled:opacity-50"
+                    className="mt-6 px-6 py-2.5 bg-primary text-white text-sm font-bold rounded-[2rem] hover:bg-[#a04100] transition-colors disabled:opacity-50"
                   >
                     {isProcessingPdf ? "Processing PDF…" : "Browse Files"}
                   </button>
@@ -308,7 +308,7 @@ export default function UploadPage() {
                   </p>
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                     {selectedFiles.map((file, i) => (
-                      <div key={i} className="relative group bg-white rounded-2xl overflow-hidden border border-black/6">
+                      <div key={i} className="relative group bg-surface-container-lowest rounded-2xl overflow-hidden border border-black/6">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img src={URL.createObjectURL(file)} alt={file.name} className="w-full h-28 object-cover" />
                         <div className="p-2">
@@ -339,7 +339,7 @@ export default function UploadPage() {
                   <button
                     type="button"
                     onClick={handleExtract}
-                    className="w-full py-4 bg-primary text-white font-bold rounded-2xl hover:opacity-90 transition-opacity flex items-center justify-center gap-2"
+                    className="w-full py-4 bg-primary text-white font-bold rounded-[2rem] hover:bg-[#a04100] transition-colors flex items-center justify-center gap-2"
                   >
                     <span className="material-symbols-outlined text-lg">auto_awesome</span>
                     <span className="sm:hidden">Extract ({selectedFiles.length})</span>
@@ -357,7 +357,7 @@ export default function UploadPage() {
               <div className="w-16 h-16 mx-auto bg-primary/8 rounded-2xl flex items-center justify-center mb-8">
                 <span className="material-symbols-outlined text-primary text-3xl animate-pulse">auto_awesome</span>
               </div>
-              <h2 className="text-3xl font-[var(--font-headline)] font-extrabold mb-3">
+              <h2 className="text-3xl font-headline font-extrabold mb-3">
                 AI is reading your menu…
               </h2>
               <div className="flex flex-col items-center gap-1.5 mb-8">
@@ -371,7 +371,7 @@ export default function UploadPage() {
               </div>
               <div className="w-48 h-1 bg-black/6 rounded-full mx-auto overflow-hidden">
                 <div
-                  className="bg-primary h-full transition-all duration-500 rounded-full"
+                  className="bg-primary h-full transition-colors duration-500 rounded-full"
                   ref={(el) => { if (el) el.style.width = `${progress}%`; }}
                 />
               </div>
@@ -380,12 +380,12 @@ export default function UploadPage() {
 
           {state === "done" && (
             <div className="text-center py-20">
-              <div className="w-16 h-16 mx-auto bg-emerald-50 rounded-2xl flex items-center justify-center mb-8">
-                <span className="material-symbols-outlined text-emerald-500 text-3xl">check</span>
+              <div className="w-16 h-16 mx-auto bg-tertiary/10 rounded-2xl flex items-center justify-center mb-8">
+                <span className="material-symbols-outlined text-tertiary text-3xl">check</span>
               </div>
-              <h2 className="text-3xl font-[var(--font-headline)] font-extrabold mb-3">Extraction complete</h2>
+              <h2 className="text-3xl font-headline font-extrabold mb-3">Extraction complete</h2>
               <p className="text-secondary mb-8">{extractedCount.items} items across {extractedCount.categories} categories</p>
-              <Link href="/ai-result" className="inline-block px-8 py-3.5 bg-primary text-white font-bold rounded-xl hover:opacity-90 transition-opacity">
+              <Link href="/ai-result" className="inline-block px-8 py-3.5 bg-primary text-white font-bold rounded-[2rem] hover:bg-[#a04100] transition-colors">
                 Review & Edit
               </Link>
             </div>
@@ -393,12 +393,12 @@ export default function UploadPage() {
 
           {state === "error" && (
             <div className="text-center py-20">
-              <div className="w-16 h-16 mx-auto bg-red-50 rounded-2xl flex items-center justify-center mb-8">
-                <span className="material-symbols-outlined text-red-400 text-3xl">error_outline</span>
+              <div className="w-16 h-16 mx-auto bg-error-container/50 rounded-2xl flex items-center justify-center mb-8">
+                <span className="material-symbols-outlined text-error/60 text-3xl">error_outline</span>
               </div>
-              <h2 className="text-3xl font-[var(--font-headline)] font-extrabold mb-3">Extraction failed</h2>
+              <h2 className="text-3xl font-headline font-extrabold mb-3">Extraction failed</h2>
               <p className="text-secondary mb-8 text-sm">{errorMsg}</p>
-              <button type="button" onClick={reset} className="px-8 py-3.5 bg-primary text-white font-bold rounded-xl hover:opacity-90 transition-opacity">
+              <button type="button" onClick={reset} className="px-8 py-3.5 bg-primary text-white font-bold rounded-[2rem] hover:bg-[#a04100] transition-colors">
                 Try Again
               </button>
             </div>

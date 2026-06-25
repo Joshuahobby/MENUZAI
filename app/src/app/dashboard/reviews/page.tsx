@@ -192,7 +192,7 @@ export default function ReviewsPage() {
           <div className="w-16 h-16 rounded-2xl bg-error/10 text-error flex items-center justify-center mb-6">
             <span className="material-symbols-outlined text-3xl icon-fill">gpp_maybe</span>
           </div>
-          <h2 className="text-xl font-[var(--font-headline)] font-extrabold tracking-tight mb-2">
+          <h2 className="text-xl font-headline font-extrabold tracking-tight mb-2">
             Access Restricted
           </h2>
           <p className="text-sm text-secondary mb-6 leading-relaxed">
@@ -200,7 +200,7 @@ export default function ReviewsPage() {
           </p>
           <a
             href="/dashboard"
-            className="px-6 py-3 bg-gradient-to-br from-primary to-primary-container rounded-xl font-bold text-sm text-white shadow-lg shadow-primary/20 hover:opacity-90 active:scale-95 transition-all text-center block w-full"
+            className="px-6 py-3 bg-linear-to-br from-primary to-primary-container rounded-xl font-bold text-sm text-white shadow-lg shadow-primary/20 hover:bg-[#a04100] active:scale-95 transition-colors text-center block w-full"
           >
             Return to Dashboard
           </a>
@@ -214,7 +214,7 @@ export default function ReviewsPage() {
       {/* Header */}
       <div className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-[var(--font-headline)] font-extrabold tracking-tight mb-1">
+          <h1 className="text-3xl font-headline font-extrabold tracking-tight mb-1">
             Customer Reviews
           </h1>
           <p className="text-secondary text-sm">Feedback collected after orders are placed, with AI analysis and instant reply generator</p>
@@ -226,7 +226,7 @@ export default function ReviewsPage() {
         {/* Average rating card */}
         <div className="bg-surface-container-lowest rounded-3xl p-6 border border-surface-container/50 flex flex-col justify-between">
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-amber-500/10 flex items-center justify-center text-amber-500 shrink-0">
+            <div className="w-12 h-12 rounded-2xl bg-accent-saffron/15 flex items-center justify-center text-amber-500 shrink-0">
               <span className="material-symbols-outlined text-2xl icon-fill font-bold">star</span>
             </div>
             <div>
@@ -248,9 +248,9 @@ export default function ReviewsPage() {
           <p className="text-[10px] font-bold text-secondary uppercase tracking-[0.2em] mb-4">Sentiment Breakdown</p>
           <div className="space-y-3">
             {[
-              { id: "positive", name: "Positive Sentiment", count: positiveCount, color: "bg-emerald-500", text: "text-emerald-700 dark:text-emerald-400 bg-emerald-500/10" },
-              { id: "neutral", name: "Neutral Sentiment", count: neutralCount, color: "bg-gray-400", text: "text-gray-600 dark:text-gray-400 bg-gray-400/10" },
-              { id: "negative", name: "Critical Sentiment", count: negativeCount, color: "bg-rose-500", text: "text-rose-700 dark:text-rose-400 bg-rose-500/10" }
+              { id: "positive", name: "Positive Sentiment", count: positiveCount, color: "bg-tertiary", text: "text-tertiary bg-tertiary/10" },
+              { id: "neutral", name: "Neutral Sentiment", count: neutralCount, color: "bg-secondary/40", text: "text-secondary bg-secondary/10" },
+              { id: "negative", name: "Critical Sentiment", count: negativeCount, color: "bg-error", text: "text-error bg-error/10" }
             ].map((s) => {
               const pct = reviews.length > 0 ? (s.count / reviews.length) * 100 : 0;
               const isSelected = filterSentiment === s.id;
@@ -259,7 +259,7 @@ export default function ReviewsPage() {
                   key={s.id}
                   type="button"
                   onClick={() => setFilterSentiment(filterSentiment === s.id ? null : s.id)}
-                  className={`w-full flex items-center gap-3 text-left group p-1.5 rounded-xl transition-all cursor-pointer ${isSelected ? "bg-surface-container-low ring-1 ring-primary/10" : "hover:bg-surface-container-low/50"}`}
+                  className={`w-full flex items-center gap-3 text-left group p-1.5 rounded-xl transition-colors cursor-pointer ${isSelected ? "bg-surface-container-low ring-1 ring-primary/10" : "hover:bg-surface-container-low/50"}`}
                 >
                   <div className="flex-1">
                     <div className="flex justify-between items-center text-xs mb-1">
@@ -267,7 +267,7 @@ export default function ReviewsPage() {
                       <span className="text-secondary font-bold text-[10px]">{s.count} ({pct.toFixed(0)}%)</span>
                     </div>
                     <div className="w-full h-1.5 bg-surface-container rounded-full overflow-hidden">
-                      <div className={`h-full ${s.color} rounded-full transition-all`} style={{ width: `${pct}%` }} />
+                      <div className={`h-full ${s.color} rounded-full transition-colors`} style={{ width: `${pct}%` }} />
                     </div>
                   </div>
                 </button>
@@ -287,15 +287,15 @@ export default function ReviewsPage() {
                   key={star}
                   type="button"
                   onClick={() => setFilterRating(filterRating === star ? null : star)}
-                  className={`w-full flex items-center gap-2 group rounded-xl px-2 py-1 transition-all cursor-pointer ${
-                    isSelected ? "bg-amber-500/5 ring-1 ring-amber-500/10" : "hover:bg-surface-container-low"
+                  className={`w-full flex items-center gap-2 group rounded-xl px-2 py-1 transition-colors cursor-pointer ${
+                    isSelected ? "bg-accent-saffron/10 ring-1 ring-accent-saffron/20" : "hover:bg-surface-container-low"
                   }`}
                 >
                   <span className="text-[10px] font-bold text-secondary w-3 shrink-0">{star}</span>
                   <span className="material-symbols-outlined text-amber-500 text-[12px] icon-fill shrink-0">star</span>
                   <div className="flex-1 h-1.5 bg-surface-container rounded-full overflow-hidden">
                     <div
-                      className="h-full bg-amber-500 rounded-full transition-all"
+                      className="h-full bg-accent-saffron rounded-full transition-colors"
                       style={{ width: `${(count / maxCount) * 100}%` }}
                     />
                   </div>
@@ -315,7 +315,7 @@ export default function ReviewsPage() {
             <button
               type="button"
               onClick={() => setFilterRating(null)}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-500/10 text-amber-700 dark:text-amber-400 rounded-full text-xs font-bold hover:bg-amber-500/20 transition-all cursor-pointer"
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-accent-saffron/15 text-amber-700 rounded-full text-xs font-bold hover:bg-accent-saffron/25 transition-colors cursor-pointer"
             >
               {filterRating} star{filterRating > 1 ? "s" : ""}
               <span className="material-symbols-outlined text-[14px]">close</span>
@@ -325,7 +325,7 @@ export default function ReviewsPage() {
             <button
               type="button"
               onClick={() => setFilterSentiment(null)}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-primary/10 text-primary rounded-full text-xs font-bold hover:bg-primary/20 transition-all cursor-pointer"
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-primary/10 text-primary rounded-full text-xs font-bold hover:bg-primary/20 transition-colors cursor-pointer"
             >
               Sentiment: {filterSentiment}
               <span className="material-symbols-outlined text-[14px]">close</span>
@@ -360,7 +360,7 @@ export default function ReviewsPage() {
           <div className="w-20 h-20 bg-surface-container-low rounded-3xl flex items-center justify-center mb-6 border border-outline-variant/10 text-secondary">
             <span className="material-symbols-outlined text-4xl">rate_review</span>
           </div>
-          <h2 className="text-xl font-[var(--font-headline)] font-bold mb-2">No reviews yet</h2>
+          <h2 className="text-xl font-headline font-bold mb-2">No reviews yet</h2>
           <p className="text-secondary text-sm max-w-sm">
             Share your menu link with customers to start collecting feedback. Reviews appear here automatically after orders.
           </p>
@@ -370,7 +370,7 @@ export default function ReviewsPage() {
           <div className="w-20 h-20 bg-surface-container-low rounded-3xl flex items-center justify-center mb-6 border border-outline-variant/10 text-secondary">
             <span className="material-symbols-outlined text-4xl">filter_alt_off</span>
           </div>
-          <h2 className="text-xl font-[var(--font-headline)] font-bold mb-2">No reviews match your filters</h2>
+          <h2 className="text-xl font-headline font-bold mb-2">No reviews match your filters</h2>
           <p className="text-secondary text-sm max-w-sm">
             Try clearing your rating or sentiment filters to view all customer reviews.
           </p>
@@ -392,27 +392,27 @@ export default function ReviewsPage() {
             return (
               <div
                 key={review.id}
-                className="bg-surface-container-lowest rounded-3xl p-6 border border-surface-container/50 shadow-sm relative overflow-hidden transition-all hover:shadow-md"
+                className="bg-surface-container-lowest rounded-3xl p-6 border border-surface-container/50 shadow-sm relative overflow-hidden transition-colors hover:shadow-md"
               >
                 {/* Header Section */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary/10 to-primary-container/10 flex items-center justify-center font-bold text-sm text-primary">
+                    <div className="w-10 h-10 rounded-full bg-linear-to-br from-primary/10 to-primary-container/10 flex items-center justify-center font-bold text-sm text-primary">
                       {review.customer_name ? review.customer_name.slice(0, 2).toUpperCase() : "G"}
                     </div>
                     <div>
                       <div className="flex items-center gap-2">
-                        <p className="font-[var(--font-headline)] font-bold text-sm text-on-surface">
+                        <p className="font-headline font-bold text-sm text-on-surface">
                           {review.customer_name || "Guest"}
                         </p>
                         
                         {/* Sentiment Badge */}
                         <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold ${
                           review.sentiment === "positive" 
-                            ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400" 
+                            ? "bg-tertiary/10 text-tertiary" 
                             : review.sentiment === "negative" 
-                            ? "bg-rose-500/10 text-rose-600 dark:text-rose-400" 
-                            : "bg-gray-400/10 text-gray-500"
+                            ? "bg-error/10 text-error" 
+                            : "bg-secondary/10 text-secondary"
                         }`}>
                           {review.sentiment.toUpperCase()}
                         </span>
@@ -449,7 +449,7 @@ export default function ReviewsPage() {
                         <button
                           type="button"
                           onClick={() => showUpgrade({ feature: "AI Review Replies", description: "Instantly draft professional replies to every customer review — one click, always on-brand." })}
-                          className="flex items-center gap-2 px-4 py-2 bg-surface-container text-secondary text-xs font-extrabold rounded-xl transition-all hover:bg-primary/10 hover:text-primary"
+                          className="flex items-center gap-2 px-4 py-2 bg-surface-container text-secondary text-xs font-extrabold rounded-xl transition-colors hover:bg-primary/10 hover:text-primary"
                         >
                           <span className="material-symbols-outlined text-[16px]">lock</span>
                           <span>AI Reply — Upgrade to Pro</span>
@@ -459,7 +459,7 @@ export default function ReviewsPage() {
                           type="button"
                           onClick={() => handleGenerateAiReply(review)}
                           disabled={generatingForId === review.id}
-                          className="flex items-center gap-2 px-4 py-2 bg-primary/10 hover:bg-primary/20 text-primary text-xs font-extrabold rounded-xl transition-all cursor-pointer disabled:opacity-50"
+                          className="flex items-center gap-2 px-4 py-2 bg-primary/10 hover:bg-primary/20 text-primary text-xs font-extrabold rounded-xl transition-colors cursor-pointer disabled:opacity-50"
                         >
                           <span className="material-symbols-outlined text-[16px] icon-fill">bolt</span>
                           <span>{generatingForId === review.id ? "Drafting..." : "AI Review Responder"}</span>
@@ -499,7 +499,7 @@ export default function ReviewsPage() {
                         <button
                           type="button"
                           onClick={() => setEditingReplyId(null)}
-                          className="px-3.5 py-2 bg-surface-container hover:bg-surface-container-high text-secondary text-xs font-bold rounded-xl transition-all cursor-pointer"
+                          className="px-3.5 py-2 bg-surface-container hover:bg-surface-container-high text-secondary text-xs font-bold rounded-xl transition-colors cursor-pointer"
                         >
                           Cancel
                         </button>
@@ -507,7 +507,7 @@ export default function ReviewsPage() {
                           type="button"
                           onClick={() => handleSaveReply(review.id)}
                           disabled={savingReplyId === review.id}
-                          className="px-4 py-2 bg-gradient-to-br from-primary to-primary-container text-white text-xs font-bold rounded-xl shadow-md shadow-primary/10 hover:opacity-90 transition-all cursor-pointer"
+                          className="px-4 py-2 bg-linear-to-br from-primary to-primary-container text-white text-xs font-bold rounded-xl shadow-md shadow-primary/10 hover:bg-[#a04100] transition-colors cursor-pointer"
                         >
                           {savingReplyId === review.id ? "Sending..." : "Submit Reply"}
                         </button>
@@ -537,7 +537,7 @@ export default function ReviewsPage() {
                               setReplyDrafts((prev) => ({ ...prev, [review.id]: review.reply || "" }));
                               setEditingReplyId(review.id);
                             }}
-                            className="w-7 h-7 rounded-lg bg-surface-container hover:bg-surface-container-high flex items-center justify-center text-secondary hover:text-primary transition-all cursor-pointer"
+                            className="w-7 h-7 rounded-lg bg-surface-container hover:bg-surface-container-high flex items-center justify-center text-secondary hover:text-primary transition-colors cursor-pointer"
                             title="Edit Response"
                           >
                             <span className="material-symbols-outlined text-[16px]">edit</span>
@@ -545,7 +545,7 @@ export default function ReviewsPage() {
                           <button
                             type="button"
                             onClick={() => handleDeleteReply(review.id)}
-                            className="w-7 h-7 rounded-lg bg-surface-container hover:bg-surface-container-high flex items-center justify-center text-secondary hover:text-error transition-all cursor-pointer"
+                            className="w-7 h-7 rounded-lg bg-surface-container hover:bg-surface-container-high flex items-center justify-center text-secondary hover:text-error transition-colors cursor-pointer"
                             title="Delete Response"
                           >
                             <span className="material-symbols-outlined text-[16px]">delete</span>

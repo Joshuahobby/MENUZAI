@@ -12,11 +12,13 @@ export default async function HistoryPage({ params }: Props) {
 
   const { data: menu } = await supabase
     .from("menus")
-    .select("restaurant_id")
+    .select("restaurant_id, style")
     .eq("slug", slug)
     .single();
 
   if (!menu) notFound();
 
-  return <OrderHistory restaurantId={menu.restaurant_id} />;
+  const currency = (menu.style as { currency?: string } | null)?.currency ?? "RWF";
+
+  return <OrderHistory restaurantId={menu.restaurant_id} currency={currency} />;
 }

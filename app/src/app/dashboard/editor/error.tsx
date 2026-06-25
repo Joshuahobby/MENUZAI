@@ -20,7 +20,7 @@ export default function EditorError({
         <div className="w-16 h-16 mx-auto bg-error/10 rounded-2xl flex items-center justify-center mb-6">
           <span className="material-symbols-outlined text-error text-3xl">edit_off</span>
         </div>
-        <h2 className="text-xl font-[var(--font-headline)] font-extrabold mb-2">Editor crashed</h2>
+        <h2 className="text-xl font-headline font-extrabold mb-2">Editor crashed</h2>
         <p className="text-secondary text-sm mb-2 leading-relaxed">
           Something went wrong loading the menu editor.
         </p>
@@ -30,7 +30,7 @@ export default function EditorError({
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
           <button
             onClick={reset}
-            className="px-6 py-3 bg-primary text-white font-bold rounded-xl text-sm hover:opacity-90 transition-opacity active:scale-95"
+            className="px-6 py-3 bg-primary text-white font-bold rounded-[2rem] text-sm hover:bg-[#a04100] transition-colors active:scale-95"
           >
             Reload Editor
           </button>

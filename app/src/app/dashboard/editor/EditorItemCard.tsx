@@ -23,7 +23,7 @@ export function EditorItemCard({ item, menuStyle, isSelected, onClick }: EditorI
 
   const cardWrap =
     menuStyle.cardStyle === "elevated"
-      ? "bg-white shadow-sm border border-surface-container/30 overflow-hidden"
+      ? "bg-surface-container-lowest shadow-sm border border-surface-container/30 overflow-hidden"
       : menuStyle.cardStyle === "glass"
       ? "bg-white/40 backdrop-blur-md border border-white/20 shadow-lg overflow-hidden"
       : "bg-transparent border-b border-surface-container/50";
@@ -35,7 +35,7 @@ export function EditorItemCard({ item, menuStyle, isSelected, onClick }: EditorI
       ref={setNodeRef}
       style={style}
       onClick={onClick}
-      className={`group relative rounded-3xl transition-all duration-300 ${cardWrap} cursor-pointer ${
+      className={`group relative rounded-3xl transition-colors duration-300 ${cardWrap} cursor-pointer ${
         isSelected ? "ring-2 ring-primary bg-surface-container-low" : "hover:bg-surface-container-lowest"
       } ${isDragging ? "opacity-50 z-10" : "opacity-100 z-[1]"}`}
     >
@@ -43,7 +43,7 @@ export function EditorItemCard({ item, menuStyle, isSelected, onClick }: EditorI
       <div
         {...attributes}
         {...listeners}
-        className="absolute top-3 left-3 opacity-0 group-hover:opacity-40 hover:!opacity-80 transition-all cursor-grab active:cursor-grabbing z-20"
+        className="absolute top-3 left-3 opacity-0 group-hover:opacity-40 hover:!opacity-80 transition-colors cursor-grab active:cursor-grabbing z-20"
         title="Drag to reorder"
       >
         <span className="material-symbols-outlined text-[18px]">drag_indicator</span>
@@ -64,7 +64,7 @@ export function EditorItemCard({ item, menuStyle, isSelected, onClick }: EditorI
 
       {/* Price chip — top-right, now unambiguous with drag handle on the left */}
       <div className="absolute top-3 right-3 bg-white/95 backdrop-blur-sm px-3 py-1.5 rounded-xl shadow-sm flex items-center gap-1 z-10">
-        <span className="font-[var(--font-headline)] font-bold text-[var(--price-text-color)] text-sm">
+        <span className="font-headline font-bold text-[var(--price-text-color)] text-sm">
           {formatPrice(item.price, menuStyle.currency ?? "RWF")}
         </span>
       </div>
@@ -88,7 +88,7 @@ export function EditorItemCard({ item, menuStyle, isSelected, onClick }: EditorI
       {/* Text content */}
       <div className="px-4 pt-3 pb-2">
         {/* pl-6 when no image so text doesn't sit under the drag handle */}
-        <h3 className={`font-[var(--font-headline)] font-extrabold text-base text-on-surface ${!item.image ? "pl-6" : ""}`}>
+        <h3 className={`font-headline font-extrabold text-base text-on-surface ${!item.image ? "pl-6" : ""}`}>
           {item.name}
         </h3>
         {item.description && (

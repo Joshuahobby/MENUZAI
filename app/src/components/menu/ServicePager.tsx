@@ -115,15 +115,15 @@ export default function ServicePager({
       {/* FAB */}
       <button
         onClick={() => setIsOpen(true)}
-        className={`fixed bottom-56 right-6 w-14 h-14 text-white rounded-full shadow-2xl flex items-center justify-center z-50 hover:scale-110 active:scale-95 transition-all cursor-pointer ${
+        className={`fixed bottom-56 right-6 w-14 h-14 text-white rounded-full shadow-2xl flex items-center justify-center z-50 hover:scale-110 active:scale-95 transition-[colors,transform] cursor-pointer ${
           sent
-            ? "bg-emerald-500 scale-110 animate-service-pulse"
-            : "bg-gradient-to-tr from-amber-500 to-amber-600 animate-bounce-slow"
+            ? "bg-tertiary scale-110 animate-service-pulse"
+            : "bg-linear-to-tr from-accent-saffron to-primary-container animate-bounce-slow"
         }`}
         title={sent ? "Sent!" : "Call Waiter / Request Service"}
         aria-label={sent ? "Service request sent" : "Call Waiter / Request Service"}
       >
-        <span className={`material-symbols-outlined text-2xl font-bold transition-all ${!sent && "icon-fill"}`}>
+        <span className={`material-symbols-outlined text-2xl font-bold transition-colors ${!sent && "icon-fill"}`}>
           {sent ? "check_circle" : "concierge"}
         </span>
       </button>
@@ -132,13 +132,13 @@ export default function ServicePager({
       {isOpen && (
         <div className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center p-0 sm:p-6 bg-black/40 backdrop-blur-sm animate-in fade-in duration-300" onClick={() => setIsOpen(false)}>
           <div onClick={(e) => e.stopPropagation()} className="bg-surface w-full max-w-md sm:rounded-[2.5rem] shadow-2xl flex flex-col overflow-hidden animate-in slide-in-from-bottom duration-500">
-            <div className="bg-gradient-to-tr from-amber-500 to-amber-600 p-6 text-white flex justify-between items-center">
+            <div className="bg-linear-to-tr from-accent-saffron to-primary-container p-6 text-white flex justify-between items-center">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-white/20 rounded-2xl flex items-center justify-center">
                   <span className="material-symbols-outlined text-xl icon-fill font-bold">concierge</span>
                 </div>
                 <div>
-                  <h4 className="font-[var(--font-headline)] font-bold text-sm">Table Assistance</h4>
+                  <h4 className="font-headline font-bold text-sm">Table Assistance</h4>
                   <p className="text-[10px] opacity-80 uppercase tracking-widest font-black">Table {localTableInput || resolvedTableNumber || "—"}</p>
                 </div>
               </div>
@@ -167,7 +167,7 @@ export default function ServicePager({
                         key={opt.id}
                         type="button"
                         onClick={() => setServiceType(opt.id as "call_waiter" | "bill" | "water" | "custom")}
-                        className={`flex flex-col p-4 rounded-2xl border text-left transition-all cursor-pointer ${isSelected ? "border-amber-500 bg-amber-500/5 text-amber-600 ring-2 ring-amber-500/10 font-bold" : "border-outline-variant/15 hover:bg-surface-container-low text-secondary"}`}
+                        className={`flex flex-col p-4 rounded-2xl border text-left transition-colors cursor-pointer ${isSelected ? "border-accent-saffron bg-accent-saffron/10 text-on-surface ring-2 ring-accent-saffron/20 font-bold" : "border-outline-variant/15 hover:bg-surface-container-low text-secondary"}`}
                       >
                         <span className={`material-symbols-outlined text-xl mb-2${isSelected ? " icon-fill" : ""}`}>{opt.icon}</span>
                         <span className="text-xs font-bold block">{opt.name}</span>
@@ -185,7 +185,7 @@ export default function ServicePager({
                   value={localTableInput}
                   onChange={(e) => setLocalTableInput(e.target.value)}
                   placeholder="e.g. 5"
-                  className="w-full bg-surface-container-low border-none rounded-xl py-3 px-4 text-sm font-semibold focus:ring-2 focus:ring-amber-500/20"
+                  className="w-full bg-surface-container-low border-none rounded-xl py-3 px-4 text-sm font-semibold focus:ring-2 focus:ring-primary/20"
                 />
               </div>
               <div>
@@ -196,13 +196,13 @@ export default function ServicePager({
                   value={serviceMessage}
                   onChange={(e) => setServiceMessage(e.target.value)}
                   placeholder={serviceType === "custom" ? "Type details here, e.g. Extra napkins, clean glass, fork..." : "Any extra details..."}
-                  className="w-full bg-surface-container-low border-none rounded-2xl py-3 px-4 text-xs font-semibold focus:ring-2 focus:ring-amber-500/20 leading-relaxed custom-scrollbar resize-none"
+                  className="w-full bg-surface-container-low border-none rounded-2xl py-3 px-4 text-xs font-semibold focus:ring-2 focus:ring-primary/20 leading-relaxed custom-scrollbar resize-none"
                 />
               </div>
               <button
                 type="submit"
                 disabled={isSending}
-                className="w-full py-4 bg-gradient-to-tr from-amber-500 to-amber-600 text-white rounded-2xl font-bold text-sm shadow-lg shadow-amber-500/20 hover:opacity-90 active:scale-95 transition-all disabled:opacity-50 cursor-pointer"
+                className="w-full py-4 bg-linear-to-tr from-accent-saffron to-primary-container text-white rounded-2xl font-bold text-sm shadow-lg shadow-primary/20 hover:opacity-90 active:scale-95 transition-colors disabled:opacity-50 cursor-pointer"
               >
                 {isSending ? "Sending Request..." : "Send Call Alert"}
               </button>

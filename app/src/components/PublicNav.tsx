@@ -19,7 +19,7 @@ export function PublicNav({ activePath }: { activePath?: string }) {
   }, []);
 
   return (
-    <nav className="w-full sticky top-0 z-50 bg-[#faf8f6]/90 backdrop-blur-md border-b border-black/5">
+    <nav className="w-full sticky top-0 z-50 bg-surface/90 backdrop-blur-md border-b border-black/5">
       <div className="flex justify-between items-center px-6 md:px-8 h-16 max-w-7xl mx-auto">
 
         {/* Logo */}
@@ -27,7 +27,7 @@ export function PublicNav({ activePath }: { activePath?: string }) {
           <div className="w-7 h-7 bg-primary rounded-md flex items-center justify-center">
             <span className="material-symbols-outlined text-white icon-fill text-base">restaurant_menu</span>
           </div>
-          <span className="font-[var(--font-headline)] font-black text-base tracking-tight">
+          <span className="font-headline font-black text-base tracking-tight">
             MENUZA <span className="text-primary">AI</span>
           </span>
         </Link>
@@ -54,7 +54,7 @@ export function PublicNav({ activePath }: { activePath?: string }) {
           {isLoggedIn ? (
             <Link
               href="/dashboard"
-              className="px-5 py-2.5 bg-primary text-white text-sm font-bold rounded-lg hover:opacity-90 transition-opacity"
+              className="px-5 py-2.5 bg-primary text-white text-sm font-bold rounded-[2rem] hover:bg-[#a04100] transition-colors"
             >
               Dashboard
             </Link>
@@ -68,7 +68,7 @@ export function PublicNav({ activePath }: { activePath?: string }) {
               </Link>
               <Link
                 href="/login?signup=true"
-                className="px-4 py-2.5 bg-primary text-white text-sm font-bold rounded-lg hover:opacity-90 transition-opacity"
+                className="px-4 py-2.5 bg-primary text-white text-sm font-bold rounded-[2rem] hover:bg-[#a04100] transition-colors"
               >
                 Get Started
               </Link>
@@ -92,7 +92,7 @@ export function PublicNav({ activePath }: { activePath?: string }) {
 
       {/* Mobile dropdown */}
       {mobileOpen && (
-        <div className="md:hidden bg-[#faf8f6] border-t border-black/5 px-6 py-4 space-y-1">
+        <div className="md:hidden bg-surface border-t border-black/5 px-6 py-4 space-y-1">
           {NAV_LINKS.map(({ href, label }) => (
             <Link
               key={href}
@@ -111,14 +111,14 @@ export function PublicNav({ activePath }: { activePath?: string }) {
             <Link
               href="/login"
               onClick={() => setMobileOpen(false)}
-              className="w-full text-center py-3 text-sm font-medium text-secondary border border-black/10 rounded-lg hover:bg-black/3 transition-colors"
+              className="w-full text-center py-3 text-sm font-medium text-secondary border border-outline-variant rounded-[2rem] hover:bg-surface-container-low transition-colors"
             >
               Log in
             </Link>
             <Link
               href="/login?signup=true"
               onClick={() => setMobileOpen(false)}
-              className="w-full text-center py-3 bg-primary text-white text-sm font-bold rounded-lg hover:opacity-90 transition-opacity"
+              className="w-full text-center py-3 bg-primary text-white text-sm font-bold rounded-[2rem] hover:bg-[#a04100] transition-colors"
             >
               Get Started Free
             </Link>

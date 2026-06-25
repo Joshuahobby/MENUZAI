@@ -54,7 +54,7 @@ export default function OrderConfirmation({
         <span className="material-symbols-outlined text-tertiary text-4xl icon-fill">check_circle</span>
       </div>
       <div className="text-center">
-        <h2 className="font-[var(--font-headline)] font-extrabold text-2xl tracking-tight">Order Sent!</h2>
+        <h2 className="font-headline font-extrabold text-2xl tracking-tight">Order Sent!</h2>
         <p className="text-secondary text-sm mt-1">WhatsApp is opening to confirm with the restaurant.</p>
         {resolvedTableNumber && (
           <div className="inline-flex items-center gap-1.5 mt-2 bg-surface-container px-3 py-1.5 rounded-full">
@@ -98,7 +98,7 @@ export default function OrderConfirmation({
       </div>
 
       <div className="w-full bg-surface-container-lowest rounded-2xl p-5 border border-surface-container/50 space-y-4">
-        <h3 className="font-[var(--font-headline)] font-black text-center text-sm">Rate your experience</h3>
+        <h3 className="font-headline font-black text-center text-sm">Rate your experience</h3>
         <ReviewWidget
           rating={rating}
           hoverRating={hoverRating}
@@ -117,7 +117,7 @@ export default function OrderConfirmation({
           type="button"
           onClick={onCancelOrder}
           disabled={isCancelling}
-          className="w-full py-3 rounded-2xl text-sm font-bold border border-error/30 text-error bg-transparent hover:bg-error/5 transition-all disabled:opacity-40"
+          className="w-full py-3 rounded-2xl text-sm font-bold border border-error/30 text-error bg-transparent hover:bg-error/5 transition-colors disabled:opacity-40"
         >
           {isCancelling ? "Cancelling..." : "Cancel Order"}
         </button>
@@ -126,7 +126,7 @@ export default function OrderConfirmation({
       <button
         type="button"
         onClick={onClose}
-        className="w-full py-4 bg-surface-container-lowest border border-surface-container rounded-2xl font-bold text-sm hover:bg-surface-container-low transition-all"
+        className="w-full py-4 bg-surface-container-lowest border border-surface-container rounded-2xl font-bold text-sm hover:bg-surface-container-low transition-colors"
       >
         Back to Menu
       </button>

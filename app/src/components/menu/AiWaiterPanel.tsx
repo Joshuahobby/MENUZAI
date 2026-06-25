@@ -284,7 +284,7 @@ export default function AiWaiterPanel({
       {/* FAB */}
       <button
         onClick={() => { userInteracted.current = true; setIsOpen(true); }}
-        className="fixed bottom-36 right-6 w-14 h-14 bg-primary text-white rounded-full shadow-2xl flex items-center justify-center z-50 hover:scale-110 active:scale-95 transition-all animate-bounce-slow"
+        className="fixed bottom-36 right-6 w-14 h-14 bg-primary text-white rounded-full shadow-2xl flex items-center justify-center z-50 hover:scale-110 active:scale-95 transition-[colors,transform] animate-bounce-slow"
         title="Ask the AI Waiter"
         aria-label="Ask the AI Waiter"
       >
@@ -302,7 +302,7 @@ export default function AiWaiterPanel({
                   <span className="material-symbols-outlined text-xl icon-fill font-bold">robot_2</span>
                 </div>
                 <div>
-                  <h4 className="font-[var(--font-headline)] font-bold text-sm">AI Digital Waiter</h4>
+                  <h4 className="font-headline font-bold text-sm">AI Digital Waiter</h4>
                   <p className="text-[10px] opacity-80 uppercase tracking-widest font-black">Powered by MENUZA</p>
                 </div>
               </div>
@@ -357,7 +357,7 @@ export default function AiWaiterPanel({
                       type="button"
                       onClick={confirmChatOrder}
                       disabled={isPlacingChatOrder}
-                      className="flex-1 py-3 bg-primary text-white font-[var(--font-headline)] font-bold rounded-xl text-sm active:scale-95 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                      className="flex-1 py-3 bg-primary text-white font-headline font-bold rounded-xl text-sm active:scale-95 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
                     >
                       {isPlacingChatOrder ? (
                         <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />Placing…</>
@@ -381,7 +381,7 @@ export default function AiWaiterPanel({
                   <button
                     type="button"
                     onClick={handleRetryChat}
-                    className="bg-error/10 text-error text-xs font-bold px-4 py-2 rounded-full hover:bg-error/20 transition-all flex items-center gap-1.5"
+                    className="bg-error/10 text-error text-xs font-bold px-4 py-2 rounded-full hover:bg-error/20 transition-colors flex items-center gap-1.5"
                   >
                     <span className="material-symbols-outlined text-[14px]">refresh</span>
                     Tap to retry
@@ -412,7 +412,7 @@ export default function AiWaiterPanel({
               <button
                 type="submit"
                 disabled={!input.trim() || isLoading}
-                className="w-12 h-12 bg-primary text-white rounded-2xl flex items-center justify-center disabled:opacity-50 active:scale-95 transition-all shadow-lg"
+                className="w-12 h-12 bg-primary text-white rounded-2xl flex items-center justify-center disabled:opacity-50 active:scale-95 transition-colors shadow-lg"
                 aria-label="Send message"
               >
                 <span className="material-symbols-outlined text-[20px] font-bold">send</span>

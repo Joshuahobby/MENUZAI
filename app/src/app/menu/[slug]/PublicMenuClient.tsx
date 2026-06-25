@@ -11,12 +11,14 @@ import { defaultStyle } from "@/store/menuStore";
 import { formatPrice, getOptimizedImageUrl } from "@/lib/utils";
 import { buildWhatsAppMessage, buildWhatsAppURL } from "@/lib/whatsapp";
 import { toast } from "sonner";
-import ItemDetailsModal from "@/components/menu/ItemDetailsModal";
-import FoodPaymentModal from "@/components/menu/FoodPaymentModal";
+import dynamic from "next/dynamic";
 import MenuItemCard from "@/components/menu/MenuItemCard";
-import ServicePager from "@/components/menu/ServicePager";
-import AiWaiterPanel from "@/components/menu/AiWaiterPanel";
-import CartSheet from "@/components/menu/CartSheet";
+
+const ItemDetailsModal = dynamic(() => import("@/components/menu/ItemDetailsModal"), { ssr: false });
+const FoodPaymentModal = dynamic(() => import("@/components/menu/FoodPaymentModal"), { ssr: false });
+const AiWaiterPanel = dynamic(() => import("@/components/menu/AiWaiterPanel"), { ssr: false });
+const CartSheet = dynamic(() => import("@/components/menu/CartSheet"), { ssr: false });
+const ServicePager = dynamic(() => import("@/components/menu/ServicePager"), { ssr: false });
 
 interface PublicMenuClientProps {
   menuId: string;
@@ -409,12 +411,12 @@ export default function PublicMenuClient(props: PublicMenuClientProps) {
           <div className="flex items-center gap-3">
             {restaurantLogoUrl ? (
               <div className="w-10 h-10 rounded-xl overflow-hidden shrink-0 border border-outline-variant/20">
-                <NextImage src={restaurantLogoUrl} alt={restaurantName} width={40} height={40} className="object-cover w-full h-full" />
+                <NextImage src={restaurantLogoUrl} alt={restaurantName} width={40} height={40} className="object-cover w-full h-full" priority />
               </div>
             ) : null}
             <div className="flex flex-col">
               <div className="flex items-center gap-2">
-                <span className="text-lg font-[var(--font-headline)] font-black tracking-tight text-on-surface leading-tight">{restaurantName}</span>
+                <span className="text-lg font-headline font-black tracking-tight text-on-surface leading-tight">{restaurantName}</span>
                 {isOffline && (
                   <span className="flex h-2 w-2 rounded-full bg-orange-500 animate-pulse" title="Viewing Offline" />
                 )}
@@ -472,7 +474,7 @@ export default function PublicMenuClient(props: PublicMenuClientProps) {
                   window.scrollTo({ top: y, behavior: "smooth" });
                 }
               }}
-              className={`px-6 py-2.5 font-[var(--font-headline)] font-bold text-sm whitespace-nowrap transition-all duration-300 rounded-[var(--border-radius)] cursor-pointer ${activeCategory === cat.id
+              className={`px-6 py-2.5 font-headline font-bold text-sm whitespace-nowrap transition-colors duration-300 rounded-[var(--border-radius)] cursor-pointer ${activeCategory === cat.id
                 ? "text-white shadow-lg bg-[var(--primary-color)]"
                 : "bg-surface-container-low text-on-surface-variant hover:bg-surface-container-high"}`}
             >
@@ -486,7 +488,7 @@ export default function PublicMenuClient(props: PublicMenuClientProps) {
             const isSelected = selectedTags.includes(filter.id);
             let activeClass = "";
             if (isSelected) {
-              if (filter.id === "vegan") activeClass = "bg-emerald-600 text-white border-emerald-600 shadow-md shadow-emerald-600/10";
+              if (filter.id === "vegan") activeClass = "bg-tertiary text-white border-tertiary shadow-md shadow-tertiary/10";
               else if (filter.id === "vegetarian") activeClass = "bg-green-600 text-white border-green-600 shadow-md shadow-green-600/10";
               else if (filter.id === "gluten-free") activeClass = "bg-amber-600 text-white border-amber-600 shadow-md shadow-amber-600/10";
               else if (filter.id === "spicy") activeClass = "bg-rose-600 text-white border-rose-600 shadow-md shadow-rose-600/10";
@@ -504,7 +506,7 @@ export default function PublicMenuClient(props: PublicMenuClientProps) {
                       : [...prev, filter.id]
                   );
                 }}
-                className={`px-4 py-2 font-[var(--font-headline)] font-bold text-xs flex items-center gap-1.5 whitespace-nowrap transition-all duration-300 rounded-full cursor-pointer select-none active:scale-95 ${activeClass}`}
+                className={`px-4 py-2 font-headline font-bold text-xs flex items-center gap-1.5 whitespace-nowrap transition-colors duration-300 rounded-full cursor-pointer select-none active:scale-95 ${activeClass}`}
               >
                 <span className="material-symbols-outlined text-[16px]">{filter.icon}</span>
                 {filter.label}
@@ -514,7 +516,7 @@ export default function PublicMenuClient(props: PublicMenuClientProps) {
           {selectedTags.length > 0 && (
             <button
               onClick={() => setSelectedTags([])}
-              className="px-3 py-2 font-[var(--font-headline)] font-bold text-xs flex items-center gap-1 whitespace-nowrap transition-all duration-300 rounded-full cursor-pointer select-none text-error bg-error/10 hover:bg-error/15 active:scale-95"
+              className="px-3 py-2 font-headline font-bold text-xs flex items-center gap-1 whitespace-nowrap transition-colors duration-300 rounded-full cursor-pointer select-none text-error bg-error/10 hover:bg-error/15 active:scale-95"
             >
               <span className="material-symbols-outlined text-[16px]">clear_all</span>
               Clear
@@ -534,8 +536,8 @@ export default function PublicMenuClient(props: PublicMenuClientProps) {
               sizes="(max-width: 1024px) 100vw, 1200px"
               priority
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-[var(--primary-color)]/95 via-black/30 to-transparent flex flex-col justify-end p-6 z-10">
-              <h1 className="text-white font-[var(--font-headline)] text-3xl font-black tracking-tight drop-shadow-md">{restaurantName}</h1>
+            <div className="absolute inset-0 bg-linear-to-t from-(--primary-color)/95 via-black/30 to-transparent flex flex-col justify-end p-6 z-10">
+              <h1 className="text-white font-headline text-3xl font-black tracking-tight drop-shadow-md">{restaurantName}</h1>
               <p className="text-white/90 text-sm mt-1 font-medium flex items-center gap-1">
                 <span className="material-symbols-outlined text-sm">restaurant</span>
                 Welcome to our digital menu
@@ -548,7 +550,7 @@ export default function PublicMenuClient(props: PublicMenuClientProps) {
         {items.length > 0 && items.every(i => i.available === false) && !searchQuery.trim() && (
           <section className="bg-rose-50 dark:bg-rose-950/20 border border-rose-200 dark:border-rose-800/30 rounded-[var(--border-radius)] p-6 text-center">
             <span className="material-symbols-outlined text-3xl text-rose-400 block mb-2">no_food</span>
-            <h3 className="font-[var(--font-headline)] font-extrabold text-base text-rose-700 dark:text-rose-300">Currently Unavailable</h3>
+            <h3 className="font-headline font-extrabold text-base text-rose-700 dark:text-rose-300">Currently Unavailable</h3>
             <p className="text-sm text-rose-600/80 dark:text-rose-400/80 mt-1">All items are sold out right now. Please check back later.</p>
           </section>
         )}
@@ -557,7 +559,7 @@ export default function PublicMenuClient(props: PublicMenuClientProps) {
         {searchQuery.trim() ? (
           <section className="space-y-6">
             <div className="flex items-center justify-between">
-              <h3 className="font-[var(--font-headline)] text-xl font-extrabold tracking-tight capitalize">
+              <h3 className="font-headline text-xl font-extrabold tracking-tight capitalize">
                 Results for &quot;{searchQuery}&quot;
               </h3>
               <span className="text-xs text-secondary font-bold">{filtered.length} found</span>
@@ -604,12 +606,12 @@ export default function PublicMenuClient(props: PublicMenuClientProps) {
               >
                 {catIndex > 0 && (
                   <div className="flex items-center gap-3 pt-2 pb-1">
-                    <div className="h-px flex-1 bg-gradient-to-r from-transparent via-outline-variant/20 to-transparent" />
+                    <div className="h-px flex-1 bg-linear-to-r from-transparent via-outline-variant/20 to-transparent" />
                     <span className="material-symbols-outlined text-[14px] text-outline-variant/20">more_horiz</span>
-                    <div className="h-px flex-1 bg-gradient-to-r from-transparent via-outline-variant/20 to-transparent" />
+                    <div className="h-px flex-1 bg-linear-to-r from-transparent via-outline-variant/20 to-transparent" />
                   </div>
                 )}
-                <h3 className="font-[var(--font-headline)] text-2xl font-extrabold tracking-tight capitalize sticky top-[152px] z-30 bg-surface/90 backdrop-blur-md py-2 border-b border-outline-variant/10">
+                <h3 className="font-headline text-2xl font-extrabold tracking-tight capitalize sticky top-[152px] z-30 bg-surface/90 backdrop-blur-md py-2 border-b border-outline-variant/10">
                   {cat.name}
                 </h3>
                 <div className={
@@ -619,7 +621,7 @@ export default function PublicMenuClient(props: PublicMenuClientProps) {
                     ? "grid grid-cols-1 gap-8 max-w-xl mx-auto"
                     : "grid grid-cols-1 gap-6 max-w-2xl mx-auto"
                 }>
-                  {catItems.map(item => (
+                  {catItems.map((item, itemIndex) => (
                     <MenuItemCard
                       key={item.id}
                       item={item}
@@ -629,6 +631,7 @@ export default function PublicMenuClient(props: PublicMenuClientProps) {
                       onIncrement={() => incrementQty(item.id)}
                       onDecrement={() => decrementQty(item.id)}
                       cartQty={cart.find(c => c.id === item.id)?.quantity ?? 0}
+                      priority={catIndex === 0 && itemIndex < 3}
                     />
                   ))}
                 </div>
@@ -641,7 +644,7 @@ export default function PublicMenuClient(props: PublicMenuClientProps) {
         {!searchQuery.trim() && items.length === 0 && categories.length > 0 && (
           <div className="text-center py-20 px-6">
             <span className="material-symbols-outlined text-6xl text-surface-container-highest block mb-4">restaurant_menu</span>
-            <h3 className="font-[var(--font-headline)] font-extrabold text-xl text-on-surface mb-2">No menu items yet</h3>
+            <h3 className="font-headline font-extrabold text-xl text-on-surface mb-2">No menu items yet</h3>
             <p className="text-secondary text-sm max-w-xs mx-auto">The restaurant hasn&apos;t added any items to this menu yet. Check back soon!</p>
           </div>
         )}
@@ -649,7 +652,7 @@ export default function PublicMenuClient(props: PublicMenuClientProps) {
         {!searchQuery.trim() && categories.length === 0 && (
           <div className="text-center py-20 px-6">
             <span className="material-symbols-outlined text-6xl text-surface-container-highest block mb-4">menu_book</span>
-            <h3 className="font-[var(--font-headline)] font-extrabold text-xl text-on-surface mb-2">Menu not available</h3>
+            <h3 className="font-headline font-extrabold text-xl text-on-surface mb-2">Menu not available</h3>
             <p className="text-secondary text-sm max-w-xs mx-auto">This menu is still being set up. Please check again later.</p>
           </div>
         )}
@@ -705,27 +708,29 @@ export default function PublicMenuClient(props: PublicMenuClientProps) {
         />
       )}
 
-      {/* AI Waiter */}
-      <AiWaiterPanel
-        restaurantId={restaurantId}
-        menuId={menuId}
-        restaurantName={restaurantName}
-        restaurantPhone={restaurantPhone}
-        currency={menuStyle.currency ?? "RWF"}
-        menuStyle={menuStyle}
-        items={items}
-        resolvedTableNumber={resolvedTableNumber}
-        customerName={customerName}
-        aiWaiterEnabled={aiWaiterEnabled}
-        onTableNumberChange={setOrderTableNumber}
-        onOrderPlaced={(orderId, cartItems, total) => {
-          setLastOrderId(orderId);
-          pushOrderToHistory(orderId);
-          setOrderedSnapshot({ cart: cartItems, total });
-          setOrderPlaced(true);
-          setIsCartOpen(true);
-        }}
-      />
+      {/* AI Waiter — chunk only loads for Pro/Business/Trial plans */}
+      {aiWaiterEnabled && (
+        <AiWaiterPanel
+          restaurantId={restaurantId}
+          menuId={menuId}
+          restaurantName={restaurantName}
+          restaurantPhone={restaurantPhone}
+          currency={menuStyle.currency ?? "RWF"}
+          menuStyle={menuStyle}
+          items={items}
+          resolvedTableNumber={resolvedTableNumber}
+          customerName={customerName}
+          aiWaiterEnabled={aiWaiterEnabled}
+          onTableNumberChange={setOrderTableNumber}
+          onOrderPlaced={(orderId, cartItems, total) => {
+            setLastOrderId(orderId);
+            pushOrderToHistory(orderId);
+            setOrderedSnapshot({ cart: cartItems, total });
+            setOrderPlaced(true);
+            setIsCartOpen(true);
+          }}
+        />
+      )}
 
       {/* Service Pager */}
       <ServicePager
@@ -740,22 +745,22 @@ export default function PublicMenuClient(props: PublicMenuClientProps) {
           {totalItems > 0 ? (
             <button
               onClick={() => { trackOrderClick(menuId, restaurantId, totalPrice); setIsCartOpen(true); }}
-              className="w-full h-16 bg-whatsapp hover:bg-whatsapp-dark text-white flex items-center justify-between px-5 gap-3 shadow-[0_12px_40px_rgba(37,211,102,0.4)] active:scale-[0.98] transition-all duration-300 rounded-[var(--border-radius)] animate-in slide-in-from-bottom-4 fade-in"
+              className="w-full h-16 bg-whatsapp hover:bg-whatsapp-dark text-white flex items-center justify-between px-5 gap-3 shadow-[0_12px_40px_rgba(37,211,102,0.4)] active:scale-[0.98] transition-colors duration-300 rounded-[var(--border-radius)] animate-in slide-in-from-bottom-4 fade-in"
             >
               <div className="flex items-center gap-3">
                 <div className="w-8 h-8 bg-white/20 rounded-xl flex items-center justify-center shrink-0">
-                  <span className="font-[var(--font-headline)] font-black text-sm leading-none">{totalItems}</span>
+                  <span className="font-headline font-black text-sm leading-none">{totalItems}</span>
                 </div>
-                <span className="font-[var(--font-headline)] font-extrabold tracking-tight uppercase text-sm">View Order</span>
+                <span className="font-headline font-extrabold tracking-tight uppercase text-sm">View Order</span>
               </div>
-              <span className="font-[var(--font-headline)] font-extrabold text-sm">{formatPrice(totalPrice, menuStyle.currency ?? "RWF")}</span>
+              <span className="font-headline font-extrabold text-sm">{formatPrice(totalPrice, menuStyle.currency ?? "RWF")}</span>
             </button>
           ) : (
             <div className="w-full h-14 bg-whatsapp/50 text-white rounded-[var(--border-radius)] flex items-center justify-center gap-2.5 shadow-sm">
               <svg className="fill-current w-5 h-5" viewBox="0 0 24 24">
                 <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L0 24l6.335-1.662c1.72.937 3.659 1.432 5.71 1.433h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
               </svg>
-              <span className="font-[var(--font-headline)] font-bold tracking-tight text-sm opacity-90">Order via WhatsApp</span>
+              <span className="font-headline font-bold tracking-tight text-sm opacity-90">Order via WhatsApp</span>
             </div>
           )}
         </div>

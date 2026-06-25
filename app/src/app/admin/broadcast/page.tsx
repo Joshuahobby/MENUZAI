@@ -98,10 +98,10 @@ export default function AdminBroadcastPage() {
                   type="button"
                   key={s.value}
                   onClick={() => setSegment(s.value)}
-                  className={`w-full flex items-center gap-3 p-3.5 rounded-xl border-2 text-left transition-all ${
+                  className={`w-full flex items-center gap-3 p-3.5 rounded-xl border-2 text-left transition-colors ${
                     isActive
                       ? "border-primary bg-primary/5"
-                      : "border-black/8 bg-white hover:border-primary/30 shadow-sm"
+                      : "border-black/8 bg-surface-container-lowest hover:border-primary/30 shadow-sm"
                   }`}
                 >
                   <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${isActive ? "bg-primary/10" : "bg-surface-container"}`}>
@@ -128,7 +128,7 @@ export default function AdminBroadcastPage() {
         <div className="space-y-4">
           <p className="text-[10px] font-bold uppercase tracking-widest text-secondary mb-3">Compose</p>
 
-          <div className="bg-white border border-black/6 rounded-2xl p-5 shadow-sm space-y-4">
+          <div className="bg-surface-container-lowest border border-black/6 rounded-2xl p-5 space-y-4">
             <div>
               <label htmlFor="broadcast-subject" className="text-xs font-bold text-secondary mb-1.5 block">
                 Subject
@@ -163,7 +163,7 @@ export default function AdminBroadcastPage() {
             type="button"
             onClick={handleSend}
             disabled={sending || !subject.trim() || !html.trim()}
-            className="w-full py-3.5 rounded-xl text-sm font-bold bg-primary text-white hover:opacity-90 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+            className="w-full py-3.5 rounded-[2rem] text-sm font-bold bg-primary text-white hover:bg-[#a04100] transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
           >
             {sending ? (
               <>

@@ -242,7 +242,7 @@ export function StyleEditorSidebarContent() {
               key={tab.id}
               type="button"
               onClick={() => setActiveTab(tab.id as typeof activeTab)}
-              className={`flex-1 flex flex-col items-center gap-0.5 py-2 rounded-lg text-[9px] font-black uppercase tracking-wider transition-all ${
+              className={`flex-1 flex flex-col items-center gap-0.5 py-2 rounded-lg text-[9px] font-black uppercase tracking-wider transition-colors ${
                 activeTab === tab.id
                   ? "bg-primary text-white shadow-md shadow-primary/20"
                   : "text-secondary hover:text-on-surface"
@@ -292,7 +292,7 @@ export function StyleEditorSidebarContent() {
                     key={vibe.name}
                     type="button"
                     onClick={() => applyTemplate(vibe.config)}
-                    className={`relative overflow-hidden rounded-2xl transition-all group active:scale-95 ${
+                    className={`relative overflow-hidden rounded-2xl transition-colors group active:scale-95 ${
                       isActive ? "ring-2 ring-primary ring-offset-2" : ""
                     }`}
                     style={{ backgroundColor: vibe.bg }}
@@ -346,9 +346,9 @@ export function StyleEditorSidebarContent() {
                 type="button"
                 onClick={() => setMenuStyle({ ...menuStyle, showImages: !menuStyle.showImages })}
                 title={menuStyle.showImages ? "Hide Menu Photos" : "Show Menu Photos"}
-                className={`w-11 h-6 rounded-full transition-all relative shrink-0 ${menuStyle.showImages ? "bg-primary" : "bg-surface-container-high"}`}
+                className={`w-11 h-6 rounded-full transition-colors relative shrink-0 ${menuStyle.showImages ? "bg-primary" : "bg-surface-container-high"}`}
               >
-                <div className={`absolute top-1 w-4 h-4 rounded-full bg-white shadow transition-all ${menuStyle.showImages ? "left-6" : "left-1"}`} />
+                <div className={`absolute top-1 w-4 h-4 rounded-full bg-white shadow transition-colors ${menuStyle.showImages ? "left-6" : "left-1"}`} />
               </button>
             </div>
           </>
@@ -425,7 +425,7 @@ export function StyleEditorSidebarContent() {
                   className="flex flex-col items-center gap-1.5 group"
                   title={palette.name}
                 >
-                  <div className="w-full h-8 rounded-xl overflow-hidden flex border border-outline-variant/20 group-hover:border-primary/40 transition-all">
+                  <div className="w-full h-8 rounded-xl overflow-hidden flex border border-outline-variant/20 group-hover:border-primary/40 transition-colors">
                     {palette.colors.slice(0, 3).map((c, i) => (
                       <div key={i} className="flex-1" style={{ backgroundColor: c }} />
                     ))}
@@ -525,7 +525,7 @@ export function StyleEditorSidebarContent() {
                   key={pair.label}
                   type="button"
                   onClick={() => setMenuStyle({ ...menuStyle, headlineFont: pair.head, bodyFont: pair.body })}
-                  className={`w-full flex items-center gap-4 p-3 rounded-xl border transition-all text-left group ${
+                  className={`w-full flex items-center gap-4 p-3 rounded-xl border transition-colors text-left group ${
                     menuStyle.headlineFont === pair.head && menuStyle.bodyFont === pair.body
                       ? "border-primary/40 bg-primary/5"
                       : "border-outline-variant/20 hover:border-primary/20 hover:bg-surface-container-low"
@@ -535,7 +535,7 @@ export function StyleEditorSidebarContent() {
                     <p className="font-black text-sm text-on-surface truncate" style={{ fontFamily: pair.head }}>{pair.head}</p>
                     <p className="text-[10px] text-secondary" style={{ fontFamily: pair.body }}>{pair.body}</p>
                   </div>
-                  <span className="text-[9px] font-bold uppercase tracking-wider px-2 py-1 rounded-full bg-surface-container text-secondary group-hover:bg-primary/10 group-hover:text-primary transition-all">{pair.label}</span>
+                  <span className="text-[9px] font-bold uppercase tracking-wider px-2 py-1 rounded-full bg-surface-container text-secondary group-hover:bg-primary/10 group-hover:text-primary transition-colors">{pair.label}</span>
                 </button>
               ))}
             </div>
@@ -554,7 +554,7 @@ export function StyleEditorSidebarContent() {
                   key={layout.id}
                   type="button"
                   onClick={() => setMenuStyle({ ...menuStyle, templateId: layout.id })}
-                  className={`flex flex-col items-center gap-1.5 p-2.5 rounded-xl transition-all active:scale-95 ${
+                  className={`flex flex-col items-center gap-1.5 p-2.5 rounded-xl transition-colors active:scale-95 ${
                     menuStyle.templateId === layout.id
                       ? "bg-primary text-white shadow-lg shadow-primary/20"
                       : "bg-surface-container-low text-secondary hover:bg-surface-container-high border border-outline-variant/20"
@@ -578,7 +578,7 @@ export function StyleEditorSidebarContent() {
                     key={t.id}
                     type="button"
                     onClick={() => setMenuStyle({ ...menuStyle, ...t.config, templateId: t.id })}
-                    className={`relative aspect-[3/4] rounded-2xl overflow-hidden border-2 transition-all group active:scale-95 ${
+                    className={`relative aspect-[3/4] rounded-2xl overflow-hidden border-2 transition-colors group active:scale-95 ${
                       isActive ? "border-primary ring-4 ring-primary/15 scale-[0.97]" : "border-outline-variant/30 hover:border-primary/40"
                     }`}
                   >
@@ -656,7 +656,7 @@ export function StyleEditorSidebarContent() {
                         key={opt.value}
                         type="button"
                         onClick={() => setMenuStyle({ ...menuStyle, borderRadius: opt.value })}
-                        className={`p-2.5 rounded-xl flex flex-col items-center gap-2 border-2 transition-all active:scale-95 ${
+                        className={`p-2.5 rounded-xl flex flex-col items-center gap-2 border-2 transition-colors active:scale-95 ${
                           isActive ? "bg-primary/5 border-primary text-primary" : "bg-surface-container-low border-transparent text-secondary hover:bg-surface-container-high"
                         }`}
                       >

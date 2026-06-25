@@ -20,9 +20,9 @@ const PLAN_CARDS = [
     label: "Free Trial",
     priceLabel: "Free",
     period: "14 days",
-    badgeClass: "bg-violet-100 text-violet-700",
-    headerBg: "bg-violet-50",
-    iconClass: "text-violet-500",
+    badgeClass: "bg-primary/15 text-primary",
+    headerBg: "bg-primary/5",
+    iconClass: "text-primary",
     icon: "hourglass_empty",
     description: "New accounts — full Pro access during trial window.",
     features: [
@@ -40,9 +40,9 @@ const PLAN_CARDS = [
     label: "Free Lite",
     priceLabel: "Free",
     period: "after trial",
-    badgeClass: "bg-slate-100 text-slate-600",
-    headerBg: "bg-slate-50",
-    iconClass: "text-slate-400",
+    badgeClass: "bg-surface-container-low text-secondary",
+    headerBg: "bg-surface-container-low",
+    iconClass: "text-secondary/60",
     icon: "lock_open",
     description: "Trial expired — public menu with MENUZA AI branding.",
     features: [
@@ -166,7 +166,7 @@ export default function AdminSubscriptionsPage() {
           type="button"
           onClick={load}
           disabled={loading}
-          className="flex items-center gap-2 px-4 py-2 text-xs font-bold text-secondary bg-white border border-black/6 hover:bg-surface-container rounded-xl shadow-sm transition-all disabled:opacity-60"
+          className="flex items-center gap-2 px-4 py-2 text-xs font-bold text-secondary bg-surface-container-lowest border border-black/6 hover:bg-surface-container rounded-xl shadow-sm transition-colors disabled:opacity-60"
         >
           <span className={`material-symbols-outlined text-[16px] ${loading ? "animate-spin" : ""}`}>sync</span>
           Refresh
@@ -177,35 +177,35 @@ export default function AdminSubscriptionsPage() {
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
         {loading && !data ? (
           [1, 2, 3].map(i => (
-            <div key={i} className="h-24 bg-white border border-black/6 rounded-2xl animate-pulse" />
+            <div key={i} className="h-24 bg-surface-container-lowest border border-black/6 rounded-2xl animate-pulse" />
           ))
         ) : (
           <>
-            <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl p-5 text-white">
+            <div className="bg-on-surface rounded-2xl p-5 text-white">
               <p className="text-[10px] font-bold uppercase tracking-widest text-white/50 mb-2">Est. Monthly Revenue</p>
-              <p className="text-2xl font-extrabold font-[var(--font-headline)]">
+              <p className="text-2xl font-extrabold font-headline">
                 {data ? fmtRwf(data.mrr.total) : "—"}
               </p>
               <p className="text-xs text-white/40 mt-1">From active paid plans</p>
             </div>
-            <div className="bg-white border border-black/6 rounded-2xl p-5 shadow-sm">
+            <div className="bg-surface-container-lowest border border-black/6 rounded-2xl p-5">
               <div className="flex items-start justify-between mb-3">
                 <p className="text-[10px] font-bold uppercase tracking-widest text-secondary">Pro Subscribers</p>
                 <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
                   <span className="material-symbols-outlined text-primary text-[16px] icon-fill">workspace_premium</span>
                 </div>
               </div>
-              <p className="text-2xl font-extrabold font-[var(--font-headline)] text-on-surface">{getCount("pro")}</p>
+              <p className="text-2xl font-extrabold font-headline text-on-surface">{getCount("pro")}</p>
               <p className="text-xs text-secondary mt-1">{data ? fmtRwf(data.mrr.pro) : "—"} / mo</p>
             </div>
-            <div className="bg-white border border-black/6 rounded-2xl p-5 shadow-sm">
+            <div className="bg-surface-container-lowest border border-black/6 rounded-2xl p-5">
               <div className="flex items-start justify-between mb-3">
                 <p className="text-[10px] font-bold uppercase tracking-widest text-secondary">Business Subscribers</p>
                 <div className="w-8 h-8 rounded-lg bg-tertiary/10 flex items-center justify-center shrink-0">
                   <span className="material-symbols-outlined text-tertiary text-[16px] icon-fill">domain</span>
                 </div>
               </div>
-              <p className="text-2xl font-extrabold font-[var(--font-headline)] text-on-surface">{getCount("business")}</p>
+              <p className="text-2xl font-extrabold font-headline text-on-surface">{getCount("business")}</p>
               <p className="text-xs text-secondary mt-1">{data ? fmtRwf(data.mrr.business) : "—"} / mo</p>
             </div>
           </>
@@ -222,7 +222,7 @@ export default function AdminSubscriptionsPage() {
             : plan.priceLabel ?? "Free";
 
           return (
-            <div key={plan.key} className="bg-white border border-black/6 rounded-2xl shadow-sm flex flex-col overflow-hidden">
+            <div key={plan.key} className="bg-surface-container-lowest border border-black/6 rounded-2xl flex flex-col overflow-hidden">
               <div className={`p-5 ${plan.headerBg}`}>
                 <div className="flex items-center justify-between mb-3">
                   <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full ${plan.badgeClass}`}>
@@ -232,7 +232,7 @@ export default function AdminSubscriptionsPage() {
                     {plan.icon}
                   </span>
                 </div>
-                <p className="text-lg font-extrabold font-[var(--font-headline)] text-on-surface leading-tight">
+                <p className="text-lg font-extrabold font-headline text-on-surface leading-tight">
                   {dynamicPrice}
                   <span className="text-xs font-medium text-secondary ml-1.5">{plan.period}</span>
                 </p>
@@ -274,7 +274,7 @@ export default function AdminSubscriptionsPage() {
       </div>
 
       {/* Pricing editor */}
-      <div className="bg-white border border-black/6 rounded-2xl shadow-sm p-6 mb-4">
+      <div className="bg-surface-container-lowest border border-black/6 rounded-2xl p-6 mb-4">
         <div className="flex items-center gap-3 mb-5">
           <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
             <span className="material-symbols-outlined text-primary text-[18px] icon-fill">sell</span>
@@ -329,7 +329,7 @@ export default function AdminSubscriptionsPage() {
             type="button"
             onClick={handleSave}
             disabled={saving || loading || !dirty}
-            className="px-6 py-2.5 bg-primary text-white text-sm font-bold rounded-xl hover:opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-6 py-2.5 bg-primary text-white text-sm font-bold rounded-xl hover:opacity-90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {saving ? "Saving…" : "Save Prices"}
           </button>
@@ -342,11 +342,11 @@ export default function AdminSubscriptionsPage() {
       </div>
 
       {/* Info note */}
-      <div className="flex items-start gap-3 bg-emerald-50 border border-emerald-200/60 rounded-2xl p-4">
-        <span className="material-symbols-outlined text-emerald-500 text-[18px] shrink-0 mt-0.5 icon-fill">check_circle</span>
+      <div className="flex items-start gap-3 bg-tertiary/10 border border-tertiary/20 rounded-2xl p-4">
+        <span className="material-symbols-outlined text-tertiary text-[18px] shrink-0 mt-0.5 icon-fill">check_circle</span>
         <div>
-          <p className="text-xs font-bold text-emerald-800 mb-0.5">Prices are fully database-driven</p>
-          <p className="text-xs text-emerald-700 leading-relaxed">
+          <p className="text-xs font-bold text-tertiary mb-0.5">Prices are fully database-driven</p>
+          <p className="text-xs text-tertiary leading-relaxed">
             Changes apply immediately across the entire platform — payment processing, the public pricing page,
             and the dashboard upgrade flow all read prices live from the database. No redeployment needed.
           </p>

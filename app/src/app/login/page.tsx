@@ -63,9 +63,9 @@ function LoginForm() {
   // ── Email confirmation screen ─────────────────────────────────────────────
   if (view === "confirm-email") {
     return (
-      <div className="w-full max-w-md bg-white rounded-3xl p-10 shadow-sm border border-black/6 text-center space-y-6">
-        <div className="w-14 h-14 bg-emerald-50 rounded-2xl flex items-center justify-center mx-auto">
-          <span className="material-symbols-outlined text-2xl text-emerald-500">mark_email_unread</span>
+      <div className="w-full max-w-md bg-surface-container-lowest rounded-3xl p-10 shadow-sm border border-black/6 text-center space-y-6">
+        <div className="w-14 h-14 bg-tertiary/10 rounded-2xl flex items-center justify-center mx-auto">
+          <span className="material-symbols-outlined text-2xl text-tertiary">mark_email_unread</span>
         </div>
         <div>
           <h2 className="text-xl font-bold mb-2">Check your inbox</h2>
@@ -84,9 +84,9 @@ function LoginForm() {
   // ── Password reset sent screen ────────────────────────────────────────────
   if (view === "reset-sent") {
     return (
-      <div className="w-full max-w-md bg-white rounded-3xl p-10 shadow-sm border border-black/6 text-center space-y-6">
-        <div className="w-14 h-14 bg-violet-50 rounded-2xl flex items-center justify-center mx-auto">
-          <span className="material-symbols-outlined text-2xl text-violet-500">lock_reset</span>
+      <div className="w-full max-w-md bg-surface-container-lowest rounded-3xl p-10 shadow-sm border border-black/6 text-center space-y-6">
+        <div className="w-14 h-14 bg-primary/8 rounded-2xl flex items-center justify-center mx-auto">
+          <span className="material-symbols-outlined text-2xl text-primary">lock_reset</span>
         </div>
         <div>
           <h2 className="text-xl font-bold mb-2">Reset link sent</h2>
@@ -111,13 +111,13 @@ function LoginForm() {
   // ── Forgot password screen ────────────────────────────────────────────────
   if (view === "forgot-password") {
     return (
-      <div className="w-full max-w-md bg-white rounded-3xl p-10 shadow-sm border border-black/6 space-y-6">
+      <div className="w-full max-w-md bg-surface-container-lowest rounded-3xl p-10 shadow-sm border border-black/6 space-y-6">
         <div>
           <Link href="/" className="flex items-center gap-2 mb-8">
             <div className="w-7 h-7 bg-primary rounded-md flex items-center justify-center">
               <span className="material-symbols-outlined text-white icon-fill text-base">restaurant_menu</span>
             </div>
-            <span className="font-[var(--font-headline)] font-black text-base tracking-tight">
+            <span className="font-headline font-black text-base tracking-tight">
               MENUZA <span className="text-primary">AI</span>
             </span>
           </Link>
@@ -126,7 +126,7 @@ function LoginForm() {
         </div>
 
         {error && (
-          <div className="p-4 bg-red-50 border border-red-100 text-red-600 text-xs font-medium rounded-xl">
+          <div className="p-4 bg-error-container/50 border border-error/20 text-error text-xs font-medium rounded-xl">
             {error}
           </div>
         )}
@@ -141,7 +141,7 @@ function LoginForm() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="name@restaurant.com"
-              className="w-full px-4 py-3 bg-[#faf8f6] rounded-xl border border-black/8 text-sm font-medium placeholder:text-secondary/40 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/40 transition-all"
+              className="w-full px-4 py-3 bg-surface-container-low rounded-xl border border-black/8 text-sm font-medium placeholder:text-secondary/40 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/40 transition-colors"
               required
               autoFocus
             />
@@ -149,7 +149,7 @@ function LoginForm() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-3.5 bg-primary text-white font-bold text-sm rounded-xl hover:opacity-90 transition-opacity disabled:opacity-50"
+            className="w-full py-3.5 bg-primary text-white font-bold text-sm rounded-[2rem] hover:bg-[#a04100] transition-colors disabled:opacity-50"
           >
             {loading ? "Sending…" : "Send Reset Link"}
           </button>
@@ -172,7 +172,7 @@ function LoginForm() {
   // ── Google OAuth redirect in-progress ────────────────────────────────────
   if (oauthLoading) {
     return (
-      <div className="w-full max-w-md bg-white rounded-3xl p-10 shadow-sm border border-black/6 text-center space-y-6">
+      <div className="w-full max-w-md bg-surface-container-lowest rounded-3xl p-10 shadow-sm border border-black/6 text-center space-y-6">
         <div className="w-14 h-14 bg-surface-container rounded-2xl flex items-center justify-center mx-auto">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" className="w-7 h-7 animate-spin" style={{ animationDuration: "1.5s" }}>
             <path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"/>
@@ -191,14 +191,14 @@ function LoginForm() {
 
   // ── Main auth form ────────────────────────────────────────────────────────
   return (
-    <div className="w-full max-w-md bg-white rounded-3xl p-10 shadow-sm border border-black/6">
+    <div className="w-full max-w-md bg-surface-container-lowest rounded-3xl p-10 shadow-sm border border-black/6">
       {/* Brand */}
       <div className="mb-8">
         <Link href="/" className="flex items-center gap-2 mb-8">
           <div className="w-7 h-7 bg-primary rounded-md flex items-center justify-center">
             <span className="material-symbols-outlined text-white icon-fill text-base">restaurant_menu</span>
           </div>
-          <span className="font-[var(--font-headline)] font-black text-base tracking-tight">
+          <span className="font-headline font-black text-base tracking-tight">
             MENUZA <span className="text-primary">AI</span>
           </span>
         </Link>
@@ -211,7 +211,7 @@ function LoginForm() {
       </div>
 
       {(error || callbackError) && (
-        <div className="mb-6 p-4 bg-red-50 border border-red-100 text-red-600 text-xs font-medium rounded-xl">
+        <div className="mb-6 p-4 bg-error-container/50 border border-error/20 text-error text-xs font-medium rounded-xl">
           {error ?? "Confirmation failed — please try again."}
         </div>
       )}
@@ -229,7 +229,7 @@ function LoginForm() {
           // On success the browser redirects — oauthLoading stays true showing the redirect screen
         }}
         disabled={loading || oauthLoading}
-        className="w-full py-3.5 bg-white border border-black/10 text-on-surface font-semibold text-sm rounded-xl hover:bg-black/2 transition-colors flex items-center justify-center gap-3 disabled:opacity-50"
+        className="w-full py-3.5 bg-surface-container-lowest border border-black/10 text-on-surface font-semibold text-sm rounded-xl hover:bg-black/5 transition-colors flex items-center justify-center gap-3 disabled:opacity-50"
       >
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" className="w-4 h-4">
           <path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"/>
@@ -245,7 +245,7 @@ function LoginForm() {
           <div className="w-full border-t border-black/6" />
         </div>
         <div className="relative flex justify-center">
-          <span className="bg-white px-4 text-[10px] uppercase tracking-[0.2em] font-bold text-secondary/40">or</span>
+          <span className="bg-surface-container-lowest px-4 text-[10px] uppercase tracking-[0.2em] font-bold text-secondary/40">or</span>
         </div>
       </div>
 
@@ -253,7 +253,7 @@ function LoginForm() {
         <button
           type="button"
           onClick={() => setShowEmailForm(true)}
-          className="w-full py-3.5 border border-black/10 text-on-surface font-semibold text-sm rounded-xl hover:bg-black/2 transition-colors flex items-center justify-center gap-3"
+          className="w-full py-3.5 border border-black/10 text-on-surface font-semibold text-sm rounded-xl hover:bg-black/5 transition-colors flex items-center justify-center gap-3"
         >
           <span className="material-symbols-outlined text-lg text-secondary">mail</span>
           Continue with Email
@@ -268,7 +268,7 @@ function LoginForm() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="name@restaurant.com"
-                className="w-full px-4 py-3 bg-[#faf8f6] rounded-xl border border-black/8 text-sm font-medium placeholder:text-secondary/40 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/40 transition-all"
+                className="w-full px-4 py-3 bg-surface-container-low rounded-xl border border-black/8 text-sm font-medium placeholder:text-secondary/40 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/40 transition-colors"
                 required
               />
             </div>
@@ -291,7 +291,7 @@ function LoginForm() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="w-full px-4 py-3 pr-11 bg-[#faf8f6] rounded-xl border border-black/8 text-sm font-medium placeholder:text-secondary/40 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/40 transition-all"
+                  className="w-full px-4 py-3 pr-11 bg-surface-container-low rounded-xl border border-black/8 text-sm font-medium placeholder:text-secondary/40 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/40 transition-colors"
                   required
                 />
                 <button
@@ -309,7 +309,7 @@ function LoginForm() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3.5 bg-primary text-white font-bold text-sm rounded-xl hover:opacity-90 transition-opacity disabled:opacity-50"
+              className="w-full py-3.5 bg-primary text-white font-bold text-sm rounded-[2rem] hover:bg-[#a04100] transition-colors disabled:opacity-50"
             >
               {loading ? "Please wait…" : isSignUp ? "Create Account" : "Sign In"}
             </button>
@@ -339,14 +339,14 @@ const PROOF_POINTS = [
 
 export default function LoginPage() {
   return (
-    <div className="min-h-screen bg-[#faf8f6] flex">
+    <div className="min-h-screen bg-surface flex">
       {/* Left panel — product value (desktop only) */}
       <div className="hidden lg:flex flex-col justify-between w-[480px] shrink-0 bg-on-surface p-12">
         <Link href="/" className="flex items-center gap-2.5">
           <div className="w-7 h-7 bg-primary rounded-md flex items-center justify-center">
             <span className="material-symbols-outlined text-white icon-fill text-base">restaurant_menu</span>
           </div>
-          <span className="font-[var(--font-headline)] font-black text-base tracking-tight text-white">
+          <span className="font-headline font-black text-base tracking-tight text-white">
             MENUZA <span className="text-primary">AI</span>
           </span>
         </Link>
@@ -355,7 +355,7 @@ export default function LoginPage() {
           <p className="text-xs font-bold tracking-[0.2em] uppercase text-primary/70 mb-6">
             Used by restaurants across Africa
           </p>
-          <h2 className="text-3xl font-[var(--font-headline)] font-black text-white leading-tight mb-10">
+          <h2 className="text-3xl font-headline font-black text-white leading-tight mb-10">
             Your menu. Smarter.<br />From day one.
           </h2>
           <ul className="space-y-5">

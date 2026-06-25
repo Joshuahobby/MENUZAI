@@ -54,7 +54,7 @@ const MENU_PREVIEW = [
 
 const STATUS_NEXT: Record<OrderStatus, OrderStatus | null> = { pending: "preparing", preparing: "ready", ready: null };
 const STATUS_LABEL: Record<OrderStatus, string> = { pending: "Mark Preparing", preparing: "Mark Ready", ready: "Done" };
-const STATUS_COLOR: Record<OrderStatus, string> = { pending: "bg-amber-500/10 text-amber-700", preparing: "bg-blue-500/10 text-blue-700", ready: "bg-green-500/10 text-green-700" };
+const STATUS_COLOR: Record<OrderStatus, string> = { pending: "bg-accent-saffron/15 text-amber-700", preparing: "bg-secondary-container text-secondary", ready: "bg-tertiary/10 text-tertiary" };
 
 // ── AI Extraction data ────────────────────────────────────────────────────────
 
@@ -165,15 +165,15 @@ export default function OwnerDemoPage() {
   const fmt = (n: number) => new Intl.NumberFormat("en-US").format(n);
 
   return (
-    <div className="min-h-screen bg-[#f5f5f5] text-on-surface">
+    <div className="min-h-screen bg-surface text-on-surface">
       <DemoBanner role="owner" restaurantName={RESTAURANT} />
 
       {/* Header */}
-      <header className="bg-white border-b border-black/6 px-6 py-5">
+      <header className="bg-surface-container-lowest border-b border-black/6 px-6 py-5">
         <div className="max-w-6xl mx-auto flex items-center justify-between gap-4">
           <div>
             <p className="text-xs font-bold uppercase tracking-widest text-secondary/50 mb-0.5">Owner Dashboard</p>
-            <h1 className="text-2xl font-[var(--font-headline)] font-extrabold tracking-tight">{RESTAURANT}</h1>
+            <h1 className="text-2xl font-extrabold tracking-tight">{RESTAURANT}</h1>
           </div>
           <div className="flex items-center gap-3">
             <Link href="/menu/demo" target="_blank"
@@ -181,7 +181,7 @@ export default function OwnerDemoPage() {
               <span className="material-symbols-outlined text-[14px]">open_in_new</span>
               Public Menu
             </Link>
-            <AuthCta className="text-xs font-bold text-white bg-primary px-4 py-2 rounded-lg hover:opacity-90 transition-opacity">
+            <AuthCta className="text-xs font-bold text-white bg-primary px-4 py-2 rounded-[2rem] hover:bg-[#a04100] transition-colors">
               Start Free Trial
             </AuthCta>
           </div>
@@ -189,11 +189,11 @@ export default function OwnerDemoPage() {
       </header>
 
       {/* Tab bar */}
-      <div className="bg-white border-b border-black/6 px-6">
+      <div className="bg-surface-container-lowest border-b border-black/6 px-6">
         <div className="max-w-6xl mx-auto flex gap-1 overflow-x-auto hide-scrollbar">
           {TABS.map(tab => (
             <button key={tab} onClick={() => setActiveTab(tab)}
-              className={`shrink-0 px-4 py-3.5 text-sm font-semibold border-b-2 transition-all ${
+              className={`shrink-0 px-4 py-3.5 text-sm font-semibold border-b-2 transition-colors ${
                 activeTab === tab
                   ? "border-primary text-primary"
                   : "border-transparent text-secondary hover:text-on-surface"
@@ -211,10 +211,10 @@ export default function OwnerDemoPage() {
           <div className="space-y-8">
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
               {STATS.map((s, i) => (
-                <div key={i} className="bg-white rounded-2xl p-5 border border-black/5">
+                <div key={i} className="bg-surface-container-lowest rounded-2xl p-5 border border-black/5">
                   <div className="flex items-center justify-between mb-4">
                     <span className={`material-symbols-outlined text-[20px] ${s.color}`}>{s.icon}</span>
-                    <span className="text-[10px] font-bold text-green-600 bg-green-50 px-2 py-0.5 rounded-full">{s.delta}</span>
+                    <span className="text-[10px] font-bold text-tertiary bg-tertiary/10 px-2 py-0.5 rounded-full">{s.delta}</span>
                   </div>
                   <p className="text-2xl font-black tracking-tight mb-0.5">{s.value}</p>
                   <p className="text-xs text-secondary font-medium">{s.label}</p>
@@ -223,13 +223,13 @@ export default function OwnerDemoPage() {
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              <div className="lg:col-span-2 bg-white rounded-2xl p-6 border border-black/5">
+              <div className="lg:col-span-2 bg-surface-container-lowest rounded-2xl p-6 border border-black/5">
                 <div className="flex items-center justify-between mb-6">
                   <h2 className="font-bold text-base">7-day trend</h2>
-                  <div className="flex gap-1 bg-[#faf8f6] p-1 rounded-lg">
+                  <div className="flex gap-1 bg-surface-container-low p-1 rounded-lg">
                     {(["views", "revenue"] as const).map(t => (
                       <button key={t} onClick={() => setChartTab(t)}
-                        className={`text-xs font-semibold px-3 py-1.5 rounded-md transition-all capitalize cursor-pointer ${chartTab === t ? "bg-white shadow-sm text-on-surface" : "text-secondary hover:text-on-surface"}`}>
+                        className={`text-xs font-semibold px-3 py-1.5 rounded-md transition-colors capitalize cursor-pointer ${chartTab === t ? "bg-surface-container-lowest shadow-sm text-on-surface" : "text-secondary hover:text-on-surface"}`}>
                         {t}
                       </button>
                     ))}
@@ -258,12 +258,12 @@ export default function OwnerDemoPage() {
                 </ResponsiveContainer>
               </div>
 
-              <div className="bg-white rounded-2xl p-6 border border-black/5">
+              <div className="bg-surface-container-lowest rounded-2xl p-6 border border-black/5">
                 <h2 className="font-bold text-base mb-5">Quick actions</h2>
                 <div className="space-y-2">
                   {QUICK_ACTIONS.map((a, i) => (
                     <Link key={i} href={a.href}
-                      className="flex items-center gap-3.5 p-3.5 rounded-xl hover:bg-[#faf8f6] transition-colors group">
+                      className="flex items-center gap-3.5 p-3.5 rounded-xl hover:bg-surface-container-low transition-colors group">
                       <div className="w-9 h-9 bg-primary/8 rounded-xl flex items-center justify-center shrink-0">
                         <span className="material-symbols-outlined text-primary text-[18px]">{a.icon}</span>
                       </div>
@@ -279,14 +279,14 @@ export default function OwnerDemoPage() {
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <div className="bg-white rounded-2xl p-6 border border-black/5">
+              <div className="bg-surface-container-lowest rounded-2xl p-6 border border-black/5">
                 <div className="flex items-center justify-between mb-5">
                   <h2 className="font-bold text-base">Recent orders</h2>
                   <Link href="/demo/staff" className="text-xs font-semibold text-primary hover:underline">Open staff panel →</Link>
                 </div>
                 <div className="space-y-3">
                   {orders.map((o) => (
-                    <div key={o.id} className="flex items-center gap-4 p-4 bg-[#faf8f6] rounded-xl border border-black/4">
+                    <div key={o.id} className="flex items-center gap-4 p-4 bg-surface-container-low rounded-xl border border-black/4">
                       <span className="inline-flex items-center gap-1 text-[10px] font-black uppercase bg-primary/10 text-primary px-2.5 py-1 rounded-lg shrink-0">
                         <span className="material-symbols-outlined text-[11px]">table_restaurant</span>
                         T{o.table}
@@ -297,7 +297,7 @@ export default function OwnerDemoPage() {
                         </div>
                         <div className="flex items-center gap-2">
                           <p className="text-xs font-bold">{fmt(o.total)} RWF · {o.minsAgo}m ago</p>
-                          <span className={`text-[8px] font-black uppercase px-1.5 py-0.5 rounded-full ${o.source === "ai_waiter" ? "bg-violet-100 text-violet-700" : "bg-green-50 text-green-700"}`}>
+                          <span className={`text-[8px] font-black uppercase px-1.5 py-0.5 rounded-full ${o.source === "ai_waiter" ? "bg-primary/10 text-primary" : "bg-tertiary/10 text-tertiary"}`}>
                             {o.source === "ai_waiter" ? "AI Waiter" : "WhatsApp"}
                           </span>
                         </div>
@@ -315,14 +315,14 @@ export default function OwnerDemoPage() {
                 </div>
               </div>
 
-              <div className="bg-white rounded-2xl p-6 border border-black/5">
+              <div className="bg-surface-container-lowest rounded-2xl p-6 border border-black/5">
                 <div className="flex items-center justify-between mb-5">
                   <h2 className="font-bold text-base">Menu items</h2>
                   <Link href="/menu/demo" className="text-xs font-semibold text-primary hover:underline">View full menu →</Link>
                 </div>
                 <div className="space-y-3">
                   {menuItems.map((item, idx) => (
-                    <div key={idx} className="flex items-center gap-3 p-3.5 bg-[#faf8f6] rounded-xl border border-black/4">
+                    <div key={idx} className="flex items-center gap-3 p-3.5 bg-surface-container-low rounded-xl border border-black/4">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img src={item.img} alt={item.name} className="w-14 h-10 rounded-lg object-cover shrink-0" />
                       <div className="flex-1 min-w-0">
@@ -330,8 +330,8 @@ export default function OwnerDemoPage() {
                         <p className="text-xs text-secondary">{item.price} RWF · <span className="text-primary/70">{item.badge}</span></p>
                       </div>
                       <button onClick={() => toggleAvailable(idx)}
-                        className={`shrink-0 w-11 h-6 rounded-full transition-colors cursor-pointer relative ${item.available ? "bg-green-500" : "bg-black/15"}`}>
-                        <span className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-all ${item.available ? "right-0.5" : "left-0.5"}`} />
+                        className={`shrink-0 w-11 h-6 rounded-full transition-colors cursor-pointer relative ${item.available ? "bg-tertiary" : "bg-black/15"}`}>
+                        <span className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-colors ${item.available ? "right-0.5" : "left-0.5"}`} />
                       </button>
                     </div>
                   ))}
@@ -345,7 +345,7 @@ export default function OwnerDemoPage() {
         {/* ── AI EXTRACTION TAB ── */}
         {activeTab === "AI Extraction" && (
           <div className="space-y-6">
-            <div className="bg-white rounded-2xl p-6 border border-black/5">
+            <div className="bg-surface-container-lowest rounded-2xl p-6 border border-black/5">
               <div className="flex items-start gap-4 mb-6">
                 <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center shrink-0">
                   <span className="material-symbols-outlined text-primary text-xl">document_scanner</span>
@@ -382,7 +382,7 @@ export default function OwnerDemoPage() {
                   <button
                     onClick={handleExtract}
                     disabled={extracting}
-                    className="flex items-center gap-2 px-5 py-3 bg-gradient-to-tr from-primary to-primary-container text-white font-bold rounded-xl text-sm shadow shadow-primary/20 hover:opacity-90 active:scale-95 transition-all disabled:opacity-70"
+                    className="flex items-center gap-2 px-5 py-3 bg-linear-to-tr from-primary to-primary-container text-white font-bold rounded-[2rem] text-sm shadow shadow-primary/20 hover:bg-[#a04100] active:scale-95 transition-colors disabled:opacity-70"
                   >
                     {extracting ? (
                       <>
@@ -413,7 +413,7 @@ export default function OwnerDemoPage() {
                     {EXTRACTED_ITEMS.map((item, i) => (
                       <div key={i}
                         onClick={() => setCheckedItems(prev => { const s = new Set(prev); if (s.has(i)) { s.delete(i); } else { s.add(i); } return s; })}
-                        className={`flex items-start gap-3 p-3.5 rounded-xl border cursor-pointer transition-all ${checkedItems.has(i) ? "bg-primary/5 border-primary/20" : "bg-[#faf8f6] border-black/5 opacity-50"}`}
+                        className={`flex items-start gap-3 p-3.5 rounded-xl border cursor-pointer transition-colors ${checkedItems.has(i) ? "bg-primary/5 border-primary/20" : "bg-surface-container-low border-black/5 opacity-50"}`}
                       >
                         <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center shrink-0 mt-0.5 transition-colors ${checkedItems.has(i) ? "bg-primary border-primary" : "border-black/20"}`}>
                           {checkedItems.has(i) && <span className="material-symbols-outlined text-white text-[12px]">check</span>}
@@ -430,7 +430,7 @@ export default function OwnerDemoPage() {
                     ))}
                   </div>
                   <AuthCta
-                    className="inline-flex items-center gap-2 px-5 py-3 bg-gradient-to-tr from-primary to-primary-container text-white font-bold rounded-xl text-sm shadow shadow-primary/20 hover:opacity-90 transition-opacity">
+                    className="inline-flex items-center gap-2 px-5 py-3 bg-linear-to-tr from-primary to-primary-container text-white font-bold rounded-[2rem] text-sm shadow shadow-primary/20 hover:bg-[#a04100] transition-colors">
                     <span className="material-symbols-outlined text-[18px]">add_circle</span>
                     Add {checkedItems.size} items to my real menu — sign up free
                   </AuthCta>
@@ -443,7 +443,7 @@ export default function OwnerDemoPage() {
         {/* ── TEMPLATES TAB ── */}
         {activeTab === "Templates" && (
           <div className="space-y-6">
-            <div className="bg-white rounded-2xl p-6 border border-black/5">
+            <div className="bg-surface-container-lowest rounded-2xl p-6 border border-black/5">
               <div className="flex items-start gap-4 mb-6">
                 <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center shrink-0">
                   <span className="material-symbols-outlined text-primary text-xl">style</span>
@@ -457,7 +457,7 @@ export default function OwnerDemoPage() {
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
                 {TEMPLATES.map((t) => (
                   <button key={t.id} onClick={() => setSelectedTemplate(t.id)}
-                    className={`rounded-2xl overflow-hidden border-2 transition-all cursor-pointer text-left ${selectedTemplate === t.id ? "border-primary shadow-lg shadow-primary/15 scale-[1.02]" : "border-transparent hover:border-black/15"}`}
+                    className={`rounded-2xl overflow-hidden border-2 transition-colors cursor-pointer text-left ${selectedTemplate === t.id ? "border-primary shadow-lg shadow-primary/15 scale-[1.02]" : "border-transparent hover:border-black/15"}`}
                   >
                     <div className={`${t.bg} p-4 h-28 relative flex flex-col justify-between border ${t.accent}`}>
                       {selectedTemplate === t.id && (
@@ -478,7 +478,7 @@ export default function OwnerDemoPage() {
                         <div className={`text-[10px] font-black opacity-60`}>RWF</div>
                       </div>
                     </div>
-                    <div className="bg-[#faf8f6] px-3 py-2">
+                    <div className="bg-surface-container-low px-3 py-2">
                       <p className="text-xs font-bold truncate">{t.name}</p>
                       <p className="text-[9px] text-secondary truncate">{t.desc}</p>
                     </div>
@@ -486,7 +486,7 @@ export default function OwnerDemoPage() {
                 ))}
               </div>
 
-              <div className="flex items-center gap-3 p-4 bg-[#faf8f6] rounded-xl border border-black/5 mb-4">
+              <div className="flex items-center gap-3 p-4 bg-surface-container-low rounded-xl border border-black/5 mb-4">
                 <span className="material-symbols-outlined text-primary text-xl">preview</span>
                 <div>
                   <p className="text-sm font-semibold">Selected: {TEMPLATES.find(t => t.id === selectedTemplate)?.name}</p>
@@ -495,7 +495,7 @@ export default function OwnerDemoPage() {
               </div>
 
               <AuthCta
-                className="inline-flex items-center gap-2 px-5 py-3 bg-gradient-to-tr from-primary to-primary-container text-white font-bold rounded-xl text-sm shadow shadow-primary/20 hover:opacity-90 transition-opacity">
+                className="inline-flex items-center gap-2 px-5 py-3 bg-linear-to-tr from-primary to-primary-container text-white font-bold rounded-[2rem] text-sm shadow shadow-primary/20 hover:bg-[#a04100] transition-colors">
                 <span className="material-symbols-outlined text-[18px]">style</span>
                 Apply this template — start free trial
               </AuthCta>
@@ -506,7 +506,7 @@ export default function OwnerDemoPage() {
         {/* ── REVIEWS TAB ── */}
         {activeTab === "Reviews" && (
           <div className="space-y-6">
-            <div className="bg-white rounded-2xl p-6 border border-black/5">
+            <div className="bg-surface-container-lowest rounded-2xl p-6 border border-black/5">
               <div className="flex items-start justify-between gap-4 mb-6">
                 <div className="flex items-start gap-4">
                   <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center shrink-0">
@@ -577,7 +577,7 @@ export default function OwnerDemoPage() {
 
               <div className="mt-5 pt-5 border-t border-black/5">
                 <AuthCta
-                  className="inline-flex items-center gap-2 px-5 py-3 bg-gradient-to-tr from-primary to-primary-container text-white font-bold rounded-xl text-sm shadow shadow-primary/20 hover:opacity-90 transition-opacity">
+                  className="inline-flex items-center gap-2 px-5 py-3 bg-linear-to-tr from-primary to-primary-container text-white font-bold rounded-[2rem] text-sm shadow shadow-primary/20 hover:bg-[#a04100] transition-colors">
                   <span className="material-symbols-outlined text-[18px]">star</span>
                   See all reviews &amp; replies — start free trial
                 </AuthCta>
@@ -589,7 +589,7 @@ export default function OwnerDemoPage() {
         {/* ── QR CODES TAB ── */}
         {activeTab === "QR Codes" && (
           <div className="space-y-6">
-            <div className="bg-white rounded-2xl p-6 border border-black/5">
+            <div className="bg-surface-container-lowest rounded-2xl p-6 border border-black/5">
               <div className="flex items-start gap-4 mb-6">
                 <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center shrink-0">
                   <span className="material-symbols-outlined text-primary text-xl">qr_code_2</span>
@@ -605,7 +605,7 @@ export default function OwnerDemoPage() {
                 <div className="bg-[#1c1c1e] rounded-2xl p-6 flex flex-col items-center text-center relative overflow-hidden">
                   <div className="absolute inset-0 opacity-5" style={{ backgroundImage: "radial-gradient(circle at 50% 0%, #a04100, transparent 70%)" }} />
                   <p className="text-[10px] font-black uppercase tracking-[0.3em] text-white/40 mb-4">Scan to Order</p>
-                  <h3 className="text-xl font-[var(--font-headline)] font-black text-white mb-1">Le Bistro</h3>
+                  <h3 className="text-xl font-black text-white mb-1">Le Bistro</h3>
                   <p className="text-xs text-white/50 mb-5">Kigali, Rwanda</p>
                   {/* QR code placeholder */}
                   <div className="w-36 h-36 bg-white rounded-xl p-2 mb-5">
@@ -655,7 +655,7 @@ export default function OwnerDemoPage() {
                     <div className="grid grid-cols-2 gap-2">
                       {["Classic Dark", "Minimal White", "Luxury Gold", "Bistro Warm"].map((s, i) => (
                         <button key={s}
-                          className={`p-3 rounded-xl border text-xs font-semibold text-left transition-all cursor-pointer ${i === 0 ? "border-primary bg-primary/5 text-primary" : "border-black/8 text-secondary hover:border-black/20"}`}>
+                          className={`p-3 rounded-xl border text-xs font-semibold text-left transition-colors cursor-pointer ${i === 0 ? "border-primary bg-primary/5 text-primary" : "border-black/8 text-secondary hover:border-black/20"}`}>
                           {s}
                         </button>
                       ))}
@@ -664,7 +664,7 @@ export default function OwnerDemoPage() {
 
                   <div>
                     <p className="text-xs font-bold uppercase tracking-widest text-secondary/50 mb-3">Batch export</p>
-                    <div className="flex items-center gap-3 p-4 bg-[#faf8f6] rounded-xl border border-black/5">
+                    <div className="flex items-center gap-3 p-4 bg-surface-container-low rounded-xl border border-black/5">
                       <span className="material-symbols-outlined text-primary text-xl">table_restaurant</span>
                       <div className="flex-1">
                         <p className="text-sm font-semibold">Tables 1–20</p>
@@ -674,7 +674,7 @@ export default function OwnerDemoPage() {
                   </div>
 
                   <AuthCta
-                    className="flex items-center justify-center gap-2 w-full px-5 py-3 bg-gradient-to-tr from-primary to-primary-container text-white font-bold rounded-xl text-sm shadow shadow-primary/20 hover:opacity-90 transition-opacity">
+                    className="flex items-center justify-center gap-2 w-full px-5 py-3 bg-linear-to-tr from-primary to-primary-container text-white font-bold rounded-[2rem] text-sm shadow shadow-primary/20 hover:bg-[#a04100] transition-colors">
                     <span className="material-symbols-outlined text-[18px]">download</span>
                     Download QR Posters — start free trial
                   </AuthCta>
@@ -687,9 +687,9 @@ export default function OwnerDemoPage() {
         {/* CTA */}
         <div className="bg-on-surface rounded-3xl p-6 md:p-10 text-center mt-8">
           <p className="text-white/40 text-xs font-bold uppercase tracking-widest mb-3">Ready to start?</p>
-          <h2 className="text-2xl font-[var(--font-headline)] font-black text-white mb-4">Get your real dashboard in 2 minutes</h2>
+          <h2 className="text-2xl font-black text-white mb-4">Get your real dashboard in 2 minutes</h2>
           <p className="text-white/40 text-sm mb-7">14-day free trial — upload your menu, get your QR code, go live today.</p>
-          <AuthCta className="inline-block px-8 py-3.5 bg-primary text-white font-bold rounded-xl text-sm hover:opacity-90 transition-opacity shadow-lg shadow-primary/30">
+          <AuthCta className="inline-block px-8 py-3.5 bg-primary text-white font-bold rounded-[2rem] text-sm hover:bg-[#a04100] transition-colors shadow-lg shadow-primary/30">
             Start Free Trial
           </AuthCta>
         </div>

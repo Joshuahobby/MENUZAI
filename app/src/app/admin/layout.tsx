@@ -51,7 +51,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
 
   if (!checked || !user || !isPlatformAdmin(user.email)) {
     return (
-      <div className="min-h-screen bg-slate-900 flex items-center justify-center">
+      <div className="min-h-screen bg-on-surface flex items-center justify-center">
         <span className="material-symbols-outlined text-[48px] text-white/30 animate-spin">progress_activity</span>
       </div>
     );
@@ -65,10 +65,10 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
             <span className="material-symbols-outlined text-white icon-fill text-base">admin_panel_settings</span>
           </div>
           <div className="min-w-0">
-            <p className="text-white font-black text-sm tracking-tight font-[var(--font-headline)] leading-none">
+            <p className="text-white font-black text-sm tracking-tight font-headline leading-none">
               MENUZA <span className="text-primary">AI</span>
             </p>
-            <p className="text-[9px] font-bold uppercase tracking-widest text-slate-500 mt-0.5">Platform Admin</p>
+            <p className="text-[9px] font-bold uppercase tracking-widest text-white/40 mt-0.5">Platform Admin</p>
           </div>
         </div>
       </div>
@@ -81,10 +81,10 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
               key={item.href}
               href={item.href}
               onClick={() => setMobileOpen(false)}
-              className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${
+              className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${
                 active
                   ? "bg-white/10 text-white font-semibold"
-                  : "text-slate-400 hover:text-white hover:bg-white/6"
+                  : "text-white/50 hover:text-white hover:bg-white/6"
               }`}
             >
               <span className={`material-symbols-outlined text-[18px] shrink-0 ${active ? "icon-fill" : ""}`}>
@@ -98,12 +98,12 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
 
       <div className="px-3 py-4 border-t border-white/8 space-y-1">
         {user.email && (
-          <p className="px-3 pb-2 text-[10px] text-slate-500 truncate">{user.email}</p>
+          <p className="px-3 pb-2 text-[10px] text-white/40 truncate">{user.email}</p>
         )}
         <Link
           href="/dashboard"
           onClick={() => setMobileOpen(false)}
-          className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-400 hover:text-white hover:bg-white/6 transition-all"
+          className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-white/50 hover:text-white hover:bg-white/6 transition-colors"
         >
           <span className="material-symbols-outlined text-[18px] shrink-0">storefront</span>
           Restaurant Dashboard
@@ -111,7 +111,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
         <button
           type="button"
           onClick={handleSignOut}
-          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-400 hover:text-white hover:bg-white/6 transition-all text-left"
+          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-white/50 hover:text-white hover:bg-white/6 transition-colors text-left"
         >
           <span className="material-symbols-outlined text-[18px] shrink-0">logout</span>
           Sign Out
@@ -122,11 +122,11 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
 
   return (
     <div className="min-h-screen bg-surface">
-      <aside className="hidden lg:block fixed inset-y-0 left-0 w-60 bg-slate-900 z-40">
+      <aside className="hidden lg:block fixed inset-y-0 left-0 w-60 bg-on-surface z-40">
         {sidebarContent}
       </aside>
 
-      <header className="lg:hidden sticky top-0 z-40 bg-slate-900 flex items-center justify-between px-4 py-3">
+      <header className="lg:hidden sticky top-0 z-40 bg-on-surface flex items-center justify-between px-4 py-3">
         <div className="flex items-center gap-2.5">
           <div className="w-6 h-6 bg-primary rounded flex items-center justify-center">
             <span className="material-symbols-outlined text-white icon-fill text-sm">admin_panel_settings</span>
@@ -137,7 +137,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
           type="button"
           aria-label={mobileOpen ? "Close menu" : "Open menu"}
           onClick={() => setMobileOpen(v => !v)}
-          className="text-slate-400 hover:text-white p-1 transition-colors"
+          className="text-white/50 hover:text-white p-1 transition-colors"
         >
           <span className="material-symbols-outlined text-[22px]">{mobileOpen ? "close" : "menu"}</span>
         </button>
@@ -145,7 +145,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
 
       {mobileOpen && (
         <div className="lg:hidden fixed inset-0 z-50 flex">
-          <div className="w-64 bg-slate-900 h-full shadow-2xl">{sidebarContent}</div>
+          <div className="w-64 bg-on-surface h-full shadow-2xl">{sidebarContent}</div>
           <button type="button" aria-label="Close menu" className="flex-1 bg-black/60" onClick={() => setMobileOpen(false)} />
         </div>
       )}

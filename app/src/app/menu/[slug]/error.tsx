@@ -19,13 +19,13 @@ export default function MenuError({ error, reset }: { error: Error & { digest?: 
         <div className="flex flex-col gap-4">
           <button
             onClick={reset}
-            className="w-full py-3 bg-primary-container text-white font-bold rounded-xl active:scale-95 transition-all text-sm"
+            className="w-full py-3 bg-primary-container text-white font-bold rounded-xl active:scale-95 transition-colors text-sm"
           >
             Try Again
           </button>
           <Link
             href="/"
-            className="w-full py-3 bg-surface-container-highest text-on-surface font-bold rounded-xl hover:bg-surface-variant transition-all text-sm"
+            className="w-full py-3 bg-surface-container-highest text-on-surface font-bold rounded-xl hover:bg-surface-variant transition-colors text-sm"
           >
             Go Home
           </Link>

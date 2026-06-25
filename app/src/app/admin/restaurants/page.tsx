@@ -8,9 +8,9 @@ import type { RestaurantRow } from "@/app/api/admin/restaurants/route";
 
 const PLAN_STYLES: Record<string, { label: string; className: string }> = {
   free:     { label: "Free",     className: "bg-surface-container text-secondary" },
-  trial:    { label: "Trial",    className: "bg-violet-500/10 text-violet-600" },
-  pro:      { label: "Pro",      className: "bg-emerald-500/10 text-emerald-700" },
-  business: { label: "Business", className: "bg-amber-500/10 text-amber-700" },
+  trial:    { label: "Trial",    className: "bg-primary/10 text-primary" },
+  pro:      { label: "Pro",      className: "bg-tertiary/10 text-tertiary" },
+  business: { label: "Business", className: "bg-accent-saffron/15 text-amber-700" },
 };
 
 const PLAN_OPTIONS = ["free", "pro", "business"] as const;
@@ -171,7 +171,7 @@ export default function AdminRestaurantsPage() {
 
   const expiryCell = (r: RestaurantRow) => {
     if (r.resolvedPlan === "trial" && r.trialEndsAt)
-      return <span className="text-violet-500 text-xs">Trial · {formatRelativeTime(r.trialEndsAt)}</span>;
+      return <span className="text-primary text-xs">Trial · {formatRelativeTime(r.trialEndsAt)}</span>;
     if (r.planExpiresAt && r.plan !== "free")
       return <span className="text-amber-600 text-xs">Expires · {formatRelativeTime(r.planExpiresAt)}</span>;
     return <span className="text-secondary text-xs">—</span>;
@@ -199,7 +199,7 @@ export default function AdminRestaurantsPage() {
           onClick={() => load(true)}
           disabled={loading || cooldown}
           title={cooldown ? "Wait 30s between refreshes" : undefined}
-          className="flex items-center gap-2 px-4 py-2 text-xs font-bold text-secondary bg-white border border-black/6 hover:bg-surface-container rounded-xl shadow-sm transition-all disabled:opacity-60 disabled:cursor-not-allowed"
+          className="flex items-center gap-2 px-4 py-2 text-xs font-bold text-secondary bg-surface-container-lowest border border-black/6 hover:bg-surface-container rounded-xl shadow-sm transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
         >
           <span className={`material-symbols-outlined text-[16px] ${loading ? "animate-spin" : ""}`}>sync</span>
           {cooldown ? "Cooling down…" : "Refresh"}
@@ -214,7 +214,7 @@ export default function AdminRestaurantsPage() {
             value={search}
             onChange={e => setSearch(e.target.value)}
             placeholder="Search by name or email…"
-            className="w-full pl-9 pr-4 py-2 bg-white border border-black/6 rounded-xl text-sm text-on-surface shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
+            className="w-full pl-9 pr-4 py-2 bg-surface-container-lowest border border-black/6 rounded-xl text-sm text-on-surface shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
           />
         </div>
         <div className="flex gap-2 flex-wrap">
@@ -223,10 +223,10 @@ export default function AdminRestaurantsPage() {
               type="button"
               key={p}
               onClick={() => setPlanFilter(p)}
-              className={`px-3 py-2 rounded-xl text-xs font-bold capitalize transition-all ${
+              className={`px-3 py-2 rounded-xl text-xs font-bold capitalize transition-colors ${
                 planFilter === p
                   ? "bg-primary/10 text-primary"
-                  : "bg-white border border-black/6 text-secondary hover:bg-surface-container shadow-sm"
+                  : "bg-surface-container-lowest border border-black/6 text-secondary hover:bg-surface-container shadow-sm"
               }`}
             >
               {p === "all" ? "All Plans" : p}
@@ -243,7 +243,7 @@ export default function AdminRestaurantsPage() {
           <button
             type="button"
             onClick={() => setOverride({ restaurants: selectedRows, plan: "free", expiryDays: 30 })}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-bold bg-primary/10 text-primary hover:bg-primary/20 rounded-lg transition-all"
+            className="flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-bold bg-primary/10 text-primary hover:bg-primary/20 rounded-lg transition-colors"
           >
             <span className="material-symbols-outlined text-[14px]">swap_horiz</span>
             Override Plan
@@ -251,7 +251,7 @@ export default function AdminRestaurantsPage() {
           <button
             type="button"
             onClick={() => setDeleteState({ restaurants: selectedRows, confirmed: false })}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-bold bg-red-50 text-red-500 hover:bg-red-100 rounded-lg transition-all"
+            className="flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-bold bg-error-container/50 text-error hover:bg-error-container rounded-lg transition-colors"
           >
             <span className="material-symbols-outlined text-[14px]">delete</span>
             Delete Selected
@@ -273,7 +273,7 @@ export default function AdminRestaurantsPage() {
         </div>
       ) : (
         <>
-          <div className="bg-white border border-black/6 rounded-2xl shadow-sm overflow-hidden">
+          <div className="bg-surface-container-lowest border border-black/6 rounded-2xl overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
@@ -347,14 +347,14 @@ export default function AdminRestaurantsPage() {
                             <button
                               type="button"
                               onClick={() => setOverride({ restaurants: [r], plan: r.plan as Plan, expiryDays: 30 })}
-                              className="px-3 py-1.5 text-[11px] font-bold bg-primary/8 text-primary hover:bg-primary/15 rounded-lg transition-all"
+                              className="px-3 py-1.5 text-[11px] font-bold bg-primary/8 text-primary hover:bg-primary/15 rounded-lg transition-colors"
                             >
                               Override
                             </button>
                             <button
                               type="button"
                               onClick={() => setDeleteState({ restaurants: [r], confirmed: false })}
-                              className="px-3 py-1.5 text-[11px] font-bold bg-red-50 text-red-500 hover:bg-red-100 rounded-lg transition-all"
+                              className="px-3 py-1.5 text-[11px] font-bold bg-error-container/50 text-error hover:bg-error-container rounded-lg transition-colors"
                             >
                               Delete
                             </button>
@@ -379,7 +379,7 @@ export default function AdminRestaurantsPage() {
                   type="button"
                   onClick={() => setPage(p => Math.max(1, p - 1))}
                   disabled={page === 1}
-                  className="flex items-center justify-center w-8 h-8 rounded-lg text-secondary hover:bg-surface-container disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                  className="flex items-center justify-center w-8 h-8 rounded-lg text-secondary hover:bg-surface-container disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                 >
                   <span className="material-symbols-outlined text-[18px]">chevron_left</span>
                 </button>
@@ -391,7 +391,7 @@ export default function AdminRestaurantsPage() {
                       key={p}
                       type="button"
                       onClick={() => setPage(p as number)}
-                      className={`w-8 h-8 rounded-lg text-xs font-bold transition-all ${
+                      className={`w-8 h-8 rounded-lg text-xs font-bold transition-colors ${
                         page === p ? "bg-primary text-white" : "text-secondary hover:bg-surface-container"
                       }`}
                     >
@@ -403,7 +403,7 @@ export default function AdminRestaurantsPage() {
                   type="button"
                   onClick={() => setPage(p => Math.min(totalPages, p + 1))}
                   disabled={page === totalPages}
-                  className="flex items-center justify-center w-8 h-8 rounded-lg text-secondary hover:bg-surface-container disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                  className="flex items-center justify-center w-8 h-8 rounded-lg text-secondary hover:bg-surface-container disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                 >
                   <span className="material-symbols-outlined text-[18px]">chevron_right</span>
                 </button>
@@ -416,9 +416,9 @@ export default function AdminRestaurantsPage() {
       {/* Delete Confirmation Modal */}
       {deleteState && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
-          <div className="bg-white w-full max-w-sm rounded-2xl p-7 shadow-2xl border border-black/6">
-            <div className="w-12 h-12 bg-red-100 rounded-2xl flex items-center justify-center mb-4">
-              <span className="material-symbols-outlined text-red-500 text-[24px]">warning</span>
+          <div className="bg-surface-container-lowest w-full max-w-sm rounded-2xl p-7 shadow-2xl border border-black/6">
+            <div className="w-12 h-12 bg-error-container rounded-2xl flex items-center justify-center mb-4">
+              <span className="material-symbols-outlined text-error text-[24px]">warning</span>
             </div>
             <h2 className="font-bold text-lg text-on-surface mb-1">
               Delete {deleteState.restaurants.length > 1
@@ -451,21 +451,21 @@ export default function AdminRestaurantsPage() {
                 ))}
               </div>
             )}
-            <label className="flex items-center gap-3 p-3 bg-red-50 rounded-xl cursor-pointer mb-5">
+            <label className="flex items-center gap-3 p-3 bg-error-container/50 rounded-xl cursor-pointer mb-5">
               <input
                 type="checkbox"
                 checked={deleteState.confirmed}
                 onChange={e => setDeleteState(s => s ? { ...s, confirmed: e.target.checked } : s)}
                 className="w-4 h-4 accent-red-500"
               />
-              <span className="text-xs font-bold text-red-700">I understand this is permanent and irreversible</span>
+              <span className="text-xs font-bold text-error">I understand this is permanent and irreversible</span>
             </label>
             <div className="flex gap-3">
               <button
                 type="button"
                 onClick={() => setDeleteState(null)}
                 disabled={deleting}
-                className="flex-1 py-2.5 rounded-xl text-sm font-bold bg-surface-container text-secondary hover:bg-surface-container-high transition-all disabled:opacity-60"
+                className="flex-1 py-2.5 rounded-xl text-sm font-bold bg-surface-container text-secondary hover:bg-surface-container-high transition-colors disabled:opacity-60"
               >
                 Cancel
               </button>
@@ -473,7 +473,7 @@ export default function AdminRestaurantsPage() {
                 type="button"
                 onClick={handleDelete}
                 disabled={!deleteState.confirmed || deleting}
-                className="flex-1 py-2.5 rounded-xl text-sm font-bold bg-red-500 text-white hover:bg-red-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 py-2.5 rounded-xl text-sm font-bold bg-error text-white hover:bg-error transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {deleting ? "Deleting…" : deleteState.restaurants.length > 1 ? "Delete All" : "Delete Forever"}
               </button>
@@ -485,7 +485,7 @@ export default function AdminRestaurantsPage() {
       {/* Plan Override Modal */}
       {override && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
-          <div className="bg-white w-full max-w-sm rounded-2xl p-7 shadow-2xl border border-black/6">
+          <div className="bg-surface-container-lowest w-full max-w-sm rounded-2xl p-7 shadow-2xl border border-black/6">
             <h2 className="font-bold text-lg text-on-surface mb-1">Override Plan</h2>
             <div className="text-sm text-secondary mb-4">
               {override.restaurants.length === 1 ? (
@@ -518,7 +518,7 @@ export default function AdminRestaurantsPage() {
                       type="button"
                       key={p}
                       onClick={() => setOverride(o => o ? { ...o, plan: p } : o)}
-                      className={`py-2 rounded-xl text-xs font-bold capitalize border-2 transition-all ${
+                      className={`py-2 rounded-xl text-xs font-bold capitalize border-2 transition-colors ${
                         override.plan === p
                           ? "border-primary bg-primary/5 text-primary"
                           : "border-black/8 text-secondary hover:border-primary/30"
@@ -553,7 +553,7 @@ export default function AdminRestaurantsPage() {
                 type="button"
                 onClick={() => setOverride(null)}
                 disabled={saving}
-                className="flex-1 py-2.5 rounded-xl text-sm font-bold bg-surface-container text-secondary hover:bg-surface-container-high transition-all disabled:opacity-60"
+                className="flex-1 py-2.5 rounded-xl text-sm font-bold bg-surface-container text-secondary hover:bg-surface-container-high transition-colors disabled:opacity-60"
               >
                 Cancel
               </button>
@@ -561,7 +561,7 @@ export default function AdminRestaurantsPage() {
                 type="button"
                 onClick={handleOverrideSave}
                 disabled={saving}
-                className="flex-1 py-2.5 rounded-xl text-sm font-bold bg-primary text-white hover:opacity-90 transition-all disabled:opacity-60"
+                className="flex-1 py-2.5 rounded-[2rem] text-sm font-bold bg-primary text-white hover:bg-[#a04100] transition-colors disabled:opacity-60"
               >
                 {saving ? "Saving…" : "Confirm"}
               </button>

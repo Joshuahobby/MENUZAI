@@ -11,11 +11,11 @@ import { useUpgrade } from "@/components/UpgradeModal";
 const BADGES = ["bestseller", "popular", "healthy", "chefs-pick", "new"] as const;
 
 const QUICK_DIETARY_TAGS = [
-  { id: "vegan", label: "Vegan", icon: "eco", color: "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/20 dark:text-emerald-400 border-emerald-500/20" },
-  { id: "vegetarian", label: "Vegetarian", icon: "spa", color: "bg-green-50 text-green-700 dark:bg-green-950/20 dark:text-green-400 border-green-500/20" },
-  { id: "gluten-free", label: "Gluten-Free", icon: "grass", color: "bg-amber-50 text-amber-700 dark:bg-amber-950/20 dark:text-amber-400 border-amber-500/20" },
-  { id: "spicy", label: "Spicy", icon: "whatshot", color: "bg-rose-50 text-rose-700 dark:bg-rose-950/20 dark:text-rose-400 border-rose-500/20" },
-  { id: "halal", label: "Halal", icon: "verified", color: "bg-indigo-50 text-indigo-700 dark:bg-indigo-950/20 dark:text-indigo-400 border-indigo-500/20" },
+  { id: "vegan",       label: "Vegan",       icon: "eco",      color: "bg-tertiary/10 text-tertiary border-tertiary/20" },
+  { id: "vegetarian",  label: "Vegetarian",  icon: "spa",      color: "bg-tertiary/10 text-tertiary border-tertiary/20" },
+  { id: "gluten-free", label: "Gluten-Free", icon: "grass",    color: "bg-accent-saffron/10 text-amber-700 border-accent-saffron/30" },
+  { id: "spicy",       label: "Spicy",       icon: "whatshot", color: "bg-error/8 text-error border-error/20" },
+  { id: "halal",       label: "Halal",       icon: "verified", color: "bg-primary/10 text-primary border-primary/20" },
 ];
 
 interface EditorItemFormProps {
@@ -223,14 +223,14 @@ export function EditorItemForm({
           className="absolute top-3 right-3 bg-white/95 backdrop-blur-sm px-3 py-1.5 rounded-xl shadow-sm flex items-center gap-1 z-10"
           onClick={(e) => e.stopPropagation()}
         >
-          <span className="font-[var(--font-headline)] font-bold text-[var(--primary-color)] text-[10px] opacity-70">
+          <span className="font-headline font-bold text-[var(--primary-color)] text-[10px] opacity-70">
             {menuStyle.currency ?? "RWF"}
           </span>
           <input
             type="number"
             step="1"
             min="0"
-            className="font-[var(--font-headline)] font-bold text-[var(--primary-color)] text-sm bg-transparent border-none p-0 focus:ring-0 w-16 text-right"
+            className="font-headline font-bold text-[var(--primary-color)] text-sm bg-transparent border-none p-0 focus:ring-0 w-16 text-right"
             value={item.price}
             onChange={(e) => {
               const v = parseFloat(e.target.value);
@@ -287,7 +287,7 @@ export function EditorItemForm({
               type="button" 
               onClick={handleGenerateDescription}
               disabled={isGeneratingDesc || !item.name}
-              className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-50 hover:bg-amber-100 text-amber-700 text-[10px] font-bold transition-all disabled:opacity-50"
+              className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-accent-saffron/10 hover:bg-accent-saffron/20 text-amber-700 text-[10px] font-bold transition-colors disabled:opacity-50"
             >
               <span className="material-symbols-outlined text-[12px]">auto_awesome</span>
               {isGeneratingDesc ? "Writing..." : "Auto-write"}
@@ -336,7 +336,7 @@ export function EditorItemForm({
                   available: item.available === false ? true : false,
                 })
               }
-              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-colors ${
                 item.available === false
                   ? "bg-error/10 text-error"
                   : "bg-tertiary/10 text-tertiary"
@@ -396,7 +396,7 @@ export function EditorItemForm({
                       badge: item.badge === b ? undefined : b,
                     })
                   }
-                  className={`text-[10px] font-bold px-2.5 py-1 rounded-full capitalize transition-all ${
+                  className={`text-[10px] font-bold px-2.5 py-1 rounded-full capitalize transition-colors ${
                     item.badge === b
                       ? "bg-primary text-white"
                       : "bg-surface-container-high text-secondary hover:bg-surface-container-highest"
@@ -466,7 +466,7 @@ export function EditorItemForm({
                     key={tag.id}
                     type="button"
                     onClick={() => toggleDietaryTag(tag.id)}
-                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wider transition-all duration-200 border cursor-pointer active:scale-95 ${
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wider transition-colors duration-200 border cursor-pointer active:scale-95 ${
                       isActive
                         ? `${tag.color} border-transparent shadow-sm font-extrabold`
                         : "bg-surface-container-low text-secondary border-outline-variant/20 hover:bg-surface-container-high"
@@ -504,7 +504,7 @@ export function EditorItemForm({
               <button
                 type="button"
                 onClick={handleAddTagPrompt}
-                className="flex items-center gap-0.5 text-[10px] font-bold text-primary hover:bg-primary/10 px-2 py-0.5 rounded-full transition-all"
+                className="flex items-center gap-0.5 text-[10px] font-bold text-primary hover:bg-primary/10 px-2 py-0.5 rounded-full transition-colors"
               >
                 <span className="material-symbols-outlined text-sm">add</span> Add tag
               </button>

@@ -22,7 +22,7 @@ export function CategoryTabStrip({ activeCategoryId, setActiveCategoryId, onCate
           <button
             type="button"
             onClick={() => setActiveCategoryId(cat.id)}
-            className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all whitespace-nowrap flex items-center gap-1 ${
+            className={`px-3 py-1.5 rounded-full text-xs font-bold transition-colors whitespace-nowrap flex items-center gap-1 ${
               activeCategoryId === cat.id
                 ? "bg-primary text-white shadow-sm"
                 : cat.hidden
@@ -40,7 +40,7 @@ export function CategoryTabStrip({ activeCategoryId, setActiveCategoryId, onCate
             type="button"
             title="Section options"
             onClick={() => onCategoryOptions({ id: cat.id, name: cat.name, hidden: cat.hidden })}
-            className="w-6 h-6 rounded-full flex items-center justify-center text-secondary hover:bg-surface-container-highest transition-all"
+            className="w-6 h-6 rounded-full flex items-center justify-center text-secondary hover:bg-surface-container-highest transition-colors"
           >
             <span className="material-symbols-outlined text-[14px]">more_vert</span>
           </button>
@@ -53,7 +53,7 @@ export function CategoryTabStrip({ activeCategoryId, setActiveCategoryId, onCate
           const name = await prompt({ title: "New Section", placeholder: "e.g. Desserts", confirmLabel: "Add Section" });
           if (name) { addCategory(name); toast.success(`"${name}" section added.`); }
         }}
-        className="shrink-0 w-8 h-8 rounded-full bg-surface-container-high text-primary hover:bg-primary/10 transition-all flex items-center justify-center border border-primary/20 my-auto"
+        className="shrink-0 w-8 h-8 rounded-full bg-surface-container-high text-primary hover:bg-primary/10 transition-colors flex items-center justify-center border border-primary/20 my-auto"
       >
         <span className="material-symbols-outlined text-[18px]">add</span>
       </button>

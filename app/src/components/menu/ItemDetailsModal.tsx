@@ -41,7 +41,7 @@ export default function ItemDetailsModal({ item, isOpen, onClose, onAddToCart, c
         {/* Close Button */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 w-10 h-10 bg-black/40 hover:bg-black/60 text-white backdrop-blur-md rounded-full flex items-center justify-center z-20 transition-all"
+          className="absolute top-4 right-4 w-10 h-10 bg-black/40 hover:bg-black/60 text-white backdrop-blur-md rounded-full flex items-center justify-center z-20 transition-colors"
           aria-label={`Close ${item.name} details`}
         >
           <span className="material-symbols-outlined text-lg">close</span>
@@ -58,7 +58,7 @@ export default function ItemDetailsModal({ item, isOpen, onClose, onAddToCart, c
                 className="object-cover"
                 priority
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent z-10" />
+              <div className="absolute inset-0 bg-linear-to-t from-black/30 to-transparent z-10" />
             </>
           ) : (
             <div className="w-full h-full flex flex-col items-center justify-center">
@@ -77,10 +77,10 @@ export default function ItemDetailsModal({ item, isOpen, onClose, onAddToCart, c
         <div className="flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar">
           <div>
             <div className="flex justify-between items-start gap-4 mb-2">
-              <h3 className="font-[var(--font-headline)] text-2xl font-extrabold text-on-surface leading-tight">
+              <h3 className="font-headline text-2xl font-extrabold text-on-surface leading-tight">
                 {item.name}
               </h3>
-              <span className="font-[var(--font-headline)] text-xl font-black text-[var(--primary-color)] shrink-0">
+              <span className="font-headline text-xl font-black text-[var(--primary-color)] shrink-0">
                 {formatPrice(item.price, currency)}
               </span>
             </div>
@@ -90,7 +90,7 @@ export default function ItemDetailsModal({ item, isOpen, onClose, onAddToCart, c
               {item.badge && (
                 <div className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${
                   item.badge === "healthy" ? "bg-tertiary/10 text-tertiary" : 
-                  item.badge === "popular" ? "bg-rose-500/10 text-rose-600" : 
+                  item.badge === "popular" ? "bg-accent-saffron/15 text-amber-700" :
                   "bg-primary/10 text-primary"
                 }`}>
                   <span className="material-symbols-outlined text-[14px] icon-fill">
@@ -155,7 +155,7 @@ export default function ItemDetailsModal({ item, isOpen, onClose, onAddToCart, c
           <button
             onClick={handleAdd}
             disabled={item.available === false}
-            className="flex-1 h-14 bg-[var(--primary-color)] hover:opacity-90 text-white rounded-2xl font-[var(--font-headline)] font-bold text-lg premium-shadow flex items-center justify-center gap-2 active:scale-[0.98] transition-all disabled:opacity-50 disabled:active:scale-100"
+            className="flex-1 h-14 bg-[var(--primary-color)] hover:opacity-90 text-white rounded-2xl font-headline font-bold text-lg premium-shadow flex items-center justify-center gap-2 active:scale-[0.98] transition-colors disabled:opacity-50 disabled:active:scale-100"
             aria-label={`Add ${item.name} for ${formatPrice(item.price * quantity, currency)}`}
           >
             <span className="text-base">Add for</span>

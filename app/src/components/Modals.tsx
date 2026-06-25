@@ -40,21 +40,21 @@ export function ConfirmModal() {
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => handleClose(false)} />
       <div role="dialog" aria-modal="true" aria-labelledby="confirm-title" className="relative bg-surface-container-lowest rounded-[2rem] p-8 w-full max-w-sm shadow-2xl border border-surface-container/50 animate-[fadeIn_0.2s_ease]">
-        <h2 id="confirm-title" className="font-[var(--font-headline)] font-bold text-xl mb-2">{state.title}</h2>
+        <h2 id="confirm-title" className="font-headline font-bold text-xl mb-2">{state.title}</h2>
         <p className="text-secondary text-sm leading-relaxed mb-8">{state.message}</p>
         <div className="flex gap-3">
           <button
             onClick={() => handleClose(false)}
-            className="flex-1 py-3 bg-surface-container-low rounded-xl font-bold text-sm text-secondary hover:bg-surface-container-high transition-all"
+            className="flex-1 py-3 bg-surface-container-low rounded-xl font-bold text-sm text-secondary hover:bg-surface-container-high transition-colors"
           >
             Cancel
           </button>
           <button
             onClick={() => handleClose(true)}
-            className={`flex-1 py-3 rounded-xl font-bold text-sm transition-all active:scale-95 ${
+            className={`flex-1 py-3 rounded-xl font-bold text-sm transition-colors active:scale-95 ${
               state.danger
-                ? "bg-error text-white hover:opacity-90"
-                : "bg-gradient-to-br from-primary to-primary-container text-white shadow-lg shadow-primary/20 hover:opacity-90"
+                ? "bg-error text-white hover:bg-error/80"
+                : "bg-linear-to-br from-primary to-primary-container text-white shadow-lg shadow-primary/20 hover:bg-[#a04100]"
             }`}
           >
             {state.confirmLabel ?? "Confirm"}
@@ -106,11 +106,11 @@ export function PromptModal() {
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => handleClose(false)} />
       <div role="dialog" aria-modal="true" aria-labelledby="prompt-title" className="relative bg-surface-container-lowest rounded-[2rem] p-8 w-full max-w-sm shadow-2xl border border-surface-container/50 animate-[fadeIn_0.2s_ease]">
-        <h2 id="prompt-title" className="font-[var(--font-headline)] font-bold text-xl mb-2">{state.title}</h2>
+        <h2 id="prompt-title" className="font-headline font-bold text-xl mb-2">{state.title}</h2>
         {state.message && <p className="text-secondary text-sm mb-4">{state.message}</p>}
         <input
           autoFocus
-          className="w-full bg-surface-container-low border border-outline-variant/20 rounded-xl py-3 px-4 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all mb-6"
+          className="w-full bg-surface-container-low border border-outline-variant/20 rounded-xl py-3 px-4 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors mb-6"
           value={value}
           placeholder={state.placeholder ?? ""}
           onChange={(e) => setValue(e.target.value)}
@@ -119,14 +119,14 @@ export function PromptModal() {
         <div className="flex gap-3">
           <button
             onClick={() => handleClose(false)}
-            className="flex-1 py-3 bg-surface-container-low rounded-xl font-bold text-sm text-secondary hover:bg-surface-container-high transition-all"
+            className="flex-1 py-3 bg-surface-container-low rounded-xl font-bold text-sm text-secondary hover:bg-surface-container-high transition-colors"
           >
             Cancel
           </button>
           <button
             onClick={() => handleClose(true)}
             disabled={!value.trim()}
-            className="flex-1 py-3 bg-gradient-to-br from-primary to-primary-container rounded-xl font-bold text-sm text-white shadow-lg shadow-primary/20 hover:opacity-90 transition-all active:scale-95 disabled:opacity-50"
+            className="flex-1 py-3 bg-linear-to-br from-primary to-primary-container rounded-xl font-bold text-sm text-white shadow-lg shadow-primary/20 hover:bg-[#a04100] transition-colors active:scale-95 disabled:opacity-50"
           >
             {state.confirmLabel ?? "Confirm"}
           </button>

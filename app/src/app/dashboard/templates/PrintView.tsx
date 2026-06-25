@@ -99,7 +99,7 @@ export function PrintView({ templateId, templateName, restaurantData, onClose }:
             <button
               type="button"
               onClick={onClose}
-              className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-all text-white shrink-0"
+              className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors text-white shrink-0"
             >
               <span className="material-symbols-outlined text-xl">close</span>
             </button>
@@ -114,7 +114,7 @@ export function PrintView({ templateId, templateName, restaurantData, onClose }:
               <button
                 type="button"
                 onClick={handleCopyLink}
-                className="w-10 h-10 sm:w-auto sm:h-auto sm:px-4 sm:py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white text-sm font-bold transition-all flex items-center justify-center gap-2"
+                className="w-10 h-10 sm:w-auto sm:h-auto sm:px-4 sm:py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white text-sm font-bold transition-colors flex items-center justify-center gap-2"
                 title="Share link"
               >
                 <span className="material-symbols-outlined text-base">share</span>
@@ -124,7 +124,7 @@ export function PrintView({ templateId, templateName, restaurantData, onClose }:
               <button
                 type="button"
                 onClick={handlePrint}
-                className="flex items-center gap-1.5 px-3 sm:px-5 py-2 rounded-xl bg-white text-black text-sm font-bold hover:bg-white/90 active:scale-95 transition-all shadow-lg"
+                className="flex items-center gap-1.5 px-3 sm:px-5 py-2 rounded-xl bg-white text-black text-sm font-bold hover:bg-white/90 active:scale-95 transition-colors shadow-lg"
               >
                 <span className="material-symbols-outlined text-base">picture_as_pdf</span>
                 <span className="hidden sm:inline">Download PDF</span>
@@ -149,7 +149,7 @@ export function PrintView({ templateId, templateName, restaurantData, onClose }:
         <div className="w-full md:w-72 bg-surface/95 backdrop-blur-2xl border-t md:border-t-0 md:border-l border-surface-container/50 flex flex-col overflow-y-auto max-h-[46vh] md:max-h-none md:h-auto">
 
           <div className="px-4 md:px-6 py-3 md:py-6 border-b border-surface-container/50 shrink-0">
-            <h3 className="font-[var(--font-headline)] font-bold text-sm md:text-base mb-0.5">Customise</h3>
+            <h3 className="font-headline font-bold text-sm md:text-base mb-0.5">Customise</h3>
             <p className="text-secondary text-[11px]">Choose template &amp; accent color</p>
           </div>
 
@@ -191,7 +191,7 @@ export function PrintView({ templateId, templateName, restaurantData, onClose }:
                       type="button"
                       onClick={() => setMenuStyle({ ...menuStyle, primaryColor: hex, accentColor: hex, priceTextColor: hex })}
                       style={{ backgroundColor: hex }}
-                      className={`w-full aspect-square rounded-full flex items-center justify-center transition-all ${
+                      className={`w-full aspect-square rounded-full flex items-center justify-center transition-colors ${
                         active ? "ring-4 ring-primary/20 ring-offset-2 scale-110" : "hover:scale-110"
                       }`}
                     >
@@ -201,7 +201,7 @@ export function PrintView({ templateId, templateName, restaurantData, onClose }:
                 })}
               </div>
               <label className="flex items-center gap-3 cursor-pointer group">
-                <div className="relative w-8 h-8 rounded-full overflow-hidden border-2 border-outline-variant/30 group-hover:border-primary/40 transition-all shrink-0"
+                <div className="relative w-8 h-8 rounded-full overflow-hidden border-2 border-outline-variant/30 group-hover:border-primary/40 transition-colors shrink-0"
                      style={{ backgroundColor: menuStyle.primaryColor }}>
                   <input
                     type="color"
@@ -239,7 +239,7 @@ export function PrintView({ templateId, templateName, restaurantData, onClose }:
             <button
               type="button"
               onClick={handlePrint}
-              className="w-full py-3 md:py-4 bg-gradient-to-br from-primary to-primary-container rounded-2xl font-bold text-white shadow-lg shadow-primary/20 active:scale-95 transition-all flex items-center justify-center gap-2"
+              className="w-full py-3 md:py-4 bg-linear-to-br from-primary to-primary-container rounded-2xl font-bold text-white shadow-lg shadow-primary/20 active:scale-95 transition-colors flex items-center justify-center gap-2"
             >
               <span className="material-symbols-outlined text-lg">print</span>
               Print Now

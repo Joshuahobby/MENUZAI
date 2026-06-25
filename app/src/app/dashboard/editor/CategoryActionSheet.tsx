@@ -29,7 +29,7 @@ export function CategoryActionSheet({
         className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm lg:hidden"
         onClick={() => setCatActionSheet(null)}
       />
-      <div className="fixed bottom-0 left-0 right-0 z-[60] lg:hidden bg-white rounded-t-3xl p-6 shadow-2xl">
+      <div className="fixed bottom-0 left-0 right-0 z-[60] lg:hidden bg-surface-container-lowest rounded-t-3xl p-6 shadow-2xl">
         <div className="w-10 h-1 bg-black/10 rounded-full mx-auto mb-6" />
         <p className="text-xs font-bold uppercase tracking-[0.2em] text-secondary mb-1">Section</p>
         <p className="font-bold text-xl mb-6">{catActionSheet.name}</p>
@@ -49,7 +49,7 @@ export function CategoryActionSheet({
                 toast.success(`Renamed to "${name}"`);
               }
             }}
-            className="w-full flex items-center gap-4 px-5 py-4 bg-black/3 hover:bg-black/6 rounded-2xl text-sm font-bold transition-all"
+            className="w-full flex items-center gap-4 px-5 py-4 bg-black/3 hover:bg-black/6 rounded-2xl text-sm font-bold transition-colors"
           >
             <span className="material-symbols-outlined text-primary">edit</span>
             Rename
@@ -65,7 +65,7 @@ export function CategoryActionSheet({
                   : `"${catActionSheet.name}" hidden from public menu`
               );
             }}
-            className="w-full flex items-center gap-4 px-5 py-4 bg-black/3 hover:bg-black/6 rounded-2xl text-sm font-bold transition-all"
+            className="w-full flex items-center gap-4 px-5 py-4 bg-black/3 hover:bg-black/6 rounded-2xl text-sm font-bold transition-colors"
           >
             <span className="material-symbols-outlined text-secondary">
               {catActionSheet.hidden ? "visibility" : "visibility_off"}
@@ -92,7 +92,7 @@ export function CategoryActionSheet({
                 toast.success(`"${catActionSheet.name}" deleted.`);
               }
             }}
-            className="w-full flex items-center gap-4 px-5 py-4 bg-red-50 hover:bg-red-100 rounded-2xl text-sm font-bold text-red-600 transition-all"
+            className="w-full flex items-center gap-4 px-5 py-4 bg-error-container/50 hover:bg-error-container rounded-2xl text-sm font-bold text-error transition-colors"
           >
             <span className="material-symbols-outlined">delete</span>
             Delete Section

@@ -48,9 +48,9 @@ export default function TrialExpiredModal({ restaurantId, onDismiss }: TrialExpi
       <div className="fixed inset-0 z-[90] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
         <div className="bg-surface-container-lowest rounded-[2rem] w-full max-w-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
           {/* Header */}
-          <div className="bg-gradient-to-tr from-primary to-primary-container p-8 text-white text-center">
+          <div className="bg-linear-to-tr from-primary to-primary-container p-8 text-white text-center">
             <span className="material-symbols-outlined text-[40px] mb-3 block opacity-90">experiment</span>
-            <h2 className="text-2xl font-[var(--font-headline)] font-black tracking-tight mb-2">
+            <h2 className="text-2xl font-headline font-black tracking-tight mb-2">
               Your 14-day trial has ended
             </h2>
             <p className="text-white/80 text-sm">
@@ -74,14 +74,14 @@ export default function TrialExpiredModal({ restaurantId, onDismiss }: TrialExpi
                 <button
                   type="button"
                   onClick={() => setIsAnnual(false)}
-                  className={`flex-1 py-1.5 rounded-lg transition-all ${!isAnnual ? "bg-white text-on-surface shadow" : "text-white/60 hover:text-white"}`}
+                  className={`flex-1 py-1.5 rounded-lg transition-colors ${!isAnnual ? "bg-surface-container-lowest text-on-surface shadow" : "text-white/60 hover:text-white"}`}
                 >
                   Monthly
                 </button>
                 <button
                   type="button"
                   onClick={() => setIsAnnual(true)}
-                  className={`flex-1 py-1.5 rounded-lg transition-all flex items-center justify-center gap-1.5 ${isAnnual ? "bg-white text-on-surface shadow" : "text-white/60 hover:text-white"}`}
+                  className={`flex-1 py-1.5 rounded-lg transition-colors flex items-center justify-center gap-1.5 ${isAnnual ? "bg-surface-container-lowest text-on-surface shadow" : "text-white/60 hover:text-white"}`}
                 >
                   Annual
                   <span className={`text-[8px] font-black tracking-widest uppercase px-1.5 py-0.5 rounded-full ${isAnnual ? "bg-primary/20 text-primary" : "bg-white/10 text-white/50"}`}>
@@ -120,7 +120,7 @@ export default function TrialExpiredModal({ restaurantId, onDismiss }: TrialExpi
               <button
                 type="button"
                 onClick={() => setCheckoutOpen(true)}
-                className="w-full py-3 bg-gradient-to-tr from-primary to-primary-container text-white font-bold rounded-xl text-sm shadow-lg shadow-primary/30 hover:opacity-90 active:scale-95 transition-all"
+                className="w-full py-3 bg-linear-to-tr from-primary to-primary-container text-white font-bold rounded-xl text-sm shadow-lg shadow-primary/30 hover:bg-[#a04100] active:scale-95 transition-colors"
               >
                 Upgrade to Pro
               </button>

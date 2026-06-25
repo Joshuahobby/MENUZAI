@@ -152,7 +152,7 @@ export default function DashboardPage() {
         {/* Header */}
         <header className="flex flex-col md:flex-row justify-between items-start md:items-end mb-10 gap-4">
           <div>
-            <h1 className="text-3xl font-[var(--font-headline)] font-extrabold tracking-tight text-on-surface mb-1">
+            <h1 className="text-3xl font-headline font-extrabold tracking-tight text-on-surface mb-1">
               Live Staff Station
             </h1>
             <p className="text-secondary font-medium">Real-time order monitoring and dispatch terminal.</p>
@@ -164,7 +164,7 @@ export default function DashboardPage() {
             </div>
             <Link
               href="/dashboard/orders"
-              className="bg-primary hover:opacity-90 text-white px-5 py-2.5 rounded-xl font-bold transition-all flex items-center gap-2 shadow-lg shadow-primary/20"
+              className="bg-primary hover:bg-[#a04100] text-white px-5 py-2.5 rounded-[2rem] font-bold transition-colors flex items-center gap-2 shadow-lg shadow-primary/20"
             >
               <span className="material-symbols-outlined text-sm">receipt_long</span> Orders Board
             </Link>
@@ -230,14 +230,14 @@ export default function DashboardPage() {
               <span className="material-symbols-outlined text-white text-4xl icon-fill">notifications_active</span>
             </div>
             <div className="z-10 text-white flex-1">
-              <h3 className="text-xl font-[var(--font-headline)] font-bold mb-2">Live Orders Monitor</h3>
+              <h3 className="text-xl font-headline font-bold mb-2">Live Orders Monitor</h3>
               <p className="text-base opacity-90 leading-snug">
                 Open the interactive order processing terminal to manage table requests, accept new orders, and print guest receipts.
               </p>
             </div>
             <Link
               href="/dashboard/orders"
-              className="z-10 bg-white text-primary-container px-6 py-3 rounded-xl font-bold hover:shadow-lg transition-all active:scale-95 whitespace-nowrap text-center block w-full md:w-auto"
+              className="z-10 bg-surface-container-lowest text-primary-container px-6 py-3 rounded-[2rem] font-bold hover:bg-surface-container-low transition-colors active:scale-95 whitespace-nowrap text-center block w-full md:w-auto"
             >
               Open Terminal
             </Link>
@@ -245,7 +245,7 @@ export default function DashboardPage() {
 
           {/* Kitchen Staff Reminders / Rules */}
           <div className="lg:col-span-5 bg-surface-container-lowest p-6 rounded-3xl border border-surface-container/50 shadow-sm">
-            <h3 className="font-[var(--font-headline)] font-bold mb-4 flex items-center gap-2 text-on-surface">
+            <h3 className="font-headline font-bold mb-4 flex items-center gap-2 text-on-surface">
               <span className="material-symbols-outlined text-primary">assignment_turned_in</span>
               Kitchen Best Practices
             </h3>
@@ -273,7 +273,7 @@ export default function DashboardPage() {
         {/* Live Activity Stream (Operational only) */}
         <div className="bg-surface-container-lowest p-6 rounded-3xl border border-surface-container/50 shadow-sm flex flex-col">
           <div className="flex items-center justify-between mb-6">
-            <h3 className="font-[var(--font-headline)] font-bold flex items-center gap-2">
+            <h3 className="font-headline font-bold flex items-center gap-2">
               <span className="material-symbols-outlined text-tertiary text-xl">pulse</span> Live Operations Feed
             </h3>
             <span className="flex h-2.5 w-2.5 rounded-full bg-tertiary animate-pulse"></span>
@@ -327,7 +327,7 @@ export default function DashboardPage() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
         <div>
           <p className="text-xs font-bold text-secondary uppercase tracking-[0.2em] mb-0.5">{greeting}</p>
-          <h1 className="text-2xl font-[var(--font-headline)] font-extrabold tracking-tight text-on-surface">
+          <h1 className="text-2xl font-headline font-extrabold tracking-tight text-on-surface">
             {restaurantName || "Dashboard"}
           </h1>
         </div>
@@ -342,7 +342,7 @@ export default function DashboardPage() {
               key={a.href}
               href={a.href}
               target={a.href.startsWith("/menu") ? "_blank" : undefined}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all ${a.highlight ? "bg-primary text-white shadow-md shadow-primary/20" : "bg-surface-container-lowest border border-surface-container hover:border-primary/30 hover:shadow-sm text-on-surface"}`}
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-colors ${a.highlight ? "bg-primary text-white shadow-md shadow-primary/20" : "bg-surface-container-lowest border border-surface-container hover:border-primary/30 hover:shadow-sm text-on-surface"}`}
             >
               <span className="material-symbols-outlined text-[16px]">{a.icon}</span>
               {a.label}
@@ -353,7 +353,7 @@ export default function DashboardPage() {
 
       {/* Trial progress card */}
       {trialDaysLeft !== null && (
-        <div className="mb-6 bg-gradient-to-tr from-on-surface to-[#1a1a2e] rounded-3xl p-5 text-white overflow-hidden relative">
+        <div className="mb-6 bg-linear-to-tr from-on-surface to-[#1a1a2e] rounded-3xl p-5 text-white overflow-hidden relative">
           <div className="absolute top-0 right-0 w-48 h-48 bg-primary/10 rounded-full -translate-y-1/2 translate-x-1/4 pointer-events-none" />
           <div className="relative flex flex-col sm:flex-row sm:items-center gap-4">
             <div className="flex-1 min-w-0">
@@ -361,19 +361,19 @@ export default function DashboardPage() {
                 <span className="material-symbols-outlined text-primary-container text-[18px] icon-fill">experiment</span>
                 <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white/50">Pro Trial Active</span>
               </div>
-              <p className="font-[var(--font-headline)] font-black text-lg leading-tight mb-2">
+              <p className="font-headline font-black text-lg leading-tight mb-2">
                 Day {14 - trialDaysLeft} of 14 — all Pro features unlocked
               </p>
               <div className="flex items-center gap-2 mb-1">
                 <div className="flex-1 h-1.5 bg-white/10 rounded-full overflow-hidden">
-                  <div className={`h-full bg-gradient-to-r from-primary to-primary-container rounded-full transition-all ${trialBarWidth}`} />
+                  <div className={`h-full bg-linear-to-r from-primary to-primary-container rounded-full transition-colors ${trialBarWidth}`} />
                 </div>
                 <span className="text-[11px] font-bold text-white/50 shrink-0">{trialDaysLeft}d left</span>
               </div>
             </div>
             <Link
               href="/dashboard/settings"
-              className="shrink-0 px-5 py-2.5 bg-primary text-white text-xs font-bold rounded-xl hover:opacity-90 transition-opacity shadow-lg shadow-primary/30 whitespace-nowrap"
+              className="shrink-0 px-5 py-2.5 bg-primary text-white text-xs font-bold rounded-[2rem] hover:bg-[#a04100] transition-colors shadow-lg shadow-primary/30 whitespace-nowrap"
             >
               Upgrade to Pro →
             </Link>
@@ -385,7 +385,7 @@ export default function DashboardPage() {
       {isPublished && !hasPhone && (
         <Link
           href="/dashboard/settings"
-          className="flex items-center gap-3 mb-6 px-5 py-4 bg-amber-50 border border-amber-300 rounded-2xl hover:bg-amber-100 transition-colors"
+          className="flex items-center gap-3 mb-6 px-5 py-4 bg-accent-saffron/10 border border-accent-saffron/40 rounded-2xl hover:bg-accent-saffron/20 transition-colors"
         >
           <span className="material-symbols-outlined text-amber-600 text-[22px]">warning</span>
           <div className="flex-1 min-w-0">
@@ -398,21 +398,21 @@ export default function DashboardPage() {
 
       {/* Setup checklist — shown until all steps complete */}
       {!allStepsDone && (
-        <div className="mb-10 bg-gradient-to-br from-primary/5 to-primary-container/5 border border-primary/10 rounded-3xl p-8">
+        <div className="mb-10 bg-linear-to-br from-primary/5 to-primary-container/5 border border-primary/10 rounded-3xl p-8">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center shadow-md shadow-primary/20 shrink-0">
                 <span className="material-symbols-outlined text-white icon-fill text-xl">rocket_launch</span>
               </div>
               <div>
-                <h2 className="font-[var(--font-headline)] font-bold text-lg">Get your first order in your trial</h2>
+                <h2 className="font-headline font-bold text-lg">Get your first order in your trial</h2>
                 <p className="text-secondary text-xs">
                   {[hasItems, isPublished, hasPhone, hasLogo, hasFirstOrder].filter(Boolean).length} of 5 steps complete
                 </p>
               </div>
             </div>
             {trialDaysLeft !== null && (
-              <div className={`shrink-0 flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold ${trialDaysLeft <= 3 ? "bg-red-50 text-red-700 border border-red-200" : "bg-violet-50 text-violet-700 border border-violet-200"}`}>
+              <div className={`shrink-0 flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold ${trialDaysLeft <= 3 ? "bg-error-container/50 text-error border border-error/30" : "bg-primary/5 text-primary border border-primary/20"}`}>
                 <span className="material-symbols-outlined text-[16px]">experiment</span>
                 {trialDaysLeft === 0 ? "Trial ends today" : `${trialDaysLeft} day${trialDaysLeft === 1 ? "" : "s"} left in trial`}
               </div>
@@ -422,7 +422,7 @@ export default function DashboardPage() {
           {/* Progress bar */}
           <div className="h-1.5 bg-black/5 rounded-full mb-6 overflow-hidden">
             <div
-              className="h-full bg-primary rounded-full transition-all duration-500"
+              className="h-full bg-primary rounded-full transition-colors duration-500"
               style={{ width: `${([hasItems, isPublished, hasPhone, hasLogo, hasFirstOrder].filter(Boolean).length / 5) * 100}%` }}
             />
           </div>
@@ -435,7 +435,7 @@ export default function DashboardPage() {
               { step: 4, done: hasLogo,        icon: "image",       label: "Upload your logo",     desc: "Brand your menu with your restaurant logo",     href: "/dashboard/settings", cta: "Go to Settings"  },
               { step: 5, done: hasFirstOrder,  icon: "celebration", label: "Receive first order",  desc: "Print your QR code and put it on a table",      href: "/dashboard/qr-codes", cta: "Get QR Code"     },
             ].map(({ step, done, icon, label, desc, href, cta }) => (
-              <Link key={step} href={href} className={`group flex flex-col gap-3 rounded-2xl p-4 border transition-all ${done ? "bg-surface-container-low border-transparent opacity-70" : "bg-surface-container-lowest border-outline-variant/20 hover:border-primary/30 hover:shadow-md"}`}>
+              <Link key={step} href={href} className={`group flex flex-col gap-3 rounded-2xl p-4 border transition-colors ${done ? "bg-surface-container-low border-transparent opacity-70" : "bg-surface-container-lowest border-outline-variant/20 hover:border-primary/30 hover:shadow-md"}`}>
                 <div className="flex items-center gap-2.5">
                   <div className={`w-7 h-7 rounded-lg flex items-center justify-center font-black text-xs shrink-0 ${done ? "bg-tertiary text-white" : "bg-primary/10 text-primary"}`}>
                     {done ? <span className="material-symbols-outlined text-sm">check</span> : step}
@@ -460,7 +460,7 @@ export default function DashboardPage() {
       {/* Analytics range selector */}
       <header className="flex flex-col md:flex-row justify-between items-start md:items-end mb-10 gap-4">
         <div>
-          <h2 className="text-xl font-[var(--font-headline)] font-extrabold tracking-tight text-on-surface mb-0.5">Performance Overview</h2>
+          <h2 className="text-xl font-headline font-extrabold tracking-tight text-on-surface mb-0.5">Performance Overview</h2>
           <p className="text-secondary text-sm font-medium">Growing your restaurant with data-driven insights.</p>
         </div>
         <div className="flex items-center gap-3">
@@ -478,7 +478,7 @@ export default function DashboardPage() {
                 <button
                   key={d}
                   onClick={() => setDays(d)}
-                  className={`px-3 py-1.5 rounded-lg text-sm font-semibold transition-all ${days === d ? "bg-primary text-white shadow-sm" : "text-secondary hover:text-on-surface"}`}
+                  className={`px-3 py-1.5 rounded-lg text-sm font-semibold transition-colors ${days === d ? "bg-primary text-white shadow-sm" : "text-secondary hover:text-on-surface"}`}
                 >
                   {d === 7 ? "7 Days" : d === 30 ? "30 Days" : "90 Days"}
                 </button>
@@ -488,7 +488,7 @@ export default function DashboardPage() {
           <button
             onClick={downloadReport}
             disabled={!data}
-            className="bg-primary-container hover:opacity-90 disabled:opacity-40 text-white px-5 py-2.5 rounded-xl font-bold transition-all flex items-center gap-2 shadow-lg shadow-primary-container/20"
+            className="bg-primary-container hover:bg-[#a04100] disabled:opacity-40 text-white px-5 py-2.5 rounded-[2rem] font-bold transition-colors flex items-center gap-2 shadow-lg shadow-primary-container/20"
           >
             <span className="material-symbols-outlined text-sm">download</span> Report
           </button>
@@ -523,7 +523,7 @@ export default function DashboardPage() {
               <span className={`material-symbols-outlined text-white text-4xl icon-fill`}>auto_awesome</span>
           </div>
           <div className="z-10 text-white flex-1">
-            <h3 className="text-xl font-[var(--font-headline)] font-bold mb-2">AI Revenue Insight</h3>
+            <h3 className="text-xl font-headline font-bold mb-2">AI Revenue Insight</h3>
             <p className="text-lg opacity-90 leading-snug">
               {topDishes.length > 0 ? (
                 <>Your <span className="font-black underline decoration-2 underline-offset-4">{topDishes[0].name}</span> is your top performing item with {topDishes[0].count} interactions.</>
@@ -532,7 +532,7 @@ export default function DashboardPage() {
               )}
             </p>
           </div>
-          <Link href="/dashboard/analytics" className="z-10 bg-white text-primary-container px-6 py-3 rounded-xl font-bold hover:shadow-lg transition-all active:scale-95 whitespace-nowrap">
+          <Link href="/dashboard/analytics" className="z-10 bg-surface-container-lowest text-primary-container px-6 py-3 rounded-[2rem] font-bold hover:bg-surface-container-low transition-colors active:scale-95 whitespace-nowrap">
             View Analytics
           </Link>
         </div>
@@ -540,7 +540,7 @@ export default function DashboardPage() {
         {/* Live Activity */}
         <div className="lg:col-span-4 bg-surface-container-lowest p-6 rounded-3xl border border-surface-container/50 shadow-sm flex flex-col">
           <div className="flex items-center justify-between mb-6">
-            <h3 className="font-[var(--font-headline)] font-bold flex items-center gap-2">
+            <h3 className="font-headline font-bold flex items-center gap-2">
               <span className="material-symbols-outlined text-tertiary-container text-xl">chat</span> Live Activity
             </h3>
             <span className="flex h-2 w-2 rounded-full bg-tertiary-container animate-pulse"></span>
@@ -571,7 +571,7 @@ export default function DashboardPage() {
         {/* Top Performing Dishes */}
         <div className="lg:col-span-7 bg-surface-container-lowest p-8 rounded-3xl border border-surface-container/50 shadow-sm">
           <div className="flex justify-between items-center mb-8">
-            <h3 className="text-xl font-[var(--font-headline)] font-bold">Top Performing Dishes</h3>
+            <h3 className="text-xl font-headline font-bold">Top Performing Dishes</h3>
             <div className="flex gap-2">
               <button className="text-xs font-bold px-3 py-1 bg-primary/10 text-primary rounded-lg">By Volume</button>
             </div>
@@ -593,7 +593,7 @@ export default function DashboardPage() {
                       </div>
                       <div className="h-2 w-full bg-surface-container-low rounded-full overflow-hidden">
                         <div
-                          className="h-full bg-primary rounded-full transition-all"
+                          className="h-full bg-primary rounded-full transition-colors"
                           style={{ width: `${Math.max(pct, 6)}%`, opacity: 1 - i * 0.15 }}
                         />
                       </div>
@@ -613,7 +613,7 @@ export default function DashboardPage() {
         <div className="lg:col-span-5 bg-surface-container-lowest p-8 rounded-3xl border border-surface-container/50 shadow-sm">
           <div className="flex justify-between items-center mb-10">
             <div>
-              <h3 className="text-xl font-[var(--font-headline)] font-bold">Peak Ordering Hours</h3>
+              <h3 className="text-xl font-headline font-bold">Peak Ordering Hours</h3>
               <p className="text-secondary text-xs">Prepare staffing for peak traffic</p>
             </div>
             {peakHour.count > 0 && (
@@ -626,7 +626,7 @@ export default function DashboardPage() {
             {peakHours.filter((h) => h.hour >= 8 && h.hour <= 23).map((h) => (
               <div key={h.hour} className="flex-1 flex flex-col items-center gap-2 group">
                 <div
-                  className={`w-full rounded-t-lg transition-all min-h-[4px] ${h.count === peakHour.count && h.count > 0 ? "bg-primary-container" : "bg-surface-container-low hover:bg-primary/20"}`}
+                  className={`w-full rounded-t-lg transition-colors min-h-[4px] ${h.count === peakHour.count && h.count > 0 ? "bg-primary-container" : "bg-surface-container-low hover:bg-primary/20"}`}
                   style={{ height: `${maxHourCount > 0 ? (h.count / maxHourCount) * 100 : 0}%` }}
                 >
                   {h.count === peakHour.count && h.count > 0 && (

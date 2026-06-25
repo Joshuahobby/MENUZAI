@@ -39,23 +39,23 @@ const RANDOM_ORDERS = [
 ];
 
 const STATUS_COLS: { status: Status; label: string; icon: string; color: string; bg: string }[] = [
-  { status: "pending",   label: "New Orders",  icon: "notifications_active", color: "text-amber-600",  bg: "bg-amber-50 border-amber-100" },
-  { status: "preparing", label: "Preparing",   icon: "restaurant",           color: "text-blue-600",   bg: "bg-blue-50 border-blue-100"  },
-  { status: "ready",     label: "Ready",       icon: "done_all",             color: "text-green-700",  bg: "bg-green-50 border-green-100" },
+  { status: "pending",   label: "New Orders",  icon: "notifications_active", color: "text-amber-600",  bg: "bg-accent-saffron/10 border-accent-saffron/20" },
+  { status: "preparing", label: "Preparing",   icon: "restaurant",           color: "text-secondary",   bg: "bg-secondary-container/60 border-secondary-container"  },
+  { status: "ready",     label: "Ready",       icon: "done_all",             color: "text-tertiary",  bg: "bg-tertiary/10 border-tertiary/20" },
 ];
 
 const NEXT: Record<Status, Status | null> = { pending: "preparing", preparing: "ready", ready: null };
 const NEXT_LABEL: Record<Status, string> = { pending: "Start Preparing", preparing: "Mark Ready", ready: "Done" };
 const NEXT_BTN: Record<Status, string> = {
-  pending:   "bg-amber-500 hover:bg-amber-600 text-white",
-  preparing: "bg-blue-600 hover:bg-blue-700 text-white",
-  ready:     "bg-green-600 hover:bg-green-700 text-white",
+  pending:   "bg-accent-saffron hover:bg-accent-saffron/80 text-on-surface",
+  preparing: "bg-on-surface hover:bg-on-surface/80 text-surface",
+  ready:     "bg-tertiary hover:bg-[#145c2c] text-white",
 };
 
 const STATUS_CHIP: Record<Status, string> = {
-  pending:   "bg-amber-500/10 text-amber-700",
-  preparing: "bg-blue-500/10 text-blue-700",
-  ready:     "bg-green-500/10 text-green-700",
+  pending:   "bg-accent-saffron/15 text-amber-700",
+  preparing: "bg-secondary-container text-secondary",
+  ready:     "bg-tertiary/10 text-tertiary",
 };
 
 function fmt(n: number) { return new Intl.NumberFormat().format(n); }
@@ -68,8 +68,8 @@ function elapsed(d: Date): string {
 function urgencyClass(order: Order): string | null {
   if (order.status === "ready") return null;
   const m = Math.floor((Date.now() - order.createdAt.getTime()) / 60_000);
-  if (m >= 15) return "border-red-300 bg-red-50/50";
-  if (m >= 8)  return "border-amber-300 bg-amber-50/30";
+  if (m >= 15) return "border-error/40 bg-error-container/30";
+  if (m >= 8)  return "border-accent-saffron/40 bg-accent-saffron/15";
   return null;
 }
 
@@ -118,22 +118,22 @@ export default function StaffDemoPage() {
   const totalRevenue = orders.reduce((s, o) => s + o.total, 0);
 
   return (
-    <div className="min-h-screen bg-[#f0f0f0] text-on-surface">
+    <div className="min-h-screen bg-surface-container-lowest text-on-surface">
       <DemoBanner role="staff" restaurantName="Le Bistro Demo" />
 
       {/* Header */}
-      <header className="bg-white border-b border-black/6 px-4 py-3 sticky top-10 z-40">
+      <header className="bg-surface-container-lowest border-b border-black/6 px-4 py-3 sticky top-10 z-40">
         <div className="max-w-6xl mx-auto flex items-center justify-between gap-3">
           <div className="flex items-center gap-3 min-w-0">
             <div className="min-w-0">
               <p className="text-[10px] text-secondary font-medium leading-none mb-0.5">Staff Orders Panel</p>
-              <h1 className="text-base font-[var(--font-headline)] font-extrabold tracking-tight truncate">Le Bistro Demo</h1>
+              <h1 className="text-base font-extrabold tracking-tight truncate">Le Bistro Demo</h1>
             </div>
             <div className="flex items-center gap-2 text-xs text-secondary">
-              <span className="bg-[#faf8f6] border border-black/6 px-2 py-1 rounded-lg font-semibold whitespace-nowrap">
+              <span className="bg-surface-container-low border border-black/6 px-2 py-1 rounded-lg font-semibold whitespace-nowrap">
                 {totalToday} orders
               </span>
-              <span className="hidden sm:inline bg-[#faf8f6] border border-black/6 px-2 py-1 rounded-lg font-semibold whitespace-nowrap">
+              <span className="hidden sm:inline bg-surface-container-low border border-black/6 px-2 py-1 rounded-lg font-semibold whitespace-nowrap">
                 {fmt(totalRevenue)} RWF
               </span>
             </div>
@@ -144,7 +144,7 @@ export default function StaffDemoPage() {
               onClick={() => setSoundOn(s => !s)}
               title={soundOn ? "Sound on" : "Sound off"}
               className={`flex items-center gap-1 text-xs font-semibold p-2 rounded-lg border transition-colors cursor-pointer ${
-                soundOn ? "border-primary/30 text-primary bg-primary/5" : "border-black/10 text-secondary bg-white"
+                soundOn ? "border-primary/30 text-primary bg-primary/5" : "border-black/10 text-secondary bg-surface-container-lowest"
               }`}
             >
               <span className="material-symbols-outlined text-[15px]">{soundOn ? "volume_up" : "volume_off"}</span>
@@ -152,7 +152,7 @@ export default function StaffDemoPage() {
 
             <button
               onClick={simulateOrder}
-              className="flex items-center gap-1 text-xs font-bold px-3 py-2 rounded-lg bg-on-surface text-white hover:opacity-90 transition-opacity cursor-pointer"
+              className="flex items-center gap-1 text-xs font-bold px-3 py-2 rounded-[2rem] bg-on-surface text-white hover:bg-black/70 transition-colors cursor-pointer"
             >
               <span className="material-symbols-outlined text-[15px]">add</span>
               <span className="hidden xs:inline">Simulate</span>
@@ -169,16 +169,16 @@ export default function StaffDemoPage() {
       </header>
 
       {/* Mobile column tabs */}
-      <div className="md:hidden sticky top-[calc(2.5rem+57px)] z-30 bg-[#f0f0f0] px-4 pt-3 pb-2">
+      <div className="md:hidden sticky top-[calc(2.5rem+57px)] z-30 bg-surface-container-lowest px-4 pt-3 pb-2">
         <div className="flex gap-2">
           {STATUS_COLS.map(col => {
             const count = byStatus(col.status).length;
             return (
               <button key={col.status} onClick={() => setMobileTab(col.status)}
-                className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-bold transition-colors cursor-pointer ${
                   mobileTab === col.status
-                    ? `bg-white shadow-sm ${col.color}`
-                    : "text-secondary bg-white/50"
+                    ? `bg-surface-container-lowest shadow-sm ${col.color}`
+                    : "text-secondary bg-surface-container-low/60"
                 }`}
               >
                 <span className="material-symbols-outlined text-[14px]">{col.icon}</span>
@@ -225,7 +225,7 @@ export default function StaffDemoPage() {
                     const isNew = newFlash === order.id;
                     return (
                       <div key={order.id}
-                        className={`bg-white rounded-xl p-4 border transition-all ${urgent ?? "border-black/6"} ${isNew ? "ring-2 ring-amber-400 scale-[1.01]" : ""}`}
+                        className={`bg-surface-container-lowest rounded-xl p-4 border transition-colors ${urgent ?? "border-black/6"} ${isNew ? "ring-2 ring-accent-saffron scale-[1.01]" : ""}`}
                       >
                         {/* Card header */}
                         <div className="flex items-center justify-between mb-3">
@@ -237,10 +237,10 @@ export default function StaffDemoPage() {
                             {(() => {
                               const m = Math.floor((Date.now() - order.createdAt.getTime()) / 60_000);
                               if (order.status !== "ready" && m >= 15) return (
-                                <span className="text-[9px] font-black text-red-600 bg-red-50 px-1.5 py-0.5 rounded-full">{m}m ⚠️</span>
+                                <span className="text-[9px] font-black text-error bg-error-container/50 px-1.5 py-0.5 rounded-full">{m}m ⚠️</span>
                               );
                               if (order.status !== "ready" && m >= 8) return (
-                                <span className="text-[9px] font-black text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded-full">{m}m</span>
+                                <span className="text-[9px] font-black text-amber-600 bg-accent-saffron/10 px-1.5 py-0.5 rounded-full">{m}m</span>
                               );
                               return null;
                             })()}
@@ -268,7 +268,7 @@ export default function StaffDemoPage() {
                               {NEXT_LABEL[order.status]}
                             </button>
                           ) : (
-                            <span className="text-[10px] font-bold text-green-700 bg-green-100 px-3 py-1.5 rounded-lg">
+                            <span className="text-[10px] font-bold text-tertiary bg-tertiary/15 px-3 py-1.5 rounded-lg">
                               Served ✓
                             </span>
                           )}
@@ -309,7 +309,7 @@ export default function StaffDemoPage() {
                     const isNew = newFlash === order.id;
                     return (
                       <div key={order.id}
-                        className={`bg-white rounded-xl p-4 border transition-all ${urgent ?? "border-black/6"} ${isNew ? "ring-2 ring-amber-400 scale-[1.01]" : ""}`}
+                        className={`bg-surface-container-lowest rounded-xl p-4 border transition-colors ${urgent ?? "border-black/6"} ${isNew ? "ring-2 ring-accent-saffron scale-[1.01]" : ""}`}
                       >
                         <div className="flex items-center justify-between mb-3">
                           <span className="inline-flex items-center gap-1 text-[10px] font-black uppercase bg-primary/10 text-primary px-2.5 py-1 rounded-lg">
@@ -320,10 +320,10 @@ export default function StaffDemoPage() {
                             {(() => {
                               const m = Math.floor((Date.now() - order.createdAt.getTime()) / 60_000);
                               if (order.status !== "ready" && m >= 15) return (
-                                <span className="text-[9px] font-black text-red-600 bg-red-50 px-1.5 py-0.5 rounded-full">{m}m ⚠️</span>
+                                <span className="text-[9px] font-black text-error bg-error-container/50 px-1.5 py-0.5 rounded-full">{m}m ⚠️</span>
                               );
                               if (order.status !== "ready" && m >= 8) return (
-                                <span className="text-[9px] font-black text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded-full">{m}m</span>
+                                <span className="text-[9px] font-black text-amber-600 bg-accent-saffron/10 px-1.5 py-0.5 rounded-full">{m}m</span>
                               );
                               return null;
                             })()}
@@ -347,7 +347,7 @@ export default function StaffDemoPage() {
                               {NEXT_LABEL[order.status]}
                             </button>
                           ) : (
-                            <span className="text-[10px] font-bold text-green-700 bg-green-100 px-3 py-1.5 rounded-lg">
+                            <span className="text-[10px] font-bold text-tertiary bg-tertiary/15 px-3 py-1.5 rounded-lg">
                               Served ✓
                             </span>
                           )}
@@ -367,11 +367,11 @@ export default function StaffDemoPage() {
 
         {/* CTA */}
         <div className="mt-10 bg-on-surface rounded-2xl p-8 text-center">
-          <h2 className="text-xl font-[var(--font-headline)] font-black text-white mb-3">
+          <h2 className="text-xl font-black text-white mb-3">
             Set up real-time orders for your restaurant
           </h2>
           <p className="text-white/40 text-sm mb-6">Your staff panel live in under 5 minutes.</p>
-          <AuthCta className="inline-block px-7 py-3 bg-primary text-white font-bold rounded-xl text-sm hover:opacity-90 transition-opacity shadow-lg shadow-primary/30">
+          <AuthCta className="inline-block px-7 py-3 bg-primary text-white font-bold rounded-[2rem] text-sm hover:bg-[#a04100] transition-colors shadow-lg shadow-primary/30">
             Create Free Account
           </AuthCta>
         </div>

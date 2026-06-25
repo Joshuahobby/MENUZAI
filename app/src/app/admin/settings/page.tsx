@@ -86,14 +86,14 @@ export default function PlatformAdminSettings() {
 
       {loading ? (
         <div className="space-y-4 animate-pulse">
-          <div className="h-24 bg-white border border-black/6 rounded-2xl" />
-          <div className="h-40 bg-white border border-black/6 rounded-2xl" />
+          <div className="h-24 bg-surface-container-lowest border border-black/6 rounded-2xl" />
+          <div className="h-40 bg-surface-container-lowest border border-black/6 rounded-2xl" />
         </div>
       ) : (
         <div className="space-y-5">
           {/* API key health */}
           {apiKeys && (
-            <div className="bg-white border border-black/6 rounded-2xl p-5 shadow-sm">
+            <div className="bg-surface-container-lowest border border-black/6 rounded-2xl p-5">
               <p className="text-[10px] font-bold uppercase tracking-widest text-secondary mb-3">API Key Status</p>
               <div className="flex gap-3 flex-wrap">
                 {([["openrouter", "OpenRouter"], ["anthropic", "Anthropic"]] as const).map(([key, label]) => (
@@ -101,8 +101,8 @@ export default function PlatformAdminSettings() {
                     key={key}
                     className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold ${
                       apiKeys[key]
-                        ? "bg-emerald-500/10 text-emerald-700"
-                        : "bg-red-500/10 text-red-600"
+                        ? "bg-tertiary/10 text-tertiary"
+                        : "bg-error/10 text-error"
                     }`}
                   >
                     <span className="material-symbols-outlined text-[13px]">
@@ -116,7 +116,7 @@ export default function PlatformAdminSettings() {
           )}
 
           {/* Provider selector */}
-          <div className="bg-white border border-black/6 rounded-2xl p-5 shadow-sm">
+          <div className="bg-surface-container-lowest border border-black/6 rounded-2xl p-5">
             <p className="text-[10px] font-bold uppercase tracking-widest text-secondary mb-4">Active Provider</p>
             <div className={`grid grid-cols-2 gap-3 ${saving ? "opacity-50 pointer-events-none" : ""}`}>
               {PROVIDERS.map(p => (
@@ -124,7 +124,7 @@ export default function PlatformAdminSettings() {
                   type="button"
                   key={p.value}
                   onClick={() => handleProviderChange(p.value)}
-                  className={`flex flex-col items-start gap-2 p-4 rounded-xl border-2 text-left transition-all ${
+                  className={`flex flex-col items-start gap-2 p-4 rounded-xl border-2 text-left transition-colors ${
                     provider === p.value
                       ? "border-primary bg-primary/5"
                       : "border-black/8 hover:border-primary/30"
@@ -157,7 +157,7 @@ export default function PlatformAdminSettings() {
           </div>
 
           {/* Model string */}
-          <div className="bg-white border border-black/6 rounded-2xl p-5 shadow-sm">
+          <div className="bg-surface-container-lowest border border-black/6 rounded-2xl p-5">
             <label htmlFor="model-string" className="text-[10px] font-bold uppercase tracking-widest text-secondary mb-3 block">
               Model String
             </label>
@@ -180,7 +180,7 @@ export default function PlatformAdminSettings() {
             type="button"
             onClick={handleSave}
             disabled={saving}
-            className="w-full py-3 bg-primary rounded-xl font-bold text-sm text-white hover:opacity-90 transition-all disabled:opacity-60"
+            className="w-full py-3 bg-primary rounded-[2rem] font-bold text-sm text-white hover:bg-[#a04100] transition-colors disabled:opacity-60"
           >
             {saving ? "Saving…" : "Save Configuration"}
           </button>

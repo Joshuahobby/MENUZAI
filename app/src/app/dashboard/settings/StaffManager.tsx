@@ -109,7 +109,7 @@ export function StaffManager() {
     <div className="bg-surface-container-lowest p-8 rounded-[2rem] border border-surface-container/50 lg:col-span-2">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div>
-          <h3 className="font-[var(--font-headline)] font-bold text-lg">Staff Management</h3>
+          <h3 className="font-headline font-bold text-lg">Staff Management</h3>
           <p className="text-sm text-secondary">Manage who has access to your restaurant dashboard.</p>
         </div>
       </div>
@@ -165,7 +165,7 @@ export function StaffManager() {
             <button
               type="submit"
               disabled={inviting || !inviteEmail.trim()}
-              className="py-3 px-6 bg-gradient-to-br from-primary to-primary-container rounded-xl font-bold text-sm text-white shadow-lg shadow-primary/20 hover:opacity-90 transition-all active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2"
+              className="py-3 px-6 bg-linear-to-br from-primary to-primary-container rounded-xl font-bold text-sm text-white shadow-lg shadow-primary/20 hover:opacity-90 transition-colors active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2"
             >
               <span className="material-symbols-outlined text-[18px]">person_add</span>
               {inviting ? "Inviting..." : "Invite"}

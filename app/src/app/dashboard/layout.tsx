@@ -126,7 +126,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     <div className="min-h-screen bg-surface text-on-surface" data-auth-ready={authReady ? "true" : undefined}>
       <PWAInstallPrompt />
       {/* Desktop Sidebar */}
-      <aside className={`hidden lg:flex fixed left-0 top-0 h-full flex-col py-6 z-50 bg-surface border-r border-surface-container font-[var(--font-headline)] text-sm font-medium transition-all duration-300 ${collapsed ? "w-16" : "w-64"}`}>
+      <aside className={`hidden lg:flex fixed left-0 top-0 h-full flex-col py-6 z-50 bg-surface border-r border-surface-container font-headline text-sm font-medium transition-[width] duration-300 ${collapsed ? "w-16" : "w-64"}`}>
         {/* Header */}
         <div className={`mb-10 flex items-center ${collapsed ? "justify-center px-3 flex-col gap-3" : "justify-between px-8"}`}>
           {collapsed ? (
@@ -143,7 +143,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
             type="button"
             onClick={toggleCollapsed}
             title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-            className="w-8 h-8 rounded-lg bg-surface-container hover:bg-surface-container-high flex items-center justify-center text-secondary hover:text-primary transition-all shrink-0"
+            className="w-8 h-8 rounded-lg bg-surface-container hover:bg-surface-container-high flex items-center justify-center text-secondary hover:text-primary transition-colors shrink-0"
           >
             <span className="material-symbols-outlined text-[18px]">
               {collapsed ? "chevron_right" : "chevron_left"}
@@ -154,7 +154,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
         {/* Location switcher — Business plan with multiple restaurants */}
         {!collapsed && ownedRestaurants.length > 1 && (
           <div className="px-4 mb-4">
-            <label className="block text-[9px] font-bold uppercase text-secondary opacity-60 mb-1">Location</label>
+            <label className="block text-[9px] font-bold uppercase tracking-widest text-secondary opacity-60 mb-1">Location</label>
             <select
               value={restaurantId ?? ""}
               onChange={(e) => switchRestaurantLocation(e.target.value)}
@@ -177,7 +177,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                 key={link.href}
                 href={link.href}
                 title={collapsed ? link.label : undefined}
-                className={`flex items-center ${collapsed ? "justify-center px-3" : "gap-3 px-4"} py-3 rounded-xl transition-all ${isActive ? "bg-primary/10 text-primary" : "text-secondary hover:text-primary hover:bg-surface-container-low"}`}
+                className={`flex items-center ${collapsed ? "justify-center px-3" : "gap-3 px-4"} py-3 rounded-xl transition-colors ${isActive ? "bg-primary/10 text-primary" : "text-secondary hover:text-primary hover:bg-surface-container-low"}`}
               >
                 <span className={`material-symbols-outlined shrink-0 ${isActive ? "icon-fill" : ""}`}>{link.icon}</span>
                 {!collapsed && <span>{link.label}</span>}
@@ -192,7 +192,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
             <Link
               href="/admin/settings"
               title={collapsed ? "Platform Admin" : undefined}
-              className={`flex items-center ${collapsed ? "justify-center px-3" : "gap-3 px-4"} py-2.5 rounded-xl transition-all text-secondary hover:text-primary hover:bg-surface-container-low`}
+              className={`flex items-center ${collapsed ? "justify-center px-3" : "gap-3 px-4"} py-2.5 rounded-xl transition-colors text-secondary hover:text-primary hover:bg-surface-container-low`}
             >
               <span className="material-symbols-outlined shrink-0 text-[18px]">admin_panel_settings</span>
               {!collapsed && <span className="text-xs font-bold uppercase tracking-wider">Platform Admin</span>}
@@ -238,17 +238,17 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 
       {/* Subscription / trial banner */}
       {showBanner && (
-        <div className={`fixed top-0 z-[60] transition-all duration-300 ${collapsed ? "lg:left-16" : "lg:left-64"} left-0 right-0`}>
+        <div className={`fixed top-0 z-[60] transition-[left] duration-300 ${collapsed ? "lg:left-16" : "lg:left-64"} left-0 right-0`}>
           <Link
             href="/dashboard/settings"
             className={`flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-semibold w-full hover:opacity-90 transition-opacity ${
               trialHasEnded && !trialChoiceMade
-                ? "bg-red-600 text-white"
+                ? "bg-error text-white"
                 : trialDaysLeft !== null
-                ? "bg-violet-600 text-white"
+                ? "bg-primary text-white"
                 : daysUntilExpiry! <= 0
-                ? "bg-red-600 text-white"
-                : "bg-amber-400 text-amber-950"
+                ? "bg-error text-white"
+                : "bg-accent-saffron text-amber-950"
             }`}
           >
             <span className="material-symbols-outlined text-[18px]">
@@ -287,7 +287,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
       )}
 
       {/* Main Content */}
-      <main className={`transition-all duration-300 min-h-screen pb-24 lg:pb-0 ${collapsed ? "lg:ml-16" : "lg:ml-64"} ${showBanner ? "pt-10" : ""}`}>
+      <main className={`transition-[margin] duration-300 min-h-screen pb-24 lg:pb-0 ${collapsed ? "lg:ml-16" : "lg:ml-64"} ${showBanner ? "pt-10" : ""}`}>
         <div className="w-full h-full bg-surface-container-lowest lg:rounded-[3rem] shadow-2xl border border-surface-container-high/50 overflow-hidden relative min-h-[calc(100vh-48px)]">
           {children}
         </div>
@@ -304,19 +304,19 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
               const isActive = pathname === link.href || (link.href !== "/dashboard" && pathname.startsWith(link.href));
               return (
                 <Link key={link.href} href={link.href}
-                  className={`flex flex-col items-center justify-center p-3 rounded-2xl gap-1 transition-all ${isActive ? "bg-primary/10 text-primary" : "text-secondary hover:bg-surface-container-low"}`}>
+                  className={`flex flex-col items-center justify-center p-3 rounded-2xl gap-1 transition-colors ${isActive ? "bg-primary/10 text-primary" : "text-secondary hover:bg-surface-container-low"}`}>
                   <span className={`material-symbols-outlined text-lg ${isActive ? "icon-fill" : ""}`}>{link.icon}</span>
-                  <span className="text-[9px] font-bold uppercase">{link.label}</span>
+                  <span className="text-[9px] font-bold uppercase tracking-widest">{link.label}</span>
                 </Link>
               );
             })}
             {isPlatformAdmin(user?.email) && (
               <Link
                 href="/admin/settings"
-                className={`flex flex-col items-center justify-center p-3 rounded-2xl gap-1 transition-all ${pathname.startsWith("/admin") ? "bg-primary/10 text-primary" : "text-secondary hover:bg-surface-container-low"}`}
+                className={`flex flex-col items-center justify-center p-3 rounded-2xl gap-1 transition-colors ${pathname.startsWith("/admin") ? "bg-primary/10 text-primary" : "text-secondary hover:bg-surface-container-low"}`}
               >
                 <span className={`material-symbols-outlined text-lg ${pathname.startsWith("/admin") ? "icon-fill" : ""}`}>admin_panel_settings</span>
-                <span className="text-[9px] font-bold uppercase">Admin</span>
+                <span className="text-[9px] font-bold uppercase tracking-widest">Admin</span>
               </Link>
             )}
           </div>
@@ -328,13 +328,13 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
               <Link key={link.href} href={link.href}
                 className={`flex flex-col items-center justify-center p-2 ${isActive ? "text-primary-container" : "text-secondary"}`}>
                 {isActive ? (
-                  <div className="flex flex-col items-center justify-center bg-gradient-to-tr from-primary to-primary-container text-white rounded-2xl p-2.5 shadow-lg shadow-primary-container/20">
+                  <div className="flex flex-col items-center justify-center bg-linear-to-tr from-primary to-primary-container text-white rounded-2xl p-2.5 shadow-lg shadow-primary-container/20">
                     <span className="material-symbols-outlined text-sm icon-fill">{link.icon}</span>
                   </div>
                 ) : (
                   <span className="material-symbols-outlined text-sm">{link.icon}</span>
                 )}
-                <span className="text-[9px] font-bold uppercase mt-1">{link.label}</span>
+                <span className="text-[9px] font-bold uppercase tracking-widest mt-1">{link.label}</span>
               </Link>
             );
           })}
@@ -345,7 +345,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
               className={`flex flex-col items-center justify-center p-2 ${moreOpen ? "text-primary" : "text-secondary"}`}
             >
               <span className={`material-symbols-outlined text-sm ${moreOpen ? "icon-fill" : ""}`}>more_horiz</span>
-              <span className="text-[9px] font-bold uppercase mt-1">More</span>
+              <span className="text-[9px] font-bold uppercase tracking-widest mt-1">More</span>
             </button>
           )}
         </div>
