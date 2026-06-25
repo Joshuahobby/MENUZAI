@@ -116,7 +116,7 @@ export default function AIResultPage() {
                     if (ok) removeItem(item.id);
                   }}
                   title="Remove item"
-                  className="absolute top-4 right-4 w-7 h-7 rounded-full bg-error/10 text-error flex items-center justify-center opacity-40 hover:opacity-100 transition-opacity hover:bg-error/20"
+                  className="absolute top-4 right-4 w-7 h-7 rounded-full bg-error/10 text-error flex items-center justify-center opacity-60 hover:opacity-100 transition-opacity hover:bg-error/20"
                 >
                   <span className="material-symbols-outlined text-sm">close</span>
                 </button>

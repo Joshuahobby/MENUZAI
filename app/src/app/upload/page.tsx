@@ -371,7 +371,7 @@ export default function UploadPage() {
               </div>
               <div className="w-48 h-1 bg-black/6 rounded-full mx-auto overflow-hidden">
                 <div
-                  className="bg-primary h-full transition-colors duration-500 rounded-full"
+                  className="bg-primary h-full transition-[width] duration-500 rounded-full"
                   ref={(el) => { if (el) el.style.width = `${progress}%`; }}
                 />
               </div>

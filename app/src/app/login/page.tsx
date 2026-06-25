@@ -16,6 +16,8 @@ function LoginForm() {
   const [view, setView] = useState<View>("auth");
   const [showEmailForm, setShowEmailForm] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [resendLoading, setResendLoading] = useState(false);
+  const [resendSent, setResendSent] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
   const callbackError = searchParams.get("error");
@@ -47,6 +49,13 @@ function LoginForm() {
     setLoading(false);
   };
 
+  const handleResend = async () => {
+    setResendLoading(true);
+    await supabase.auth.resend({ type: "signup", email });
+    setResendLoading(false);
+    setResendSent(true);
+  };
+
   const handleForgotPassword = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email.trim()) { setError("Please enter your email address."); return; }
@@ -74,9 +83,22 @@ function LoginForm() {
             Click it to activate your account.
           </p>
         </div>
-        <button type="button" onClick={() => setView("auth")} className="text-sm font-semibold text-secondary hover:text-primary transition-colors">
-          Back to sign in
-        </button>
+        <div className="space-y-3">
+          <button
+            type="button"
+            onClick={handleResend}
+            disabled={resendLoading || resendSent}
+            className="w-full py-2.5 rounded-xl border border-black/8 text-sm font-semibold text-secondary hover:text-primary hover:border-primary/30 transition-colors disabled:opacity-50"
+          >
+            {resendSent ? "Sent! Check your inbox again" : resendLoading ? "Sending…" : "Resend confirmation email"}
+          </button>
+          <Link href="/demo" className="block text-sm font-semibold text-primary hover:underline">
+            Try the demo while you wait →
+          </Link>
+          <button type="button" onClick={() => setView("auth")} className="block w-full text-sm text-secondary/60 hover:text-secondary transition-colors">
+            Back to sign in
+          </button>
+        </div>
       </div>
     );
   }
@@ -84,7 +106,7 @@ function LoginForm() {
   // ── Password reset sent screen ────────────────────────────────────────────
   if (view === "reset-sent") {
     return (
-      <div className="w-full max-w-md bg-surface-container-lowest rounded-3xl p-10 shadow-sm border border-black/6 text-center space-y-6">
+      <div className="w-full max-w-md bg-surface-container-lowest rounded-3xl p-6 sm:p-10 shadow-sm border border-black/6 text-center space-y-6">
         <div className="w-14 h-14 bg-primary/8 rounded-2xl flex items-center justify-center mx-auto">
           <span className="material-symbols-outlined text-2xl text-primary">lock_reset</span>
         </div>
@@ -172,7 +194,7 @@ function LoginForm() {
   // ── Google OAuth redirect in-progress ────────────────────────────────────
   if (oauthLoading) {
     return (
-      <div className="w-full max-w-md bg-surface-container-lowest rounded-3xl p-10 shadow-sm border border-black/6 text-center space-y-6">
+      <div className="w-full max-w-md bg-surface-container-lowest rounded-3xl p-6 sm:p-10 shadow-sm border border-black/6 text-center space-y-6">
         <div className="w-14 h-14 bg-surface-container rounded-2xl flex items-center justify-center mx-auto">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" className="w-7 h-7 animate-spin" style={{ animationDuration: "1.5s" }}>
             <path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"/>
