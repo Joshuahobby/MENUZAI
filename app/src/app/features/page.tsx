@@ -244,7 +244,7 @@ export default function FeaturesPage() {
       <PublicNav activePath="/features" />
 
       {/* ── Hero ── */}
-      <section className="pt-24 pb-20 px-6 text-center">
+      <section className="pt-16 pb-14 lg:pt-24 lg:pb-20 px-6 text-center">
         <p className="text-xs font-bold tracking-[0.25em] uppercase text-primary/70 mb-6">Features</p>
         <h1
           className="text-5xl md:text-[64px] font-extrabold tracking-tighter leading-[1.05] mb-5 max-w-3xl mx-auto"
@@ -268,7 +268,7 @@ export default function FeaturesPage() {
         </p>
 
         {/* Stats strip */}
-        <div className="max-w-2xl mx-auto grid grid-cols-3 gap-6 border-t border-black/6 pt-12">
+        <div className="max-w-2xl mx-auto grid grid-cols-3 gap-3 lg:gap-6 border-t border-black/6 pt-10 lg:pt-12">
           {HERO_STATS.map((s, i) => (
             <div key={i} className="text-center">
               <p className="text-4xl font-black text-on-surface tracking-tight font-syne">
@@ -282,8 +282,8 @@ export default function FeaturesPage() {
 
       {/* ── Deep-dive sections ── */}
       {DEEP_FEATURES.map((f, i) => (
-        <section key={i} className={`py-24 px-6 border-t border-black/5 ${f.dark ? "bg-on-surface" : "bg-surface-container-lowest"}`}>
-          <div className={`max-w-6xl mx-auto flex flex-col ${f.flip ? "lg:flex-row-reverse" : "lg:flex-row"} items-center gap-16`}>
+        <section key={i} className={`py-14 lg:py-24 px-6 border-t border-black/5 ${f.dark ? "bg-on-surface" : "bg-surface-container-lowest"}`}>
+          <div className={`max-w-6xl mx-auto flex flex-col ${f.flip ? "lg:flex-row-reverse" : "lg:flex-row"} items-center gap-10 lg:gap-16`}>
             {/* Text */}
             <div className="flex-1">
               <div className={`inline-flex items-center gap-2.5 mb-6 px-4 py-2 rounded-xl ${f.dark ? "bg-white/8" : "bg-primary/6"}`}>
@@ -322,9 +322,9 @@ export default function FeaturesPage() {
       ))}
 
       {/* ── Feature grid ── */}
-      <section className="py-28 px-6 bg-surface-container-lowest border-t border-black/5">
+      <section className="py-16 lg:py-28 px-6 bg-surface-container-lowest border-t border-black/5">
         <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-16">
+          <div className="text-center mb-10 lg:mb-16">
             <p className="text-xs font-bold tracking-[0.25em] uppercase text-secondary/50 mb-4">And more</p>
             <h2
               className="text-3xl md:text-4xl font-black tracking-tight"
@@ -346,7 +346,7 @@ export default function FeaturesPage() {
       </section>
 
       {/* ── CTA ── */}
-      <section className="py-28 px-6 bg-on-surface">
+      <section className="py-16 lg:py-28 px-6 bg-on-surface">
         <div className="max-w-xl mx-auto text-center">
           <p className="text-xs font-bold tracking-[0.25em] uppercase text-white/30 mb-6">Get started</p>
           <h2

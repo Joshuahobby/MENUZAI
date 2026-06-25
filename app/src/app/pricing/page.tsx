@@ -161,7 +161,7 @@ export default function PricingPage() {
       </section>
 
       {/* ── Cards ── */}
-      <section className="pb-28 px-6">
+      <section className="pb-16 lg:pb-28 px-6">
         <div className="max-w-3xl mx-auto">
 
           {/* Free — inline strip */}
@@ -189,7 +189,7 @@ export default function PricingPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
 
             {/* Pro */}
-            <div className="bg-on-surface rounded-3xl p-10 flex flex-col relative shadow-2xl shadow-black/20">
+            <div className="bg-on-surface rounded-3xl p-7 lg:p-10 flex flex-col relative shadow-2xl shadow-black/20">
               <div className="absolute -top-px left-0 right-0 h-px bg-linear-to-r from-transparent via-primary to-transparent rounded-t-3xl" />
 
               <div className="mb-10">
@@ -248,7 +248,7 @@ export default function PricingPage() {
             </div>
 
             {/* Business */}
-            <div className="bg-surface-container-low rounded-3xl p-10 flex flex-col border border-black/6 shadow-sm">
+            <div className="bg-surface-container-low rounded-3xl p-7 lg:p-10 flex flex-col border border-black/6 shadow-sm">
               <div className="mb-10">
                 <p className="text-xs font-bold tracking-[0.2em] uppercase text-secondary/60 mb-3">Business</p>
                 <p className="text-sm text-secondary leading-relaxed">For multi-location operations.</p>
@@ -286,14 +286,14 @@ export default function PricingPage() {
       </section>
 
       {/* ── Comparison table ── */}
-      <section className="py-24 px-6 bg-surface-container-lowest border-y border-black/5">
+      <section className="py-16 lg:py-24 px-6 bg-surface-container-lowest border-y border-black/5">
         <div className="max-w-4xl mx-auto">
           <p className="text-xs font-bold tracking-[0.25em] uppercase text-secondary/50 text-center mb-4">Compare</p>
-          <h2 className="text-3xl font-black mb-16 text-center tracking-tight">
+          <h2 className="text-3xl font-black mb-10 lg:mb-16 text-center tracking-tight">
             Every plan, side by side
           </h2>
-          <div className="overflow-hidden">
-            <table className="w-full text-sm">
+          <div className="overflow-x-auto -mx-6 px-6">
+            <table className="w-full min-w-[560px] text-sm">
               <thead>
                 <tr className="border-b border-black/8">
                   <th className="text-left pb-5 font-medium text-secondary/60 text-xs uppercase tracking-widest w-1/2">Feature</th>
@@ -338,15 +338,15 @@ export default function PricingPage() {
       </section>
 
       {/* ── FAQ ── */}
-      <section className="py-28 px-6">
+      <section className="py-16 lg:py-28 px-6">
         <div className="max-w-2xl mx-auto">
           <p className="text-xs font-bold tracking-[0.25em] uppercase text-secondary/50 text-center mb-4">FAQ</p>
-          <h2 className="text-3xl font-black mb-16 text-center tracking-tight">
+          <h2 className="text-3xl font-black mb-10 lg:mb-16 text-center tracking-tight">
             Questions &amp; answers
           </h2>
           <div className="space-y-2">
             {faqs.map((faq, i) => (
-              <div key={i} className="bg-surface-container-low border border-black/6 rounded-2xl px-8 py-7">
+              <div key={i} className="bg-surface-container-low border border-black/6 rounded-2xl px-5 py-5 lg:px-8 lg:py-7">
                 <p className="font-bold mb-2 text-[15px]">{faq.q}</p>
                 <p className="text-secondary text-sm leading-relaxed">{faq.a}</p>
               </div>
@@ -356,7 +356,7 @@ export default function PricingPage() {
       </section>
 
       {/* ── Final CTA ── */}
-      <section className="py-28 px-6 bg-on-surface">
+      <section className="py-16 lg:py-28 px-6 bg-on-surface">
         <div className="max-w-xl mx-auto text-center">
           <p className="text-xs font-bold tracking-[0.25em] uppercase text-white/30 mb-6">Get started</p>
           <h2 className="text-4xl font-black mb-4 text-white tracking-tight leading-tight">
