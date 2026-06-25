@@ -61,7 +61,7 @@ export default function LandingPage() {
 
   const ctaHref = isLoggedIn ? "/dashboard" : "/login?signup=true";
 
-  const rv = (delay: number, dir: "up" | "left" | "right" = "up", inView = false) => {
+  const rv = (dir: "up" | "left" | "right" = "up", inView = false) => {
     const base = dir === "left" ? "reveal-left" : dir === "right" ? "reveal-right" : "reveal";
     return `${base}${inView ? " visible" : ""}`;
   };
@@ -166,7 +166,7 @@ export default function LandingPage() {
               <span className="text-[0.45rem] font-black text-primary uppercase tracking-wider">Add to order</span>
             </div>
           </div>
-          </div>{/* end phone hero-animate wrapper */}
+          </div>
 
           {/* AI Waiter chat chip — absolute wrapper fades in, inner div floats */}
           <div className="hero-animate absolute right-6 top-1/2 -translate-y-[45%] z-30 w-[188px]" style={{ "--ha-delay": "680ms" } as React.CSSProperties}>
@@ -213,14 +213,14 @@ export default function LandingPage() {
                 <p className="text-[0.45rem] text-secondary">Kitchen notified · 8:12 PM</p>
               </div>
             </div>
-          </div>{/* end lp-float-chat div */}
-          </div>{/* end chat hero-animate wrapper */}
+          </div>
+          </div>
 
           <span className="absolute bottom-6 left-6 select-none pointer-events-none leading-none font-headline font-extrabold text-[5.5rem] text-primary opacity-[0.06]">
             LIVE
           </span>
         </div>
-        </div>{/* end grid wrapper */}
+        </div>
       </section>
 
       {/* ── Progress Strip ── */}
@@ -267,8 +267,8 @@ export default function LandingPage() {
       >
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
-            <p className={`${rv(0, "up", valueInView)} text-xs font-bold tracking-[0.25em] uppercase text-secondary/40 mb-4`}>The Problem</p>
-            <h2 className={`${rv(80, "up", valueInView)} text-4xl md:text-5xl font-black tracking-tight mb-5`} style={{ "--rv-delay": "80ms" } as React.CSSProperties}>
+            <p className={`${rv("up", valueInView)} text-xs font-bold tracking-[0.25em] uppercase text-secondary/40 mb-4`}>The Problem</p>
+            <h2 className={`${rv("up", valueInView)} text-4xl md:text-5xl font-black tracking-tight mb-5`} style={{ "--rv-delay": "80ms" } as React.CSSProperties}>
               Most menus just list.<br />Yours should <span className="text-shimmer">sell.</span>
             </h2>
             <p className={`reveal${valueInView ? " visible" : ""} text-secondary text-lg max-w-xl mx-auto leading-relaxed`} style={{ "--rv-delay": "160ms" } as React.CSSProperties}>
@@ -508,16 +508,14 @@ export default function LandingPage() {
               Watch a restaurant owner photograph their old paper menu, let AI extract every item, and go live — start to finish.
             </p>
           </div>
-          <div className={`reveal${demoInView ? " visible" : ""} rounded-3xl overflow-hidden shadow-2xl border border-black/8 aspect-video bg-on-surface`} style={{ "--rv-delay": "260ms" } as React.CSSProperties}>
-            <video
-              poster="https://img.youtube.com/vi/G4vp5NQnk-I/maxresdefault.jpg"
-              controls
-              preload="none"
-              playsInline
-              className="w-full h-full object-cover"
-            >
-              <source src="/menuza-demo.mp4" type="video/mp4" />
-            </video>
+          <div className={`reveal${demoInView ? " visible" : ""} rounded-3xl overflow-hidden shadow-2xl border border-black/8 aspect-video`} style={{ "--rv-delay": "260ms" } as React.CSSProperties}>
+            <iframe
+              src="https://www.youtube.com/embed/G4vp5NQnk-I?rel=0&modestbranding=1&color=white"
+              title="MENUZA AI — From paper menu to live digital menu in 90 seconds"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              allowFullScreen
+              className="w-full h-full border-0"
+            />
           </div>
           <p className="text-center mt-4 text-xs text-secondary/50">90 seconds · Photo → AI extraction → live QR menu → staff dashboard</p>
         </div>
