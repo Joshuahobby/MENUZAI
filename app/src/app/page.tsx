@@ -4,108 +4,212 @@ import Link from "next/link";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useLivePricing } from "@/hooks/useLivePricing";
+import { useInView } from "@/hooks/useInView";
+import { useCounter } from "@/hooks/useCounter";
 import { PublicNav } from "@/components/PublicNav";
 import { BackToTop } from "@/components/BackToTop";
 import { supabase } from "@/lib/supabase";
 
 const fmt = (n: number) => new Intl.NumberFormat("en-US").format(n);
 
+const CITIES = ["Kigali", "Nairobi", "Kampala", "Dar es Salaam", "Bujumbura", "Lagos"];
+
+const HERO_PILLS = ["AI Waiter included", "QR ordering", "WhatsApp alerts", "14-day free trial"];
+
 const FEATURES = [
-  { icon: "support_agent",    title: "AI Digital Waiter",   desc: "Greets guests on arrival, takes orders in chat, and follows up after the meal — a full-service waiter that costs nothing per shift." },
-  { icon: "receipt_long",     title: "Real-time Ordering",  desc: "Orders appear on your staff panel the moment they are placed. No printers, no delays." },
-  { icon: "document_scanner", title: "Upload & Convert",    desc: "Photograph your paper menu. Our AI reads every item, price, and description in seconds." },
-  { icon: "analytics",        title: "Live Analytics",      desc: "Know which dishes get viewed but not ordered. Make decisions on data, not intuition." },
-  { icon: "chat",             title: "WhatsApp Integration",desc: "Orders flow straight into your WhatsApp — no third-party app required." },
-  { icon: "notifications",    title: "Instant Alerts",      desc: "Push, email, and in-dashboard notifications the moment a customer places an order." },
+  { icon: "support_agent",    title: "AI Digital Waiter",    desc: "Greets every guest the moment they scan, answers questions, upsells high-margin dishes, and places their order — all in chat. Zero staff time.",  highlight: true  },
+  { icon: "document_scanner", title: "Upload & Convert",     desc: "Photograph your paper menu. AI reads every item, price, and description in 7 seconds. Edit anything, then go live.",                              highlight: false },
+  { icon: "receipt_long",     title: "Real-time Ordering",   desc: "Orders hit your staff panel the instant a customer places them. No printer, no missed table, no delay.",                                            highlight: false },
+  { icon: "analytics",        title: "Live Analytics",       desc: "See exactly which dishes get viewed but never ordered. Stop guessing. Fix it, earn more per table.",                                                highlight: false },
+  { icon: "chat",             title: "WhatsApp Integration", desc: "Every order lands in your WhatsApp. No third-party app — your staff already knows how to use it.",                                                  highlight: false },
+  { icon: "notifications",    title: "Instant Alerts",       desc: "Push, email, and in-dashboard notifications the second a customer orders. Never miss a sale again.",                                                highlight: false },
 ];
 
 const STEPS = [
-  { num: "1",   label: "Photograph",  sub: "Your paper menu" },
-  { num: "7s",  label: "AI reads it", sub: "Every item extracted" },
-  { num: "3",   label: "You edit",    sub: "Add prices, photos, tags" },
-  { num: "→",   label: "It's live",   sub: "QR code ready to print" },
+  { num: "1",  label: "Photograph",  sub: "Your paper menu" },
+  { num: "7s", label: "AI reads it", sub: "Every item extracted" },
+  { num: "3",  label: "You edit",    sub: "Add photos, prices, tags" },
+  { num: "→",  label: "You're live", sub: "QR code ready to print" },
 ];
 
 export default function LandingPage() {
   const pricingPlans = useLivePricing();
-  const [isAnnual, setIsAnnual] = useState(true);
+  const [isAnnual, setIsAnnual] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const router = useRouter();
 
+  // Scroll-reveal refs
+  const [trustRef,    trustInView]    = useInView();
+  const [valueRef,    valueInView]    = useInView();
+  const [waiterRef,   waiterInView]   = useInView();
+  const [featuresRef, featuresInView] = useInView();
+  const [outcomesRef, outcomesInView] = useInView();
+  const [demoRef,     demoInView]     = useInView();
+  const [pricingRef,  pricingInView]  = useInView();
+  const [ctaRef,      ctaInView]      = useInView();
+
+  // Counters for outcome stats
+  const count7  = useCounter(7,  900,  outcomesInView);
+  const count14 = useCounter(14, 1100, outcomesInView);
+
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
-      if (data.session) {
-        router.replace("/dashboard");
-      } else {
-        setIsLoggedIn(false);
-      }
+      if (data.session) router.replace("/dashboard");
+      else setIsLoggedIn(false);
     });
   }, [router]);
 
   const ctaHref = isLoggedIn ? "/dashboard" : "/login?signup=true";
+
+  const rv = (delay: number, dir: "up" | "left" | "right" = "up", inView = false) => {
+    const base = dir === "left" ? "reveal-left" : dir === "right" ? "reveal-right" : "reveal";
+    return `${base}${inView ? " visible" : ""}`;
+  };
 
   return (
     <div className="min-h-screen bg-surface text-on-surface">
       <PublicNav />
 
       {/* ── Hero ── */}
-      <section className="min-h-[92vh] grid grid-cols-1 lg:grid-cols-[1fr_42%] overflow-hidden">
+      <section className="min-h-[92vh] grid grid-cols-1 lg:grid-cols-[1fr_46%] overflow-hidden">
+        {/* Animated background glow */}
+        <div className="hero-glow w-[500px] h-[500px] bg-primary/6 -top-24 -left-24 hidden lg:block" style={{ position: "absolute" }} />
+        <div className="hero-glow w-[300px] h-[300px] bg-primary-container/5 top-32 left-1/4 hidden lg:block" style={{ animationDelay: "3s", position: "absolute" }} />
+
         {/* Left — copy */}
-        <div className="flex flex-col justify-center px-8 sm:px-12 lg:px-20 py-28 lg:py-0">
-          <p className="text-xs font-bold tracking-[0.2em] uppercase text-primary/70 mb-8 flex items-center gap-3">
+        <div className="flex flex-col justify-center px-8 sm:px-12 lg:px-20 py-28 lg:py-0 relative">
+          <p className="hero-animate text-xs font-bold tracking-[0.2em] uppercase text-primary/70 mb-6 flex items-center gap-3" style={{ "--ha-delay": "0ms" } as React.CSSProperties}>
             <span className="w-8 h-px bg-primary/70 inline-block" />
             Built for Africa
           </p>
-          <h1
-            className="text-5xl sm:text-6xl lg:text-[4.5rem] font-extrabold leading-[1.03] tracking-tighter mb-8"
-          >
-            Your menu.<br />
-            In their hands.<br />
-            <span className="text-primary">In two minutes.</span>
+
+          {/* Headline — each line animates in */}
+          <h1 className="text-5xl sm:text-6xl lg:text-[4.5rem] font-extrabold leading-[1.03] tracking-tighter mb-6">
+            <span className="hero-animate block" style={{ "--ha-delay": "80ms" } as React.CSSProperties}>Your menu.</span>
+            <span className="hero-animate block" style={{ "--ha-delay": "160ms" } as React.CSSProperties}>In their hands.</span>
+            <span className="hero-animate block text-primary" style={{ "--ha-delay": "240ms" } as React.CSSProperties}>In two minutes.</span>
           </h1>
-          <p className="text-lg text-secondary leading-relaxed max-w-lg mb-10">
-            Photograph your paper menu. AI reads every item in 7 seconds. Publish a live QR menu — no technical knowledge required.
+
+          <p className="hero-animate text-lg text-secondary leading-relaxed max-w-lg mb-5" style={{ "--ha-delay": "360ms" } as React.CSSProperties}>
+            Photograph your paper menu and get a live digital menu in seconds. Then your{" "}
+            <strong className="text-on-surface">AI Waiter</strong> takes over — greeting every
+            guest, answering questions, and placing orders automatically. 24/7. No extra staff.
           </p>
-          <div className="flex flex-wrap gap-3">
-            <Link
-              href={ctaHref}
-              className="px-7 py-3.5 bg-primary text-white font-bold rounded-[2rem] text-sm hover:bg-[#a04100] transition-colors shadow-md shadow-primary/20"
-            >
+
+          {/* Feature pills */}
+          <div className="flex flex-wrap gap-2 mb-8">
+            {HERO_PILLS.map((f, i) => (
+              <span
+                key={f}
+                className="pop-animate flex items-center gap-1.5 text-xs font-semibold text-secondary/80 bg-surface-container px-3 py-1.5 rounded-full border border-black/6"
+                style={{ "--pa-delay": `${460 + i * 60}ms` } as React.CSSProperties}
+              >
+                <span className="material-symbols-outlined text-[12px] text-primary">check_circle</span>
+                {f}
+              </span>
+            ))}
+          </div>
+
+          <div className="hero-animate flex flex-wrap gap-3 mb-8" style={{ "--ha-delay": "700ms" } as React.CSSProperties}>
+            <Link href={ctaHref} className="px-7 py-3.5 bg-primary text-white font-bold rounded-[2rem] text-sm hover:bg-[#a04100] transition-colors shadow-md shadow-primary/20">
               Start free — no card needed
             </Link>
-            <a
-              href="#demo"
-              className="flex items-center gap-2 px-7 py-3.5 border border-outline-variant text-on-surface font-bold rounded-[2rem] text-sm hover:border-primary/40 hover:bg-surface-container-low transition-colors"
-            >
-              <span className="material-symbols-outlined text-[18px] text-primary">play_circle</span>
-              Watch demo (90s)
-            </a>
+            <Link href="/demo" className="flex items-center gap-2 px-7 py-3.5 border border-outline-variant text-on-surface font-bold rounded-[2rem] text-sm hover:border-primary/40 hover:bg-surface-container-low transition-colors">
+              <span className="material-symbols-outlined text-[18px] text-primary icon-fill">robot_2</span>
+              See AI Waiter live
+            </Link>
+          </div>
+
+          {/* Trust signal */}
+          <div className="hero-animate flex items-center gap-2.5 text-xs text-secondary/60" style={{ "--ha-delay": "820ms" } as React.CSSProperties}>
+            <div className="flex">
+              {["K", "N", "C"].map((l, i) => (
+                <div key={i} className={`w-6 h-6 rounded-full bg-primary/15 border-2 border-surface flex items-center justify-center text-[9px] font-black text-primary${i > 0 ? " -ml-1.5" : ""}`}>{l}</div>
+              ))}
+            </div>
+            <span>Restaurants in <strong className="text-on-surface/70">Kigali · Nairobi · Kampala</strong> and beyond trust MENUZA AI</span>
           </div>
         </div>
 
-        {/* Right — phone mockup, bleed to edge */}
-        <div className="hidden lg:flex bg-surface-card items-center justify-center relative overflow-hidden">
-          <div className="w-[220px] rounded-[2.2rem] p-5 shadow-2xl relative z-10 bg-on-surface -rotate-3">
-            <p className="font-syne font-extrabold text-[0.85rem] text-primary mb-3 tracking-[-0.01em]">
-              Nyamirambo Kitchen
-            </p>
-            <div className="h-[3px] bg-primary rounded-full mb-3" />
-            <p className="text-[0.6rem] font-bold text-surface/80 uppercase tracking-wider mb-2">Mains</p>
+        {/* Right — dual mockup: floating phone + AI Waiter chat */}
+        <div className="hidden lg:flex bg-[#FFF8F4] items-center justify-center relative overflow-hidden">
+          {/* Menu phone */}
+          <div className="animate-lp-float w-[190px] rounded-[2rem] p-4 shadow-2xl relative z-20 bg-white -translate-x-8 hero-animate" style={{ "--ha-delay": "500ms" } as React.CSSProperties}>
+            <div className="flex items-center gap-2 mb-3">
+              <div className="w-6 h-6 bg-primary rounded-lg flex items-center justify-center shrink-0">
+                <span className="material-symbols-outlined text-white icon-fill text-[12px]">restaurant_menu</span>
+              </div>
+              <p className="font-headline font-extrabold text-[0.7rem] text-on-surface tracking-tight">Kigali Grill</p>
+            </div>
+            <div className="h-[2px] bg-primary/20 rounded-full mb-3" />
+            <p className="text-[0.52rem] font-bold text-secondary/50 uppercase tracking-wider mb-2">🍖 Mains</p>
             {[
-              ["Brochette ya Nk'osa", "3,500"],
-              ["Isombe na Poisson",   "2,800"],
-              ["Igisafuriya cy'Inkoko","4,200"],
-              ["Chips na Viande",     "3,000"],
-            ].map(([name, price]) => (
-              <div key={name} className="flex justify-between items-center py-1.5 border-b border-white/10 text-[0.55rem]">
-                <span className="text-surface/70">{name}</span>
-                <span className="text-primary font-semibold">{price} RWF</span>
+              { name: "Brochette ya Nk'osa", price: "3,500", badge: "bestseller" },
+              { name: "Isombe na Poisson",    price: "2,800", badge: "" },
+              { name: "Igisafuriya cy'Inkoko",price: "4,200", badge: "new" },
+              { name: "Chips na Viande",      price: "3,000", badge: "" },
+            ].map(({ name, price, badge }) => (
+              <div key={name} className="flex justify-between items-center py-1.5 border-b border-black/5 gap-1">
+                <div className="flex items-center gap-1 min-w-0">
+                  <span className="text-on-surface/80 font-medium text-[0.48rem] truncate">{name}</span>
+                  {badge && <span className="shrink-0 bg-primary/10 text-primary font-black px-1 py-px rounded text-[0.38rem] uppercase">{badge}</span>}
+                </div>
+                <span className="text-primary font-bold text-[0.48rem] shrink-0">{price}</span>
               </div>
             ))}
-            <p className="text-[0.5rem] text-primary/50 text-center mt-3">Powered by MENUZA AI</p>
+            <div className="mt-3 flex items-center justify-center gap-1.5 bg-primary/8 rounded-xl py-2">
+              <span className="material-symbols-outlined text-primary icon-fill text-[12px]">add_shopping_cart</span>
+              <span className="text-[0.45rem] font-black text-primary uppercase tracking-wider">Add to order</span>
+            </div>
           </div>
-          {/* Background word */}
-          <span className="absolute bottom-6 right-4 select-none pointer-events-none leading-none font-syne font-extrabold text-[6rem] text-primary opacity-[0.07]">
+
+          {/* AI Waiter chat chip */}
+          <div className="animate-lp-float-chat absolute right-6 top-1/2 -translate-y-[45%] z-30 w-[188px] hero-animate" style={{ "--ha-delay": "680ms" } as React.CSSProperties}>
+            <div className="bg-on-surface rounded-[1.5rem] overflow-hidden shadow-2xl">
+              <div className="bg-primary px-4 py-3 flex items-center gap-2.5">
+                <div className="w-8 h-8 bg-white/20 rounded-xl flex items-center justify-center shrink-0">
+                  <span className="material-symbols-outlined text-white icon-fill text-sm">robot_2</span>
+                </div>
+                <div>
+                  <p className="text-white font-bold text-[0.65rem]">AI Digital Waiter</p>
+                  <div className="flex items-center gap-1 mt-0.5">
+                    <div className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse" />
+                    <p className="text-white/60 text-[0.48rem] font-semibold">Online now</p>
+                  </div>
+                </div>
+              </div>
+              <div className="px-3 py-3 space-y-2.5 bg-surface-container-lowest">
+                <div className="msg-animate bg-surface-container rounded-xl rounded-tl-sm px-3 py-2 max-w-[88%]" style={{ "--msg-delay": "1000ms" } as React.CSSProperties}>
+                  <p className="text-[0.52rem] text-on-surface leading-relaxed">Good evening! Welcome to Kigali Grill 🍽️ What can I get you?</p>
+                </div>
+                <div className="msg-animate flex justify-end" style={{ "--msg-delay": "1700ms" } as React.CSSProperties}>
+                  <div className="bg-primary rounded-xl rounded-tr-sm px-3 py-2 max-w-[80%]">
+                    <p className="text-[0.52rem] text-white">What&apos;s popular tonight?</p>
+                  </div>
+                </div>
+                {/* Typing indicator briefly before response */}
+                <div className="msg-animate bg-surface-container rounded-xl rounded-tl-sm px-3 py-2 max-w-[88%]" style={{ "--msg-delay": "2400ms" } as React.CSSProperties}>
+                  <p className="text-[0.52rem] text-on-surface leading-relaxed">Our <strong>Brochette ya Nk&apos;osa</strong> is tonight&apos;s bestseller ⭐ Shall I add it for you?</p>
+                </div>
+              </div>
+              <div className="px-3 pb-3 pt-1 bg-surface-container-lowest flex gap-1.5">
+                <div className="flex-1 bg-surface-container rounded-lg px-2.5 py-2 text-[0.44rem] text-secondary/30">Ask anything…</div>
+                <button type="button" className="w-7 h-7 bg-primary rounded-lg flex items-center justify-center shrink-0">
+                  <span className="material-symbols-outlined text-white text-[11px]">send</span>
+                </button>
+              </div>
+            </div>
+            {/* Order confirmed float */}
+            <div className="msg-animate mt-2.5 bg-white rounded-xl shadow-lg border border-black/6 px-3 py-2 flex items-center gap-2" style={{ "--msg-delay": "3100ms" } as React.CSSProperties}>
+              <span className="material-symbols-outlined text-tertiary text-base icon-fill">check_circle</span>
+              <div>
+                <p className="text-[0.55rem] font-black text-on-surface">Order confirmed</p>
+                <p className="text-[0.45rem] text-secondary">Kitchen notified · 8:12 PM</p>
+              </div>
+            </div>
+          </div>
+
+          <span className="hero-animate absolute bottom-6 left-6 select-none pointer-events-none leading-none font-headline font-extrabold text-[5.5rem] text-primary opacity-[0.06]" style={{ "--ha-delay": "900ms" } as React.CSSProperties}>
             LIVE
           </span>
         </div>
@@ -116,9 +220,7 @@ export default function LandingPage() {
         <div className="max-w-5xl mx-auto grid grid-cols-2 md:grid-cols-4">
           {STEPS.map((step, i) => (
             <div key={i} className="px-8 py-8 border-r border-white/10 last:border-r-0 col-span-1">
-              <p className="text-primary leading-none mb-2 font-syne font-extrabold text-[2rem]">
-                {step.num}
-              </p>
+              <p className="text-primary leading-none mb-2 font-headline font-extrabold text-[2rem]">{step.num}</p>
               <p className="text-sm font-semibold text-surface/90 mb-0.5">{step.label}</p>
               <p className="text-xs text-surface/40">{step.sub}</p>
             </div>
@@ -126,111 +228,107 @@ export default function LandingPage() {
         </div>
       </div>
 
+      {/* ── Trust Band ── */}
+      <div
+        ref={trustRef as React.RefObject<HTMLDivElement>}
+        className="py-7 px-6 bg-surface-container-lowest border-b border-black/5"
+      >
+        <div className="max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+          <p className={`reveal text-sm font-semibold text-secondary/60 shrink-0${trustInView ? " visible" : ""}`}>
+            Live menus serving guests in
+          </p>
+          <div className="flex flex-wrap items-center justify-center gap-2">
+            {CITIES.map((city, i) => (
+              <span
+                key={city}
+                className="pop-animate text-xs font-bold text-secondary/70 bg-surface border border-black/6 px-3 py-1.5 rounded-full shadow-sm"
+                style={{ "--pa-delay": trustInView ? `${i * 80}ms` : "9999s" } as React.CSSProperties}
+              >
+                {city}
+              </span>
+            ))}
+          </div>
+          <LiveStats inline />
+        </div>
+      </div>
+
       {/* ── Value Proposition ── */}
-      <section className="py-24 bg-surface-container-lowest border-y border-black/5 px-6">
+      <section
+        ref={valueRef as React.RefObject<HTMLElement>}
+        className="py-24 bg-surface px-6"
+      >
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
-            <p className="text-xs font-bold tracking-[0.25em] uppercase text-secondary/50 mb-4">The Problem</p>
-            <h2
-              className="text-4xl md:text-5xl font-black tracking-tight mb-5"
-  
-            >
-              Most menus just list. Yours should sell.
+            <p className={`${rv(0, "up", valueInView)} text-xs font-bold tracking-[0.25em] uppercase text-secondary/40 mb-4`}>The Problem</p>
+            <h2 className={`${rv(80, "up", valueInView)} text-4xl md:text-5xl font-black tracking-tight mb-5`} style={{ "--rv-delay": "80ms" } as React.CSSProperties}>
+              Most menus just list.<br />Yours should <span className="text-shimmer">sell.</span>
             </h2>
-            <p className="text-secondary text-lg max-w-xl mx-auto">
-              Static menus tell guests nothing. MENUZA AI turns yours into an active, data-driven sales tool.
+            <p className={`reveal${valueInView ? " visible" : ""} text-secondary text-lg max-w-xl mx-auto leading-relaxed`} style={{ "--rv-delay": "160ms" } as React.CSSProperties}>
+              Every day you hand a customer a paper menu or a broken PDF link, you lose a sale.
+              MENUZA AI turns your menu into an always-on, AI-powered revenue machine.
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-            <div className="bg-surface p-8 rounded-3xl border border-black/5">
-              <div className="w-10 h-10 bg-error-container/50 text-error/60 rounded-xl flex items-center justify-center mb-6">
-                <span className="material-symbols-outlined text-xl">visibility_off</span>
-              </div>
-              <h3 className="text-lg font-bold mb-3" style={{ fontFamily: "var(--font-headline)" }}>Zero Visibility</h3>
-              <p className="text-secondary text-sm leading-relaxed">You don&apos;t know which dishes get viewed but never ordered. Every day is a blind guess.</p>
-            </div>
-
-            <div className="bg-on-surface p-8 rounded-3xl">
-              <div className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center mb-6">
-                <span className="material-symbols-outlined text-white text-xl">auto_awesome</span>
-              </div>
-              <h3 className="text-lg font-bold mb-3 text-white" style={{ fontFamily: "var(--font-headline)" }}>MENUZA AI turns your menu into a revenue engine</h3>
-              <p className="text-white/50 text-sm leading-relaxed">AI-powered design, real-time ordering, and smart analytics — all working together.</p>
-            </div>
-
-            <div className="bg-surface p-8 rounded-3xl border border-black/5">
-              <div className="w-10 h-10 bg-tertiary/10 text-tertiary rounded-xl flex items-center justify-center mb-6">
-                <span className="material-symbols-outlined text-xl">qr_code_2</span>
-              </div>
-              <h3 className="text-lg font-bold mb-3" style={{ fontFamily: "var(--font-headline)" }}>Scan &amp; Order</h3>
-              <p className="text-secondary text-sm leading-relaxed">No app downloads. Guests scan, browse, and order in under 30 seconds.</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ── Features ── */}
-      <section className="py-28 px-6" id="features">
-        <div className="max-w-7xl mx-auto">
-          <div className="max-w-2xl mb-16">
-            <p className="text-xs font-bold tracking-[0.25em] uppercase text-secondary/50 mb-4">Features</p>
-            <h2
-              className="text-4xl font-black tracking-tight mb-5"
-  
-            >
-              Everything you need to run a great restaurant
-            </h2>
-            <p className="text-secondary text-lg leading-relaxed">
-              One platform. No integrations. No subscriptions for tools you won&apos;t use.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-16">
-            {FEATURES.map((f, i) => (
-              <div key={i} className="flex items-start gap-5 py-7 border-b border-black/6">
-                <div className="shrink-0 w-11 h-11 rounded-2xl bg-primary/8 flex items-center justify-center mt-0.5">
-                  <span className="material-symbols-outlined text-primary text-xl">{f.icon}</span>
-                </div>
-                <div>
-                  <p className="text-[10px] font-black tracking-[0.2em] uppercase text-secondary/30 mb-1">
-                    {String(i + 1).padStart(2, "0")}
-                  </p>
-                  <h3 className="text-lg font-bold mb-1.5">{f.title}</h3>
-                  <p className="text-secondary text-sm leading-relaxed">{f.desc}</p>
-                </div>
+            {[
+              {
+                delay: "0ms", bg: "bg-surface-container-lowest border border-black/5",
+                icon: <div className="w-10 h-10 bg-error/10 text-error rounded-xl flex items-center justify-center mb-6"><span className="material-symbols-outlined text-xl">visibility_off</span></div>,
+                title: "Flying Blind", dark: false,
+                body: "You don't know which dishes get viewed but never ordered. Every restock, every menu change — pure guesswork. That's money left on the table every single day.",
+              },
+              {
+                delay: "120ms", bg: "bg-on-surface relative overflow-hidden",
+                icon: <div className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center mb-6 relative"><span className="material-symbols-outlined text-white text-xl icon-fill">auto_awesome</span></div>,
+                title: "MENUZA AI flips the script", dark: true,
+                body: "AI menu design. Real-time orders. An AI Waiter that upsells for you. Analytics that show what's actually working. One platform, no integrations needed.",
+              },
+              {
+                delay: "240ms", bg: "bg-surface-container-lowest border border-black/5",
+                icon: <div className="w-10 h-10 bg-tertiary/10 text-tertiary rounded-xl flex items-center justify-center mb-6"><span className="material-symbols-outlined text-xl">qr_code_2</span></div>,
+                title: "Scan. Chat. Order. Done.", dark: false,
+                body: "No app downloads. Guests scan your QR code, chat with your AI Waiter, and place their order — in under 30 seconds. Zero friction for them. Zero staff cost for you.",
+              },
+            ].map((card) => (
+              <div
+                key={card.title}
+                className={`reveal${valueInView ? " visible" : ""} ${card.bg} p-8 rounded-3xl`}
+                style={{ "--rv-delay": card.delay } as React.CSSProperties}
+              >
+                {card.bg.includes("on-surface") && <div className="absolute inset-0 bg-linear-to-br from-primary/5 to-transparent pointer-events-none" />}
+                {card.icon}
+                <h3 className={`font-headline text-lg font-bold mb-3 relative${card.dark ? " text-white" : ""}`}>{card.title}</h3>
+                <p className={`text-sm leading-relaxed relative${card.dark ? " text-white/50" : " text-secondary"}`}>{card.body}</p>
               </div>
             ))}
-          </div>
-
-          <div className="mt-8 text-center">
-            <Link href={ctaHref} className="inline-block px-7 py-3.5 bg-primary text-white font-bold rounded-[2rem] text-sm hover:bg-[#a04100] transition-colors">
-              Start building your menu
-            </Link>
           </div>
         </div>
       </section>
 
       {/* ── AI Waiter Showcase ── */}
-      <section className="py-28 px-6 bg-surface-container-lowest border-y border-black/5">
+      <section
+        ref={waiterRef as React.RefObject<HTMLElement>}
+        className="py-28 px-6 bg-surface-container-lowest border-y border-black/5"
+      >
         <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-          <div>
+          <div className={`reveal-left${waiterInView ? " visible" : ""}`}>
             <p className="text-xs font-bold tracking-[0.25em] uppercase text-primary/70 mb-5">AI Digital Waiter</p>
-            <h2
-              className="text-4xl md:text-5xl font-black tracking-tight leading-[1.06] mb-6"
-  
-            >
+            <h2 className="text-4xl md:text-5xl font-black tracking-tight leading-[1.06] mb-5">
               Your best waiter.<br />Works every shift.
             </h2>
-            <p className="text-secondary text-lg leading-relaxed mb-8 max-w-md">
-              The moment a customer scans your QR code, your AI Waiter greets them, answers questions, upsells high-margin dishes, and places their order — all in chat, no app required.
+            <p className="text-secondary text-lg leading-relaxed mb-4 max-w-md">
+              The moment a customer scans your QR code, your AI Waiter greets them, answers every question,
+              upsells your best dishes, and places their order. All in chat. Zero staff time.
+            </p>
+            <p className="text-on-surface font-bold text-sm mb-8 max-w-md">
+              Never calls in sick. Never forgets to upsell. Never has a bad shift.
             </p>
             <ul className="space-y-4 mb-10">
               {[
-                { icon: "schedule",     text: "Available 24/7 — never calls in sick" },
-                { icon: "trending_up",  text: "Proactively suggests add-ons to increase order value" },
-                { icon: "translate",    text: "Adapts tone — friendly, formal, or vibrant" },
-                { icon: "rate_review",  text: "Follows up after the meal to prompt a review" },
+                { icon: "schedule",    text: "Available 24/7 — never calls in sick, never asks for overtime" },
+                { icon: "trending_up", text: "Proactively suggests high-margin add-ons on every single order" },
+                { icon: "translate",   text: "Adapts tone to your brand — friendly, formal, or vibrant" },
+                { icon: "rate_review", text: "Follows up after the meal to prompt happy guests to leave a review" },
               ].map((item) => (
                 <li key={item.icon} className="flex items-center gap-3 text-sm text-secondary">
                   <span className="material-symbols-outlined text-[18px] text-primary shrink-0">{item.icon}</span>
@@ -239,15 +337,15 @@ export default function LandingPage() {
               ))}
             </ul>
             <div className="flex items-center gap-3">
-              <Link href="/demo/owner" className="px-6 py-3 bg-primary text-white font-bold rounded-[2rem] text-sm hover:bg-[#a04100] transition-colors shadow-md shadow-primary/20">
-                See live demo
+              <Link href="/demo" className="px-6 py-3 bg-primary text-white font-bold rounded-[2rem] text-sm hover:bg-[#a04100] transition-colors shadow-md shadow-primary/20">
+                Try AI Waiter live
               </Link>
-              <span className="text-xs text-secondary/50">Pro &amp; Business plans</span>
+              <span className="text-xs text-secondary/50">Included in Pro &amp; Business plans</span>
             </div>
           </div>
 
           {/* Chat mockup */}
-          <div className="relative">
+          <div className={`reveal-right${waiterInView ? " visible" : ""} relative`}>
             <div className="bg-on-surface rounded-[2rem] overflow-hidden shadow-2xl max-w-sm mx-auto">
               <div className="bg-primary px-6 py-5 flex items-center gap-3">
                 <div className="w-10 h-10 bg-white/20 rounded-2xl flex items-center justify-center shrink-0">
@@ -255,46 +353,39 @@ export default function LandingPage() {
                 </div>
                 <div>
                   <p className="text-white font-bold text-sm">AI Digital Waiter</p>
-                  <p className="text-white/60 text-[10px] uppercase tracking-widest font-black">Powered by MENUZA AI</p>
+                  <p className="text-white/60 text-[10px] uppercase tracking-widest font-black">Kigali Grill</p>
                 </div>
-                <div className="ml-auto w-2 h-2 bg-tertiary/70 rounded-full animate-pulse" />
+                <div className="ml-auto flex items-center gap-1.5">
+                  <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
+                  <span className="text-white/40 text-[10px]">Online</span>
+                </div>
               </div>
 
               <div className="px-4 py-5 space-y-4 bg-surface-container-lowest">
-                <div className="flex items-end gap-2">
-                  <div className="w-7 h-7 bg-primary/10 rounded-xl flex items-center justify-center shrink-0">
-                    <span className="material-symbols-outlined text-primary text-sm icon-fill">robot_2</span>
-                  </div>
-                  <div className="bg-surface-container rounded-2xl rounded-bl-sm px-4 py-3 max-w-[80%]">
-                    <p className="text-xs text-on-surface leading-relaxed">Good evening! Welcome to Kigali Grill 🍽️ I&apos;m your digital waiter. What can I get for you tonight?</p>
-                  </div>
-                </div>
-                <div className="flex justify-end">
-                  <div className="bg-primary rounded-2xl rounded-br-sm px-4 py-3 max-w-[75%]">
-                    <p className="text-xs text-white leading-relaxed">What&apos;s your most popular dish?</p>
-                  </div>
-                </div>
-                <div className="flex items-end gap-2">
-                  <div className="w-7 h-7 bg-primary/10 rounded-xl flex items-center justify-center shrink-0">
-                    <span className="material-symbols-outlined text-primary text-sm icon-fill">robot_2</span>
-                  </div>
-                  <div className="bg-surface-container rounded-2xl rounded-bl-sm px-4 py-3 max-w-[80%]">
-                    <p className="text-xs text-on-surface leading-relaxed">Our guests love the <strong>Grilled Tilapia</strong> 🐟 — crispy skin, served with plantain and kachumbari. It&apos;s our bestseller this week! Shall I add it for you?</p>
-                  </div>
-                </div>
-                <div className="flex justify-end">
-                  <div className="bg-primary rounded-2xl rounded-br-sm px-4 py-3 max-w-[75%]">
-                    <p className="text-xs text-white leading-relaxed">Yes! And a Fanta please.</p>
-                  </div>
-                </div>
-                <div className="flex items-end gap-2">
-                  <div className="w-7 h-7 bg-primary/10 rounded-xl flex items-center justify-center shrink-0">
-                    <span className="material-symbols-outlined text-primary text-sm icon-fill">robot_2</span>
-                  </div>
-                  <div className="bg-surface-container rounded-2xl rounded-bl-sm px-4 py-3 max-w-[80%]">
-                    <p className="text-xs text-on-surface leading-relaxed">Perfect! 🛎️ <strong>Grilled Tilapia + Fanta Orange</strong> — 7,500 RWF total. Confirming your order now...</p>
-                  </div>
-                </div>
+                {[
+                  { role: "ai",   text: <>Good evening! Welcome to Kigali Grill 🍽️ I&apos;m your digital waiter. What can I get for you tonight?</> },
+                  { role: "user", text: <>What&apos;s your most popular dish?</> },
+                  { role: "ai",   text: <>Our guests love the <strong>Grilled Tilapia</strong> 🐟 — crispy skin, served with plantain and kachumbari. Tonight&apos;s bestseller! Shall I add it?</> },
+                  { role: "user", text: <>Yes! And a Fanta please.</> },
+                  { role: "ai",   text: <>Perfect! 🛎️ <strong>Grilled Tilapia + Fanta Orange</strong> — 7,500 RWF. Sending your order to the kitchen now…</> },
+                ].map((msg, i) => (
+                  msg.role === "ai" ? (
+                    <div key={i} className="flex items-end gap-2">
+                      <div className="w-7 h-7 bg-primary/10 rounded-xl flex items-center justify-center shrink-0">
+                        <span className="material-symbols-outlined text-primary text-sm icon-fill">robot_2</span>
+                      </div>
+                      <div className="bg-surface-container rounded-2xl rounded-bl-sm px-4 py-3 max-w-[80%]">
+                        <p className="text-xs text-on-surface leading-relaxed">{msg.text}</p>
+                      </div>
+                    </div>
+                  ) : (
+                    <div key={i} className="flex justify-end">
+                      <div className="bg-primary rounded-2xl rounded-br-sm px-4 py-3 max-w-[75%]">
+                        <p className="text-xs text-white leading-relaxed">{msg.text}</p>
+                      </div>
+                    </div>
+                  )
+                ))}
               </div>
 
               <div className="px-4 py-4 bg-surface-container-lowest border-t border-surface-container flex items-center gap-2">
@@ -308,32 +399,108 @@ export default function LandingPage() {
             </div>
 
             <div className="absolute -bottom-4 -right-4 bg-surface rounded-2xl shadow-xl border border-black/6 px-4 py-3 items-center gap-2.5 hidden lg:flex">
-              <span className="material-symbols-outlined text-tertiary text-xl">receipt_long</span>
+              <span className="material-symbols-outlined text-tertiary text-xl icon-fill">check_circle</span>
               <div>
                 <p className="text-xs font-black text-on-surface">Order confirmed</p>
-                <p className="text-[10px] text-secondary">Sent to kitchen · 12:47 PM</p>
+                <p className="text-[10px] text-secondary">Sent to kitchen · 8:47 PM</p>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* ── Demo Video ── */}
-      <section className="py-24 px-6" id="demo">
-        <div className="max-w-4xl mx-auto">
-          <div className="text-center mb-10">
-            <p className="text-xs font-bold tracking-[0.25em] uppercase text-secondary/50 mb-4">See It in Action</p>
-            <h2
-              className="text-4xl font-black tracking-tight mb-4"
-  
-            >
-              From photo to live menu in 90 seconds
+      {/* ── Features ── */}
+      <section
+        ref={featuresRef as React.RefObject<HTMLElement>}
+        className="py-28 px-6"
+        id="features"
+      >
+        <div className="max-w-7xl mx-auto">
+          <div className="max-w-2xl mb-16">
+            <p className={`reveal${featuresInView ? " visible" : ""} text-xs font-bold tracking-[0.25em] uppercase text-secondary/40 mb-4`}>Features</p>
+            <h2 className={`reveal${featuresInView ? " visible" : ""} text-4xl font-black tracking-tight mb-5`} style={{ "--rv-delay": "100ms" } as React.CSSProperties}>
+              Everything you need to run a great restaurant
             </h2>
-            <p className="text-secondary max-w-md mx-auto">
-              Watch a restaurant owner photograph their menu, edit with AI, and go live — start to finish.
+            <p className={`reveal${featuresInView ? " visible" : ""} text-secondary text-lg leading-relaxed`} style={{ "--rv-delay": "180ms" } as React.CSSProperties}>
+              One platform. No integrations. No subscriptions for tools you won&apos;t use.
             </p>
           </div>
-          <div className="rounded-3xl overflow-hidden shadow-2xl border border-black/8 aspect-video bg-on-surface">
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-16">
+            {FEATURES.map((f, i) => (
+              <div
+                key={i}
+                className={`reveal${featuresInView ? " visible" : ""} flex items-start gap-5 py-7 border-b border-black/6`}
+                style={{ "--rv-delay": `${Math.floor(i / 2) * 100 + 200}ms` } as React.CSSProperties}
+              >
+                <div className={`shrink-0 w-11 h-11 rounded-2xl flex items-center justify-center mt-0.5 ${f.highlight ? "bg-primary" : "bg-primary/8"}`}>
+                  <span className={`material-symbols-outlined text-xl icon-fill ${f.highlight ? "text-white" : "text-primary"}`}>{f.icon}</span>
+                </div>
+                <div>
+                  <p className="text-[10px] font-black tracking-[0.2em] uppercase text-secondary/30 mb-1">
+                    {String(i + 1).padStart(2, "0")}
+                  </p>
+                  <h3 className="text-lg font-bold mb-1.5">{f.title}</h3>
+                  <p className="text-secondary text-sm leading-relaxed">{f.desc}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className={`reveal${featuresInView ? " visible" : ""} mt-8 text-center`} style={{ "--rv-delay": "500ms" } as React.CSSProperties}>
+            <Link href={ctaHref} className="inline-block px-7 py-3.5 bg-primary text-white font-bold rounded-[2rem] text-sm hover:bg-[#a04100] transition-colors">
+              Start building your menu →
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* ── Outcomes ── */}
+      <section
+        ref={outcomesRef as React.RefObject<HTMLElement>}
+        className="py-20 px-6 bg-surface-container-lowest border-y border-black/5"
+      >
+        <div className="max-w-7xl mx-auto">
+          <p className={`reveal${outcomesInView ? " visible" : ""} text-center text-xs font-bold tracking-[0.25em] uppercase text-secondary/40 mb-12`}>What you get</p>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-5">
+            {[
+              { stat: count7 > 0 || outcomesInView ? `${count7}s` : "0s", label: "Menu digitized",    desc: "From paper photo to live QR menu in under 7 seconds with AI extraction.",                      icon: "bolt",       delay: "0ms"   },
+              { stat: "24/7",                                               label: "AI Waiter on duty", desc: "Your digital waiter takes orders around the clock — no sick days, no overtime.",             icon: "support_agent", delay: "120ms" },
+              { stat: "0",                                                  label: "Apps to download",  desc: "Guests scan a QR code, browse, and order. No friction. No barriers. No app store.",          icon: "qr_code_2",  delay: "240ms" },
+              { stat: count14 > 0 || outcomesInView ? `${count14}` : "0",  label: "Day free trial",    desc: "Full Pro features, no credit card. Don't love it? Walk away — no questions asked.",          icon: "verified",   delay: "360ms" },
+            ].map((o, i) => (
+              <div
+                key={i}
+                className={`stat-animate${outcomesInView ? "" : ""} text-center p-6 bg-surface rounded-3xl border border-black/5 shadow-sm`}
+                style={{ "--sa-delay": outcomesInView ? o.delay : "9999s" } as React.CSSProperties}
+              >
+                <span className="material-symbols-outlined text-primary text-3xl icon-fill mb-3 block">{o.icon}</span>
+                <p className="font-headline font-extrabold text-4xl text-on-surface mb-1 tabular-nums">{o.stat}</p>
+                <p className="text-sm font-bold text-on-surface mb-2">{o.label}</p>
+                <p className="text-xs text-secondary leading-relaxed">{o.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── Demo Video ── */}
+      <section
+        ref={demoRef as React.RefObject<HTMLElement>}
+        className="py-24 px-6"
+        id="demo"
+      >
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center mb-10">
+            <p className={`reveal${demoInView ? " visible" : ""} text-xs font-bold tracking-[0.25em] uppercase text-secondary/40 mb-4`}>See It in Action</p>
+            <h2 className={`reveal${demoInView ? " visible" : ""} text-4xl font-black tracking-tight mb-4`} style={{ "--rv-delay": "100ms" } as React.CSSProperties}>
+              From chaos to live menu in 90 seconds
+            </h2>
+            <p className={`reveal${demoInView ? " visible" : ""} text-secondary max-w-md mx-auto`} style={{ "--rv-delay": "180ms" } as React.CSSProperties}>
+              Watch a restaurant owner photograph their old paper menu, let AI extract every item, and go live — start to finish.
+            </p>
+          </div>
+          <div className={`reveal${demoInView ? " visible" : ""} rounded-3xl overflow-hidden shadow-2xl border border-black/8 aspect-video bg-on-surface`} style={{ "--rv-delay": "260ms" } as React.CSSProperties}>
             <video
               poster="https://img.youtube.com/vi/G4vp5NQnk-I/maxresdefault.jpg"
               controls
@@ -344,59 +511,53 @@ export default function LandingPage() {
               <source src="/menuza-demo.mp4" type="video/mp4" />
             </video>
           </div>
-          <p className="text-center mt-4 text-xs text-secondary/50">90 seconds · QR scan → AI extraction → staff dashboard</p>
+          <p className="text-center mt-4 text-xs text-secondary/50">90 seconds · Photo → AI extraction → live QR menu → staff dashboard</p>
         </div>
       </section>
 
       {/* ── Pricing ── */}
-      <section className="py-24 px-6 bg-surface-container-lowest border-y border-black/5" id="pricing">
+      <section
+        ref={pricingRef as React.RefObject<HTMLElement>}
+        className="py-24 px-6 bg-surface-container-lowest border-y border-black/5"
+        id="pricing"
+      >
         <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-16">
-            <p className="text-xs font-bold tracking-[0.25em] uppercase text-secondary/50 mb-4">Pricing</p>
-            <h2
-              className="text-4xl font-black tracking-tight mb-4"
-  
-            >
-              Transparent pricing
+          <div className="text-center mb-12">
+            <p className={`reveal${pricingInView ? " visible" : ""} text-xs font-bold tracking-[0.25em] uppercase text-secondary/40 mb-4`}>Pricing</p>
+            <h2 className={`reveal${pricingInView ? " visible" : ""} text-4xl font-black tracking-tight mb-4`} style={{ "--rv-delay": "80ms" } as React.CSSProperties}>
+              Start free. Upgrade when you&apos;re ready.
             </h2>
-            <p className="text-secondary">14-day free trial — no credit card required. Upgrade when you&apos;re ready.</p>
+            <p className={`reveal${pricingInView ? " visible" : ""} text-secondary`} style={{ "--rv-delay": "140ms" } as React.CSSProperties}>
+              14-day free trial — no credit card, no commitment. Cancel anytime.
+            </p>
           </div>
 
-          <div className="flex justify-center mb-10">
+          <div className={`reveal${pricingInView ? " visible" : ""} flex justify-center mb-10`} style={{ "--rv-delay": "180ms" } as React.CSSProperties}>
             <div className="inline-flex items-center bg-surface border border-black/8 rounded-xl p-1 shadow-sm">
-              <button
-                onClick={() => setIsAnnual(false)}
-                className={`px-6 py-2 rounded-lg text-sm font-semibold transition-colors cursor-pointer ${!isAnnual ? "bg-on-surface text-surface shadow-sm" : "text-secondary hover:text-on-surface"}`}
-              >
+              <button type="button" onClick={() => setIsAnnual(false)} className={`px-6 py-2 rounded-lg text-sm font-semibold transition-colors cursor-pointer ${!isAnnual ? "bg-on-surface text-surface shadow-sm" : "text-secondary hover:text-on-surface"}`}>
                 Monthly
               </button>
-              <button
-                onClick={() => setIsAnnual(true)}
-                className={`px-6 py-2 rounded-lg text-sm font-semibold transition-colors flex items-center gap-2.5 cursor-pointer ${isAnnual ? "bg-on-surface text-surface shadow-sm" : "text-secondary hover:text-on-surface"}`}
-              >
+              <button type="button" onClick={() => setIsAnnual(true)} className={`px-6 py-2 rounded-lg text-sm font-semibold transition-colors flex items-center gap-2.5 cursor-pointer ${isAnnual ? "bg-on-surface text-surface shadow-sm" : "text-secondary hover:text-on-surface"}`}>
                 Annual
-                <span className={`text-[9px] font-black tracking-widest uppercase px-2 py-0.5 rounded-full transition-colors ${isAnnual ? "bg-white/15 text-white" : "bg-primary/10 text-primary"}`}>
-                  1 month free
-                </span>
+                <span className={`text-[9px] font-black tracking-widest uppercase px-2 py-0.5 rounded-full transition-colors ${isAnnual ? "bg-white/15 text-white" : "bg-primary/10 text-primary"}`}>Save 1 month</span>
               </button>
             </div>
           </div>
 
           {/* Free Lite strip */}
-          <div className="flex flex-wrap items-center justify-between gap-4 bg-surface border border-black/6 rounded-2xl px-6 py-4 mb-6 shadow-sm">
+          <div className={`reveal${pricingInView ? " visible" : ""} flex flex-wrap items-center justify-between gap-4 bg-surface border border-black/6 rounded-2xl px-6 py-4 mb-6 shadow-sm`} style={{ "--rv-delay": "220ms" } as React.CSSProperties}>
             <div className="flex flex-wrap items-center gap-x-5 gap-y-1">
               <span className="text-xs font-black uppercase tracking-[0.2em] text-secondary/50">Free Lite</span>
-              <span className="text-sm font-bold text-on-surface">0 RWF</span>
+              <span className="text-sm font-bold text-on-surface">0 RWF forever</span>
               <span className="text-secondary/30 hidden sm:inline">·</span>
               {pricingPlans[0].features.map((f, j) => (
                 <span key={j} className="text-xs text-secondary/60 hidden sm:inline">
-                  {f}
-                  {j < pricingPlans[0].features.length - 1 && <span className="text-secondary/25 ml-2">·</span>}
+                  {f}{j < pricingPlans[0].features.length - 1 && <span className="text-secondary/25 ml-2">·</span>}
                 </span>
               ))}
             </div>
             <Link href={ctaHref} className="shrink-0 text-xs font-bold text-secondary hover:text-primary transition-colors flex items-center gap-1">
-              Start 14-day Trial
+              Start free trial
               <span className="material-symbols-outlined text-[14px]">arrow_forward</span>
             </Link>
           </div>
@@ -407,20 +568,27 @@ export default function LandingPage() {
               const displayPeriod = isAnnual ? "/ year" : "/ month";
               const pricingHref = `/pricing${isAnnual ? "?billing=annual" : ""}`;
               return (
-                <div key={i} className={`rounded-3xl p-8 flex flex-col relative ${plan.popular ? "bg-on-surface shadow-xl shadow-black/15" : "bg-surface border border-black/6"}`}>
+                <div
+                  key={i}
+                  className={`plan-card reveal${pricingInView ? " visible" : ""} rounded-3xl p-8 flex flex-col relative ${plan.popular ? "bg-on-surface shadow-xl shadow-black/15" : "bg-surface border border-black/6"}`}
+                  style={{ "--rv-delay": `${280 + i * 120}ms` } as React.CSSProperties}
+                >
                   {plan.popular && (
-                    <div className="absolute -top-px left-0 right-0 h-px bg-linear-to-r from-transparent via-primary to-transparent rounded-t-3xl" />
+                    <>
+                      <div className="absolute -top-px left-0 right-0 h-px bg-linear-to-r from-transparent via-primary to-transparent rounded-t-3xl" />
+                      <div className="absolute -top-3.5 left-1/2 -translate-x-1/2">
+                        <span className="bg-primary text-white text-[9px] font-black tracking-widest uppercase px-3 py-1 rounded-full shadow-md whitespace-nowrap">Most Popular</span>
+                      </div>
+                    </>
                   )}
-                  <p className={`text-xs font-bold tracking-[0.2em] uppercase mb-3 ${plan.popular ? "text-white/40" : "text-secondary/60"}`}>
-                    {plan.name}
-                  </p>
-                  <div className="mb-8">
+                  <p className={`text-xs font-bold tracking-[0.2em] uppercase mb-3 ${plan.popular ? "text-white/40" : "text-secondary/60"}`}>{plan.name}</p>
+                  <div className="mb-6">
                     <span className={`text-4xl font-black ${plan.popular ? "text-white" : ""}`}>{displayPrice}</span>
                     <span className={`text-sm ml-1.5 ${plan.popular ? "text-white/40" : "text-secondary"}`}>{displayPeriod}</span>
-                    {isAnnual && (
-                      <p className={`text-xs mt-1 font-semibold ${plan.popular ? "text-primary" : "text-primary/80"}`}>
-                        Save {fmt(plan.amountRwf)} RWF vs monthly
-                      </p>
+                    {isAnnual ? (
+                      <p className={`text-xs mt-1 font-semibold ${plan.popular ? "text-primary" : "text-primary/80"}`}>Save {fmt(plan.amountRwf)} RWF vs monthly</p>
+                    ) : plan.popular && (
+                      <p className="text-xs mt-1 text-white/30">Pay annually and save {fmt(plan.amountRwf)} RWF</p>
                     )}
                   </div>
                   <ul className="space-y-3 grow mb-8">
@@ -431,12 +599,15 @@ export default function LandingPage() {
                       </li>
                     ))}
                   </ul>
-                  <Link
-                    href={pricingHref}
-                    className={`block w-full py-3.5 text-center text-sm font-bold rounded-[2rem] transition-colors ${plan.popular ? "bg-primary text-white hover:bg-[#a04100]" : "border border-black/10 text-on-surface hover:bg-black/3"}`}
-                  >
+                  <Link href={pricingHref} className={`block w-full py-3.5 text-center text-sm font-bold rounded-[2rem] transition-colors ${plan.popular ? "bg-primary text-white hover:bg-[#a04100]" : "border border-black/10 text-on-surface hover:bg-black/3"}`}>
                     {plan.cta}
                   </Link>
+                  {plan.popular && (
+                    <p className="text-center mt-3 text-[10px] text-white/30 flex items-center justify-center gap-1">
+                      <span className="material-symbols-outlined text-[12px]">verified</span>
+                      14-day money-back guarantee
+                    </p>
+                  )}
                 </div>
               );
             })}
@@ -452,19 +623,22 @@ export default function LandingPage() {
 
       {/* ── Final CTA ── */}
       <section className="py-28 px-6">
-        <div className="max-w-3xl mx-auto bg-on-surface rounded-3xl px-12 py-20 text-center">
-          <p className="text-xs font-bold tracking-[0.25em] uppercase text-white/30 mb-6">Get started</p>
-          <h2
-            className="text-4xl md:text-5xl font-black text-white tracking-tight leading-tight mb-5"
-
-          >
-            Elevate your restaurant&apos;s digital presence
+        <div
+          ref={ctaRef as React.RefObject<HTMLDivElement>}
+          className={`reveal${ctaInView ? " visible" : ""} max-w-3xl mx-auto bg-on-surface rounded-3xl px-12 py-20 text-center relative overflow-hidden`}
+        >
+          <div className="absolute inset-0 bg-linear-to-br from-primary/8 via-transparent to-transparent pointer-events-none" />
+          <p className="text-xs font-bold tracking-[0.25em] uppercase text-white/30 mb-6 relative">Get started today</p>
+          <h2 className="text-4xl md:text-5xl font-black text-white tracking-tight leading-tight mb-5 relative">
+            Your competitors went digital.<br />
+            <span className="text-primary">Will you?</span>
           </h2>
-          <p className="text-white/40 text-base mb-6 leading-relaxed max-w-lg mx-auto">
-            Join restaurants across Africa using MENUZA AI to serve more guests, more efficiently.
+          <p className="text-white/40 text-base mb-6 leading-relaxed max-w-lg mx-auto relative">
+            Every day without a digital menu is a day you&apos;re invisible online, taking orders by hand,
+            and guessing what sells. Start free today — no credit card, no catch.
           </p>
           <LiveStats />
-          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+          <div className="flex flex-col sm:flex-row gap-3 justify-center relative">
             <Link href={ctaHref} className="px-8 py-4 bg-primary text-white font-bold rounded-[2rem] text-sm hover:bg-[#a04100] transition-colors shadow-lg shadow-primary/20">
               Start Free Trial — No Card Required
             </Link>
@@ -472,6 +646,7 @@ export default function LandingPage() {
               Talk to Sales
             </a>
           </div>
+          <p className="text-white/20 text-xs mt-5 relative">14-day free trial · Cancel anytime · Built for Africa</p>
         </div>
       </section>
 
@@ -491,7 +666,6 @@ export default function LandingPage() {
               AI-powered digital menus for restaurants across Africa. Turn your menu into your best salesperson.
             </p>
           </div>
-
           <div>
             <p className="font-bold text-xs uppercase tracking-widest text-on-surface/40 mb-5">Product</p>
             <ul className="space-y-3 text-sm text-secondary">
@@ -501,7 +675,6 @@ export default function LandingPage() {
               <li><Link href="/dashboard" className="hover:text-primary transition-colors">Dashboard</Link></li>
             </ul>
           </div>
-
           <div>
             <p className="font-bold text-xs uppercase tracking-widest text-on-surface/40 mb-5">Company</p>
             <ul className="space-y-3 text-sm text-secondary">
@@ -512,7 +685,6 @@ export default function LandingPage() {
             </ul>
           </div>
         </div>
-
         <div className="border-t border-black/5">
           <div className="max-w-7xl mx-auto px-8 py-5 flex flex-col md:flex-row justify-between items-center gap-3">
             <p className="text-xs text-secondary/50">© 2026 Menuza Systems Inc. All rights reserved.</p>
@@ -526,7 +698,7 @@ export default function LandingPage() {
   );
 }
 
-function LiveStats() {
+function LiveStats({ inline }: { inline?: boolean }) {
   const [stats, setStats] = useState<{ restaurants: number; orders: number } | null>(null);
 
   useEffect(() => {
@@ -535,6 +707,21 @@ function LiveStats() {
       .then(setStats)
       .catch(() => {});
   }, []);
+
+  if (inline) {
+    if (!stats || stats.restaurants < 5) return null;
+    return (
+      <div className="flex items-center gap-3 text-xs text-secondary/60 shrink-0">
+        <span><strong className="text-on-surface/70">{fmt(stats.restaurants)}+</strong> restaurants live</span>
+        {stats.orders >= 500 && (
+          <>
+            <span className="w-px h-3 bg-black/10" />
+            <span><strong className="text-on-surface/70">{fmt(stats.orders)}+</strong> orders</span>
+          </>
+        )}
+      </div>
+    );
+  }
 
   if (!stats || stats.restaurants < 10 || stats.orders < 1000) return <div className="mb-8 h-8" />;
 

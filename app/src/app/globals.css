@@ -191,3 +191,140 @@ h1, h2, h3, h4, h5, h6 {
 .animate-service-pulse {
   animation: service-pulse 0.6s ease-in-out 3;
 }
+
+/* ── Landing page animations ── */
+
+/* Hero entrance — fire immediately on page load */
+@keyframes hero-rise {
+  from { opacity: 0; transform: translateY(26px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.hero-animate {
+  opacity: 0;
+  animation: hero-rise 0.75s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation-delay: var(--ha-delay, 0ms);
+}
+
+/* Subtle floating for hero mockups */
+@keyframes lp-float {
+  0%, 100% { transform: translateY(0) rotate(-3deg); }
+  50%       { transform: translateY(-7px) rotate(-3deg); }
+}
+@keyframes lp-float-chat {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-6px); }
+}
+.animate-lp-float      { animation: lp-float      3.6s ease-in-out infinite; }
+.animate-lp-float-chat { animation: lp-float-chat 4.2s ease-in-out 0.6s infinite; }
+
+/* Scroll reveal — driven by JS adding .visible */
+.reveal {
+  opacity: 0;
+  transform: translateY(22px);
+  transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  transition-delay: var(--rv-delay, 0ms);
+}
+.reveal.visible        { opacity: 1; transform: translateY(0); }
+
+.reveal-left {
+  opacity: 0;
+  transform: translateX(-28px);
+  transition: opacity 0.65s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.65s cubic-bezier(0.16, 1, 0.3, 1);
+  transition-delay: var(--rv-delay, 0ms);
+}
+.reveal-left.visible   { opacity: 1; transform: translateX(0); }
+
+.reveal-right {
+  opacity: 0;
+  transform: translateX(28px);
+  transition: opacity 0.65s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.65s cubic-bezier(0.16, 1, 0.3, 1);
+  transition-delay: var(--rv-delay, 0ms);
+}
+.reveal-right.visible  { opacity: 1; transform: translateX(0); }
+
+/* Pop-in for chips/pills */
+@keyframes pop-in {
+  0%   { opacity: 0; transform: scale(0.8) translateY(6px); }
+  65%  { transform: scale(1.05) translateY(-1px); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+.pop-animate {
+  opacity: 0;
+  animation: pop-in 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  animation-delay: var(--pa-delay, 0ms);
+}
+
+/* Stat counter: pop in when in view */
+@keyframes stat-in {
+  from { opacity: 0; transform: translateY(10px) scale(0.9); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+.stat-animate {
+  opacity: 0;
+  animation: stat-in 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  animation-delay: var(--sa-delay, 0ms);
+}
+
+/* Hero chat messages: stagger in on load */
+@keyframes msg-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.msg-animate {
+  opacity: 0;
+  animation: msg-in 0.4s ease forwards;
+  animation-delay: var(--msg-delay, 0ms);
+}
+
+/* Typing indicator dots */
+@keyframes typing-dot {
+  0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+  30%            { transform: translateY(-4px); opacity: 1; }
+}
+.typing-dot {
+  display: inline-block;
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: currentColor;
+  animation: typing-dot 1.4s ease-in-out infinite;
+}
+.typing-dot:nth-child(2) { animation-delay: 0.2s; }
+.typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+/* Pricing card hover lift */
+.plan-card {
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 0.25s ease;
+}
+.plan-card:hover { transform: translateY(-5px); }
+
+/* Animated background glow in hero */
+@keyframes glow-drift {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33%       { transform: translate(6%, 4%) scale(1.05); }
+  66%       { transform: translate(-4%, 6%) scale(0.97); }
+}
+.hero-glow {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(72px);
+  animation: glow-drift 8s ease-in-out infinite;
+  pointer-events: none;
+}
+
+/* Shimmer on "sell." text */
+@keyframes text-shimmer {
+  0%   { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+.text-shimmer {
+  background: linear-gradient(90deg, #a04100 0%, #FF6B00 45%, #ffb693 55%, #a04100 100%);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: text-shimmer 4s linear infinite;
+}
