@@ -71,10 +71,13 @@ export default function LandingPage() {
       <PublicNav />
 
       {/* ── Hero ── */}
-      <section className="min-h-[92vh] grid grid-cols-1 lg:grid-cols-[1fr_46%] overflow-hidden">
-        {/* Animated background glow */}
-        <div className="hero-glow w-[500px] h-[500px] bg-primary/6 -top-24 -left-24 hidden lg:block" style={{ position: "absolute" }} />
-        <div className="hero-glow w-[300px] h-[300px] bg-primary-container/5 top-32 left-1/4 hidden lg:block" style={{ animationDelay: "3s", position: "absolute" }} />
+      <section className="min-h-[92vh] relative overflow-hidden">
+        {/* Decorative glows — outside the grid so they don't become grid items */}
+        <div className="hero-glow hidden lg:block w-[500px] h-[500px] bg-primary/6 -top-24 -left-24" />
+        <div className="hero-glow hidden lg:block w-[300px] h-[300px] bg-primary-container/5 top-32 left-1/4" style={{ animationDelay: "3s" } as React.CSSProperties} />
+
+        {/* Grid wrapper */}
+        <div className="min-h-[92vh] grid grid-cols-1 lg:grid-cols-[1fr_46%]">
 
         {/* Left — copy */}
         <div className="flex flex-col justify-center px-8 sm:px-12 lg:px-20 py-28 lg:py-0 relative">
@@ -213,6 +216,7 @@ export default function LandingPage() {
             LIVE
           </span>
         </div>
+        </div>{/* end grid wrapper */}
       </section>
 
       {/* ── Progress Strip ── */}
