@@ -136,8 +136,9 @@ export default function LandingPage() {
 
         {/* Right — dual mockup: floating phone + AI Waiter chat */}
         <div className="hidden lg:flex bg-[#FFF8F4] items-center justify-center relative overflow-hidden">
-          {/* Menu phone */}
-          <div className="animate-lp-float w-[190px] rounded-[2rem] p-4 shadow-2xl relative z-20 bg-white -translate-x-8 hero-animate" style={{ "--ha-delay": "500ms" } as React.CSSProperties}>
+          {/* Menu phone — wrapper fades in, inner div floats */}
+          <div className="hero-animate" style={{ "--ha-delay": "500ms" } as React.CSSProperties}>
+          <div className="animate-lp-float w-[190px] rounded-[2rem] p-4 shadow-2xl relative z-20 bg-white -translate-x-8">
             <div className="flex items-center gap-2 mb-3">
               <div className="w-6 h-6 bg-primary rounded-lg flex items-center justify-center shrink-0">
                 <span className="material-symbols-outlined text-white icon-fill text-[12px]">restaurant_menu</span>
@@ -165,9 +166,11 @@ export default function LandingPage() {
               <span className="text-[0.45rem] font-black text-primary uppercase tracking-wider">Add to order</span>
             </div>
           </div>
+          </div>{/* end phone hero-animate wrapper */}
 
-          {/* AI Waiter chat chip */}
-          <div className="animate-lp-float-chat absolute right-6 top-1/2 -translate-y-[45%] z-30 w-[188px] hero-animate" style={{ "--ha-delay": "680ms" } as React.CSSProperties}>
+          {/* AI Waiter chat chip — absolute wrapper fades in, inner div floats */}
+          <div className="hero-animate absolute right-6 top-1/2 -translate-y-[45%] z-30 w-[188px]" style={{ "--ha-delay": "680ms" } as React.CSSProperties}>
+          <div className="animate-lp-float-chat">
             <div className="bg-on-surface rounded-[1.5rem] overflow-hidden shadow-2xl">
               <div className="bg-primary px-4 py-3 flex items-center gap-2.5">
                 <div className="w-8 h-8 bg-white/20 rounded-xl flex items-center justify-center shrink-0">
@@ -210,9 +213,10 @@ export default function LandingPage() {
                 <p className="text-[0.45rem] text-secondary">Kitchen notified · 8:12 PM</p>
               </div>
             </div>
-          </div>
+          </div>{/* end lp-float-chat div */}
+          </div>{/* end chat hero-animate wrapper */}
 
-          <span className="hero-animate absolute bottom-6 left-6 select-none pointer-events-none leading-none font-headline font-extrabold text-[5.5rem] text-primary opacity-[0.06]" style={{ "--ha-delay": "900ms" } as React.CSSProperties}>
+          <span className="absolute bottom-6 left-6 select-none pointer-events-none leading-none font-headline font-extrabold text-[5.5rem] text-primary opacity-[0.06]">
             LIVE
           </span>
         </div>
