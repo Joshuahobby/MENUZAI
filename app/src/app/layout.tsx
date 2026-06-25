@@ -30,6 +30,7 @@ const syne = Syne({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "https://menuzaai.com"),
   title: "MENUZA AI | Turn Your Menu Into a Revenue Engine",
   description:
     "Create, optimize, and track your restaurant menu with your own AI Digital Waiter. Upload your menu, let the AI recommend items to customers, and take real-time orders.",
@@ -51,23 +52,14 @@ export const metadata: Metadata = {
   ],
   openGraph: {
     title: "MENUZA AI | Smart Digital Menus",
-    description: "View our menu and order directly via WhatsApp.",
+    description: "AI-powered digital menus with WhatsApp ordering — built for African restaurants.",
     type: "website",
     url: "https://menuzaai.com",
-    images: [
-      {
-        url: "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=1200&h=630&fit=crop",
-        width: 1200,
-        height: 630,
-        alt: "MENUZA AI Preview",
-      },
-    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "MENUZA AI | Smart Digital Menus",
-    description: "The future of restaurant menus is here.",
-    images: ["https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=1200&h=630&fit=crop"],
+    description: "AI-powered digital menus with WhatsApp ordering — built for African restaurants.",
   },
 };
 
