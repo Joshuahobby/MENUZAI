@@ -249,8 +249,8 @@ export default function LandingPage() {
             {CITIES.map((city, i) => (
               <span
                 key={city}
-                className="pop-animate text-xs font-bold text-secondary/70 bg-surface border border-black/6 px-3 py-1.5 rounded-full shadow-sm"
-                style={{ "--pa-delay": trustInView ? `${i * 80}ms` : "9999s" } as React.CSSProperties}
+                className={`${trustInView ? "pop-animate" : "opacity-0"} text-xs font-bold text-secondary/70 bg-surface border border-black/6 px-3 py-1.5 rounded-full shadow-sm`}
+                style={trustInView ? { "--pa-delay": `${i * 80}ms` } as React.CSSProperties : undefined}
               >
                 {city}
               </span>
@@ -479,8 +479,8 @@ export default function LandingPage() {
             ].map((o, i) => (
               <div
                 key={i}
-                className={`stat-animate${outcomesInView ? "" : ""} text-center p-6 bg-surface rounded-3xl border border-black/5 shadow-sm`}
-                style={{ "--sa-delay": outcomesInView ? o.delay : "9999s" } as React.CSSProperties}
+                className={`${outcomesInView ? "stat-animate" : "opacity-0"} text-center p-6 bg-surface rounded-3xl border border-black/5 shadow-sm`}
+                style={outcomesInView ? { "--sa-delay": o.delay } as React.CSSProperties : undefined}
               >
                 <span className="material-symbols-outlined text-primary text-3xl icon-fill mb-3 block">{o.icon}</span>
                 <p className="font-headline font-extrabold text-4xl text-on-surface mb-1 tabular-nums">{o.stat}</p>
