@@ -508,14 +508,16 @@ export default function LandingPage() {
               Watch a restaurant owner photograph their old paper menu, let AI extract every item, and go live — start to finish.
             </p>
           </div>
-          <div className={`reveal${demoInView ? " visible" : ""} rounded-3xl overflow-hidden shadow-2xl border border-black/8 aspect-video`} style={{ "--rv-delay": "260ms" } as React.CSSProperties}>
-            <iframe
-              src="https://www.youtube.com/embed/G4vp5NQnk-I?rel=0&modestbranding=1&color=white"
-              title="MENUZA AI — From paper menu to live digital menu in 90 seconds"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-              allowFullScreen
-              className="w-full h-full border-0"
-            />
+          <div className={`reveal${demoInView ? " visible" : ""} rounded-3xl overflow-hidden shadow-2xl border border-black/8 aspect-video bg-on-surface`} style={{ "--rv-delay": "260ms" } as React.CSSProperties}>
+            <video
+              poster="https://img.youtube.com/vi/G4vp5NQnk-I/maxresdefault.jpg"
+              controls
+              preload="none"
+              playsInline
+              className="w-full h-full object-cover"
+            >
+              <source src="/menuza-demo.mp4" type="video/mp4" />
+            </video>
           </div>
           <p className="text-center mt-4 text-xs text-secondary/50">90 seconds · Photo → AI extraction → live QR menu → staff dashboard</p>
         </div>
