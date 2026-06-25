@@ -263,7 +263,7 @@ export default function LandingPage() {
       {/* ── Value Proposition ── */}
       <section
         ref={valueRef as React.RefObject<HTMLElement>}
-        className="py-24 bg-surface px-6"
+        className="py-16 lg:py-24 bg-surface px-6"
       >
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
@@ -316,7 +316,7 @@ export default function LandingPage() {
       {/* ── AI Waiter Showcase ── */}
       <section
         ref={waiterRef as React.RefObject<HTMLElement>}
-        className="py-28 px-6 bg-surface-container-lowest border-y border-black/5"
+        className="py-16 lg:py-28 px-6 bg-surface-container-lowest border-y border-black/5"
       >
         <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
           <div className={`reveal-left${waiterInView ? " visible" : ""}`}>
@@ -420,7 +420,7 @@ export default function LandingPage() {
       {/* ── Features ── */}
       <section
         ref={featuresRef as React.RefObject<HTMLElement>}
-        className="py-28 px-6"
+        className="py-16 lg:py-28 px-6"
         id="features"
       >
         <div className="max-w-7xl mx-auto">
@@ -495,7 +495,7 @@ export default function LandingPage() {
       {/* ── Demo Video ── */}
       <section
         ref={demoRef as React.RefObject<HTMLElement>}
-        className="py-24 px-6"
+        className="py-16 lg:py-24 px-6"
         id="demo"
       >
         <div className="max-w-4xl mx-auto">
@@ -520,7 +520,10 @@ export default function LandingPage() {
                 <source src="/menuza-demo.mp4" type="video/mp4" />
               </video>
             ) : (
-              <div className="w-full h-full bg-on-surface/5" />
+              <div className="w-full h-full bg-on-surface flex flex-col items-center justify-center gap-3">
+                <span className="material-symbols-outlined text-white/20 text-7xl">play_circle</span>
+                <p className="text-white/30 text-sm font-medium">90-second demo</p>
+              </div>
             )}
           </div>
           <p className="text-center mt-4 text-xs text-secondary/50">90 seconds · Photo → AI extraction → live QR menu → staff dashboard</p>
@@ -530,7 +533,7 @@ export default function LandingPage() {
       {/* ── Pricing ── */}
       <section
         ref={pricingRef as React.RefObject<HTMLElement>}
-        className="py-24 px-6 bg-surface-container-lowest border-y border-black/5"
+        className="py-16 lg:py-24 px-6 bg-surface-container-lowest border-y border-black/5"
         id="pricing"
       >
         <div className="max-w-5xl mx-auto">
@@ -634,10 +637,10 @@ export default function LandingPage() {
       </section>
 
       {/* ── Final CTA ── */}
-      <section className="py-28 px-6">
+      <section className="py-16 lg:py-28 px-6">
         <div
           ref={ctaRef as React.RefObject<HTMLDivElement>}
-          className={`reveal${ctaInView ? " visible" : ""} max-w-3xl mx-auto bg-on-surface rounded-3xl px-12 py-20 text-center relative overflow-hidden`}
+          className={`reveal${ctaInView ? " visible" : ""} max-w-3xl mx-auto bg-on-surface rounded-3xl px-6 py-14 lg:px-12 lg:py-20 text-center relative overflow-hidden`}
         >
           <div className="absolute inset-0 bg-linear-to-br from-primary/8 via-transparent to-transparent pointer-events-none" />
           <p className="text-xs font-bold tracking-[0.25em] uppercase text-white/30 mb-6 relative">Get started today</p>
