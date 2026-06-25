@@ -93,12 +93,17 @@ STRICT rules:
       rawText = choice.message?.content || "";
     }
 
-    // Strip any accidental markdown code fences
-    const cleaned = rawText.replace(/```json|```/g, "").trim();
-    if (!cleaned.startsWith("{") && !cleaned.startsWith("[")) {
+    // Strip markdown fences and extract just the JSON array (handles leading/trailing prose)
+    let cleaned = rawText.replace(/```json|```/g, "").trim();
+    const arrayStart = cleaned.indexOf("[");
+    const arrayEnd = cleaned.lastIndexOf("]");
+    if (arrayStart === -1 || arrayEnd === -1 || arrayEnd < arrayStart) {
       const snippet = cleaned.length > 120 ? cleaned.slice(0, 120) + "..." : cleaned;
       throw new Error(`AI returned non-JSON response: "${snippet}"`);
     }
+    cleaned = cleaned.slice(arrayStart, arrayEnd + 1);
+    // Remove trailing commas before } or ] (common LLM mistake)
+    cleaned = cleaned.replace(/,(\s*[}\]])/g, "$1");
     const items = JSON.parse(cleaned);
 
     if (!Array.isArray(items)) {
