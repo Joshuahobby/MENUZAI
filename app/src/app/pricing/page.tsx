@@ -8,6 +8,7 @@ import { PublicNav } from "@/components/PublicNav";
 import { BackToTop } from "@/components/BackToTop";
 import { AuthCta } from "@/components/AuthCta";
 import { useLivePricing } from "@/hooks/useLivePricing";
+import { WA_LINK } from "@/lib/constants";
 
 const fmt = (n: number) => new Intl.NumberFormat("en-US").format(n);
 
@@ -370,9 +371,12 @@ export default function PricingPage() {
               Start Free — No Card Required
             </AuthCta>
             <a
-              href="mailto:support@menuzaai.com"
-              className="inline-block px-8 py-4 bg-white/8 text-white/70 font-bold rounded-[2rem] text-sm hover:bg-white/12 transition-colors border border-white/10"
+              href={WA_LINK}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2.5 px-8 py-4 bg-white/8 text-white/70 font-bold rounded-[2rem] text-sm hover:bg-white/12 transition-colors border border-white/10"
             >
+              <span className="material-symbols-outlined text-[18px] icon-fill">chat</span>
               Talk to Sales
             </a>
           </div>

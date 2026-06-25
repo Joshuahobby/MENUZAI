@@ -9,12 +9,13 @@ import { useCounter } from "@/hooks/useCounter";
 import { PublicNav } from "@/components/PublicNav";
 import { BackToTop } from "@/components/BackToTop";
 import { supabase } from "@/lib/supabase";
+import { WA_LINK } from "@/lib/constants";
 
 const fmt = (n: number) => new Intl.NumberFormat("en-US").format(n);
 
-const CITIES = ["Kigali", "Nairobi", "Kampala", "Dar es Salaam", "Bujumbura", "Lagos"];
+const CITIES = ["Kigali"];
 
-const HERO_PILLS = ["AI Waiter included", "QR ordering", "WhatsApp alerts", "14-day free trial"];
+const HERO_PILLS = ["AI Waiter (Pro+)", "QR ordering", "WhatsApp alerts", "14-day free trial"];
 
 const FEATURES = [
   { icon: "support_agent",    title: "AI Digital Waiter",    desc: "Greets every guest the moment they scan, answers questions, upsells high-margin dishes, and places their order — all in chat. Zero staff time.",  highlight: true  },
@@ -126,11 +127,55 @@ export default function LandingPage() {
           {/* Trust signal */}
           <div className="hero-animate flex items-center gap-2.5 text-xs text-secondary/60" style={{ "--ha-delay": "820ms" } as React.CSSProperties}>
             <div className="flex">
-              {["K", "N", "C"].map((l, i) => (
-                <div key={i} className={`w-6 h-6 rounded-full bg-primary/15 border-2 border-surface flex items-center justify-center text-[9px] font-black text-primary${i > 0 ? " -ml-1.5" : ""}`}>{l}</div>
+              {["K"].map((l, i) => (
+                <div key={i} className="w-6 h-6 rounded-full bg-primary/15 border-2 border-surface flex items-center justify-center text-[9px] font-black text-primary">{l}</div>
               ))}
             </div>
-            <span>Restaurants in <strong className="text-on-surface/70">Kigali · Nairobi · Kampala</strong> and beyond trust MENUZA AI</span>
+            <span>Restaurants in <strong className="text-on-surface/70">Kigali, Rwanda</strong> trust MENUZA AI</span>
+          </div>
+
+          {/* Mobile product snippet — hidden on desktop where the full right panel shows */}
+          <div className="flex lg:hidden gap-3 mt-8 items-end">
+            <div className="flex-1 bg-white rounded-2xl p-3.5 shadow-lg border border-black/6">
+              <div className="flex items-center gap-1.5 mb-2.5">
+                <div className="w-4 h-4 bg-primary rounded-md flex items-center justify-center">
+                  <span className="material-symbols-outlined text-white icon-fill text-[8px]">restaurant_menu</span>
+                </div>
+                <p className="font-headline font-extrabold text-[0.6rem] text-on-surface">Kigali Grill</p>
+              </div>
+              {[
+                { name: "Brochette ya Nk’osa", price: "3,500" },
+                { name: "Isombe na Poisson",        price: "2,800" },
+                { name: "Chips na Viande",           price: "3,000" },
+              ].map(({ name, price }) => (
+                <div key={name} className="flex justify-between items-center py-1 border-b border-black/5 last:border-0">
+                  <span className="text-on-surface/80 font-medium text-[0.42rem] truncate mr-1">{name}</span>
+                  <span className="text-primary font-bold text-[0.42rem] shrink-0">{price}</span>
+                </div>
+              ))}
+            </div>
+            <div className="w-[44%] shrink-0">
+              <div className="bg-on-surface rounded-2xl overflow-hidden shadow-xl">
+                <div className="bg-primary px-2.5 py-2 flex items-center gap-1.5">
+                  <span className="material-symbols-outlined text-white icon-fill text-[10px]">robot_2</span>
+                  <p className="text-white font-bold text-[0.48rem]">AI Waiter</p>
+                  <div className="ml-auto w-1 h-1 bg-green-400 rounded-full" />
+                </div>
+                <div className="px-2.5 py-2 space-y-1.5 bg-surface-container-lowest">
+                  <div className="bg-surface-container rounded-xl px-2 py-1.5">
+                    <p className="text-[0.42rem] text-on-surface">Good evening! What can I get you? 🍽️</p>
+                  </div>
+                  <div className="flex justify-end">
+                    <div className="bg-primary rounded-xl px-2 py-1.5 max-w-[80%]">
+                      <p className="text-[0.42rem] text-white">What&apos;s popular?</p>
+                    </div>
+                  </div>
+                  <div className="bg-surface-container rounded-xl px-2 py-1.5">
+                    <p className="text-[0.42rem] text-on-surface">Brochette ya Nk&apos;osa ⭐ Shall I add it?</p>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -581,7 +626,7 @@ export default function LandingPage() {
             {pricingPlans.filter(plan => plan.amountRwf > 0).map((plan, i) => {
               const displayPrice = `${fmt(plan.amountRwf * (isAnnual ? 11 : 1))} RWF`;
               const displayPeriod = isAnnual ? "/ year" : "/ month";
-              const pricingHref = `/pricing${isAnnual ? "?billing=annual" : ""}`;
+              const pricingHref = "/login?signup=true";
               return (
                 <div
                   key={i}
@@ -657,8 +702,9 @@ export default function LandingPage() {
             <Link href={ctaHref} className="px-8 py-4 bg-primary text-white font-bold rounded-[2rem] text-sm hover:bg-[#a04100] transition-colors shadow-lg shadow-primary/20">
               Start Free Trial — No Card Required
             </Link>
-            <a href="mailto:support@menuzaai.com" className="px-8 py-4 bg-white/8 text-white/60 font-bold rounded-[2rem] text-sm hover:bg-white/12 transition-colors border border-white/10">
-              Talk to Sales
+            <a href={WA_LINK} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2.5 px-8 py-4 bg-white/8 text-white/60 font-bold rounded-[2rem] text-sm hover:bg-white/12 transition-colors border border-white/10">
+              <span className="material-symbols-outlined text-[18px] icon-fill">chat</span>
+              Chat on WhatsApp
             </a>
           </div>
           <p className="text-white/20 text-xs mt-5 relative">14-day free trial · Cancel anytime · Built for Africa</p>
@@ -693,7 +739,7 @@ export default function LandingPage() {
           <div>
             <p className="font-bold text-xs uppercase tracking-widest text-on-surface/40 mb-5">Company</p>
             <ul className="space-y-3 text-sm text-secondary">
-              <li><a href="mailto:support@menuzaai.com" className="hover:text-primary transition-colors">Contact Us</a></li>
+              <li><a href={WA_LINK} target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors">WhatsApp Us</a></li>
               <li><Link href={ctaHref}   className="hover:text-primary transition-colors">Sign Up Free</Link></li>
               <li><Link href="/terms"    className="hover:text-primary transition-colors">Terms of Service</Link></li>
               <li><Link href="/privacy"  className="hover:text-primary transition-colors">Privacy Policy</Link></li>
