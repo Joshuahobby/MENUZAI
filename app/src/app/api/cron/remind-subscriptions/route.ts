@@ -30,6 +30,8 @@ function dayMatch(isoDate: string, daysFromNow: number): string {
 }
 
 
+// Vercel Cron Jobs invoke via GET; POST kept for manual triggering / tests
+export const GET = POST;
 export async function POST(req: Request) {
   const secret = process.env.CRON_SECRET;
   if (!secret) {
